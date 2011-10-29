@@ -1,15 +1,15 @@
 #include<sstream>
 #include<stdlib.h>
 #include<cstring>
+#include<iostream>
 
 #include "AnalysisVH.h"
-#include "CMSAnalysisSelector.h"
 #include "InputParameters.h"
 
 #include "TTree.h"
 
 // Prepare analysis Constructor
-AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, Tree * tree ) :
+AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, TTree * tree ) :
 	_cmsselector(consel), _tree(tree)
 {
 
@@ -21,6 +21,7 @@ AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, Tree 
 		std::cerr << "AnalysisVH::AnalysisVH ERROR: The 'InputParameters' argument "
 			<< "cannot be passed as NULL pointer, initialize first!! Exiting... " << std::endl;
 		exit(-1);
+	}
 
 	if( ip->TheNamedString( filenames+"0" ) == 0 )
 	{
@@ -29,7 +30,6 @@ AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, Tree 
 		exit(-1);
 	}
 	std::stringstream istr;
-	int k = -1;
 	const char * filename  = 0;
 	while( (filename = ip->TheNamedString(filenames+istr.str())) )
 	{

@@ -9,11 +9,12 @@
 #define ANALYSISBUILDER_H
 
 class AnalysisVH;
+class InputParameters;
 
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( const char * treeType/*, const int & analisisType */ );
+		static AnalysisVH * Build( const char * treeType, InputParameters *ip/*, const int & analisisType */ );
 
 };
 

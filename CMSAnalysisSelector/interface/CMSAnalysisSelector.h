@@ -142,7 +142,7 @@ class CMSAnalysisSelector : public TSelector {
 	  return methods;
   }
 
-
+/*
   // ### TO BE IMPLEMENTED IN CONCRETE SELECTOR ###
   //////////////////////////////////////////////////////////////
   // Getters methods for the datamembers
@@ -189,7 +189,7 @@ class CMSAnalysisSelector : public TSelector {
 
   // General
   virtual int GetEventEventNumber() const = 0;
-  // ### END TO BE IMPLEMENTED IN CONCRETE SELECTOR ###
+  // ### END TO BE IMPLEMENTED IN CONCRETE SELECTOR ### */
   
   //////////////////////////////////////////////////////////////
   // Methods to retrieve the objects at the end of the run

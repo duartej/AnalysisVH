@@ -6,20 +6,20 @@
 #include<vector>
 #include<cstring>
 
-#include "TTree.h"
+#include "CMSAnalysisSelector.h"
 
-class CMSAnalysisSelector;
+class InputParameters;
+class TTree;
 
 
 class AnalysisVH : public CMSAnalysisSelector 
 {
 	public: 
 		// State prepare analisis
-		AnalysisVH( CMSAnalysisSelector * consel, InputParameters * ip, Tree * tree = 0 ) : 
-			_cmsselector(consel) { }
+		AnalysisVH( CMSAnalysisSelector * consel, InputParameters * ip, TTree * tree = 0 );
 		// State runanalisis
 		//AnalysisVH( CMSAnalysisSelector * consel) : _cmsselector(conselr) { } 
-		~AnalysisVH();
+		virtual ~AnalysisVH();
 
 	protected:
 		CMSAnalysisSelector * _cmsselector; 
@@ -38,5 +38,13 @@ class AnalysisVH : public CMSAnalysisSelector
 		// Variables describing dataset
 		// -----------------------------------------------------------------------
 		std::vector<std::string> _datafiles;
+
+		TTree * _tree;
+
+	public:
+		ClassDef(AnalysisVH,0);
+
 };
+
+#endif
 

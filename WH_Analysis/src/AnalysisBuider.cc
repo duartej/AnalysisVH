@@ -2,9 +2,11 @@
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
 
-#include "CMSAnalisisSelectorMiniTrees.h"
+#include "CMSAnalysisSelectorMiniTrees.h"
 
-AnalysisVH * AnalysisBuilder::Build( const char * treeType/*, const int & analysisType */ )
+
+// Or template ??
+AnalysisVH * AnalysisBuilder::Build( const char * treeType, InputParameters *ip /*, const int & analysisType */ )
 {
 
 	AnalysisVH * an = 0;
@@ -16,14 +18,9 @@ AnalysisVH * AnalysisBuilder::Build( const char * treeType/*, const int & analys
 	// Tree type --> to decide selector
 	if( treeType == "MiniTrees" )
 	{
-		an = new AnalysisVH( new CMSAnalysisSelectorMiniTrees );
+		an = new AnalysisVH( new CMSAnalysisSelectorMiniTrees, ip );
 	}
 
 	return an;
 }
-
-
-
-
-
 

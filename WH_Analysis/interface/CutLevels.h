@@ -1,8 +1,6 @@
 #ifndef CUTLEVELS_H
 #define CUTLEVELS_H 1
 
-#include "TString.h"
-
 // Enum holding the index of every cut
 enum ECutLevel {
   _iAllEvents,          //  0
@@ -22,8 +20,5 @@ enum ECutLevel {
   _iMET,                // 14 Missing ET cut
   _iNCuts               //  N
 };
-
-
-
 
 #endif

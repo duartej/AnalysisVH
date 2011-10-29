@@ -1,4 +1,4 @@
-SHELL = /bin/sh
+SHELL     = /bin/sh
 
 PACKAGE   := $(shell basename `pwd`)
 
@@ -24,22 +24,23 @@ DEPSLIBDIR := $(foreach DEPSDIR,$(DEPSDIR),-L$(DEPSDIR)/lib)
 DEPSSEARCHLIBDIRS := $(foreach DEPSDIR,$(DEPSDIR),$(DEPSDIR)/lib)
 DEPSINC    := $(foreach DEPSDIR,$(DEPSDIR),-I$(DEPSDIR) -I$(DEPSDIR)/interface)
 
-# To search the libraries dependencies
+# Directory to search the libraries (-l) dependencies 
 vpath %.so $(subst  ,:,$(DEPSSEARCHLIBDIRS))
 
+### ROOT-stuff
 ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)
 ROOTLIBS   ?= $(shell root-config --libs)
 ROOTCINT   ?= rootcint
 
-#### Variables to generate the dictionaries
-DICTSRC    := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
-DICTHEADER := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
-DICTHEADERNAME := $(patsubst interface/%.h,%.h,$(DICTHEADER))
-JUSTCLASSHEADER := $(filter-out $(patsubst src/%.cc,interface/%.h,$(SOURCES)), $(HEADERS)) 
+#### Variables to generate the dictionaries: FIXME
+#DICTSRC         := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
+DICTSRC          := src/analysisvhdict.cxx
+DICTHEADER       := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
+DICTHEADERNAME   := $(patsubst interface/%.h,%.h,$(DICTHEADER))
+TARGETDICTHEADER := interface/AnalysisVH.h
 
-
-###### OBjects
+###### Objects
 OBJDIR     := build
 OBJECTS    := $(patsubst src/%.cc,$(OBJDIR)/%.o,$(wildcard src/*.cc))
 ###### Dictionary object
@@ -50,7 +51,6 @@ HEADERS := $(filter-out $(DICTHEADER), $(HEADERS))
 
 ### Macro to extract the path to the dependency libraries
 getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
-
 
 all: lib/lib$(PACKAGE).so
 
@@ -63,15 +63,15 @@ selectorcreator: $(DEPSLIBS) selectorcreator.cc
 
 
 ### Creating the dictionaries
-$(DICTSRC): $(HEADERS) 
+$(DICTSRC): $(HEADERS)
+	@echo "=== $(PACKAGE): ++++++ Creating dictionary"
 	@if [ -f $(DICTSRC) ]; then \
 		rm $(DICTSRC) ; \
 	fi
 	@if [ -f $(DICTHEADER) ]; then \
 		rm $(DICTHEADER) ; \
 	fi
-	
-	$(ROOTCINT) $(DICTSRC) -c $(DEPSINC) $(JUSTCLASSHEADER)
+	@$(ROOTCINT) $(DICTSRC) -c $(DEPSINC) $(TARGETDICTHEADER)
 	@if [ -f src/$(DICTHEADERNAME) ]; then \
 		mv src/$(DICTHEADERNAME) $(DICTHEADER); \
 	else \
@@ -79,47 +79,41 @@ $(DICTSRC): $(HEADERS)
 		exit -2; \
 	fi
 
+
 $(DICTOBJECT): $(DICTSRC)
 	@echo "=== $(PACKAGE): +++++ Creating dictionary objects"
 	@$(shell mkdir -p build)
-	@$(CXX) $(LDFLAGS) -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) $^ -o $@
+	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ $<
+
+
+-include $(patsubst src/%.cc,$(OBJDIR)/%.d,$(SOURCES))
+
 
 $(OBJECTS): $(SOURCES) $(HEADERS)
 	@echo "=== $(PACKAGE): ++++ Creating objects"
 	@$(shell mkdir -p build)
-	@$(CXX) $(LDFLAGS) -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) $(SOURCES) -o $(OBJECTS) 
+	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ \
+		$(patsubst $(OBJDIR)/%.o,src/%.cc,$@)
 
-$(DEPSLIBS): 
-	@# Checking if it is necessary to compile the dependency libraries
-	@echo "=== $(PACKAGE): compiling dependencies..."
-	@for libdir in $(call getpkgbasedir,$(subst -l,,$@)); do \
-		$(MAKE) -C $$libdir; \
-	done
 
-lib/lib$(PACKAGE).so: $(DEPSLIBS) $(DICTOBJECT) $(OBJECTS)
+lib/lib$(PACKAGE).so: $(DICTOBJECT) $(OBJECTS) 
 	@echo "=== $(PACKAGE): +++ Linking"
 	@$(shell mkdir -p lib)
 	@$(CXX) $(LDFLAGS) $(CXXFLAGS) $(DEPSLIBDIR) $(ROOTLIBDIR) $(ROOTLIBS) $^ -o $@  
 	@echo "... Done $(PACKAGE)"
 
-.PHONY: clean cleanall
 
-cleanall: clean
-	@for libdir in $(DEPSDIR); do \
-		$(MAKE) -C $$libdir clean; \
-	done
+.PHONY: clean
 
 clean:
 	@if [ -f lib/lib$(PACKAGE).so ]; then \
 		echo "++++++ $(PACKAGE): Cleaning ...." ; \
 		rm lib/lib$(PACKAGE).so $(OBJECTS) $(DICTOBJECT); \
 		rmdir lib; \
-		rmdir $(OBJDIR); \
+		rm -rf $(OBJDIR); \
 		rm $(DICTHEADER) ; \
 		rm $(DICTSRC) ; \
 	else  \
 		echo "make: Nothing to be done for \`clean'."; \
 	fi;
 
-
-	
