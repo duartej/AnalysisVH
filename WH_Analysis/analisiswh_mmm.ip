@@ -1,0 +1,11 @@
+@var TString NameTree      Tree;
+@var int     treeType      0;
+@var double  Luminosity    2143.3;
+@var TString MySelector    AnalysisWH_mmm;
+@var double  MinMuPt1      20.0;
+@var double  MinMuPt2      20.0;
+@var double  MinMuPt3      10.0;
+@var double  MaxDeltaRMuMu 1.2;
+@var double  MinMET        40.0;
+
+@var int     nEvents       -1;
