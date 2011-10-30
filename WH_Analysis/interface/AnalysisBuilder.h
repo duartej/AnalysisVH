@@ -8,13 +8,16 @@
 #ifndef ANALYSISBUILDER_H
 #define ANALYSISBUILDER_H
 
+
+#include "TreeTypes.h"
+
 class AnalysisVH;
 class InputParameters;
 
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( const char * treeType, InputParameters *ip/*, const int & analisisType */ );
+		static AnalysisVH * Build( treeTypes thetype, InputParameters *ip/*, const int & analisisType */ );
 
 };
 

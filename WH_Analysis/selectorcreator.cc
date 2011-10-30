@@ -21,8 +21,9 @@
 #endif
 
 #include "DatasetManager.h"
-#include "SelectorCreator.h"
+#include "TreeManagerCreator.h"
 #include "InputParameters.h"
+#include "TreeTypes.h"
 
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
@@ -156,14 +157,14 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		exit(-1);
 	}
 	// TreeType
-	char const * treeType;
+	treeTypes treeType;
 	if( datafiles[0].Contains("TESCO") )
 	{
-		treeType = "TESCO";
+		treeType = TESCO;
 	}
 	else 
 	{
-		treeType = "MiniTrees";
+		treeType = MiniTrees;
 	}
 
 	of << treeType << std::endl;
@@ -178,7 +179,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 
 // Overloaded function to extract the file names from a previous stored file
 // It will catch the files inside a subset
-std::pair<std::string,std::vector<TString> > extractdatafiles( const char * dataName, const int & subset = 0 )
+std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataName, const int & subset = 0 )
 {
 	TString dataNameprov(dataName);
 	if (dataNameprov.Contains("WH")) 
@@ -199,8 +200,13 @@ std::pair<std::string,std::vector<TString> > extractdatafiles( const char * data
 	}
 	
 	// TreeType
-	std::string treeType;
-	getline(inputf,treeType);
+	std::string s_treeType;
+	getline(inputf,s_treeType);
+	
+	int i_treeType = -1;
+	std::stringstream ss(s_treeType);
+	ss >> i_treeType;
+	treeTypes en_treeType = (treeTypes)i_treeType;
 
 	std::vector<TString> datafiles;
 	std::string line;
@@ -215,18 +221,19 @@ std::pair<std::string,std::vector<TString> > extractdatafiles( const char * data
 	}
 	inputf.close();
 
-	return std::pair<std::string,std::vector<TString> >(treeType,datafiles);
+
+	return std::pair<treeTypes,std::vector<TString> >(en_treeType,datafiles);
 }
 
 
 // Selector creation
-std::pair<std::string,std::string> createselector(const std::vector<TString> & datafiles)
+std::pair<std::string,treeTypes> createselector(const std::vector<TString> & datafiles)
 {
 	// 3. Create the selector
-	SelectorCreator sc(datafiles[0]);
+	TreeManagerCreator sc(datafiles[0]);
 	sc.MakeSimpleSelector();
 
-	return std::pair<std::string,std::string>(sc.getSelectorFilename(),sc.getTreeType());
+	return std::pair<std::string,treeTypes>(sc.getSelectorFilename(),sc.getTreeType());
 }
 
 // Change the header file of the analysis class in order to inherit from the
@@ -386,15 +393,15 @@ int main(int argc, char *argv[])
 	const char * cfgfile = "analisiswh_mmm.ip";
 	const char * runtype = "grid"; //"local"; // "grid"
 	
-	std::string treeType;
+	treeTypes dataType;
 	std::vector<TString> datafiles;
 	if( runtype == "local" )
 	{
 		datafiles = extractdatafiles( TString(dataName) );
 		// Create selector
-		std::pair<std::string,std::string> selfilenameTreeType = createselector(datafiles);
+		std::pair<std::string,treeTypes> selfilenameTreeType = createselector(datafiles);
 		std::string selectorfilename = selfilenameTreeType.first;
-		treeType = selfilenameTreeType.second;
+		dataType = selfilenameTreeType.second;
 		// Introduces the new selector to the analysis class
 		modifyheader(std::string(analysisheader),selectorfilename);
 		
@@ -406,9 +413,9 @@ int main(int argc, char *argv[])
 	else if( runtype == "grid" )
 	{
 		// Extract the datafiles from the file created in the "local" path
-		std::pair<std::string,std::vector<TString> > dum = extractdatafiles( dataName );
+		std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles( dataName );
 		datafiles = dum.second;
-		treeType  = dum.first;
+		dataType  = dum.first;
 	}
 	
 	//std::cout << "List of datafiles associated to the data '"<< dataName << "'" 
@@ -423,8 +430,8 @@ int main(int argc, char *argv[])
 
 	// Run analysis: call command
 	//AnalysisWH * analisis = AnalysisBuilder::Create( treeType );
-	std::cout << treeType << std::endl;
-	AnalysisVH * analysis = AnalysisBuilder::Build( treeType.c_str(), ip );
+	std::cout << dataType << std::endl;
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, ip );
 	
 
 	if( ip != 0 )

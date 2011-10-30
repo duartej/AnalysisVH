@@ -8,7 +8,7 @@
 #include<iostream>
 
 // Or template ??
-AnalysisVH * AnalysisBuilder::Build( const char * treeType, InputParameters *ip /*, const int & analysisType */ )
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip /*, const int & analysisType */ )
 {
 
 	AnalysisVH * an = 0;
@@ -18,8 +18,8 @@ AnalysisVH * AnalysisBuilder::Build( const char * treeType, InputParameters *ip 
 	// para instanciar correctamente...
 
 	// Tree type --> to decide selector
-	std::cout << "[" << treeType << "]" << std::endl;
-	if( treeType /*== "MiniTrees"*/ )
+	std::cout << "[" << thetype << "]" << std::endl;
+	if( thetype == MiniTrees )
 	{
 		MiniTreesManager * data = new MiniTreesManager;
 		an = new AnalysisVH( data, ip );
