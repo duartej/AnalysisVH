@@ -42,9 +42,56 @@ class TreeManager
 		virtual ~TreeManager() { };
 
 		virtual void Init(TTree * tree) = 0;
+		// ==== ADD HERE YOUR NEW METHOD AND DON'T FORGET 
+		//      TO INCLUDE ALSO IN TreeManager::getmethods 
+		// ==================================================
+		// Methods to extract concret values from a Tree
+		virtual std::vector<float>* GetMuonPt() const = 0;
+		virtual std::vector<float>* GetMuondeltaPt() const = 0;
+		virtual std::vector<float>* GetMuonPx() const = 0;
+		virtual std::vector<float>* GetMuonPy() const = 0;
+		virtual std::vector<float>* GetMuonPz() const = 0;
+		virtual std::vector<float>* GetMuonEnergy() const = 0;
+		
+		// Isolation
+		virtual std::vector<float>* GetMuonSumIsoTrack() const = 0;
+		virtual std::vector<float>* GetMuonSumIsoCalo() const = 0;
+		
+		// Position
+		virtual std::vector<float>* GetMuonvx() const = 0;
+		virtual std::vector<float>* GetMuonvy() const = 0;
+		virtual std::vector<float>* GetMuonvz() const = 0;
+		
+		// IP, PV stuff
+		virtual std::vector<float>* GetMuonIP2DInTrack() const = 0;
+		virtual std::vector<float>* GetMuonIP2DBiasedPV() const = 0;
+		virtual std::vector<float>* GetMuonIP2DUnBiasedPV() const = 0;
+		virtual std::vector<float>* GetMuondzPVBiasedPV() const = 0;
+		virtual std::vector<float>* GetMuondzPVUnBiasedPV() const = 0;
+		
+		// Identification 
+		virtual std::vector<bool>* IsGlobalMuon() const = 0;
+		virtual std::vector<bool>* IsAllTrackerMuons() const = 0;
+		virtual std::vector<bool>* IsAllStandAloneMuons() const = 0;
+		virtual std::vector<bool>* IsTMLastStationTight() const = 0;
+		
+		// Quality
+		virtual std::vector<int>* GetMuonNValidHitsSATrk() const = 0;
+		virtual std::vector<int>* GetMuonNumOfMatches() const = 0;
+		virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const = 0;
+		virtual std::vector<int>* GetMuonNValidHitsInTrk() const = 0;
+		virtual std::vector<float>* GetMuonNormChi2GTrk() const = 0;
+		
+		//-- Vertex
+		virtual std::vector<float>* GetVertexz() const = 0;
+		
+		// General
+		virtual int GetEventEventNumber() const = 0;
+		// ==== END
+		// ==================================================
   		
 		// Reflexion: to extract methods needed to be implemented
-		// in the concrete Manager... Needed?
+		// in the concrete Manager... 
 		inline static std::vector<std::string> getmethods()
 		{
 			std::vector<std::string> methods;
