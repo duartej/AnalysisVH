@@ -1,17 +1,16 @@
-///////////////////////////////////////////////////////////////////////
+// -*- C++ -*-
 //
-//    FILE: SelectorCreator.cc
-//   CLASS: SelectorCreator
-// AUTHORS: J. Duarte Campderros
-//    DATE: October, 2011
+// Package:    TreeManagerCreator
+// Class:      TreeManagerCreator
+// 
 //
-///////////////////////////////////////////////////////////////////////
-
-#include "SelectorCreator.h"
-#include "CMSAnalysisSelector.h"
-
-/*
-#include "TStreamerElement.h"*/
+// Original Author: Jordi Duarte Campderros  
+//         Created:  Sun Oct  30 14:20:31 CET 2011
+// 
+// jordi.duarte.campderros@cern.ch
+//
+#include "TreeManagerCreator.h"
+#include "TreeManager.h"
 
 //ROOT includes
 #include "TFile.h"
@@ -40,9 +39,9 @@
 using namespace std;
 
 
-SelectorCreator::SelectorCreator(const char * filename):
+TreeManagerCreator::TreeManagerCreator(const char * filename):
 	_file(0),_tree(0),
-	_classnamestr("CMSAnalysisSelector"),
+	_classnamestr("TreeManager"),
 	_classname(0)
 {
 	// Instanciating the filename 
@@ -50,7 +49,7 @@ SelectorCreator::SelectorCreator(const char * filename):
 
 	if(_file == 0 || _file->IsZombie())
 	{
-		std::cerr << "SelectorCreator::SelectorCreator ERROR: File '"
+		std::cerr << "TreeManagerCreator::TreeManagerCreator ERROR: File '"
 			<< filename << "' not initialize! Exiting..." 
 			<< std::endl;
 		exit(-1);
@@ -60,7 +59,7 @@ SelectorCreator::SelectorCreator(const char * filename):
 	//
 	if(_tree == 0)
 	{
-		std::cerr << "SelectorCreator::SelectorCreator ERROR: "
+		std::cerr << "TreeManagerCreator::TreeManagerCreator ERROR: "
 			<< "Can't instanciate this class. File structure not "
 			<< "implemented [MiniTrees] [TESCO]" 
 			<< std::endl;
@@ -70,7 +69,7 @@ SelectorCreator::SelectorCreator(const char * filename):
 	_classname = _classnamestr.c_str();
 }
 
-SelectorCreator::~SelectorCreator()
+TreeManagerCreator::~TreeManagerCreator()
 {
 	if(_file != 0)
 	{
@@ -82,7 +81,7 @@ SelectorCreator::~SelectorCreator()
 
 
 // Recursive search for a known structure
-void SelectorCreator::FindTree(TDirectory *indir)
+void TreeManagerCreator::FindTree(TDirectory *indir)
 {
 	// Current directory (or file)
 	TDirectory * aDir = gDirectory;
@@ -123,12 +122,12 @@ void SelectorCreator::FindTree(TDirectory *indir)
 				if( strcmp(atree->GetName(), "Tree") == 0 ) 
 				{
 					_classnamestr += "MiniTrees";
-					_treeType = "MiniTrees";
+					_treeType = MiniTrees;
 				}
 				else
 				{
 					_classnamestr += "TESCO";
-					_treeType = "TESCO";
+					_treeType = TESCO;
 				}
 
 				aDir->cd();
@@ -142,7 +141,7 @@ void SelectorCreator::FindTree(TDirectory *indir)
 
 // Method to extract what datamember must be used for each getter
 // This method has to be modified each time the ....
-const char * SelectorCreator::getImplementationOfGetter(const std::string & decl)
+const char * TreeManagerCreator::getImplementationOfGetter(const std::string & decl)
 {
 	// Assuming the name after the Get word is describing the datamember
 	int index = decl.find("Get");
@@ -166,13 +165,13 @@ const char * SelectorCreator::getImplementationOfGetter(const std::string & decl
 
 
 	std::string realleaf("");
-	if( _treeType == "MiniTrees" )
+	if( _treeType == MiniTrees )
 	{
 		// Extract object type
 		std::map<std::string,std::string>::iterator leafname = _leafmap.find(datamember) ;
 		if( leafname == _leafmap.end() )
 		{
-			std::cout << "SelectorCreator: WARNING: Not found the correspondent leaf "
+			std::cout << "TreeManagerCreator: WARNING: Not found the correspondent leaf "
 				<< "to the method '" << decl << "' " << std::endl;
 			std::cout << "Using '" << datamember << "' as key to find the leaf. "
 				<< "The method is going to be empty!!\n" << std::endl;
@@ -182,15 +181,15 @@ const char * SelectorCreator::getImplementationOfGetter(const std::string & decl
 			realleaf = leafname->second;
 		}
 	}
-	else if( _treeType == "TESCO" )
+	else if( _treeType == TESCO )
 	{
-		std::cout << "SelectorCreator:: 'TESCO' trees not implemented yet. "
+		std::cout << "TreeManagerCreator:: 'TESCO' trees not implemented yet. "
 			<< "Exiting..." << std::endl;
 		exit(0);
 	}
 	else
 	{
-		std::cout << "SelectorCreator:: '" << _treeType << "' trees not implemented yet. "
+		std::cout << "TreeManagerCreator:: '" << _treeType << "' trees not implemented yet. "
 			<< "Exiting..." << std::endl;
 		exit(0);
 	}
@@ -212,7 +211,7 @@ const char * SelectorCreator::getImplementationOfGetter(const std::string & decl
 
 // Simple version of MakeSelector/MakeClass just to deal
 // with MiniTrees and TESCO trees
-int SelectorCreator::MakeSimpleSelector(const char* path)
+int TreeManagerCreator::MakeSimpleSelector(const char* path)
 {
 	// Dumping to the output file
 	bool ischain = _tree->InheritsFrom("TChain");
@@ -221,11 +220,13 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 	std::string totalname(path);
 	totalname += "/";
 	totalname += _classname;
+	std::string srctotalname(totalname+".cc");
 	totalname += ".h";
+
 	FILE *fp = fopen(totalname.c_str(), "w");
 	if (!fp) 
 	{
-		std::cerr << "ERROR: SelectorCreator::MakeSimpleSelector. Cannot open output " 
+		std::cerr << "ERROR: TreeManagerCreator::MakeSimpleSelector. Cannot open output " 
 			<< "file '" << totalname << "'" << std::endl;
 		return 3;
 	}
@@ -251,13 +252,13 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 	fprintf(fp,"#include <TROOT.h>\n");
 	fprintf(fp,"#include <TChain.h>\n");
 	
-	fprintf(fp,"#include \"CMSAnalysisSelector.h\"\n");
+	fprintf(fp,"#include \"TreeManager.h\"\n");
 	fprintf(fp,"\n");
 	fprintf(fp,"using namespace std;");
 	fprintf(fp,"\n");
-	fprintf(fp,"class %s : public CMSAnalysisSelector \n{\n",_classname);
-	fprintf(fp,"\tpublic :\n");
-	//fprintf(fp,"\tprivate :\n"); --> FIXME
+	fprintf(fp,"class %s : public TreeManager \n{\n",_classname);
+	//fprintf(fp,"\tpublic :\n");
+	fprintf(fp,"\tprivate :\n"); //--> FIXME
 	fprintf(fp,"\n\t\t// Declaration of leaf types");
 
 	// Obtaining all the leaves and ordering in a dict
@@ -314,7 +315,7 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 					theleafs->GetBranch()->GetName(),theleafs->GetName()) );
 		// To be used when implementing the getters methods
 		std::string leafname = theleafs->GetName();
-		if( _treeType == "MiniTrees" )
+		if( _treeType == MiniTrees )
 		{
 			// Asumming T_
 			leafname.replace(0,1,"");
@@ -340,13 +341,13 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 	
 	// generate class member functions prototypes
 	fprintf(fp,"\n\n");
- 	// fprintf(fp,"\tpublic :\n");  ---> FIXME
+ 	fprintf(fp,"\tpublic :\n");  // ---> FIXME
 	fprintf(fp,"\t\t%s(TTree * /* tree */ =0) { }\n",_classname) ;
 	fprintf(fp,"\t\tvirtual ~%s() { }\n",_classname);
 	fprintf(fp,"\t\tvirtual void    Init(TTree *tree);\n");
 
 	fprintf(fp,"\t\t// Specific getters methods\n");
-	std::vector<std::string> methods = CMSAnalysisSelector::getmethods();
+	std::vector<std::string> methods = TreeManager::getmethods();
 	for(unsigned int i = 0; i < methods.size(); ++i)
 	{
 		const std::string decl = methods.at(i);
@@ -355,14 +356,19 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 	}
 	fprintf(fp,"\n\n");
 
-	fprintf(fp,"\t\tClassDef(%s,0);\n",_classname);
+	fprintf(fp,"\tClassDef(%s,0);\n",_classname);
 	fprintf(fp,"};\n");
 	fprintf(fp,"\n");
 	fprintf(fp,"#endif\n");
 	fprintf(fp,"\n");
+
+	fclose(fp);  // Closing file and  Freeing memory
+
+	// Source code
+	fp = fopen(srctotalname.c_str(), "w");
 	
 	// generate code for class constructor
-	fprintf(fp,"#ifdef %s_cxx\n",_classname);
+	// fprintf(fp,"#ifdef %s_cxx\n",_classname); -- Not needed anymor
 	
 	// generate code for class destructor()
 	// generate code for class member function GetEntry()
@@ -399,7 +405,7 @@ int SelectorCreator::MakeSimpleSelector(const char* path)
 	fprintf(fp,"}\n");
 	fprintf(fp,"\n");
 	
-	fprintf(fp,"#endif // #ifdef %s_cxx\n",_classname);
+	//fprintf(fp,"#endif // #ifdef %s_cxx\n",_classname); --> Not needed anymore
 	
 	fclose(fp);
 

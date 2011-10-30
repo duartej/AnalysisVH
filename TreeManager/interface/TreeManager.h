@@ -42,6 +42,57 @@ class TreeManager
 		virtual ~TreeManager() { };
 
 		virtual void Init(TTree * tree) = 0;
+  		
+		// Reflexion: to extract methods needed to be implemented
+		// in the concrete Manager... Needed?
+		inline static std::vector<std::string> getmethods()
+		{
+			std::vector<std::string> methods;
+			
+			methods.push_back("virtual std::vector<float>* GetMuonPt() const");
+			methods.push_back("virtual std::vector<float>* GetMuondeltaPt() const");
+			methods.push_back("virtual std::vector<float>* GetMuonPx() const");
+			methods.push_back("virtual std::vector<float>* GetMuonPy() const");
+			methods.push_back("virtual std::vector<float>* GetMuonPz() const");
+			methods.push_back("virtual std::vector<float>* GetMuonEnergy() const");
+			
+			// Isolation
+			methods.push_back("virtual std::vector<float>* GetMuonSumIsoTrack() const");
+			methods.push_back("virtual std::vector<float>* GetMuonSumIsoCalo() const");
+			
+			// Position
+			methods.push_back("virtual std::vector<float>* GetMuonvx() const");
+			methods.push_back("virtual std::vector<float>* GetMuonvy() const");
+			methods.push_back("virtual std::vector<float>* GetMuonvz() const");
+			
+			// IP, PV stuff
+			methods.push_back("virtual std::vector<float>* GetMuonIP2DInTrack() const");
+			methods.push_back("virtual std::vector<float>* GetMuonIP2DBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetMuonIP2DUnBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetMuondzPVBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetMuondzPVUnBiasedPV() const");
+			
+			// Identification 
+			methods.push_back("virtual std::vector<bool>* IsGlobalMuon() const");
+			methods.push_back("virtual std::vector<bool>* IsAllTrackerMuons() const");
+			methods.push_back("virtual std::vector<bool>* IsAllStandAloneMuons() const");
+			methods.push_back("virtual std::vector<bool>* IsTMLastStationTight() const");
+			
+			// Quality
+			methods.push_back("virtual std::vector<int>* GetMuonNValidHitsSATrk() const");
+			methods.push_back("virtual std::vector<int>* GetMuonNumOfMatches() const");
+			methods.push_back("virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const");
+			methods.push_back("virtual std::vector<int>* GetMuonNValidHitsInTrk() const");
+			methods.push_back("virtual std::vector<float>* GetMuonNormChi2GTrk() const");
+			
+			//-- Vertex
+			methods.push_back("virtual std::vector<float>* GetVertexz() const");
+			
+			// General
+			methods.push_back("virtual int GetEventEventNumber() const");
+			
+			return methods;
+		}
 
 	protected:
 		TTree * fChain;
