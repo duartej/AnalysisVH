@@ -24,6 +24,9 @@
 #include "SelectorCreator.h"
 #include "InputParameters.h"
 
+#include "AnalysisBuilder.h"
+#include "AnalysisVH.h"
+
 
 // ROOT
 #include "TString.h"
@@ -363,7 +366,7 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	{
 		std::stringstream is;
 		is << i;
-		std::string varfilename("datafilename_");
+		std::string varfilename("datafilenames_");
 		varfilename += is.str(); 
 		ip->SetNamedString( varfilename, datafiles[i].Data() );
 	}
@@ -408,23 +411,32 @@ int main(int argc, char *argv[])
 		treeType  = dum.first;
 	}
 	
-	std::cout << "List of datafiles associated to the data '"<< dataName << "'" 
-		<< "[" << treeType << "]:" << std::endl;
+	//std::cout << "List of datafiles associated to the data '"<< dataName << "'" 
+	//	<< "[" << treeType << "]:" << std::endl;
 	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
 	{
 		std::cout << "*" << *it << std::endl;
 	}
 	// Initialize the analysis specific parameters using a config file
-	InputParameters * ip = setparameters(datafiles,TString(dataName),cfgfile); ip->DumpParms();
+	InputParameters * ip = setparameters(datafiles,TString(dataName),cfgfile); 
+	//ip->DumpParms();
 
 	// Run analysis: call command
 	//AnalysisWH * analisis = AnalysisBuilder::Create( treeType );
+	std::cout << treeType << std::endl;
+	AnalysisVH * analysis = AnalysisBuilder::Build( treeType.c_str(), ip );
 	
 
 	if( ip != 0 )
 	{
 		delete ip;
 		ip=0;
+	}
+
+	if( analysis != 0 )
+	{
+		delete analysis;
+		analysis = 0;
 	}
 
 }

@@ -34,11 +34,24 @@ ROOTLIBS   ?= $(shell root-config --libs)
 ROOTCINT   ?= rootcint
 
 #### Variables to generate the dictionaries: FIXME
-#DICTSRC         := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
-DICTSRC          := src/analysisvhdict.cxx
-DICTHEADER       := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
+##DICTSRC         := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
+#DICTSRC          := src/analysisvhdict.cxx
+#DICTHEADER       := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
+#DICTHEADERNAME   := $(patsubst interface/%.h,%.h,$(DICTHEADER))
+#TARGETDICTHEADER := interface/AnalysisVH.h
+
+### Macro to convert a the header name to a dictionary .cc filename
+getdictname   = $(patsubst interface/%,%,$(shell echo $(1)|cut -d. -f1| tr A-Z a-z)dict.cxx)
+
+#### Variables to generate the dictionaries:
+#- Extract all the headers containing ClassDef call
+TARGETDICTHEADER := $(shell grep -R ClassDef ./interface/*.h | sed -e 's/[^:]:*ClassDef[^ ]*//' -e 's/://' -e 's/\.\///')
+#- Creating the dict names: .h and .cc
+DICTHEADER       := $(foreach VAR,$(TARGETDICTHEADER),$(shell echo $(VAR) | cut -d. -f1| tr A-Z a-z)dict.h )
+DICTSRC          := $(patsubst interface/%.h,src/%.cxx,$(DICTHEADER))
 DICTHEADERNAME   := $(patsubst interface/%.h,%.h,$(DICTHEADER))
-TARGETDICTHEADER := interface/AnalysisVH.h
+#- Useful to link the header with the dict.cc
+PAIRDICTHEADER := $(foreach VAR,$(TARGETDICTHEADER), $(VAR):$(call getdictname,$(VAR)))
 
 ###### Objects
 OBJDIR     := build
@@ -50,30 +63,29 @@ DICTOBJECT := $(patsubst src/%.cxx,$(OBJDIR)/%.o,$(DICTSRC))
 HEADERS := $(filter-out $(DICTHEADER), $(HEADERS))
 
 ### Macro to extract the path to the dependency libraries
-getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
+getpkgbasedir  = $(foreach var,$(1),$(filter %/$(var),$(DEPSDIR))) 
+
+### Macro to extract the header counterpart to a dictionary source name
+getheaderdict = $(patsubst %:$(1),%,$(filter %:$(1), $(PAIRDICTHEADER)))
+
 
 all: lib/lib$(PACKAGE).so
 
-selectorcreator: $(DEPSLIBS) selectorcreator.cc
+selectorcreator: selectorcreator.cc $(DEPSLIBS) $(TREEDICT)
 	@echo "=== $(PACKAGE): +++ Executable selectorcreator"
 	@$(shell mkdir -p lib)
 	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
-		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) selectorcreator.cc -o $@  
+		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -l$(PACKAGE) -L./lib $< -o $@  
 	@echo "... Done $(PACKAGE)"
 
 
 ### Creating the dictionaries
-$(DICTSRC): $(HEADERS)
-	@echo "=== $(PACKAGE): ++++++ Creating dictionary"
-	@if [ -f $(DICTSRC) ]; then \
-		rm $(DICTSRC) ; \
-	fi
-	@if [ -f $(DICTHEADER) ]; then \
-		rm $(DICTHEADER) ; \
-	fi
-	@$(ROOTCINT) $(DICTSRC) -c $(DEPSINC) $(TARGETDICTHEADER)
-	@if [ -f src/$(DICTHEADERNAME) ]; then \
-		mv src/$(DICTHEADERNAME) $(DICTHEADER); \
+$(DICTSRC): $(TARGETDICTHEADER)
+	@echo "=== $(PACKAGE): ++++++ Creating dictionary ($@)"
+	@rm -f $@ $(patsubst src/%.cxx,interface/%.h,$@)
+	@$(ROOTCINT) $@ -c $(DEPSINC) $(call getheaderdict,$(patsubst src/%,%,$@))
+	@if [ -f src/$(patsubst src/%.cxx,%.h,$@) ]; then \
+		mv src/$(patsubst src/%.cxx,%.h,$@) interface/$(patsubst src/%.cxx,%.h,$@); \
 	else \
 	        echo "ERROR: Not generated the dictionary!" \
 		exit -2; \
@@ -81,16 +93,16 @@ $(DICTSRC): $(HEADERS)
 
 
 $(DICTOBJECT): $(DICTSRC)
-	@echo "=== $(PACKAGE): +++++ Creating dictionary objects"
+	@echo "=== $(PACKAGE): +++++ Creating dictionary objects ($@)"
 	@$(shell mkdir -p build)
-	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ $<
+	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ $(patsubst build/%.o,src/%.cxx,$@)
 
 
 -include $(patsubst src/%.cc,$(OBJDIR)/%.d,$(SOURCES))
 
 
 $(OBJECTS): $(SOURCES) $(HEADERS)
-	@echo "=== $(PACKAGE): ++++ Creating objects"
+	@echo "=== $(PACKAGE): ++++ Creating objects ($@)"
 	@$(shell mkdir -p build)
 	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ \
 		$(patsubst $(OBJDIR)/%.o,src/%.cc,$@)

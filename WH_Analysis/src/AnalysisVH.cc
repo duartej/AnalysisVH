@@ -9,8 +9,8 @@
 #include "TTree.h"
 
 // Prepare analysis Constructor
-AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, TTree * tree ) :
-	_cmsselector(consel), _tree(tree)
+AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip/*, TTree * tree*/ ) :
+	_data(data), _tree(0)
 {
 
 	// Extract filenames: datafilenames_[index]
@@ -30,18 +30,43 @@ AnalysisVH::AnalysisVH(CMSAnalysisSelector * consel, InputParameters * ip, TTree
 		exit(-1);
 	}
 	std::stringstream istr;
+	int id = 0;
+	istr << id;
 	const char * filename  = 0;
 	while( (filename = ip->TheNamedString(filenames+istr.str())) )
 	{
 		_datafiles.push_back( filename );
+		id++;
+		istr << id;
+	}
+
+	for(unsigned int i = 0; i < _datafiles.size(); ++i)
+	{
+		std::cout << _datafiles[i] << std::endl;
 	}
 }
 
 
+void AnalysisVH::Initialise()
+{
+}
+
+void AnalysisVH::InitialiseParameters()
+{
+}
+
+void AnalysisVH::InsideLoop()
+{
+}
+
+void AnalysisVH::Summary()
+{
+}
+
 AnalysisVH::~AnalysisVH()
 {
-	if( _cmsselector != 0)
+	if( _data != 0)
 	{
-		delete _cmsselector;
+		delete _data;
 	}
 }

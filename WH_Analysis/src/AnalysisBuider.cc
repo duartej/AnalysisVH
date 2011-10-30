@@ -2,8 +2,10 @@
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
 
-#include "CMSAnalysisSelectorMiniTrees.h"
+#include "MiniTreesManager.h"
 
+//FIXME:PROV@
+#include<iostream>
 
 // Or template ??
 AnalysisVH * AnalysisBuilder::Build( const char * treeType, InputParameters *ip /*, const int & analysisType */ )
@@ -16,9 +18,11 @@ AnalysisVH * AnalysisBuilder::Build( const char * treeType, InputParameters *ip 
 	// para instanciar correctamente...
 
 	// Tree type --> to decide selector
-	if( treeType == "MiniTrees" )
+	std::cout << "[" << treeType << "]" << std::endl;
+	if( treeType /*== "MiniTrees"*/ )
 	{
-		an = new AnalysisVH( new CMSAnalysisSelectorMiniTrees, ip );
+		MiniTreesManager * data = new MiniTreesManager;
+		an = new AnalysisVH( data, ip );
 	}
 
 	return an;

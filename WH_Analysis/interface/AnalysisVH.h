@@ -7,6 +7,7 @@
 #include<cstring>
 
 #include "CMSAnalysisSelector.h"
+#include "TreeManager.h"
 
 class InputParameters;
 class TTree;
@@ -16,13 +17,13 @@ class AnalysisVH : public CMSAnalysisSelector
 {
 	public: 
 		// State prepare analisis
-		AnalysisVH( CMSAnalysisSelector * consel, InputParameters * ip, TTree * tree = 0 );
+		AnalysisVH( TreeManager * data, InputParameters * ip );
 		// State runanalisis
 		//AnalysisVH( CMSAnalysisSelector * consel) : _cmsselector(conselr) { } 
 		virtual ~AnalysisVH();
 
 	protected:
-		CMSAnalysisSelector * _cmsselector; 
+		TreeManager * _data; 
 		
 		virtual void InitialiseParameters();
 		virtual void Initialise();
@@ -34,7 +35,7 @@ class AnalysisVH : public CMSAnalysisSelector
 
 	private:
 		AnalysisVH();
-		
+
 		// Variables describing dataset
 		// -----------------------------------------------------------------------
 		std::vector<std::string> _datafiles;
