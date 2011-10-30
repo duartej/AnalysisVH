@@ -64,6 +64,13 @@ getheaderdict = $(patsubst %:$(1),%,$(filter %:$(1), $(PAIRDICTHEADER)))
 
 all: lib/lib$(PACKAGE).so
 
+datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
+	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
+	@$(shell mkdir -p lib)
+	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
+		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -L./lib $< -o $@  
+	@echo "... Done $(PACKAGE)"
+
 selectorcreator: selectorcreator.cc $(DEPSLIBS) $(TREEDICT)
 	@echo "=== $(PACKAGE): +++ Executable selectorcreator"
 	@$(shell mkdir -p lib)

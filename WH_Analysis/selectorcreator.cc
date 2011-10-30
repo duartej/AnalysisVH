@@ -391,7 +391,7 @@ int main(int argc, char *argv[])
 	const char * dataName = "WH160";
 	const char * analysisheader = "interface/AnalysisWH_mmm.h";
 	const char * cfgfile = "analisiswh_mmm.ip";
-	const char * runtype = "grid"; //"local"; // "grid"
+	const char * runtype = "local"; //"local"; // "grid"
 	
 	treeTypes dataType;
 	std::vector<TString> datafiles;
@@ -403,7 +403,7 @@ int main(int argc, char *argv[])
 		std::string selectorfilename = selfilenameTreeType.first;
 		dataType = selfilenameTreeType.second;
 		// Introduces the new selector to the analysis class
-		modifyheader(std::string(analysisheader),selectorfilename);
+		// modifyheader(std::string(analysisheader),selectorfilename); --> Ya no es necesario
 		
 		// Compilation stuff
 		system("make");

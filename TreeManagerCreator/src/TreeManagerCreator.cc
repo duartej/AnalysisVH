@@ -366,6 +366,8 @@ int TreeManagerCreator::MakeSimpleSelector(const char* path)
 
 	// Source code
 	fp = fopen(srctotalname.c_str(), "w");
+	fprintf(fp,"#include \"%s\"\n",totalname.c_str());
+	fprintf(fp,"\n");
 	
 	// generate code for class constructor
 	// fprintf(fp,"#ifdef %s_cxx\n",_classname); -- Not needed anymor

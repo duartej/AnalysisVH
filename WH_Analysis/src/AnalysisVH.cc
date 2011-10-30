@@ -9,8 +9,12 @@
 #include "TTree.h"
 
 // Prepare analysis Constructor
-AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip/*, TTree * tree*/ ) :
-	_data(data), _tree(0)
+AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip ) :
+	CMSAnalysisSelector(0)//,
+//	fPUWeight(0),
+//	fMuonSelector(0),
+//	fHistos(0),	
+//	fIsWH(false)
 {
 
 	// Extract filenames: datafilenames_[index]
@@ -39,11 +43,12 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip/*, TTree * tree*
 		id++;
 		istr << id;
 	}
-
+	
+	/*
 	for(unsigned int i = 0; i < _datafiles.size(); ++i)
 	{
 		std::cout << _datafiles[i] << std::endl;
-	}
+	}*/
 }
 
 

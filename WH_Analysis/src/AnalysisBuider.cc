@@ -2,7 +2,7 @@
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
 
-#include "MiniTreesManager.h"
+#include "TreeManagerMiniTrees.h"
 
 //FIXME:PROV@
 #include<iostream>
@@ -21,7 +21,7 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip /*, 
 	std::cout << "[" << thetype << "]" << std::endl;
 	if( thetype == MiniTrees )
 	{
-		MiniTreesManager * data = new MiniTreesManager;
+		TreeManagerMiniTrees * data = new TreeManagerMiniTrees;
 		an = new AnalysisVH( data, ip );
 	}
 
