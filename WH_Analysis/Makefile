@@ -33,13 +33,6 @@ ROOTLIBDIR ?= -L$(shell root-config --libdir)
 ROOTLIBS   ?= $(shell root-config --libs)
 ROOTCINT   ?= rootcint
 
-#### Variables to generate the dictionaries: FIXME
-##DICTSRC         := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
-#DICTSRC          := src/analysisvhdict.cxx
-#DICTHEADER       := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
-#DICTHEADERNAME   := $(patsubst interface/%.h,%.h,$(DICTHEADER))
-#TARGETDICTHEADER := interface/AnalysisVH.h
-
 ### Macro to convert a the header name to a dictionary .cc filename
 getdictname   = $(patsubst interface/%,%,$(shell echo $(1)|cut -d. -f1| tr A-Z a-z)dict.cxx)
 
