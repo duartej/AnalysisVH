@@ -15,14 +15,31 @@
 //            to use is the client, not the MuonSelector class.
 //                                       J. Duarte Campderros Oct, 2011
 ///////////////////////////////////////////////////////////////////////
+// -*- C++ -*-
+//
+// Package:    MuonSelection
+// Class:      MuonSelection
+// 
+/**\class  MuonSelection.h src/MuonSelection.cc
+
+ Description: 
+
+ Implementation: 
+*/
+//
+// Modifications Author: Jordi Duarte Campderros  
+//         Created:  Sun Oct  30 12:20:31 CET 2011
+// 
+// jordi.duarte.campderros@cern.ch
+//
+//
 
 #ifndef MUONSELECTION_H
 #define MUONSELECTION_H 1
 
 
 
-// PAF includes and forward declarations
-#include "CMSAnalysisSelector.h"
+#include "TreeManager.h"
 
 // STL includes
 #include <vector>
@@ -38,7 +55,7 @@ class MuonSelection {
 
   //Constructors and destructor
   //---------------------------
-  MuonSelection(CMSAnalysisSelector* selector, 
+  MuonSelection(TreeManager * treemanager, 
 		bool fillhistos = false);
   virtual ~MuonSelection();
 
@@ -123,9 +140,9 @@ class MuonSelection {
   bool IsGoodMuon(unsigned int iMuon) const;
 
  protected:
-  // The CMS Analysis Selector for Minitrees
+  // The Tree Manager
   //----------------------------------------
-  CMSAnalysisSelector* fSelector;
+  TreeManager* fSelector;
 
   // The last event processed
   //-------------------------
@@ -182,16 +199,17 @@ class MuonSelection {
   int    fCutMinNumOfMatches;
 
 
+  // FIXME: Como soluciono esto??? PROV
   // Histograms
   //----------------------------------------------------------------------------
-  //   - True if histograms should be filled
+  /*//   - True if histograms should be filled
   bool  fFillHistos;
   //   - Pt muons
   TH1F* fHMuonSelectionPT;
   //   - Eta Muons
   TH1F* fHMuonSelectionEta;
   //   - Pt resolution
-  TH1F* fHMuonSelectionDeltaPTOverPT;
+  TH1F* fHMuonSelectionDeltaPTOverPT;*/
 
 
   ClassDef(MuonSelection,0);

@@ -17,7 +17,7 @@ using namespace std;
 //------------------------------------------------------------------------------
 // Constructor and destructor
 //------------------------------------------------------------------------------
-MuonSelection::MuonSelection(CMSAnalysisSelector* selector,
+MuonSelection::MuonSelection(TreeManager * selector,
 			     bool fillhistos ):
   fSelector(selector),
   fIEvent(-1),
@@ -46,16 +46,17 @@ MuonSelection::MuonSelection(CMSAnalysisSelector* selector,
   fCutMinNValidHitsSATrk(0),
   fCutMinNValidPixelHitsInTrk(0),
   //   - Number of track matches to the muon chamber
-  fCutMinNumOfMatches(1),
+  fCutMinNumOfMatches(1) //, FIXME: PROV
   //   - True if histograms should be filled
-  fFillHistos(fillhistos) {
-  
+  // FIXME: PROVfFillHistos(fillhistos) 
+{
   // Initialize containers
   fSelectedBasicMuons = new vector<unsigned int>;
   fSelectedPVMuons = new vector<unsigned int>;
   fSelectedIsoMuons = new vector<unsigned int>;
   fSelectedIsoGoodMuons = new vector<unsigned int>;
 
+  /* FIXME: PROV
   // Initialize histograms
   if (fFillHistos) {
     //   - Pt muons
@@ -64,7 +65,7 @@ MuonSelection::MuonSelection(CMSAnalysisSelector* selector,
     fHMuonSelectionEta = fSelector->CreateH1F("fHMuonSelectionEta","#eta^{#mu}", 100, -5, 5);
     //   - Pt resolution
     fHMuonSelectionDeltaPTOverPT = fSelector->CreateH1F("fHMuonSelectionDeltaPTOverPT","#frac{#Delta P_{T}^{#mu}}{P_{T}^{#mu}}", 100, 0, 1);
-  }
+  }*/
   
 }
 
@@ -121,9 +122,10 @@ bool MuonSelection::IsGoodMuon(unsigned int iMuon) const {
   double ptResolution = fSelector->GetMuondeltaPt()->at(iMuon)/fSelector->GetMuonPt()->at(iMuon);
     
   //Fill Histograms
-  if (fFillHistos) {
+  /*FIXME: PROV 
+    if (fFillHistos) {
     fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-  }
+  }*/
 
   //Lepton ID
   if( 
@@ -240,10 +242,11 @@ unsigned int MuonSelection::SelectBasicMuons() {
 		      fSelector->GetMuonEnergy()->at(i));
 
     //Fill Histograms
+    /* FIXME:PROV
     if (fFillHistos) {
       fHMuonSelectionPT->Fill(Mu.Pt());
       fHMuonSelectionEta->Fill(Mu.Eta());
-    }
+    }*/
 
     //[Cut in Eta and Pt]
     //-------------------
