@@ -210,7 +210,8 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating selector
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, ip, tchaindataset );
+	// --- Mira el constructor...
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 0, ip, tchaindataset );
 
 #ifdef TIMERS
 	//T4

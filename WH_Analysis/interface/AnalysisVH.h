@@ -11,13 +11,15 @@
 
 class InputParameters;
 class TTree;
+class CutManager;
 
 
 class AnalysisVH : public CMSAnalysisSelector 
 {
 	public: 
 		// State prepare analisis
-		AnalysisVH( TreeManager * data, InputParameters * ip, TTree * tree );
+		AnalysisVH( TreeManager * data, InputParameters * ip, 
+				CutManager * selectorcuts, TTree * tree );
 		// State runanalisis
 		//AnalysisVH( CMSAnalysisSelector * consel) : _cmsselector(conselr) { } 
 		virtual ~AnalysisVH();
@@ -31,15 +33,28 @@ class AnalysisVH : public CMSAnalysisSelector
 		virtual void Summary();
 
 		// Selection methods
-		bool HLT() const;
+		bool HLT();
 
 	private:
 		AnalysisVH();
 
+		// Cut selections
+		CutManager * _selectioncuts;
+
 		// Variables describing dataset
 		// -----------------------------------------------------------------------
+		TString fDataName; // Dataset Name
+		bool    fIsData;   // True if it should be treated as data
+		bool    fIsWH;     // True if it should be treated as signal (WH)
+		
+		// Data files to analyse
 		std::vector<std::string> _datafiles;
 
+		// Luminosity: FIXME: Possibly to the mother since has to be used for each
+		//----------------------------------------------------------------------------
+		double fLuminosity;
+
+		// FIXME: NECESARIO???
 		TTree * _tree;
 
 	public:

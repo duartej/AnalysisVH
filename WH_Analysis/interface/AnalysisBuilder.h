@@ -18,7 +18,7 @@ class TTree;
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( treeTypes thetype, InputParameters *ip, TTree * tree );
+		static AnalysisVH * Build( treeTypes thetype, int leptonstype, InputParameters *ip, TTree * tree );
 
 };
 

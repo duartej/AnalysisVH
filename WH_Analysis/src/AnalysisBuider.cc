@@ -3,12 +3,13 @@
 #include "AnalysisVH.h"
 
 #include "TreeManagerMiniTrees.h"
+#include "MuonSelection.h"
 
 //FIXME:PROV@
 #include<iostream>
 
 // Or template ??
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip, TTree * tree )
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputParameters *ip, TTree * tree )
 {
 
 	AnalysisVH * an = 0;
@@ -18,11 +19,13 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip, TTr
 	// para instanciar correctamente...
 
 	// Tree type --> to decide selector
-	std::cout << "[" << thetype << "]" << std::endl;
 	if( thetype == MiniTrees )
 	{
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees;
-		an = new AnalysisVH( data, ip, tree );
+		// The selector: si son Muones...
+		MuonSelection * selectioncuts = new MuonSelection(data);
+
+		an = new AnalysisVH( data, ip, selectioncuts, tree );
 	}
 
 	return an;
