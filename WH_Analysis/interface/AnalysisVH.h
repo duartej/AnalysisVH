@@ -17,7 +17,7 @@ class AnalysisVH : public CMSAnalysisSelector
 {
 	public: 
 		// State prepare analisis
-		AnalysisVH( TreeManager * data, InputParameters * ip );
+		AnalysisVH( TreeManager * data, InputParameters * ip, TTree * tree );
 		// State runanalisis
 		//AnalysisVH( CMSAnalysisSelector * consel) : _cmsselector(conselr) { } 
 		virtual ~AnalysisVH();

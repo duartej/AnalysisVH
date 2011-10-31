@@ -159,7 +159,7 @@ int main(int argc, char *argv[])
 #ifdef TIMERS
 	TStopwatch timer;
 	timer.Start();
-	double t1, t2, t3, t4, t5, t6, t7, t8;
+	double t1, t2, t3, t4, t5, t6;
 #endif
 	
 #ifdef TIMERS
@@ -203,13 +203,14 @@ int main(int argc, char *argv[])
 		exit(-1);
 	}
 
+
 #ifdef TIMERS
 	//T3
 	t3 = timer.RealTime();
 	timer.Start();
 #endif
 	// Creating selector
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, ip );
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, ip, tchaindataset );
 
 #ifdef TIMERS
 	//T4
@@ -217,7 +218,23 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Processing
-	tchaindataset->Process(analysis);
+	// Entries
+	int nEvents = -1;
+	ip->TheNamedInt("nEvents",nEvents);
+	int firstEvent = -1 ;
+	ip->TheNamedInt("firstEvent",firstEvent);
+	if( nEvents < 0 )
+	{
+		nEvents = TChain::kBigNumber;
+	}
+	if( firstEvent < 0 )
+	{
+		std::cout << "WARNING: firstEvent is not defined in your configuration, "
+			<< "using 0 as default" << std::endl;
+		firstEvent = 0; 
+	}
+	nEvents = 100; //PROV
+	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
 #ifdef TIMERS
 	//T5
@@ -226,34 +243,37 @@ int main(int argc, char *argv[])
 #endif
 	//
 	// Create the ouptut file and fill it
-	//
-/*	std::string outputfile("outputtest.root");
+	// FIXME: Esto va aqui?? o mejor en el destructor del AnalysisVH
+	std::string outputfile("outputtest.root");
 	std::cout << ">> Saving results to " << outputfile << " ..." << std::endl;
-	if(gSystem->FindFile(".", outputfile.c_str() )) 
+	TString outputfileTS = TString(outputfile);
+	if(gSystem->FindFile(".", outputfileTS)) 
 	{
 		std::cout << "WARNING: File " << outputfile << " already exits!" << std::endl;
 		TString outputFileBak = outputfile + ".bak";
 		std::cout << "         Moving it to " << outputFileBak << std::endl;
-		gSystem->CopyFile(outputfile, outputFileBak, kTRUE);
-		gSystem->Unlink(outputfile);
+		gSystem->CopyFile(outputfile.c_str(), outputFileBak.Data(), kTRUE);
+		gSystem->Unlink(outputfile.c_str());
 	}
-	TFile histoAnalysis(outputfile, "NEW");
+	TFile histoAnalysis(outputfile.c_str(), "NEW");
 	if (histoAnalysis.IsOpen()) 
 	{
 		TList* li = 0;
 		TList* lo = 0;
-		li = inputlist;
+		li = analysis->GetInputList();
 		lo = analysis->GetOutputList();
 		li->Write();
 		lo->Write();
 		histoAnalysis.Close();
-	}*/
+	}
 
-	if( ip != 0 )
+	// Now the class is in charge of deleting the InputParameter
+	// as is one of its datamembers
+	/*if( ip != 0 )
 	{
 		delete ip;
 		ip=0;
-	}
+	}*/
 
 	if( analysis != 0 )
 	{
@@ -261,10 +281,11 @@ int main(int argc, char *argv[])
 		analysis = 0;
 	}
 #ifdef TIMERS
-  t8 = timer.RealTime();
+  t6 = timer.RealTime();
 
   std::cout << "Tiempos de ejecucion:" << std::endl;
-  std::cout << t1 << ", " << t2 << ", " << t3 << std::endl;
+  std::cout << t1 << ", " << t2 << ", " << t3 << ", " << t4 << ", " << t5 
+	  << ", " << t6 <<std::endl;
 #endif
 
 }

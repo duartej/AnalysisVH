@@ -9,14 +9,16 @@
 #include "TTree.h"
 
 // Prepare analysis Constructor
-AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip ) :
-	CMSAnalysisSelector(0)//,
+AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip, TTree * tree ) :
+	CMSAnalysisSelector(tree)//,
 //	fPUWeight(0),
 //	fMuonSelector(0),
 //	fHistos(0),	
 //	fIsWH(false)
 {
 
+	// The Inputparameters have to be initialized before, just to complete it
+	// introducing the set of datasets
 	// Extract filenames: datafilenames_[index]
 	std::string filenames( "datafilenames_" );
 	// -- Checking is there
@@ -43,6 +45,13 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip ) :
 		id++;
 		istr << id;
 	}
+	fInputParameters = ip;
+
+	// Including to the list of fInputs the InputParameter
+	TList * inputlist = new TList;
+	inputlist->Add(fInputParameters);
+	this->SetInputList(inputlist);
+
 	
 	/*
 	for(unsigned int i = 0; i < _datafiles.size(); ++i)
@@ -73,5 +82,13 @@ AnalysisVH::~AnalysisVH()
 	if( _data != 0)
 	{
 		delete _data;
+	}
+	if( fInputParameters != 0)
+	{
+		delete fInputParameters;
+	}
+	if( fInput != 0 )
+	{
+		delete fInput;
 	}
 }

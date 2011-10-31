@@ -8,7 +8,7 @@
 #include<iostream>
 
 // Or template ??
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip /*, const int & analysisType */ )
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip, TTree * tree )
 {
 
 	AnalysisVH * an = 0;
@@ -22,7 +22,7 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, InputParameters *ip /*, 
 	if( thetype == MiniTrees )
 	{
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees;
-		an = new AnalysisVH( data, ip );
+		an = new AnalysisVH( data, ip, tree );
 	}
 
 	return an;

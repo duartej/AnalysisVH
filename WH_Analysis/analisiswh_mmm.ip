@@ -9,3 +9,4 @@
 @var double  MinMET        40.0;
 
 @var int     nEvents       -1;
+@var int     firstEvent     0;

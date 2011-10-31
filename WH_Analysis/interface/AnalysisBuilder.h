@@ -13,11 +13,12 @@
 
 class AnalysisVH;
 class InputParameters;
+class TTree;
 
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( treeTypes thetype, InputParameters *ip/*, const int & analisisType */ );
+		static AnalysisVH * Build( treeTypes thetype, InputParameters *ip, TTree * tree );
 
 };
 
