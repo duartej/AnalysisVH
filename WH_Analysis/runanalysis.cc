@@ -32,6 +32,9 @@
 // ROOT
 #include "TString.h"
 #include "TChain.h"
+#ifdef TIMERS
+#include "TStopwatch.h"
+#endif
 
 
 // Overloaded function to extract the file names from a previous stored file
@@ -153,22 +156,98 @@ int main(int argc, char *argv[])
 	const char * dataName = "WH160";
 	const char * analysisheader = "interface/AnalysisWH_mmm.h";
 	const char * cfgfile = "analisiswh_mmm.ip";
-	const char * runtype = "local"; //"local"; // "grid"
+#ifdef TIMERS
+	TStopwatch timer;
+	timer.Start();
+	double t1, t2, t3, t4, t5, t6, t7, t8;
+#endif
 	
+#ifdef TIMERS
+	//T1
+	t1 = timer.RealTime();
+	timer.Start();
+#endif
 	// Extract the datafiles from the file created in the "local" path
 	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles( dataName );
 	std::vector<TString> datafiles = dum.second;
 	treeTypes dataType  = dum.first;
 	
+#ifdef TIMERS
+	//T2
+	t2 = timer.RealTime();
+	timer.Start();
+#endif
 	// Initialize the analysis specific parameters using a config file
 	InputParameters * ip = setparameters(datafiles,TString(dataName),cfgfile); 
 	//ip->DumpParms();
 
-	// Run analysis: call command
-	//AnalysisWH * analisis = AnalysisBuilder::Create( treeType );
-	std::cout << dataType << std::endl;
+
+	TChain * tchaindataset = 0;
+	// Data: FIXME: Extract this info from a centralized way (TreeManager?)
+	//              TreeTypes mejor
+	if(dataType == MiniTrees || dataType == Latinos)
+	{
+		tchaindataset = new TChain("Tree");
+	}
+	else if(dataType == TESCO)
+	{
+		tchaindataset = new TChain("analyze/Analysis");
+	}
+	else
+	{
+		std::cerr << " ERROR: ROOT tree file contains an unrecongnized Tree" << std::endl;
+		if( ip != 0)
+		{
+			delete ip;
+		}
+		exit(-1);
+	}
+
+#ifdef TIMERS
+	//T3
+	t3 = timer.RealTime();
+	timer.Start();
+#endif
+	// Creating selector
 	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, ip );
+
+#ifdef TIMERS
+	//T4
+	t4 = timer.RealTime();
+	timer.Start();
+#endif
+	// Processing
+	tchaindataset->Process(analysis);
 	
+#ifdef TIMERS
+	//T5
+	t5 = timer.RealTime();
+	timer.Start();
+#endif
+	//
+	// Create the ouptut file and fill it
+	//
+/*	std::string outputfile("outputtest.root");
+	std::cout << ">> Saving results to " << outputfile << " ..." << std::endl;
+	if(gSystem->FindFile(".", outputfile.c_str() )) 
+	{
+		std::cout << "WARNING: File " << outputfile << " already exits!" << std::endl;
+		TString outputFileBak = outputfile + ".bak";
+		std::cout << "         Moving it to " << outputFileBak << std::endl;
+		gSystem->CopyFile(outputfile, outputFileBak, kTRUE);
+		gSystem->Unlink(outputfile);
+	}
+	TFile histoAnalysis(outputfile, "NEW");
+	if (histoAnalysis.IsOpen()) 
+	{
+		TList* li = 0;
+		TList* lo = 0;
+		li = inputlist;
+		lo = analysis->GetOutputList();
+		li->Write();
+		lo->Write();
+		histoAnalysis.Close();
+	}*/
 
 	if( ip != 0 )
 	{
@@ -181,5 +260,11 @@ int main(int argc, char *argv[])
 		delete analysis;
 		analysis = 0;
 	}
+#ifdef TIMERS
+  t8 = timer.RealTime();
+
+  std::cout << "Tiempos de ejecucion:" << std::endl;
+  std::cout << t1 << ", " << t2 << ", " << t3 << std::endl;
+#endif
 
 }

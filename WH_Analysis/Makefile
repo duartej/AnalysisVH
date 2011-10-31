@@ -69,14 +69,14 @@ datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
 	@$(shell mkdir -p lib)
 	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
 		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -L./lib $< -o $@  
-	@echo "... Done $(PACKAGE)"
+	@echo "... Done $@"
 
-selectorcreator: selectorcreator.cc $(DEPSLIBS) $(TREEDICT)
-	@echo "=== $(PACKAGE): +++ Executable selectorcreator"
+runanalysis: runanalysis.cc $(DEPSLIBS) $(TREEDICT)
+	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
 	@$(shell mkdir -p lib)
-	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
+	@$(CXX) -DTIMERS $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
 		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -l$(PACKAGE) -L./lib $< -o $@  
-	@echo "... Done $(PACKAGE)"
+	@echo "... Done $@"
 
 
 ### Creating the dictionaries
