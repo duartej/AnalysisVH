@@ -50,6 +50,7 @@ class CMSAnalysisSelector : public TSelector {
   virtual void    SetObject(TObject *obj) { fObject = obj; }
   virtual void    SetInputList(TList *input) { fInput = input; }
   virtual TList  *GetOutputList() const { return fOutput; }
+  virtual TList  *GetInputList() const { return fInput; }
   virtual void    SlaveTerminate();
   virtual void    Terminate();
   //
