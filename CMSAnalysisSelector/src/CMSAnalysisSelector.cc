@@ -213,6 +213,12 @@ TObject* CMSAnalysisSelector::FindOutput(TString name, TString classname) {
 TObject* CMSAnalysisSelector::FindInput(TString name, TString classname) {
   TObject* object = 0;
   TObject* tmpobj = 0 ;
+  if( fInput == 0 )
+  {
+	  std::cerr << "CMSAnalysisSelector::FindInput ERROR: "
+		  << "Not initialized the input list of objects! Exiting..." << std::endl;
+	  exit(-1);
+  }
   for (int i = 0; i < fInput->GetEntries(); i++) {
     tmpobj = fInput->At(i);
     if (name == tmpobj->GetName())
@@ -227,6 +233,12 @@ TObject* CMSAnalysisSelector::FindInput(TString name, TString classname) {
 TObject* CMSAnalysisSelector::FindOutputByClassName(TString classname) {
   TObject* object = 0;
   TObject* tmpobj = 0 ;
+  if( fOutput == 0 )
+  {
+	  std::cerr << "CMSAnalysisSelector::FindOutputByClass ERROR: "
+		  << "Not initialized the output list of objects! Exiting..." << std::endl;
+	  exit(-1);
+  }
   for (int i = 0; i < fOutput->GetEntries(); i++) {
     tmpobj = fOutput->At(i);
     if (classname == tmpobj->IsA()->GetName()) {
