@@ -6,8 +6,11 @@
 #include "AnalysisVH.h"
 #include "InputParameters.h"
 #include "CutManager.h"
+#include "PUWeight.h"
 
 #include "TTree.h"
+#include "TH1F.h"
+#include "TMath.h"
 
 // To be changed: FIXME
 const double kZMass = 91.1876;
@@ -19,13 +22,15 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 
 // Prepare analysis Constructor
 AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip, 
-		CutManager * selectioncuts, TTree * tree ) :
+		CutManager * selectioncuts, TTree * tree ) : // Tree : TO BE DEPRECATED
 	CMSAnalysisSelector(tree),
-	_selectioncuts(selectioncuts)//,
-//	fPUWeight(0),
-//	fMuonSelector(0),
-//	fHistos(0),	
-//	fIsWH(false)
+	_nLeptons(3), //FIXME: argumento de entrada
+	fIsData(false),
+	fIsWH(false),
+	fLuminosity(0),
+	_selectioncuts(selectioncuts),
+	fPUWeight(0),
+	_tree(0)
 {
 	// FIXME: Check that the data is attached to the selector manager
 
@@ -71,8 +76,25 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	}*/
 }
 
+AnalysisVH::~AnalysisVH()
+{
+	/*if( _data != 0)
+	{
+		delete _data; //WARNING: Somebody deleting-- > YES!!
+	}*/
+	if( fInputParameters != 0)
+	{
+		delete fInputParameters;
+	}
+	if( fInput != 0 )
+	{
+		delete fInput;  // new TList deleted
+	}
+}
+
 void AnalysisVH::InitialiseParameters()
 {
+	std::cout << "PASE POR AQUI" << std::endl;
 	InputParameters * ip = this->GetInputParameters();
 
 	//Cuts
@@ -160,6 +182,144 @@ void AnalysisVH::InitialiseParameters()
 
 void AnalysisVH::Initialise()
 {
+	// PU Weight
+	//----------------------------------------------------------------------------
+	fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
+
+	// Selection cuts
+  	//----------------------------------------------------------------------------
+	std::cout << _selectioncuts << std::endl;
+  
+	// Histograms
+	//----------------------------------------------------------------------------
+	// Process ID
+	_histos[fHProcess_histos] = CreateH1D("fHProcess_histos", "Proccess ID", _iNProcesses, 0, _iNProcesses);
+	fHProcess = CreateH1D("fHProcess", "Proccess ID", _iNProcesses, 0, _iNProcesses);
+	for(unsigned int i = 0; i < _iNProcesses; i++)
+	{
+		_histos[fHProcess_histos]->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
+		fHProcess->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
+	}
+	
+	// Final state from generation (incl. taus)
+	//_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
+	//		_iFStotal, 0, _iFStotal);
+	fHGenFinalState = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
+			_iFStotal, 0, _iFStotal);
+	for(unsigned int i = 0; i < _iFStotal; i++)
+	{
+//		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		fHGenFinalState->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+	}
+	//_histos[fHGenFinalState]->Sumw2();
+	fHGenFinalState->Sumw2();
+
+	// Final state from generation (no taus)
+//	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
+	fHGenFinalStateNoTaus = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
+			_iFStotal, 0, _iFStotal);
+	for(unsigned int i = 0; i < _iFStotal; i++)
+	{
+		//_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		fHGenFinalStateNoTaus->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+	}
+	//_histos[fHGenFinalStateNoTaus]->Sumw2();
+	fHGenFinalStateNoTaus->Sumw2();
+
+	// Generated muons coming from a W
+	//_histos[fHNGenWMuons] = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
+	fHNGenWMuons = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
+	
+	// PT and Eta of most energetic gen muon from W or tau
+	for(unsigned int i = 0; i < _nLeptons; i++) 
+	{
+		for (unsigned int j = 0; j < _iNCuts; j++) 
+		{
+			TString ptname  = Form("fHGenPtMu%i_%i", i+1,j);
+			TString pttitle = Form("P_{T} #mu_{gen}^{%i} from W (#tau)", i+1);
+			TString etaname  = Form("fHGenEtaMu%i_%i", i+1,j);
+			TString etatitle = Form("#eta #mu_{gen}^{%i} from W (#tau)", i+1);
+			fHGenPtMu[i][j]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+			fHGenEtaMu[i][j] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		}
+	}
+
+
+	// Events passing every cut
+	fHEventsPerCut = CreateH1D("fHEventsPerCut", "Events passing each cut", 
+			_iNCuts, 0, _iNCuts);
+	for (unsigned int i = 0; i < _iNCuts; i++)
+	{
+		fHEventsPerCut->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+	}
+  
+	// Events passing every cut that are 3 mu from gen
+	fHEventsPerCut3Mu = CreateH1D("fHEventsPerCut3Mu", "Events passing each cut that are 3 mu from gen", 
+			_iNCuts, 0, _iNCuts);
+	for(unsigned int i = 0; i < _iNCuts; i++)
+	{
+		fHEventsPerCut3Mu->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+	}
+
+	// Reconstructed muons in the event
+	fHNRecoMuons = CreateH1D("fHNRecoMuons", "Reconstructed #mu", 
+			10, -0.5, 9.5);
+	
+	// Muons passing the basic selection
+	fHNSelectedMuons = CreateH1D("fHNSelectedMuons", 
+			       "Selected #mu", 
+			       10, -0.5, 9.5);
+
+	// Selected Muons close to the PV
+	fHNSelectedPVMuons = CreateH1D("fHNSelectedPVMuons", 
+			"Selected #mu close to PV", 10, -0.5, 9.5);
+	// Selected Isolated Muons
+	fHNSelectedIsoMuons = CreateH1D("fHNSelectedIsoMuons", 
+			"Selected Isolated #mu", 10, -0.5, 9.5);
+	// Selected Isolated Good Muons
+	fHNSelectedIsoGoodMuons = CreateH1D("fHNSelectedIsoGoodMuons", 
+			"Selected good Isolated #mu", 10, -0.5, 9.5);
+	
+	// Pt and eta of first/second/third good isolated muon
+	for (unsigned int i = 0; i < 3; i++) 
+	{
+		TString ptname  = Form("fHPtMu%i", i+1);
+		TString pttitle = Form("P_{T}^{#mu_{%i}}", i+1);
+		TString etaname  = Form("fHEtaMu%i", i+1);
+		TString etatitle = Form("#eta^{#mu_{%i}}", i+1);
+		TString drname  = Form("fHDeltaRGenRecoMu%i", i+1);
+		TString drtitle = Form("#Delta R for #mu %i", i+1);
+		fHPtMu[i]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+		fHEtaMu[i] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		fHDeltaRGenRecoMu[i] = CreateH1D(drname, drtitle, 150, 0, 5);
+	}
+	
+	//Smallest DeltaR between 2 opp. sign leptons
+	fHMinDeltaRMuMu = CreateH1D("fHMinDeltaRMuMu", "Smallest #Delta R_{#mu#mu}",
+			125, 0, 5);
+	//Smallest DeltaR between 2 opp. sign leptons
+	fHMaxDeltaRMuMu = CreateH1D("fHMaxDeltaRMuMu", "Largest #Delta R_{#mu#mu}",
+			125, 0, 5);
+	
+	//Smallest DeltaPhi between 2 opp. sign leptons
+	fHMinDeltaPhiMuMu = CreateH1D("fHMinDeltaPhiMuMu", "Smallest #Delta #phi_{#mu#mu}",
+			120, 0, TMath::Pi());
+	//Largest DeltaPhi between 2 opp. sign leptons
+	fHMaxDeltaPhiMuMu = CreateH1D("fHMaxDeltaPhiMuMu", "Largest #Delta #phi_{#mu#mu}",
+			120, 0, TMath::Pi());
+	
+	// Selected Isolated Good Muons
+	fHMuonCharge = CreateH1D("fHMuonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
+		
+	// Invariant mass of leptons supposedly from H  
+	fHHInvMass = CreateH1D("fHHInvMass", "M^{inv.}_{#mu#mu}", 150, 0, 150);
+	
+	// Invariant mass of leptons in/out of Z peak
+	fHZInvMass = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",150, 0, 150);
+	
+	// Missing ET after inv mass cut
+	fHMET = CreateH1D("fHMET", "MET",160, 0, 160);
+	
 }
 
 
@@ -169,20 +329,24 @@ void AnalysisVH::InsideLoop()
 
 void AnalysisVH::Summary()
 {
+	std::cout << *_selectioncuts << std::endl;
+	std::cout << std::endl << "[ AnalisysVH::Sumary ]" << std::endl << std::endl;
+  
+	std::cout << "N. events by process ID:" << std::endl;
+	std::cout << "------------------------" << std::endl;
+	for(unsigned int i = 0; i < _iNProcesses; i++)
+	{
+		std::cout << kProcesses[i] << ":\t" << fHProcess->GetBinContent(i+1) << " events ("
+			<< 100.0*fHProcess->GetBinContent(i+1)/fHProcess->GetEntries() << "%)" << std::endl;
+	}
+	std::cout << std::endl << std::endl;
+	std::cout << "N. events selected at each stage:" << std::endl;
+	std::cout << "---------------------------------" << std::endl;
+	for(unsigned int i = 0; i < _iNCuts; i++)
+	{
+		std::cout << fHEventsPerCut->GetBinContent(i+1) << " ["
+			<< "%] selected events (" << kCutNames[i] << ")" << std::endl;
+	}
+	std::cout << std::endl << std::endl;
 }
 
-AnalysisVH::~AnalysisVH()
-{
-	if( _data != 0)
-	{
-		delete _data; //WARNING: Somebody deleting??
-	}
-	if( fInputParameters != 0)
-	{
-		delete fInputParameters;
-	}
-	if( fInput != 0 )
-	{
-		delete fInput;
-	}
-}

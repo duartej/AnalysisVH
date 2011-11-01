@@ -1,6 +1,8 @@
 #ifndef CUTLEVELS_H
 #define CUTLEVELS_H 1
 
+#include "TString.h"
+
 // Enum holding the index of every cut
 enum ECutLevel {
   _iAllEvents,          //  0
@@ -21,4 +23,20 @@ enum ECutLevel {
   _iNCuts               //  N
 };
 
+const TString kCutNames[] = { "AllEvents",
+                        "IsWH",
+                        "HLT",
+                        "GoodVertex",
+                        "Has2Leptons",
+                        "Has2PVLeptons",
+                        "Has2IsoLeptons",
+                        "Has2IsoGoodLeptons",
+                        "MuPtPattern(20,20,10)",
+                        "Exactly3Leptons",
+                        "OppositeCharge",
+                        "JetVeto",
+                        "DeltaR",
+                        "ZMuMuInvMass",
+                        "MET",
+                        "NCuts"};
 #endif

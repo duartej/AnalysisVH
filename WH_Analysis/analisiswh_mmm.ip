@@ -5,6 +5,7 @@
 @var double  MinMuPt1      20.0;
 @var double  MinMuPt2      20.0;
 @var double  MinMuPt3      10.0;
+@var double  DeltaZMass    15.0;
 @var double  MaxDeltaRMuMu 1.2;
 @var double  MinMET        40.0;
 
