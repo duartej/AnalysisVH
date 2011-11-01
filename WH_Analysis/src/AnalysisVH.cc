@@ -201,17 +201,17 @@ void AnalysisVH::Initialise()
 	}
 	
 	// Final state from generation (incl. taus)
-	//_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
-	//		_iFStotal, 0, _iFStotal);
-	fHGenFinalState = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
+	_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
 			_iFStotal, 0, _iFStotal);
+	//fHGenFinalState = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
+	//		_iFStotal, 0, _iFStotal);
 	for(unsigned int i = 0; i < _iFStotal; i++)
 	{
-//		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
-		fHGenFinalState->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+	//	fHGenFinalState->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
 	}
-	//_histos[fHGenFinalState]->Sumw2();
-	fHGenFinalState->Sumw2();
+	_histos[fHGenFinalState]->Sumw2();
+	//fHGenFinalState->Sumw2();
 
 	// Final state from generation (no taus)
 //	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
@@ -351,15 +351,106 @@ void AnalysisVH::InsideLoop()
 		
 		fHNGenWMuons->Fill(nmusfromW,puw); 
 		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);
-		fHGenFinalState->Fill(fsTaus, puw);
+		_histos[fHGenFinalState]->Fill(fsTaus, puw);
 		
 #ifdef DEBUGANALYSIS
 		std::cout << "DEBUG: W->e/mu/tau " << nelecsfromW 
 			<< "/" << nmusfromW << "/" << ntausfromW << std::endl;
 		std::cout << "DEBUG: fsTaus --> " << fsTaus << std::endl;
 #endif
-	}
+		// + Classify by leptonic final state (no taus)
+		for(unsigned int i = 0; i < fData->GetGenElecMPID()->size(); i++) 
+		{
+#ifdef DEBUGANALYSIS
+			std::cout << "DEBUG: Elec [" << i << "/" << fData->GetGenElecMPID()->size() << "]" 
+				<< " Status: " << fData->GetGenElecMSt()->at(i)
+				<< " Mother: " << fData->GetGenElecMPID()->at(i)
+				<< " E: " << fData->GetGenElecEnergy()->at(i)
+				<< " Px: " << fData->GetGenElecPx()->at(i)
+				<< std::endl;
+#endif
+			//I have seen that electrons from taus have status 2 and are not replicated
+			unsigned int mpidel  = TMath::Abs(fData->GetGenElecMPID()->at(i));
+			if ( mpidel == kWPID || mpidel == kTauPID) 
+			{
+				fNGenElectrons++;
+#ifdef DEBUGANALYSIS
+				std::cout << "DEBUG:     Good!" << std::endl;
+#endif
+			}
+		}
+		int igenmuons[3] = {-1, -1, -1}; //Index of generated muons from W or tau
+		for (unsigned int i = 0; i < fData->GetGenMuonMPID()->size(); ++i) 
+		{
+#ifdef DEBUGANALYSIS
+			std::cout << "DEBUG: Muon [" << i << "/" << fData->GetGenMuonMPID()->size() << "]" 
+				<< " Status: " << fData->GetGenMuonMSt()->at(i)
+				<< " Mother: " << fData->GetGenMuonMPID()->at(i)
+				<< " E: " << fData->GetGenMuonEnergy()->at(i)
+				<< " Px: " << fData->GetGenMuonPx()->at(i)
+				<< std::endl;
+#endif
+			//I have seen that muons from taus have status 2 and are not replicated
+			unsigned int mpid  = TMath::Abs(fData->GetGenMuonMPID()->at(i));
+			if ( mpid == kWPID || mpid == kTauPID) 
+			{
+				igenmuons[fNGenMuons] = i;
+				fNGenMuons++;
+#ifdef DEBUGANALYSIS
+				std::cout << "DEBUG:     Good! " << fNGenMuons << std::endl;
+#endif
+			}
+		}
+		fsNTau = GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
+		fHGenFinalStateNoTaus->Fill(fsNTau, puw);
+		
+#ifdef DEBUGANALYSIS
+		std::cout << "DEBUG: W->e/mu/tau " <<  fNGenElectrons
+			<< "/" << fNGenMuons << "/" << (3-fNGenMuons-fNGenElectrons) << std::endl;
+		std::cout << "DEBUG: fsNTau --> " << fsNTau << std::endl;
+#endif
+		//   Sort by energy
+		if(fNGenMuons == 3)  // FIXME:: PORQUE SOLO 3??
+		{
+			std::map<float,TLorentzVector> vOrder;
+			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
+			for(unsigned int i = 0; i < fNGenMuons; i++) 
+			{
+				vGenMuon->push_back( TLorentzVector(fData->GetGenMuonPx()->at(igenmuons[i]), 
+							fData->GetGenMuonPy()->at(igenmuons[i]), 
+							fData->GetGenMuonPz()->at(igenmuons[i]),
+							fData->GetGenMuonEnergy()->at(igenmuons[i])) );
+				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
+			}
 
+			fGenMuon = new std::vector<TLorentzVector>;
+			for(std::vector<TLorentzVector>::reverse_iterator it = vGenMuon->rbegin(); 
+					it != vGenMuon->rend(); ++it)
+			{
+				fGenMuon->push_back( *it );
+			}
+			delete vGenMuon;
+			vGenMuon = 0;
+			
+#ifdef DEBUGANALYSIS
+			for (unsigned int i = 0; i < fNGenMuons; ++i) 
+			{
+				std::cout << "[" << i << "] <- [" << igenmuons[i] 
+					<< "] PT = " << (*fGenMuon)[i].Pt() 
+					<< " - ET = " << fData->GetGenMuonEnergy()->at(igenmuons[i]) 
+					<< std::endl;
+			}      
+#endif
+			FillGenPlots(_iAllEvents,puw);
+			
+			delete fGenMuon;
+			fGenMuon = 0;
+		}
+	}
+	
+	// All events
+	//------------------------------------------------------------------
+	FillHistoPerCut(_iAllEvents, puw, fsNTau);
 }
 
 void AnalysisVH::Summary()
@@ -391,41 +482,86 @@ void AnalysisVH::Summary()
 //---------------------------------------------------------------------
 //
 
+void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
+{
+	fHEventsPerCut->Fill(cut, puw);
+	if (fs == _iFSmmm)
+	{
+		fHEventsPerCut3Mu->Fill(cut, puw);
+	}
+}
+
+void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
+{
+	if (fIsWH && fNGenMuons == 3) 
+	{
+		for (unsigned int i = 0; i < fNGenMuons; i++) 
+		{
+			fHGenPtMu[i][cut]->Fill((*fGenMuon)[i].Pt(), puw);
+			fHGenEtaMu[i][cut]->Fill((*fGenMuon)[i].Eta(), puw);
+		}
+	}
+}
+
 // Get Final state
 unsigned int AnalysisVH::GetFSID(const unsigned int & nel, 
 		const unsigned int & nmu, const unsigned int & ntau) const 
 {
 	unsigned int fs = _iFSunknown;
+        if (nel == 3)
+        {
+		fs = _iFSeee;
+	}
+        else if (nel == 2) 
+        {
+		if (nmu == 1)
+		{
+			fs = _iFSeem;
+		}
+		else if (ntau == 1)
+		{
+			fs = _iFSeet;
+		}
+	}
+	else if (nel == 1) 
+	{
+		if (nmu == 2)
+		{
+			fs = _iFSmme;
+		}
+		else if(ntau == 2)
+		{
+			fs = _iFStte;
+		}
+		else if (nmu == 1 && ntau == 1)
+		{
+			fs = _iFSemt;
+		}
+	}
+	else if(nel == 0) 
+	{
+		if (nmu == 3)
+		{
+			fs = _iFSmmm;
+		}
+		else if (ntau == 3)
+		{
+			fs = _iFSttt;
+		}
+		else if (nmu == 2 && ntau == 1)
+		{
+			fs = _iFSmmt;
+		}
+		else if (nmu == 1 && ntau == 2)
+		{
+			fs = _iFSttm;
+		}
+	}
+        
+/*	unsigned int fs = _iFSunknown;
 	const unsigned int fsencoded = nel*1000+nmu*100+ntau*10;
 
 	return fsencoded;
-}
-  /*
-  if (nel == 3)
-    fs = _iFSeee;
-  else if (nel == 2) {
-    if (nmu == 1)
-      fs = _iFSeem;
-    else if (ntau == 1)
-      fs = _iFSeet;
-  }
-  else if (nel == 1) {
-    if (nmu == 2)
-      fs = _iFSmme;
-    else if (ntau == 2)
-      fs = _iFStte;
-    else if (nmu == 1 && ntau == 1)
-      fs = _iFSemt;
-  }
-  else if (nel == 0) {
-    if (nmu == 3)
-      fs = _iFSmmm;
-    else if (ntau == 3)
-      fs = _iFSttt;
-    else if (nmu == 2 && ntau == 1)
-      fs = _iFSmmt;
-    else if (nmu == 1 && ntau == 2)
-      fs = _iFSttm;
-  }
-  return fs;
 }*/
+        return fs;
+}

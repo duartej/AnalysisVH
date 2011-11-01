@@ -45,18 +45,18 @@ enum {_iWH,        //0 Higgs
 // + Gen Final States (incl taus)
 // CODE: Nelectrons*1000+Nmuons*100+Ntaus*10
 enum {
-  _iFSeee = 3000,   // 3 electrons
-  _iFSmmm = 300,    // 3 muons
-  _iFSttt = 30,     // 3 taus
-  _iFSeem = 2100,   // 2 electrons 1 muon
-  _iFSeet = 2010,   // 2 electrons 1 tau
-  _iFSmme = 1200,   // 1 electron  2 muons
-  _iFSmmt = 210,    // 2 muons     1 tau
-  _iFStte = 1020,   // 1 electron  2 taus
-  _iFSttm = 120,    // 1 muon      2 taus
-  _iFSemt = 1110,   // 1 electron  1 muon 1 tau
-  _iFSunknown = 0,  // Something went wrong
-  _iFStotal = 11    // Remember to change everytime you add/remove on
+  _iFSeee, // = 3000,   // 3 electrons
+  _iFSmmm, // = 300,    // 3 muons
+  _iFSttt, // = 30,     // 3 taus
+  _iFSeem, // = 2100,   // 2 electrons 1 muon
+  _iFSeet, // = 2010,   // 2 electrons 1 tau
+  _iFSmme, // = 1200,   // 1 electron  2 muons
+  _iFSmmt, // = 210,    // 2 muons     1 tau
+  _iFStte, // = 1020,   // 1 electron  2 taus
+  _iFSttm, // = 120,    // 1 muon      2 taus
+  _iFSemt, // = 1110,   // 1 electron  1 muon 1 tau
+  _iFSunknown, // = 0,  // Something went wrong
+  _iFStotal // = 11    // Remember to change everytime you add/remove on
 };
 
 
@@ -84,13 +84,11 @@ const TString kFinalStates[] = {
 };
 
 
-
-
 class AnalysisVH : public CMSAnalysisSelector 
 {
 	public: 
 		//! For histograms
-		enum { fHProcess_histos } ;//, fHGenFinalState, fHGenFinalStateNoTaus, fHNGenWMuons
+		enum { fHProcess_histos , fHGenFinalState }; //, fHGenFinalStateNoTaus, fHNGenWMuons
 
 		// State prepare analisis
 		AnalysisVH( TreeManager * data, InputParameters * ip, 
@@ -112,6 +110,10 @@ class AnalysisVH : public CMSAnalysisSelector
 
 		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 				const unsigned int & ntaus ) const ;
+		//! Methods to fill histograms
+		void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
+				const unsigned int & fs);
+		void FillGenPlots(ECutLevel cut, double puw); 
 
 		// Number of final state leptons
 		unsigned int _nLeptons;
@@ -147,7 +149,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		// Histograms FIXME: 3 --> nLeptons
 		//----------------------------------------------------------------------------
 		TH1D* fHProcess;               //Process ID
-		TH1D* fHGenFinalState;         //Final state from generation (incl. taus)
+		//TH1D* fHGenFinalState;         //Final state from generation (incl. taus)
 		TH1D* fHGenFinalStateNoTaus;   //Final state from generation (no taus)
 		TH1D* fHNGenWMuons;            //Generated muons coming from a W
 		TH1D* fHGenPtMu[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau

@@ -52,7 +52,29 @@ class TreeManager
 		// ------- Status 3 particles
 		virtual std::vector<int>* GetGenElecSt3PID() const = 0;
 		virtual std::vector<int>* GetGenMuonSt3PID() const = 0;
-		virtual std::vector<int>* GetGenTauSt3PID() const = 0;
+		virtual std::vector<int>* GetGenTauSt3PID()  const = 0;
+
+		// ---------- Electrons
+		// ------ Mother PID
+		virtual std::vector<int>* GetGenElecMPID()     const  = 0;
+		// ------ Status Mother
+		virtual std::vector<int>* GetGenElecMSt()      const  = 0;
+		// ------ Energy and momentum
+		virtual std::vector<float>* GetGenElecEnergy() const = 0;
+		virtual std::vector<float>* GetGenElecPx()     const = 0;
+		virtual std::vector<float>* GetGenElecPy()     const = 0;
+		virtual std::vector<float>* GetGenElecPz()     const = 0;
+		// ---------- Muons
+		// ------ Mother PID
+		virtual std::vector<int>* GetGenMuonMPID()     const  = 0;
+		// ------ Status Mother
+		virtual std::vector<int>* GetGenMuonMSt()      const  = 0;
+		// ------ Energy and momentum
+		virtual std::vector<float>* GetGenMuonEnergy() const = 0;
+		virtual std::vector<float>* GetGenMuonPx()     const = 0;
+		virtual std::vector<float>* GetGenMuonPy()     const = 0;
+		virtual std::vector<float>* GetGenMuonPz()     const = 0;
+
 		// ---- End Generation
 
 		// ---- Reco Muon
@@ -108,10 +130,24 @@ class TreeManager
 		inline static std::vector<std::string> getmethods()
 		{
 			std::vector<std::string> methods;
-			
+	
+			// Generation
 			methods.push_back("virtual std::vector<int>* GetGenElecSt3PID() const");
 			methods.push_back("virtual std::vector<int>* GetGenMuonSt3PID() const");
 			methods.push_back("virtual std::vector<int>* GetGenTauSt3PID() const");
+			
+			methods.push_back("virtual std::vector<int>* GetGenElecMPID()     const");
+			methods.push_back("virtual std::vector<int>* GetGenElecMSt()      const");
+			methods.push_back("virtual std::vector<float>* GetGenElecEnergy() const");
+			methods.push_back("virtual std::vector<float>* GetGenElecPx()     const");
+			methods.push_back("virtual std::vector<float>* GetGenElecPy()     const");
+			methods.push_back("virtual std::vector<float>* GetGenElecPz()     const");
+			methods.push_back("virtual std::vector<int>* GetGenMuonMPID()     const");
+			methods.push_back("virtual std::vector<int>* GetGenMuonMSt()      const");
+			methods.push_back("virtual std::vector<float>* GetGenMuonEnergy() const");
+			methods.push_back("virtual std::vector<float>* GetGenMuonPx()     const");
+			methods.push_back("virtual std::vector<float>* GetGenMuonPy()     const");
+			methods.push_back("virtual std::vector<float>* GetGenMuonPz()     const");
 		
 			// Reco Muons
 			// Isolation
