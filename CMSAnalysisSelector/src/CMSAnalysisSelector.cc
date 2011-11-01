@@ -129,9 +129,6 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    (*fNEventsProcessed)++;
 
 
-   //Initialise parameters here so they can be used in Initialise()
-   //InitialiseParameters();
-
    // Run the user function
    InsideLoop();
 
@@ -167,7 +164,7 @@ void CMSAnalysisSelector::Terminate()
    // the results graphically or save the results to file.
 
    //Initialise parameters here so they can be used in Initialise()
-   InitialiseParameters();
+   // InitialiseParameters(); ---> FIXED: BUG!!!
 
    // Get the number of events processed
    //fNEventsProcessed = ((TCounterUI*) FindOutput("fNEventsProcessed"));
