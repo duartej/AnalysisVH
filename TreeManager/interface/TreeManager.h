@@ -46,6 +46,16 @@ class TreeManager
 		//      TO INCLUDE ALSO IN TreeManager::getmethods 
 		// ==================================================
 		// Methods to extract concret values from a Tree
+		
+		// ---- Generation
+		// ------- Status 3 particles
+		virtual std::vector<int>* GetGenElecSt3PID() const = 0;
+		virtual std::vector<int>* GetGenMuonSt3PID() const = 0;
+		virtual std::vector<int>* GetGenTauSt3PID() const = 0;
+		// ---- End Generation
+
+		// ---- Reco Muon
+		// ------- kinematic
 		virtual std::vector<float>* GetMuonPt() const = 0;
 		virtual std::vector<float>* GetMuondeltaPt() const = 0;
 		virtual std::vector<float>* GetMuonPx() const = 0;
@@ -53,34 +63,35 @@ class TreeManager
 		virtual std::vector<float>* GetMuonPz() const = 0;
 		virtual std::vector<float>* GetMuonEnergy() const = 0;
 		
-		// Isolation
+		// ------- Isolation
 		virtual std::vector<float>* GetMuonSumIsoTrack() const = 0;
 		virtual std::vector<float>* GetMuonSumIsoCalo() const = 0;
 		
-		// Position
+		// ------- Position
 		virtual std::vector<float>* GetMuonvx() const = 0;
 		virtual std::vector<float>* GetMuonvy() const = 0;
 		virtual std::vector<float>* GetMuonvz() const = 0;
 		
-		// IP, PV stuff
+		// ------- IP, PV stuff
 		virtual std::vector<float>* GetMuonIP2DInTrack() const = 0;
 		virtual std::vector<float>* GetMuonIP2DBiasedPV() const = 0;
 		virtual std::vector<float>* GetMuonIP2DUnBiasedPV() const = 0;
 		virtual std::vector<float>* GetMuondzPVBiasedPV() const = 0;
 		virtual std::vector<float>* GetMuondzPVUnBiasedPV() const = 0;
 		
-		// Identification 
+		// ------- Identification
 		virtual std::vector<bool>* IsGlobalMuon() const = 0;
 		virtual std::vector<bool>* IsAllTrackerMuons() const = 0;
 		virtual std::vector<bool>* IsAllStandAloneMuons() const = 0;
 		virtual std::vector<bool>* IsTMLastStationTight() const = 0;
 		
-		// Quality
+		// ------- Quality
 		virtual std::vector<int>* GetMuonNValidHitsSATrk() const = 0;
 		virtual std::vector<int>* GetMuonNumOfMatches() const = 0;
 		virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const = 0;
 		virtual std::vector<int>* GetMuonNValidHitsInTrk() const = 0;
 		virtual std::vector<float>* GetMuonNormChi2GTrk() const = 0;
+		// --- End Reco Muon
 		
 		//-- Vertex
 		virtual std::vector<float>* GetVertexz() const = 0;
@@ -96,6 +107,12 @@ class TreeManager
 		{
 			std::vector<std::string> methods;
 			
+			methods.push_back("virtual std::vector<int>* GetGenElecSt3PID() const");
+			methods.push_back("virtual std::vector<int>* GetGenMuonSt3PID() const");
+			methods.push_back("virtual std::vector<int>* GetGenTauSt3PID() const");
+
+			// Reco Muons
+			// Isolation
 			methods.push_back("virtual std::vector<float>* GetMuonPt() const");
 			methods.push_back("virtual std::vector<float>* GetMuondeltaPt() const");
 			methods.push_back("virtual std::vector<float>* GetMuonPx() const");
