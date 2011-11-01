@@ -55,8 +55,8 @@ enum {
   _iFStte = 1020,   // 1 electron  2 taus
   _iFSttm = 120,    // 1 muon      2 taus
   _iFSemt = 1110,   // 1 electron  1 muon 1 tau
-  _iFSunknown = 0,   // Something went wrong
-  _iFStotal 
+  _iFSunknown = 0,  // Something went wrong
+  _iFStotal = 11    // Remember to change everytime you add/remove on
 };
 
 
@@ -100,7 +100,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		virtual ~AnalysisVH();
 
 	protected:
-		TreeManager * _data; 
+	//	TreeManager * _data; 
 		
 		virtual void InitialiseParameters();
 		virtual void Initialise();

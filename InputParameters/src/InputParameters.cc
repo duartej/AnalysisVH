@@ -8,11 +8,6 @@
 ///////////////////////////////////////////////////////////////////////
 #include "InputParameters.h"
 
-#ifndef __CINT__
-ClassImp(InputParameters);
-#endif
-
-
 #include <iostream>
 #include <fstream>
 #include <queue>
@@ -20,6 +15,11 @@ ClassImp(InputParameters);
 #include <string>
 #include <sstream>
 #include <algorithm>
+
+#ifndef __CINT__
+ClassImp(InputParameters);
+#endif
+
 
 void InputParameters::DumpParms() {
   std::cout << " +++++++++++++++ My Input Parameters +++++++++++++ " << std::endl;

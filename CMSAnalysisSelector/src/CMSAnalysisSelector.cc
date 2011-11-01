@@ -27,6 +27,7 @@
 
 // Header include
 #include "CMSAnalysisSelector.h"
+#include "TreeManager.h"
 
 // ROOT includes
 #include "TTree.h"
@@ -46,7 +47,7 @@
 #endif
 
 
-void CMSAnalysisSelector::Begin(TTree * /*tree*/)
+/*void CMSAnalysisSelector::Begin(TTree * / *tree* /)
 {
 #ifdef DEBUGCMSANALYSISSELECTOR
   std::cout << "DEBUG: ==> CMSAnalysisSelector::Begin()" << std::endl;
@@ -63,6 +64,13 @@ void CMSAnalysisSelector::Begin(TTree * /*tree*/)
 #ifdef DEBUGCMSANALYSISSELECTOR
   std::cout << "DEBUG: <== CMSAnalysisSelector::Begin()" << std::endl;
 #endif
+}*/
+
+void CMSAnalysisSelector::Init(TTree *tree )
+{
+	// Calling the data init
+	fData->Init(tree);
+
 }
 
 
@@ -124,7 +132,10 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    //
    // The return value is currently not used.
  
-   fChain->GetTree()->GetEntry(entry);
+   //fChain->GetTree()->GetEntry(entry);  
+   fData->GetEntry(entry);
+
+   std::cout << "****" << std::endl;
 
    // Increment the number of events
    (*fNEventsProcessed)++;
@@ -134,7 +145,7 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    InsideLoop();
 
 #if (DEBUGCMSANALYSISSELECTOR >= 2 )
-  std::cout << "DEBUG: <== CMSAnalysisSelector::SlaveBegin()" << std::endl;
+  std::cout << "DEBUG: <== CMSAnalysisSelector::Process()" << std::endl;
 #endif
    return kTRUE;
 }

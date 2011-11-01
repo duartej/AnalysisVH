@@ -21,7 +21,7 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputPa
 	// Tree type --> to decide selector
 	if( thetype == MiniTrees )
 	{
-		TreeManagerMiniTrees * data = new TreeManagerMiniTrees;
+		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
 		// The selector: si son Muones...
 		MuonSelection * selectioncuts = new MuonSelection(data);
 

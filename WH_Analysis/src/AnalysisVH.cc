@@ -23,7 +23,7 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 // Prepare analysis Constructor
 AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip, 
 		CutManager * selectioncuts, TTree * tree ) : // Tree : TO BE DEPRECATED
-	CMSAnalysisSelector(tree),
+	CMSAnalysisSelector(data),
 	_nLeptons(3), //FIXME: argumento de entrada
 	fIsData(false),
 	fIsWH(false),
@@ -78,9 +78,9 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 
 AnalysisVH::~AnalysisVH()
 {
-	/*if( _data != 0)
+	/*if( fData != 0)
 	{
-		delete _data; //WARNING: Somebody deleting-- > YES!!
+		delete fData; //WARNING: Somebody deleting-- > YES!!
 	}*/
 	if( fInputParameters != 0)
 	{
@@ -333,8 +333,9 @@ void AnalysisVH::InsideLoop()
 	double puw(1);
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(_data->GetEventnPU());
+		puw = fPUWeight->GetWeight(fData->GetEventnPU());
 	}
+
 	// Generation studies
 	//----------------------------------------------------------------------
 	unsigned int fsTaus = _iFSunknown;
@@ -344,9 +345,9 @@ void AnalysisVH::InsideLoop()
 	if(fIsWH) 
 	{
 		// + Classify by leptonic final state (taus undecayed)
-		unsigned int nelecsfromW = _data->GetGenElecSt3PID()->size();
-		unsigned int nmusfromW = _data->GetGenMuonSt3PID()->size();
-		unsigned int ntausfromW = _data->GetGenTauSt3PID()->size();
+		unsigned int nelecsfromW = fData->GetGenElecSt3PID()->size();
+		unsigned int nmusfromW = fData->GetGenMuonSt3PID()->size();
+		unsigned int ntausfromW = fData->GetGenTauSt3PID()->size();
 		
 		fHNGenWMuons->Fill(nmusfromW,puw); 
 		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);

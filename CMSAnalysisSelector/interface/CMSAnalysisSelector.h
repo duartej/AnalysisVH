@@ -27,6 +27,7 @@ class TH1D;
 class TH2F;
 class TTree;
 class TProfile;
+class TreeManager;
 
 
 // Framework includes that might be also moved to the
@@ -38,14 +39,15 @@ class CMSAnalysisSelector : public TSelector {
  public :
   /////////////////////////////////////////////////////////
   //Methods from TSelector
-  CMSAnalysisSelector(TTree * /*tree*/ =0):fNEventsProcessed(0) { }
+  CMSAnalysisSelector(TreeManager * data): TSelector(), fData(data), fNEventsProcessed(0) { }
   virtual ~CMSAnalysisSelector() { }
   virtual Int_t   Version() const { return 2; }
-  virtual void    Begin(TTree *tree);
+  //virtual void    Begin(TTree *tree);
+  virtual void    Init(TTree *tree);
   virtual void    SlaveBegin(TTree *tree);
   virtual Bool_t  Notify();
   virtual Bool_t  Process(Long64_t entry);
-  virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) { return fChain ? fChain->GetTree()->GetEntry(entry, getall) : 0; }
+  //virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) { return fChain ? fChain->GetTree()->GetEntry(entry, getall) : 0; }
   virtual void    SetOption(const char *option) { fOption = option; }
   virtual void    SetObject(TObject *obj) { fObject = obj; }
   virtual void    SetInputList(TList *input) { fInput = input; }
@@ -125,9 +127,10 @@ class CMSAnalysisSelector : public TSelector {
 
 
 
- public:
+ protected:
   // From TSelector...
-  TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+ // TTree          *fChain;   //!pointer to the analyzed TTree or TChain
+  TreeManager   *fData;    //!pointer to the data
 
 
  protected:

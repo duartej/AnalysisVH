@@ -42,6 +42,7 @@ class TreeManager
 		virtual ~TreeManager() { };
 
 		virtual void Init(TTree * tree) = 0;
+		virtual void GetEntry( const int & entry );
 		// ==== ADD HERE YOUR NEW METHOD AND DON'T FORGET 
 		//      TO INCLUDE ALSO IN TreeManager::getmethods 
 		// ==================================================
