@@ -135,8 +135,7 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    //fChain->GetTree()->GetEntry(entry);  
    fData->GetEntry(entry);
 
-   std::cout << "****" << std::endl;
-
+   
    // Increment the number of events
    (*fNEventsProcessed)++;
 

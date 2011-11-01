@@ -121,7 +121,8 @@ class TreeManager
 		
 		// General
 		virtual int GetEventEventNumber() const = 0;
-		virtual int GetEventnPU() const = 0;
+		virtual int GetEventprocessID()   const = 0;
+		virtual int GetEventnPU()         const = 0;
 		// ==== END
 		// ==================================================
   		
@@ -192,6 +193,7 @@ class TreeManager
 			
 			// General
 			methods.push_back("virtual int GetEventEventNumber() const");
+			methods.push_back("virtual int GetEventprocessID() const");
 			methods.push_back("virtual int GetEventnPU() const");
 			
 			return methods;

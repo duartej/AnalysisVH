@@ -192,42 +192,32 @@ void AnalysisVH::Initialise()
 	// Histograms
 	//----------------------------------------------------------------------------
 	// Process ID
-	_histos[fHProcess_histos] = CreateH1D("fHProcess_histos", "Proccess ID", _iNProcesses, 0, _iNProcesses);
-	fHProcess = CreateH1D("fHProcess", "Proccess ID", _iNProcesses, 0, _iNProcesses);
+	_histos[fHProcess] = CreateH1D("fHProcess", "Proccess ID", _iNProcesses, 0, _iNProcesses);
 	for(unsigned int i = 0; i < _iNProcesses; i++)
 	{
-		_histos[fHProcess_histos]->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
-		fHProcess->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
+		_histos[fHProcess]->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
 	}
 	
 	// Final state from generation (incl. taus)
 	_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
 			_iFStotal, 0, _iFStotal);
-	//fHGenFinalState = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
-	//		_iFStotal, 0, _iFStotal);
 	for(unsigned int i = 0; i < _iFStotal; i++)
 	{
 		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
-	//	fHGenFinalState->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
 	}
 	_histos[fHGenFinalState]->Sumw2();
-	//fHGenFinalState->Sumw2();
 
 	// Final state from generation (no taus)
-//	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
-	fHGenFinalStateNoTaus = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
+	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
 			_iFStotal, 0, _iFStotal);
 	for(unsigned int i = 0; i < _iFStotal; i++)
 	{
-		//_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
-		fHGenFinalStateNoTaus->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
 	}
-	//_histos[fHGenFinalStateNoTaus]->Sumw2();
-	fHGenFinalStateNoTaus->Sumw2();
+	_histos[fHGenFinalStateNoTaus]->Sumw2();
 
 	// Generated muons coming from a W
-	//_histos[fHNGenWMuons] = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
-	fHNGenWMuons = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
+	_histos[fHNGenWMuons] = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
 	
 	// PT and Eta of most energetic gen muon from W or tau
 	for(unsigned int i = 0; i < _nLeptons; i++) 
@@ -245,38 +235,37 @@ void AnalysisVH::Initialise()
 
 
 	// Events passing every cut
-	fHEventsPerCut = CreateH1D("fHEventsPerCut", "Events passing each cut", 
+	_histos[fHEventsPerCut] = CreateH1D("fHEventsPerCut", "Events passing each cut", 
 			_iNCuts, 0, _iNCuts);
 	for (unsigned int i = 0; i < _iNCuts; i++)
 	{
-		fHEventsPerCut->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
 	}
   
 	// Events passing every cut that are 3 mu from gen
-	fHEventsPerCut3Mu = CreateH1D("fHEventsPerCut3Mu", "Events passing each cut that are 3 mu from gen", 
+	_histos[fHEventsPerCut3Mu] = CreateH1D("fHEventsPerCut3Mu", "Events passing each cut that are 3 mu from gen", 
 			_iNCuts, 0, _iNCuts);
 	for(unsigned int i = 0; i < _iNCuts; i++)
 	{
-		fHEventsPerCut3Mu->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut3Mu]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
 	}
 
 	// Reconstructed muons in the event
-	fHNRecoMuons = CreateH1D("fHNRecoMuons", "Reconstructed #mu", 
+	_histos[fHNRecoMuons] = CreateH1D("fHNRecoMuons", "Reconstructed #mu", 
 			10, -0.5, 9.5);
 	
 	// Muons passing the basic selection
-	fHNSelectedMuons = CreateH1D("fHNSelectedMuons", 
-			       "Selected #mu", 
+	_histos[fHNSelectedMuons] = CreateH1D("fHNSelectedMuons", "Selected #mu", 
 			       10, -0.5, 9.5);
 
 	// Selected Muons close to the PV
-	fHNSelectedPVMuons = CreateH1D("fHNSelectedPVMuons", 
+	_histos[fHNSelectedPVMuons] = CreateH1D("fHNSelectedPVMuons", 
 			"Selected #mu close to PV", 10, -0.5, 9.5);
 	// Selected Isolated Muons
-	fHNSelectedIsoMuons = CreateH1D("fHNSelectedIsoMuons", 
+	_histos[fHNSelectedIsoMuons] = CreateH1D("fHNSelectedIsoMuons", 
 			"Selected Isolated #mu", 10, -0.5, 9.5);
 	// Selected Isolated Good Muons
-	fHNSelectedIsoGoodMuons = CreateH1D("fHNSelectedIsoGoodMuons", 
+	_histos[fHNSelectedIsoGoodMuons] = CreateH1D("fHNSelectedIsoGoodMuons", 
 			"Selected good Isolated #mu", 10, -0.5, 9.5);
 	
 	// Pt and eta of first/second/third good isolated muon
@@ -349,7 +338,7 @@ void AnalysisVH::InsideLoop()
 		unsigned int nmusfromW = fData->GetGenMuonSt3PID()->size();
 		unsigned int ntausfromW = fData->GetGenTauSt3PID()->size();
 		
-		fHNGenWMuons->Fill(nmusfromW,puw); 
+		_histos[fHNGenWMuons]->Fill(nmusfromW,puw); 
 		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);
 		_histos[fHGenFinalState]->Fill(fsTaus, puw);
 		
@@ -402,7 +391,7 @@ void AnalysisVH::InsideLoop()
 			}
 		}
 		fsNTau = GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
-		fHGenFinalStateNoTaus->Fill(fsNTau, puw);
+		_histos[fHGenFinalStateNoTaus]->Fill(fsNTau, puw);
 		
 #ifdef DEBUGANALYSIS
 		std::cout << "DEBUG: W->e/mu/tau " <<  fNGenElectrons
@@ -443,6 +432,7 @@ void AnalysisVH::InsideLoop()
 #endif
 			FillGenPlots(_iAllEvents,puw);
 			
+			// Freeing memory
 			delete fGenMuon;
 			fGenMuon = 0;
 		}
@@ -451,6 +441,69 @@ void AnalysisVH::InsideLoop()
 	// All events
 	//------------------------------------------------------------------
 	FillHistoPerCut(_iAllEvents, puw, fsNTau);
+  
+	// Proccess ID
+	//------------------------------------------------------------------
+	int procn = _iOther;
+	const int processID = fData->GetEventprocessID();
+	if(processID >= 0 && processID <= 4)  //ZJets
+	{
+		procn = _iVarious;
+	}
+	else if(processID == 22)  //ZZ
+	{
+		procn = _iZZ;
+	}
+	else if (processID == 23)  //WZ
+	{
+		procn = _iWZ;
+	}
+	else if (processID == 24)  //ZH
+	{   
+		procn = _iZH; 
+	}
+	else if (processID == 25)  //WW
+	{
+		procn = _iWW; 
+	}
+	else if (processID == 26)  //WH
+	{
+		procn = _iWH;
+	}
+	else if (processID >= 120 && processID <= 123 ) //ttH
+	{
+		procn = _ittH;
+	}
+	_histos[fHProcess]->Fill(procn);
+
+	if(fIsWH && (procn != _iWH || fsNTau != _iFSmmm))
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iIsWH, puw, fsNTau);
+
+	// HLT: TBD...
+	//------------------------------------------------------------------
+	FillHistoPerCut(_iHLT, puw, fsNTau);
+
+	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
+	//int iGoodVertex = GoodVertex();
+	//_selectioncuts->PassEventsCuts();
+	
+	// Muon selection
+	//------------------------------------------------------------------
+	//
+	
+	// Store the number of reconstructed muons without any filter
+	_histos[fHNRecoMuons]->Fill(T_Muon_Px->size());
+	
+	// (1) Basic selection
+	//--------------------
+	unsigned int nSelectedMuons = _selectioncuts->GetNBasicLeptons();
+	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
+
+
 }
 
 void AnalysisVH::Summary()
@@ -462,19 +515,21 @@ void AnalysisVH::Summary()
 	std::cout << "------------------------" << std::endl;
 	for(unsigned int i = 0; i < _iNProcesses; i++)
 	{
-		std::cout << kProcesses[i] << ":\t" << fHProcess->GetBinContent(i+1) << " events ("
-			<< 100.0*fHProcess->GetBinContent(i+1)/fHProcess->GetEntries() << "%)" << std::endl;
+		std::cout << kProcesses[i] << ":\t" << _histos[fHProcess]->GetBinContent(i+1) << " events ("
+			<< 100.0*_histos[fHProcess]->GetBinContent(i+1)/_histos[fHProcess]->GetEntries() << "%)" << std::endl;
 	}
 	std::cout << std::endl << std::endl;
 	std::cout << "N. events selected at each stage:" << std::endl;
 	std::cout << "---------------------------------" << std::endl;
 	for(unsigned int i = 0; i < _iNCuts; i++)
 	{
-		std::cout << fHEventsPerCut->GetBinContent(i+1) << " ["
+		std::cout << _histos[fHEventsPerCut]->GetBinContent(i+1) << " ["
 			<< "%] selected events (" << kCutNames[i] << ")" << std::endl;
 	}
 	std::cout << std::endl << std::endl;
 }
+
+
 
 
 //---------------------------------------------------------------------
@@ -484,10 +539,10 @@ void AnalysisVH::Summary()
 
 void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
 {
-	fHEventsPerCut->Fill(cut, puw);
+	_histos[fHEventsPerCut]->Fill(cut, puw);
 	if (fs == _iFSmmm)
 	{
-		fHEventsPerCut3Mu->Fill(cut, puw);
+		_histos[fHEventsPerCut3Mu]->Fill(cut, puw);
 	}
 }
 

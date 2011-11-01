@@ -57,7 +57,6 @@ class MuonSelection : public CutManager
 		virtual std::vector<int> * PassQualityCuts();
 		virtual std::vector<int> * PassUndefCuts( const int & cutindex );
 
-
 	ClassDef(MuonSelection,0);
 };
 #endif

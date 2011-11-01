@@ -240,7 +240,7 @@ int main(int argc, char *argv[])
 			<< "using 0 as default" << std::endl;
 		firstEvent = 0; 
 	}
-	nEvents = 100; //PROV
+	nEvents = 1000; //PROV
 	std::cout << tchaindataset->GetEntries() << std::endl;
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	

@@ -67,6 +67,9 @@ class CutManager
 		virtual std::vector<int> * PassQualityCuts()     = 0;
 		virtual std::vector<int> * PassUndefCuts( const int & cutindex ) = 0;
 
+		//! Number of leptons which pass the basic selection
+		inline unsigned int GetNBasicLeptons() const  {  return ( _basicLeptons ) ? _basicLeptons->size() :  0 ; }
+
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
 		inline virtual void SetNLeptons( const unsigned int & nLeptons ) { _nLeptons = nLeptons; }
@@ -104,6 +107,8 @@ class CutManager
 		//! Number of leptons to be considered in the analysis
 		unsigned int _nLeptons;
 
+		//! Vector of index of leptons which pass the basic selection
+		std::vector<int> * _basicLeptons;
 		//! Vector of leptons indices which have been pass all the cuts
 		std::vector<int> * _idxLeptons;
 

@@ -88,7 +88,10 @@ class AnalysisVH : public CMSAnalysisSelector
 {
 	public: 
 		//! For histograms
-		enum { fHProcess_histos , fHGenFinalState }; //, fHGenFinalStateNoTaus, fHNGenWMuons
+		enum { fHProcess , fHGenFinalState , fHGenFinalStateNoTaus, fHNGenWMuons,
+			fHEventsPerCut, fHEventsPerCut3Mu, fHNRecoMuons, fHNSelectedMuons,
+			fHNSelectedPVMuons, fHNSelectedIsoMuons, fHNSelectedIsoGoodMuons 
+		};
 
 		// State prepare analisis
 		AnalysisVH( TreeManager * data, InputParameters * ip, 
@@ -148,19 +151,19 @@ class AnalysisVH : public CMSAnalysisSelector
 
 		// Histograms FIXME: 3 --> nLeptons
 		//----------------------------------------------------------------------------
-		TH1D* fHProcess;               //Process ID
+		//TH1D* fHProcess;               //Process ID
 		//TH1D* fHGenFinalState;         //Final state from generation (incl. taus)
-		TH1D* fHGenFinalStateNoTaus;   //Final state from generation (no taus)
-		TH1D* fHNGenWMuons;            //Generated muons coming from a W
+		//TH1D* fHGenFinalStateNoTaus;   //Final state from generation (no taus)
+		//TH1D* fHNGenWMuons;            //Generated muons coming from a W
 		TH1D* fHGenPtMu[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
 		TH1D* fHGenEtaMu[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
-		TH1D* fHEventsPerCut;          //Events passing every cut
-		TH1D* fHEventsPerCut3Mu;       //Events passing every cut that are 3 mu from gen
-		TH1D* fHNRecoMuons;            //Reconstructed muons in the event
-		TH1D* fHNSelectedMuons;        //Muons passing the basic selection
-		TH1D* fHNSelectedPVMuons;      //Selected Muons close to the PV
-		TH1D* fHNSelectedIsoMuons;     //Selected Isolated Muons
-		TH1D* fHNSelectedIsoGoodMuons; //Selected Isolated Good Muons
+		//TH1D* fHEventsPerCut;          //Events passing every cut
+		//TH1D* fHEventsPerCut3Mu;       //Events passing every cut that are 3 mu from gen
+		//TH1D* fHNRecoMuons;            //Reconstructed muons in the event
+		//TH1D* fHNSelectedMuons;        //Muons passing the basic selection
+		//TH1D* fHNSelectedPVMuons;      //Selected Muons close to the PV
+		//TH1D* fHNSelectedIsoMuons;     //Selected Isolated Muons
+		//TH1D* fHNSelectedIsoGoodMuons; //Selected Isolated Good Muons
 		TH1D* fHPtMu[3];               //Pt of 1st/2nd/3rd good isolated muon
 		TH1D* fHEtaMu[3];              //Eta of 1st/2nd/3rd good isolated muon
 		TH1D* fHDeltaRGenRecoMu[3];    //DeltaR between reco and gen muons
