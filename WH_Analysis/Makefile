@@ -3,7 +3,7 @@ SHELL     = /bin/sh
 PACKAGE   := $(shell basename `pwd`)
 
 CXX       = g++
-CXXFLAGS  = -Wall
+CXXFLAGS  = -Wall -DDEBUGANALYSIS
 
 LDFLAGS   = -shared -fPIC
 
@@ -16,7 +16,7 @@ INCDIR     += -I$(shell pwd)/interface
 INCDIR     += -I$(shell pwd)
 
 ### Dependencies
-DEPPKG     := CutManager TreeManagerCreator TreeManager CMSAnalysisSelector InputParameters TCounterUI DatasetManager PUWeight
+DEPPKG     := TreeManager CutManager CMSAnalysisSelector InputParameters TCounterUI DatasetManager PUWeight
 BASEDIR    := $(shell cd .. && pwd && cd ..)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 DEPSLIBS   := $(foreach DEPPKG,$(DEPPKG),-l$(DEPPKG))

@@ -94,7 +94,6 @@ AnalysisVH::~AnalysisVH()
 
 void AnalysisVH::InitialiseParameters()
 {
-	std::cout << "PASE POR AQUI" << std::endl;
 	InputParameters * ip = this->GetInputParameters();
 
 	//Cuts
@@ -175,8 +174,8 @@ void AnalysisVH::InitialiseParameters()
 	ip->TheNamedDouble("Luminosity", fLuminosity);
 	
 #ifdef DEBUGANALYSIS
-	std::cout << "DEBUG: IsWH   = " << fIsWH << endl;
-	std::cout << "DEBUG: IsData = " << fIsData << endl;
+	std::cout << "DEBUG: IsWH   = " << fIsWH << std::endl;
+	std::cout << "DEBUG: IsData = " << fIsData << std::endl;
 #endif
 }
 
@@ -325,6 +324,41 @@ void AnalysisVH::Initialise()
 
 void AnalysisVH::InsideLoop()
 {
+#ifdef DEBUGANALYSIS
+	std::cout << "========================================================" << std::endl;
+	std::cout << "New event" << std::endl;
+#endif
+	// Get PU Weight
+	//----------------------------------------------------------------------
+	double puw(1);
+	if(!fIsData)
+	{
+		puw = fPUWeight->GetWeight(_data->GetEventnPU());
+	}
+	// Generation studies
+	//----------------------------------------------------------------------
+	unsigned int fsTaus = _iFSunknown;
+	unsigned int fsNTau = _iFSunknown;
+	fNGenElectrons = 0; //Number of generated electrons from W or tau
+	fNGenMuons = 0;     //Number of generated muons from W or tau
+	if(fIsWH) 
+	{
+		// + Classify by leptonic final state (taus undecayed)
+		unsigned int nelecsfromW = _data->GetGenElecSt3PID()->size();
+		unsigned int nmusfromW = _data->GetGenMuonSt3PID()->size();
+		unsigned int ntausfromW = _data->GetGenTauSt3PID()->size();
+		
+		fHNGenWMuons->Fill(nmusfromW,puw); 
+		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);
+		fHGenFinalState->Fill(fsTaus, puw);
+		
+#ifdef DEBUGANALYSIS
+		std::cout << "DEBUG: W->e/mu/tau " << nelecsfromW 
+			<< "/" << nmusfromW << "/" << ntausfromW << std::endl;
+		std::cout << "DEBUG: fsTaus --> " << fsTaus << std::endl;
+#endif
+	}
+
 }
 
 void AnalysisVH::Summary()
@@ -350,3 +384,47 @@ void AnalysisVH::Summary()
 	std::cout << std::endl << std::endl;
 }
 
+
+//---------------------------------------------------------------------
+// Other helper methods
+//---------------------------------------------------------------------
+//
+
+// Get Final state
+unsigned int AnalysisVH::GetFSID(const unsigned int & nel, 
+		const unsigned int & nmu, const unsigned int & ntau) const 
+{
+	unsigned int fs = _iFSunknown;
+	const unsigned int fsencoded = nel*1000+nmu*100+ntau*10;
+
+	return fsencoded;
+}
+  /*
+  if (nel == 3)
+    fs = _iFSeee;
+  else if (nel == 2) {
+    if (nmu == 1)
+      fs = _iFSeem;
+    else if (ntau == 1)
+      fs = _iFSeet;
+  }
+  else if (nel == 1) {
+    if (nmu == 2)
+      fs = _iFSmme;
+    else if (ntau == 2)
+      fs = _iFStte;
+    else if (nmu == 1 && ntau == 1)
+      fs = _iFSemt;
+  }
+  else if (nel == 0) {
+    if (nmu == 3)
+      fs = _iFSmmm;
+    else if (ntau == 3)
+      fs = _iFSttt;
+    else if (nmu == 2 && ntau == 1)
+      fs = _iFSmmt;
+    else if (nmu == 1 && ntau == 2)
+      fs = _iFSttm;
+  }
+  return fs;
+}*/

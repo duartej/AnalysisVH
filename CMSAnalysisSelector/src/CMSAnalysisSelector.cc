@@ -103,7 +103,8 @@ void CMSAnalysisSelector::SlaveBegin(TTree * /*tree*/)
 Bool_t CMSAnalysisSelector::Process(Long64_t entry)
 {
 #if (DEBUGCMSANALYSISSELECTOR >= 2 )
-  std::cout << "DEBUG: ==> CMSAnalysisSelector::SlaveBegin()" << std::endl;
+  std::cout << "DEBUG: ==> CMSAnalysisSelector::Process() [Entry:" << entry 
+	  << "]" << std::endl;
 #endif
    // The Process() function is called for each entry in the tree (or possibly
    // keyed object in the case of PROOF) to be processed. The entry argument

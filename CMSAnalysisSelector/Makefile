@@ -3,7 +3,7 @@ SHELL     = /bin/sh
 PACKAGE   := $(shell basename `pwd`)
 
 CXX       = g++
-CXXFLAGS  = -Wall
+CXXFLAGS  = -Wall -DDEBUGCMSANALYSISSELECTOR=3
 
 LDFLAGS   = -shared -fPIC
 

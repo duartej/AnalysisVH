@@ -202,6 +202,12 @@ int main(int argc, char *argv[])
 		}
 		exit(-1);
 	}
+	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
+	{
+		tchaindataset->Add(*it);
+	}
+
+	tchaindataset->GetListOfFiles()->Print();
 
 
 #ifdef TIMERS
@@ -235,6 +241,7 @@ int main(int argc, char *argv[])
 		firstEvent = 0; 
 	}
 	nEvents = 100; //PROV
+	std::cout << tchaindataset->GetEntries() << std::endl;
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
 #ifdef TIMERS
@@ -280,6 +287,11 @@ int main(int argc, char *argv[])
 	{
 		delete analysis;
 		analysis = 0;
+	}
+	if( tchaindataset != 0 )
+	{
+		delete tchaindataset;
+		tchaindataset = 0;
 	}
 #ifdef TIMERS
   t6 = timer.RealTime();

@@ -11,6 +11,7 @@
 #include "CutLevels.h"
 
 #include "TString.h"
+#include "TLorentzVector.h"
 
 
 class InputParameters;
@@ -42,19 +43,20 @@ enum {_iWH,        //0 Higgs
 };
 
 // + Gen Final States (incl taus)
+// CODE: Nelectrons*1000+Nmuons*100+Ntaus*10
 enum {
-  _iFSeee,       // 3 electrons
-  _iFSmmm,       // 3 muons
-  _iFSttt,       // 3 taus
-  _iFSeem,       // 2 electrons 1 muon
-  _iFSeet,       // 2 electrons 1 tau
-  _iFSmme,       // 1 electron  2 muons
-  _iFSmmt,       // 2 muons     1 tau
-  _iFStte,       // 1 electron  2 taus
-  _iFSttm,       // 1 muon      2 taus
-  _iFSemt,       // 1 electron  1 muon 1 tau
-  _iFSunknown,   // Something went wrong
-  _iFStotal
+  _iFSeee = 3000,   // 3 electrons
+  _iFSmmm = 300,    // 3 muons
+  _iFSttt = 30,     // 3 taus
+  _iFSeem = 2100,   // 2 electrons 1 muon
+  _iFSeet = 2010,   // 2 electrons 1 tau
+  _iFSmme = 1200,   // 1 electron  2 muons
+  _iFSmmt = 210,    // 2 muons     1 tau
+  _iFStte = 1020,   // 1 electron  2 taus
+  _iFSttm = 120,    // 1 muon      2 taus
+  _iFSemt = 1110,   // 1 electron  1 muon 1 tau
+  _iFSunknown = 0,   // Something went wrong
+  _iFStotal 
 };
 
 
@@ -108,6 +110,9 @@ class AnalysisVH : public CMSAnalysisSelector
 	private:
 		AnalysisVH();
 
+		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
+				const unsigned int & ntaus ) const ;
+
 		// Number of final state leptons
 		unsigned int _nLeptons;
 		
@@ -121,6 +126,13 @@ class AnalysisVH : public CMSAnalysisSelector
 		// Luminosity: FIXME: Possibly to the mother since has to be used for each
 		//----------------------------------------------------------------------------
 		double fLuminosity;
+
+		// Leptons at generation
+		//----------------------------------------------------------------------------
+		unsigned int fNGenElectrons;             //Number of generated electrons from W or tau
+		unsigned int fNGenMuons;                 //Number of generated muons from W or tau
+		std::vector<TLorentzVector> * fGenMuon;  //TLorentzVector with the 3 muons from W or tau
+
 
 		// Cut selections
 		CutManager * _selectioncuts;
