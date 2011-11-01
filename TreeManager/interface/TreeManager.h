@@ -98,6 +98,7 @@ class TreeManager
 		
 		// General
 		virtual int GetEventEventNumber() const = 0;
+		virtual int GetEventnPU() const = 0;
 		// ==== END
 		// ==================================================
   		
@@ -110,7 +111,7 @@ class TreeManager
 			methods.push_back("virtual std::vector<int>* GetGenElecSt3PID() const");
 			methods.push_back("virtual std::vector<int>* GetGenMuonSt3PID() const");
 			methods.push_back("virtual std::vector<int>* GetGenTauSt3PID() const");
-
+		
 			// Reco Muons
 			// Isolation
 			methods.push_back("virtual std::vector<float>* GetMuonPt() const");
@@ -154,6 +155,7 @@ class TreeManager
 			
 			// General
 			methods.push_back("virtual int GetEventEventNumber() const");
+			methods.push_back("virtual int GetEventnPU() const");
 			
 			return methods;
 		}
