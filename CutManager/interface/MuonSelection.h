@@ -44,7 +44,6 @@
 class MuonSelection : public CutManager
 {
 	public:
-
 		MuonSelection( TreeManager * data, const int & nLeptons = 2 ) : CutManager(data) { }
 		virtual ~MuonSelection() { }
 		

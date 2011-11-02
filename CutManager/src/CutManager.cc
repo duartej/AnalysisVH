@@ -7,6 +7,8 @@ CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_cuts(0),
 	_undefcuts(0),
 	_nLeptons(nLeptons),
+	_selectedbasicLeptons(0),
+	_closeToPVLeptons(0),
 	_idxLeptons(0)
 {
 	_cuts = new std::map<cuttype,std::vector<double> *>;
@@ -65,6 +67,37 @@ CutManager::~CutManager()
 	}
 }
 
+//
+unsigned int CutManager::GetNBasicLeptons()
+{
+	int size = 0;
+	if( _selectedbasicLeptons == 0)
+	{
+		size = SelectBasicLeptons();
+	}
+	else
+	{
+		size = _selectedbasicLeptons->size();
+	}
+
+	return size:
+}
+
+unsigned int CutManager::GetNLeptonsCloseToPV()
+{
+	int size = 0;
+	if( _closeToPVLeptons == 0)
+	{
+		size = SelectLeptonsCloseToPV();
+	}
+	else
+	{
+		size = _closeToPVLeptons->size();
+	}
+
+	return size:
+}
+
 // Helper function which exits if the cuts are not initialized
 void CutManager::checkercutinit(const cuttype & cutclass) const
 {
@@ -76,7 +109,7 @@ void CutManager::checkercutinit(const cuttype & cutclass) const
 			<< std::endl;
 		exit(-1);
 	}
-	if( (*_cuts)[_ptCuts] == 0 )
+	if( (*_cuts)[cutclass] == 0 )
 	{
 		// FIXME: mapa de relacion enum con string
 		std::cerr << "MuonSelection::checkercutinit ERROR"
@@ -85,6 +118,28 @@ void CutManager::checkercutinit(const cuttype & cutclass) const
 		exit(-1);
 	}
 }
+
+// Helper function which exits if the cuts are not initialized
+void CutManager::checkerundefcutinit(const int & cutclass) const
+{
+	// Checking if the map of cuts is initialized
+	if( _cuts == 0 )
+	{
+		std::cerr << "MuonSelection::checkercutinit ERROR"
+			<< " Not initialized the cuts! Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+	if( (*_undefcuts)[cutclass] == 0 )
+	{
+		// FIXME: mapa de relacion enum con string
+		std::cerr << "MuonSelection::checkercutinit ERROR"
+			<< " Not initialized the " << cutclass <<" cuts! Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+}
+
 // Setters
 void CutManager::setcut( const cuttype & cutclass, const std::vector<double> & cuts )
 {

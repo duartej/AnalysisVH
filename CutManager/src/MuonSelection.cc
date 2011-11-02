@@ -17,8 +17,8 @@ bool MuonSelection::PassEventCuts()
 bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt,
 		const double & eta) const
 {
-	checkercutinit(_ptCuts);
-	checkercutinit(_etaCuts);
+	this->checkercutinit(_ptCuts);
+	this->checkercutinit(_etaCuts);
 	// Extract the index (possibly only one, all have the
 	// same cut)
 	double etacut = (*_cuts)[_etaCuts]->at(0);
@@ -27,17 +27,19 @@ bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt
 	{
 		etacut = (*(*_cuts)[_etaCuts])[i];
 	}
-	
+	bool hols=true;
 	if( fabs(eta) >= etacut )
 	{
-		return false;
+
+		hols= false;
 	}
 
 	// Use the lowest value of the pt
 	double ptcut = (*(*_cuts)[_ptCuts])[(*_cuts)[_ptCuts]->size()-1];
+std::cout << pt << " (" << ptcut << ") : " << eta << "(" <<etacut<<")"<< std::endl;
 	if( pt <= ptcut )
 	{
-		return false;
+		hols= false;
 	}
 
 	return true;
@@ -76,7 +78,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 
 	// Empty the selected muons vector
 	_selectedbasicLeptons->clear();
-	
+std::cout 	<< "SELECTBASICLETPONS" << std::endl;
 	// Loop over muons
 	for(unsigned int i=0; i < _data->GetMuonPx()->size(); ++i) 
 	{
@@ -123,7 +125,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 //   be not standalone muon
 // - Depends on fCutMinMuPt, fCutMaxMuEta 
 //---------------------------------------------
-unsigned int MuonSelection::SelectMuonsCloseToPV() 
+unsigned int MuonSelection::SelectLeptonsCloseToPV() 
 {
 	//First event
 	if( _closeToPVLeptons == 0)
@@ -141,21 +143,26 @@ unsigned int MuonSelection::SelectMuonsCloseToPV()
 		this->SelectBasicLeptons();
 	}
 
+	// Assuming all the vertices are good, getting the first one:
+	// the one which points more tracks to him (nombre de variable buscar)
+	unsigned int iGoodVertex = 0;
+
 	//Loop over selected muons
 	for(std::vector<int>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
 		unsigned int i = *it;
 
-		//Build 4 vector for muon
+		//Build 4 vector for muon (por que no utilizar directamente Pt
 		double ptMu = TLorentzVector(_data->GetMuonPx()->at(i), 
 				_data->GetMuonPy()->at(i), 
 				_data->GetMuonPz()->at(i), 
 				_data->GetMuonEnergy()->at(i)).Pt();
 
-		//[Require muons to be close to PV]
+		//[Require muons to be close to PV] --> FIXME: MiniTRees, buscar forma de cambiarlo...
 		//-------------------
-		double deltaZMu = fData->GetMuonvz()->at(i) - fData->GetVertexz()->at->at(iGoodVertex)
+		double deltaZMu = _data->GetMuonvz()->at(i) - _data->GetVertexz()->at(iGoodVertex);
+		double IPMu     = _data->GetMuonIP2DInTrack()->at(i);
 /*#ifdef MINITREES
 		// Next two lines for pure minitrees
 		double deltaZMu = fSelector->T_Muon_vz->at(i) - fSelector->T_Vertex_z->at(iGoodVertex);
@@ -176,20 +183,30 @@ unsigned int MuonSelection::SelectMuonsCloseToPV()
 			IPMu     = fSelector->T_Muon_IP2DUnBiasedPV->at(i);
 		}
 #endif*/
+		// Checking the cuts are defined
+		this->checkerundefcutinit(kMaxMuIP2DInTrackR1);
+		this->checkerundefcutinit(kMaxMuIP2DInTrackR2);
+		this->checkerundefcutinit(kMaxDeltaZMu);
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
-		if (ptMu >= 20 && fabs(IPMu) > fCutMaxMuIP2DInTrackR1) 
+		if(ptMu >= 20.0 && fabs(IPMu) > (*(*_undefcuts)[kMaxMuIP2DInTrackR1])[0] ) 
+		{
 			continue;
-		else if (ptMu < 20  && fabs(IPMu) > fCutMaxMuIP2DInTrackR2) 
+		}
+		else if(ptMu < 20.0  && fabs(IPMu) > (*(*_undefcuts)[kMaxMuIP2DInTrackR2])[0] ) 
+		{
 			continue;
+		}
 		
-		if (fabs(deltaZMu) > fCutMaxDeltaZMu) continue;
-		
+		if (fabs(deltaZMu) > (*(*_undefcuts)[kMaxDeltaZMu])[0]) 
+		{
+			continue;
+		}
 		
 		// If we got here it means the muon is good
-		fSelectedPVMuons->push_back(i);
+		_closeToPVLeptons->push_back(i);
 	}
 	
-	return fSelectedPVMuons->size();
+	return _closeToPVLeptons->size();
 }

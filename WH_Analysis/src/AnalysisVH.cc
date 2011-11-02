@@ -111,12 +111,21 @@ void AnalysisVH::InitialiseParameters()
 	cuts->push_back(dummy);
 	_selectioncuts->SetPtMinCuts(*cuts);
 	cuts->clear();
+	
+	ip->TheNamedDouble("MaxAbsEta", dummy);
+	cuts->push_back(dummy);
+	_selectioncuts->SetABSEtaMaxCuts(*cuts);
+	cuts->clear();
 
 	//   - IP and DeltaZ of track associated with muon w.r.t PV
-
-	ip->TheNamedDouble("MaxMuIP2DInTrack", dummy);
+	ip->TheNamedDouble("MaxMuIP2DInTrackR1", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrack);
+	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR1);
+	cuts->clear();
+
+	ip->TheNamedDouble("MaxMuIP2DInTrackR2", dummy);
+	cuts->push_back(dummy);
+	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR2);
 	cuts->clear();
 
 	ip->TheNamedDouble("MaxDeltaZMu", dummy );
@@ -489,6 +498,7 @@ void AnalysisVH::InsideLoop()
 
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
+	int iGoodVertex = 0; // First one
 	//_selectioncuts->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
@@ -508,6 +518,8 @@ void AnalysisVH::InsideLoop()
 	//--------------------
 	unsigned int nSelectedMuons = _selectioncuts->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
+
+std::cout << nSelectedMuons << std::endl;
   
 	if(nSelectedMuons < _nLeptons)
 	{
@@ -518,14 +530,15 @@ void AnalysisVH::InsideLoop()
 	
 	// (2) PV selection
 	//--------------------
-	unsigned int nSelectedPVMuons = _selectioncuts->GetNMuonsCloseToPV();
-	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw);  
+	unsigned int nSelectedPVMuons = _selectioncuts->GetNLeptonsCloseToPV();
+	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw); 
+	
+	if(nSelectedPVMuons < _nLeptons)
+	{
+		return;
+	}
 
-  if (nSelectedPVMuons < kNMuons) return;
-
-  //cout << "nSelectedPVMuons=" << nSelectedPVMuons << endl;
-
-  FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
+	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
 
 
 }

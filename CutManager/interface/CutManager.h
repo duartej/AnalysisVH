@@ -41,13 +41,14 @@ class CutManager
 {
 	public:
 		//! Enum class to encode the specifics cuts (Undef): this has to be growing
-		//! every time it is incorporated a new one cut: FIXME: Quizas dejar estos enums para las concretas??
+		//! every time it is incorporated a new one cut: FIXME::> Ha de convertirse en un mapa _undefcuts[nombrecorte], facilitara
+		// las cosas y no creo que introduzca demasiada lentitud
 		enum 
 		{ 
-			kMaxDeltaRMuMu, kMaxMuIP2DInTrack, kMaxDeltaZMu,
+			kMaxDeltaRMuMu, kMaxMuIP2DInTrackR1, kMaxMuIP2DInTrackR2,
+			kMaxDeltaZMu,
 			kMaxZMass, kMinZMass 
 		};
-
 		//! Constructor
 		CutManager(TreeManager * data, const int & nLeptons = 2); 
 		//! Destructor
@@ -69,18 +70,16 @@ class CutManager
 		
 		//! Selection stuff
 		//! Number of leptons which pass the basic selection. FIXME: Description
-		inline unsigned int GetNBasicLeptons() {  return ( _selectedbasicLeptons ) ? SelectBasicLeptons() :  0 ; }
+	//	inline unsigned int GetNBasicLeptons() {  return ( _selectedbasicLeptons ) ? SelectBasicLeptons() :  0 ; }
+		unsigned int GetNBasicLeptons(); 
 		//! Number of leptons closest to PV
-		inline unsigned int GetNLeptonsCloseToPV() {  return ( _closeToPVLeptons ) ? SelectLeptonsCloseToPV() :  0 ; }
+		unsigned int GetNLeptonsCloseToPV();
 
-		//! Basic selection: usually consist in some loose kinematical cuts 
-		//! and some loose id cuts
-		virtual unsigned int SelectBasicLeptons() = 0; 
-		//! Basic selection: usually consist in some loose kinematical cuts 
+		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts
 		virtual unsigned int SelectBasicLeptons() = 0; 
 		//! Select leptons close to the Primary Vertex
-		virtual unsigned int SelectMuonsCloseToPV() = 0;
+		virtual unsigned int SelectLeptonsCloseToPV() = 0;
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -106,6 +105,7 @@ class CutManager
 	protected:
 		// Exits if the cuts are not initialized
 		void checkercutinit(const cuttype & cutclass) const;
+		void checkerundefcutinit( const int & cutclass ) const;
 
 		void setcut( const cuttype & cutclass, const std::vector<double> & cuts );
 		//! Container of the data
