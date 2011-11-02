@@ -51,11 +51,20 @@ class MuonSelection : public CutManager
 		//-- Cut definitions
 		virtual bool PassTriggerCuts();
 		virtual bool PassEventCuts();
-		virtual std::vector<int> * PassTopologicalCuts();
-		virtual std::vector<int> * PassIsoCuts();
-		virtual std::vector<int> * PassIdCuts();
-		virtual std::vector<int> * PassQualityCuts();
-		virtual std::vector<int> * PassUndefCuts( const int & cutindex );
+		virtual bool PassTopologicalCuts(const unsigned int & i, 
+				const double & pt, const double & eta) const;
+		virtual bool PassIsoCuts(const unsigned int & i);
+		virtual bool PassIdCuts(const unsigned int & i);
+		virtual bool PassQualityCuts(const unsigned int & i);
+		virtual bool PassUndefCuts(const unsigned int & i,
+				const int & cutindex );
+
+		//-- Selection
+		//---------------------------------------------
+		// Select basic muons: 
+		// - with pt > MinPt and fabs(eta) < eta 
+		// - not standalone onl
+		unsigned int SelectBasicLeptons();
 
 	ClassDef(MuonSelection,0);
 };

@@ -40,7 +40,7 @@ enum cuttype
 class CutManager
 {
 	public:
-		//! Enum class to encode the specifics cuts: this has to be growing
+		//! Enum class to encode the specifics cuts (Undef): this has to be growing
 		//! every time it is incorporated a new one cut
 		enum 
 		{ 
@@ -59,16 +59,20 @@ class CutManager
 		virtual bool PassTriggerCuts()     = 0;
 		//! Return if pass some Events related cuts: FIXME
 		virtual bool PassEventCuts()       = 0;
-		//! Return a vector containing the indices of the lepton collection
-		//! which passed the cuts
-		virtual std::vector<int> * PassTopologicalCuts() = 0;
-		virtual std::vector<int> * PassIsoCuts()         = 0;
-		virtual std::vector<int> * PassIdCuts()          = 0;
-		virtual std::vector<int> * PassQualityCuts()     = 0;
-		virtual std::vector<int> * PassUndefCuts( const int & cutindex ) = 0;
-
-		//! Number of leptons which pass the basic selection
-		inline unsigned int GetNBasicLeptons() const  {  return ( _basicLeptons ) ? _basicLeptons->size() :  0 ; }
+		//! Return if the i-lepton passed the cuts
+		virtual bool PassTopologicalCuts(const unsigned int & i,
+				const double & pt, const double & eta) const = 0;
+		virtual bool PassIsoCuts(const unsigned int & i)         = 0;
+		virtual bool PassIdCuts(const unsigned int  & i)         = 0;
+		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
+		virtual bool PassUndefCuts( const unsigned int & i, const int & cutindex ) = 0;
+		
+		//! Selection stuff
+		//! Number of leptons which pass the basic selection. FIXME: Description
+		inline unsigned int GetNBasicLeptons() {  return ( _selectedbasicLeptons ) ? SelectBasicLeptons() :  0 ; }
+		//! Basic selection: usually consist in some loose kinematical cuts 
+		//! and some loose id cuts
+		virtual unsigned int SelectBasicLeptons() = 0; 
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -84,15 +88,18 @@ class CutManager
 		virtual void SetIdCuts( const std::vector<double> & cuts);
 		virtual void SetQualityCuts( const std::vector<double> & cuts);
 		//! This function has to implemented with an enumerate type which defines
-		//! the cutindex
+		//! the cutindex 
 		virtual void SetUndefCuts( const std::vector<double> & cuts, const int & cutindex );
 
 
 		friend std::ostream & operator<<(std::ostream & out, const CutManager & cm );
-		friend class TreeManager; // Accessing to the data members of TreeManager
+		//friend class TreeManager; // Accessing to the data members of TreeManager
 
-	private:
-		virtual void setcut( const cuttype & cutclass, const std::vector<double> & cuts );
+	protected:
+		// Exits if the cuts are not initialized
+		void checkercutinit(const cuttype & cutclass) const;
+
+		void setcut( const cuttype & cutclass, const std::vector<double> & cuts );
 		//! Container of the data
 		TreeManager * _data;
 
@@ -106,9 +113,10 @@ class CutManager
 
 		//! Number of leptons to be considered in the analysis
 		unsigned int _nLeptons;
-
+		
+		//! Selection datamembers
 		//! Vector of index of leptons which pass the basic selection
-		std::vector<int> * _basicLeptons;
+		std::vector<int> * _selectedbasicLeptons;
 		//! Vector of leptons indices which have been pass all the cuts
 		std::vector<int> * _idxLeptons;
 

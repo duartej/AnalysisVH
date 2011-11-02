@@ -496,12 +496,19 @@ void AnalysisVH::InsideLoop()
 	//
 	
 	// Store the number of reconstructed muons without any filter
-	_histos[fHNRecoMuons]->Fill(T_Muon_Px->size());
+	_histos[fHNRecoMuons]->Fill(fData->GetMuonPx()->size());
 	
 	// (1) Basic selection
 	//--------------------
 	unsigned int nSelectedMuons = _selectioncuts->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
+  
+	if(nSelectedMuons < _nLeptons)
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iHas2Leptons, puw, fsNTau);
 
 
 }

@@ -52,8 +52,34 @@ CutManager::~CutManager()
 		delete _idxLeptons;
 		_idxLeptons = 0;
 	}
+
+	if( _selectedbasicLeptons != 0)
+	{
+		delete _selectedbasicLeptons;
+		_selectedbasicLeptons = 0;
+	}
 }
 
+// Helper function which exits if the cuts are not initialized
+void CutManager::checkercutinit(const cuttype & cutclass) const
+{
+	// Checking if the map of cuts is initialized
+	if( _cuts == 0 )
+	{
+		std::cerr << "MuonSelection::checkercutinit ERROR"
+			<< " Not initialized the cuts! Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+	if( (*_cuts)[_ptCuts] == 0 )
+	{
+		// FIXME: mapa de relacion enum con string
+		std::cerr << "MuonSelection::checkercutinit ERROR"
+			<< " Not initialized the " << _ptCuts <<" cuts! Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+}
 // Setters
 void CutManager::setcut( const cuttype & cutclass, const std::vector<double> & cuts )
 {
