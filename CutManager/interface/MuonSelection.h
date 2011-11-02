@@ -65,6 +65,9 @@ class MuonSelection : public CutManager
 		// - with pt > MinPt and fabs(eta) < eta 
 		// - not standalone onl
 		unsigned int SelectBasicLeptons();
+		// Select close to PV muons: 
+		// - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu Undef cuts
+		unsigned int SelectLeptonsCloseToPV();
 
 	ClassDef(MuonSelection,0);
 };

@@ -41,7 +41,7 @@ class CutManager
 {
 	public:
 		//! Enum class to encode the specifics cuts (Undef): this has to be growing
-		//! every time it is incorporated a new one cut
+		//! every time it is incorporated a new one cut: FIXME: Quizas dejar estos enums para las concretas??
 		enum 
 		{ 
 			kMaxDeltaRMuMu, kMaxMuIP2DInTrack, kMaxDeltaZMu,
@@ -70,9 +70,17 @@ class CutManager
 		//! Selection stuff
 		//! Number of leptons which pass the basic selection. FIXME: Description
 		inline unsigned int GetNBasicLeptons() {  return ( _selectedbasicLeptons ) ? SelectBasicLeptons() :  0 ; }
+		//! Number of leptons closest to PV
+		inline unsigned int GetNLeptonsCloseToPV() {  return ( _closeToPVLeptons ) ? SelectLeptonsCloseToPV() :  0 ; }
+
 		//! Basic selection: usually consist in some loose kinematical cuts 
 		//! and some loose id cuts
 		virtual unsigned int SelectBasicLeptons() = 0; 
+		//! Basic selection: usually consist in some loose kinematical cuts 
+		//! and some loose id cuts
+		virtual unsigned int SelectBasicLeptons() = 0; 
+		//! Select leptons close to the Primary Vertex
+		virtual unsigned int SelectMuonsCloseToPV() = 0;
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -117,6 +125,8 @@ class CutManager
 		//! Selection datamembers
 		//! Vector of index of leptons which pass the basic selection
 		std::vector<int> * _selectedbasicLeptons;
+		//! Vector of index of leptons closest to PV
+		std::vector<int> * _closeToPVLeptons;
 		//! Vector of leptons indices which have been pass all the cuts
 		std::vector<int> * _idxLeptons;
 

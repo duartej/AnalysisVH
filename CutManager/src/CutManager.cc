@@ -58,6 +58,11 @@ CutManager::~CutManager()
 		delete _selectedbasicLeptons;
 		_selectedbasicLeptons = 0;
 	}
+	if( _closeToPVLeptons != 0)
+	{
+		delete _closeToPVLeptons;
+		_closeToPVLeptons = 0;
+	}
 }
 
 // Helper function which exits if the cuts are not initialized

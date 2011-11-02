@@ -490,10 +490,16 @@ void AnalysisVH::InsideLoop()
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
 	//_selectioncuts->PassEventsCuts();
+	//if( iGoodVertex < 0)
+	//{
+	//	return;
+	//}
+	FillHistoPerCut(_iGoodVertex, puw, fsNTau);
 	
 	// Muon selection
 	//------------------------------------------------------------------
 	//
+	//this->SetGoodVertexIndex(iGoodVertex);
 	
 	// Store the number of reconstructed muons without any filter
 	_histos[fHNRecoMuons]->Fill(fData->GetMuonPx()->size());
@@ -509,6 +515,17 @@ void AnalysisVH::InsideLoop()
 	}
 	
 	FillHistoPerCut(_iHas2Leptons, puw, fsNTau);
+	
+	// (2) PV selection
+	//--------------------
+	unsigned int nSelectedPVMuons = _selectioncuts->GetNMuonsCloseToPV();
+	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw);  
+
+  if (nSelectedPVMuons < kNMuons) return;
+
+  //cout << "nSelectedPVMuons=" << nSelectedPVMuons << endl;
+
+  FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
 
 
 }
