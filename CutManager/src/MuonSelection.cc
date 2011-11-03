@@ -7,10 +7,14 @@
 
 bool MuonSelection::PassTriggerCuts()
 {
+	//Not implemented
+	return true;
 }
 
 bool MuonSelection::PassEventCuts()
 {
+	// Not implemented
+	return true;
 }
 
 
@@ -115,14 +119,85 @@ bool MuonSelection::PassIsoCuts(const double & isolation, const double & mupt,
 	return ( isolation < IsoCut );
 }
 
-bool MuonSelection::PassIdCuts(const unsigned int & i)
+
+bool MuonSelection::PassIdCuts(const unsigned int & i, const double & ptResolution) const
 {
+	// Note that this cut do not depend of the muon,
+	// the index of the cut is region-dependent
+
+	// Check the cut has been configured
+	this->checkercutinit(_IdCuts);
+	if( (*_cuts)[_IdCuts]->size() < 6 )
+	{
+		std::cerr << "MuonSelection::PassIsoCuts ERROR: The configuration"
+			<< " file does not contain the needed isolation cuts:\n "
+			<< "MinNValidHitsSATrk, MaxNormChi2GTrk, MinNumOfMatches,"
+			<< " MinNValidPixelHitsInTrk, MinNValidHitsInTrk,"
+			<< " MaxDeltaPtMuOverPtMu (in this order). Exiting..."  
+			<< std::endl;
+		exit(-1);
+	}
+	// FIXME: This has to be improved to avoid errors when introducing
+	//        the cuts
+
+	const int CutMinNValidHitsSATrk     = int((*(*_cuts)[_IsoCuts])[0]);
+	const double CutMaxNormChi2GTrk     = (*(*_cuts)[_IsoCuts])[1];
+	const int CutMinNumOfMatches        = int((*(*_cuts)[_IsoCuts])[2]);
+	const int CutMinNValidPixelHitsInTrk= int((*(*_cuts)[_IsoCuts])[3]);
+	const int CutMinNValidHitsInTrk     = int((*(*_cuts)[_IsoCuts])[4]);
+	const double CutMaxDeltaPtMuOverPtMu= (*(*_cuts)[_IsoCuts])[5];
+		
+	bool passSpecific = false;
+	// If is global Muon using its ID cuts
+	if( _data->IsGlobalMuon()->at(i) )
+	{
+		passSpecific = _data->GetMuonNValidHitsSATrk()->at(i) > CutMinNValidHitsSATrk
+		    && _data->GetMuonNormChi2GTrk()->at(i) < CutMaxNormChi2GTrk 
+		    && _data->GetMuonNumOfMatches()->at(i) > CutMinNumOfMatches;
+	}
+	else if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
+	{
+		passSpecific = _data->IsTMLastStationTight()->at(i);
+	}
+	else    // We can go already
+	{
+		return false;
+	}
+
+	// Already we can go off
+	if( ! passSpecific )
+	{
+		return false;
+	}
+
+	bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > CutMinNValidPixelHitsInTrk 
+//#ifdef MINITREES
+	    && _data->GetMuonNValidHitsInTrk()->at(i) > CutMinNValidHitsInTrk 
+//#endif
+//#ifdef LATINOTREES
+//          && _data->GetMuonInnerTrackFound()->at(i) > CutMinNValidHitsInTrk 
+//#endif
+           && fabs(ptResolution) < CutMaxDeltaPtMuOverPtMu;
+
+	//Fill Histograms
+	//if (fFillHistos) 
+	//{
+	//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
+	//}
+	
+	// Remember, if you are here, passSpecific=true
+	return Idcuts;
 }
+
 bool MuonSelection::PassQualityCuts(const unsigned int & i)
 {
+	//Not implemented 
+	return true;
 }
 bool MuonSelection::PassUndefCuts( const unsigned int & i, const int & cutindex )
 {
+	//Not implemented
+	return true;
 }
 
 //FIXME: Asumo que estan ordenados por Pt!!! Commprobar
@@ -316,18 +391,6 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		
 		//[Require muons to be isolated]
 		//-------------------
-		//The eta/pt plane is divided in 4 regions and the cut 
-		// on isolation is different in each region
-		//
-		// PT ^
-		//   /|\ |
-		//    |  |
-		//    |R1|R2
-		// 20-+--+---
-		//    |R3|R4
-		//    +--+---> eta
-		//       |
-		//      1.479 
 //#ifdef MINITREES
 		double isolation = (_data->GetMuonSumIsoTrack()->at(i) + 
 				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
@@ -355,19 +418,19 @@ unsigned int MuonSelection::SelectIsoLeptons()
 // - Returns the number of selected isolated good muons
 // - No dependencies: FIX CUTS!!!
 //---------------------------------------------
-unsigned int MuonSelection::SelectIsoGoodLeptons(const int ) 
+unsigned int MuonSelection::SelectGoodIdLeptons()
 {
 	//FIXME: It has to be always-- this function is called only 
 	//      once -- to be checked
-	if( _selectedGoodIsoLeptons == 0)
+	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIsoLeptons = new std::vector<int>;
+		_selectedGoodIdLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
-	_selectedGoodIsoLeptons->clear();
+	_selectedGoodIdLeptons->clear();
 
-	// First check is already was run over close to PV muons
+	// First check is already was run over close Iso muons
 	// if not do it
 	if( _selectedIsoLeptons == 0)
 	{
@@ -382,42 +445,15 @@ unsigned int MuonSelection::SelectIsoGoodLeptons(const int )
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
-		
-		//Fill Histograms
-		//if (fFillHistos) 
-		//{
-		//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-		//}
-		
+
 		//Lepton ID
-		if(   ( 
-      ( fSelector->T_Muon_IsGlobalMuon->at(iMuon) == true && 
-	fSelector->T_Muon_NValidHitsSATrk->at(iMuon) > fCutMinNValidHitsSATrk &&
-	fSelector->T_Muon_NormChi2GTrk->at(iMuon) < fCutMaxNormChi2GTrk && 
-	fSelector->T_Muon_NumOfMatches->at(iMuon) > fCutMinNumOfMatches 
-      ) ||
-      ( fSelector->T_Muon_IsAllTrackerMuons->at(iMuon) && 
-	fSelector->T_Muon_IsTMLastStationTight->at(iMuon) 
-      ) 
-     ) && 
-     fSelector->T_Muon_NValidPixelHitsInTrk->at(iMuon) > fCutMinNValidPixelHitsInTrk && 
-#ifdef MINITREES
-     fSelector->T_Muon_NValidHitsInTrk->at(iMuon) > fCutMinNValidHitsInTrk &&
-#endif
-#ifdef LATINOTREES
-     fSelector->T_Muon_InnerTrackFound->at(iMuon) > fCutMinNValidHitsInTrk &&           
-#endif
-     fabs(ptResolution) < fCutMaxDeltaPtMuOverPtMu  
-    )
-    pass = true;
-
-
-    if (!IsGoodMuon(i)) continue;
-
-
-    // If we got here it means the muon is good
-    fSelectedIsoGoodMuons->push_back(i);
+		if( ! this->PassIdCuts(i,ptResolution) )
+		{
+			continue;
+		}
+		// If we got here it means the muon is good
+		_selectedGoodIdLeptons->push_back(i);
   }
 
-  return fSelectedIsoGoodMuons->size();
+  return _selectedGoodIdLeptons->size();
 }

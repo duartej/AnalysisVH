@@ -13,6 +13,7 @@ DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 ### Macro to extract the path to the dependency libraries
 getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
 
+
 .PHONY: all cleanall
  
 all: 
@@ -22,6 +23,12 @@ all:
 	@for libdir in $(DEPSDIR); do \
 		$(MAKE) -C $$libdir; \
 	done
+	@echo "======= $(PACKAGE): Creating library links ======"
+	@mkdir -p $(BASEDIR)/libs 
+	@for libdir in $(DEPSDIR); do \
+		ln -s $$libdir/lib/lib`basename $$libdir`.so libs/lib`basename $$libdir`.so; \
+	done
+
 
 cleanall: 
 	@for libdir in $(DEPSDIR); do \

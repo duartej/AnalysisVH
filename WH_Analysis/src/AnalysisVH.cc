@@ -146,6 +146,22 @@ void AnalysisVH::InitialiseParameters()
 	cuts->push_back(dummy);
 	fLeptonSelection->SetIsoCuts(*cuts);
 	cuts->clear();
+
+	//   - Identification (Good leptons)
+	ip->TheNamedDouble("MinNValidHitsSATrk",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxNormChi2GTrk",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MinNumOfMatches",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MinNValidPixelHitsInTrk",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MinNValidHitsInTrk",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxDeltaPtMuOverPtMu",dummy);
+	cuts->push_back(dummy);
+	fLeptonSelection->SetIdCuts(*cuts);
+	cuts->clear();
 	
 	//   - Max DeltaR between muons
 	ip->TheNamedDouble("MaxDeltaRMuMu",dummy);
@@ -558,17 +574,16 @@ void AnalysisVH::InsideLoop()
 	
 	FillHistoPerCut(_iHas2IsoLeptons, puw, fsNTau);
 	
-	// (4) Isolated good muons --> Identification !!!
+	// (4) Isolated good muons: Identification
 	//--------------------
-	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNIsoGoodLeptons();
-	fHNSelectedIsoGoodMuons->Fill(nSelectedIsoGoodMuons,puw);
+	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
+	_histos[fHNSelectedIsoGoodMuons]->Fill(nSelectedIsoGoodMuons,puw);
 	
 	if(nSelectedIsoGoodMuons < _nLeptons)
 	{
 		return;
 	}
-	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);
-	
+	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
 }
 
 void AnalysisVH::Summary()

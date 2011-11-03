@@ -54,7 +54,8 @@ class MuonSelection : public CutManager
 				const double & pt, const double & eta) const;
 		virtual bool PassIsoCuts(const double & i,
 				const double & pt, const double & eta) const;
-		virtual bool PassIdCuts(const unsigned int & i);
+		virtual bool PassIdCuts(const unsigned int & i, 
+				const double & ptResolution) const; 
 		virtual bool PassQualityCuts(const unsigned int & i);
 		virtual bool PassUndefCuts(const unsigned int & i,
 				const int & cutindex );
@@ -71,6 +72,9 @@ class MuonSelection : public CutManager
 		// Select Iso Leptons: 
 		// - Depends on MaxPTIsolationR# dependent of the region
 		unsigned int SelectIsoLeptons();
+		// Select Good Identified Leptons: 
+		// - Depends on 
+		unsigned int SelectGoodIdLeptons();
 
 	ClassDef(MuonSelection,0);
 };

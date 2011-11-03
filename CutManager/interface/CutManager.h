@@ -68,7 +68,8 @@ class CutManager
 				const double & pt, const double & eta) const = 0;
 		virtual bool PassIsoCuts(const double & i,
 				const double & pt, const double & eta) const = 0;
-		virtual bool PassIdCuts(const unsigned int  & i)         = 0;
+		virtual bool PassIdCuts(const unsigned int  & i, 
+				const double & ptResolution)           const = 0;
 		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
 		virtual bool PassUndefCuts( const unsigned int & i, const int & cutindex ) = 0;
 		
@@ -79,6 +80,8 @@ class CutManager
 		unsigned int GetNLeptonsCloseToPV();
 		//! Number of Isolated leptons 
 		unsigned int GetNIsoLeptons();
+		//! Number of Good Identified leptons 
+		unsigned int GetNGoodIdLeptons();
 
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts
@@ -87,6 +90,8 @@ class CutManager
 		virtual unsigned int SelectLeptonsCloseToPV() = 0;
 		//! Select isolated leptons 
 		virtual unsigned int SelectIsoLeptons() = 0;
+		//! Select good Identified leptons 
+		virtual unsigned int SelectGoodIdLeptons() = 0;
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -136,6 +141,8 @@ class CutManager
 		std::vector<int> * _closeToPVLeptons;
 		//! Vector of index of isolated leptons 
 		std::vector<int> * _selectedIsoLeptons;
+		//! Vector of index of good identified leptons 
+		std::vector<int> * _selectedGoodIdLeptons;
 		//! Vector of leptons indices which have been pass all the cuts
 		std::vector<int> * _idxLeptons;
 

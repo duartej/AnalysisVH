@@ -20,6 +20,13 @@
 @var double  MaxPTIsolationR2    0.09;
 @var double  MaxPTIsolationR3    0.06;
 @var double  MaxPTIsolationR4    0.05;
+	
+@var double  CutMinNValidHitsSATrk       0.0;
+@var double  CutMaxNormChi2GTrk          10.0;
+@var double  CutMinNumOfMatches          1;
+@var double  CutMinNValidPixelHitsInTrk  0;
+@var double  CutMinNValidHitsInTrk       10;
+@var double  CutMaxDeltaPtMuOverPtMu     0.1;
 
 @var int     nEvents             -1;
 @var int     firstEvent          0;
