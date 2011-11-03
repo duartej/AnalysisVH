@@ -196,7 +196,6 @@ void AnalysisVH::Initialise()
 
 	// Selection cuts
   	//----------------------------------------------------------------------------
-	std::cout << _selectioncuts << std::endl;
   
 	// Histograms
 	//----------------------------------------------------------------------------
@@ -487,6 +486,7 @@ void AnalysisVH::InsideLoop()
 
 	if(fIsWH && (procn != _iWH || fsNTau != _iFSmmm))
 	{
+		_selectioncuts->Reset();
 		return;
 	}
 	
@@ -519,10 +519,9 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedMuons = _selectioncuts->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
 
-std::cout << nSelectedMuons << std::endl;
-  
 	if(nSelectedMuons < _nLeptons)
 	{
+		_selectioncuts->Reset();
 		return;
 	}
 	
@@ -535,12 +534,16 @@ std::cout << nSelectedMuons << std::endl;
 	
 	if(nSelectedPVMuons < _nLeptons)
 	{
+		_selectioncuts->Reset();
 		return;
 	}
 
 	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
 
-
+	
+	// FIXME: This has to be put in the CMSAnalysisSelector class in Process
+	// and after InsideLoop()
+	_selectioncuts->Reset();
 }
 
 void AnalysisVH::Summary()

@@ -36,7 +36,6 @@ bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt
 
 	// Use the lowest value of the pt
 	double ptcut = (*(*_cuts)[_ptCuts])[(*_cuts)[_ptCuts]->size()-1];
-std::cout << pt << " (" << ptcut << ") : " << eta << "(" <<etacut<<")"<< std::endl;
 	if( pt <= ptcut )
 	{
 		hols= false;
@@ -78,7 +77,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 
 	// Empty the selected muons vector
 	_selectedbasicLeptons->clear();
-std::cout 	<< "SELECTBASICLETPONS" << std::endl;
+	
 	// Loop over muons
 	for(unsigned int i=0; i < _data->GetMuonPx()->size(); ++i) 
 	{
@@ -199,7 +198,7 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 			continue;
 		}
 		
-		if (fabs(deltaZMu) > (*(*_undefcuts)[kMaxDeltaZMu])[0]) 
+		if(fabs(deltaZMu) > (*(*_undefcuts)[kMaxDeltaZMu])[0]) 
 		{
 			continue;
 		}

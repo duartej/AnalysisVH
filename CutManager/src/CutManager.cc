@@ -67,20 +67,41 @@ CutManager::~CutManager()
 	}
 }
 
+// Method to be called each time finalize a entry
+void CutManager::Reset()
+{
+	if( _idxLeptons != 0 )
+	{
+		delete _idxLeptons;
+		_idxLeptons = 0;
+	}
+
+	if( _selectedbasicLeptons != 0)
+	{
+		delete _selectedbasicLeptons;
+		_selectedbasicLeptons = 0;
+	}
+	if( _closeToPVLeptons != 0)
+	{
+		delete _closeToPVLeptons;
+		_closeToPVLeptons = 0;
+	}
+}
+
 //
 unsigned int CutManager::GetNBasicLeptons()
 {
 	int size = 0;
 	if( _selectedbasicLeptons == 0)
 	{
-		size = SelectBasicLeptons();
+		size = this->SelectBasicLeptons();
 	}
 	else
 	{
 		size = _selectedbasicLeptons->size();
 	}
 
-	return size:
+	return size;
 }
 
 unsigned int CutManager::GetNLeptonsCloseToPV()
@@ -88,14 +109,14 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	int size = 0;
 	if( _closeToPVLeptons == 0)
 	{
-		size = SelectLeptonsCloseToPV();
+		size = this->SelectLeptonsCloseToPV();
 	}
 	else
 	{
 		size = _closeToPVLeptons->size();
 	}
 
-	return size:
+	return size;
 }
 
 // Helper function which exits if the cuts are not initialized

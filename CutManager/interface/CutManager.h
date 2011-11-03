@@ -53,6 +53,9 @@ class CutManager
 		CutManager(TreeManager * data, const int & nLeptons = 2); 
 		//! Destructor
 		virtual ~CutManager();
+
+		//! Resetting the index vectors before analyse another entry
+		virtual void Reset();
 		
 		//-- Cut definitions to be implemented in the 
 		//   concrete classes
@@ -70,7 +73,6 @@ class CutManager
 		
 		//! Selection stuff
 		//! Number of leptons which pass the basic selection. FIXME: Description
-	//	inline unsigned int GetNBasicLeptons() {  return ( _selectedbasicLeptons ) ? SelectBasicLeptons() :  0 ; }
 		unsigned int GetNBasicLeptons(); 
 		//! Number of leptons closest to PV
 		unsigned int GetNLeptonsCloseToPV();
