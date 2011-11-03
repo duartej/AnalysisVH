@@ -36,7 +36,8 @@
 #include "TH2.h"
 
 //Standard includes
-#include <iostream>
+#include<iostream>
+#include<stdlib.h>
 
 // Uncomment the following line to get some debug information in the output
 // Set the value to 2 to get even more debug information

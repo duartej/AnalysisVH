@@ -1,4 +1,6 @@
 
+#include<stdlib.h>
+
 #include "CutManager.h"
 #include "TreeManager.h"
 
