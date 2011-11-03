@@ -154,7 +154,6 @@ int main(int argc, char *argv[])
 	//                              path al header de analisis
 	//                              
 	const char * dataName = "WH160";
-	const char * analysisheader = "interface/AnalysisWH_mmm.h";
 	const char * cfgfile = "analisiswh_mmm.ip";
 #ifdef TIMERS
 	TStopwatch timer;

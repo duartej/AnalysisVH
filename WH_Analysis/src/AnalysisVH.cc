@@ -583,7 +583,34 @@ void AnalysisVH::InsideLoop()
 	{
 		return;
 	}
+	
 	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
+      
+	// The leading lepton has to have PT > fCutMinMuPt (20 most probably)
+	//-------------------------------------------------------------------
+	// + Get the indices of good muons
+	std::vector<unsigned int>* themuons = fMuonSelector->GetIsolatedGoodMuons();
+
+      	// + Get indices of first 3 muons
+	unsigned int imuon1 = themuons->at(0);
+      	unsigned int imuon2 = themuons->at(1);
+      	//fHPtMu1->Fill(T_Muon_Pt->at(imuon1), puw);
+	//fHPtMu2->Fill(T_Muon_Pt->at(imuon2), puw);
+
+      	if(nSelectedIsoGoodMuons == 2) 
+	{
+		if(T_Muon_Pt->at(imuon1) < fCutMinMuPt1 || _data->GetMuonPt()->at(imuon2) < fCutMinMuPt3)     return;
+  }
+  else {
+    unsigned int imuon3 = themuons->at(2);
+    // + Check cuts on Pt of three muons
+    if (
+	T_Muon_Pt->at(imuon1) < fCutMinMuPt1 || 
+	T_Muon_Pt->at(imuon2) < fCutMinMuPt2 ||
+	T_Muon_Pt->at(imuon3) < fCutMinMuPt3
+	)
+      return;
+  }
 }
 
 void AnalysisVH::Summary()

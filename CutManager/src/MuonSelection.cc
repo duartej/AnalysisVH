@@ -445,7 +445,6 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
-
 		//Lepton ID
 		if( ! this->PassIdCuts(i,ptResolution) )
 		{

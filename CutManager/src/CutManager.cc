@@ -69,6 +69,16 @@ CutManager::~CutManager()
 		delete _closeToPVLeptons;
 		_closeToPVLeptons = 0;
 	}
+	if( _selectedIsoLeptons != 0)
+	{
+		delete _selectedIsoLeptons;
+		_selectedIsoLeptons = 0;
+	}
+	if( _selectedGoodIdLeptons != 0)
+	{
+		delete _selectedGoodIdLeptons;
+		_selectedGoodIdLeptons = 0;
+	}
 }
 
 // Method to be called each time finalize a entry
@@ -89,6 +99,16 @@ void CutManager::Reset()
 	{
 		delete _closeToPVLeptons;
 		_closeToPVLeptons = 0;
+	}
+	if( _selectedIsoLeptons != 0)
+	{
+		delete _selectedIsoLeptons;
+		_selectedIsoLeptons = 0;
+	}
+	if( _selectedGoodIdLeptons != 0)
+	{
+		delete _selectedGoodIdLeptons;
+		_selectedGoodIdLeptons = 0;
 	}
 }
 

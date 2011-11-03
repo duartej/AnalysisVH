@@ -95,7 +95,7 @@ InputParameters * InputParameters::parser(const std::string & cfgfile)
 	while( ! cf.eof() )
 	{
 		getline(cf,line);
-		if( line == "" )
+		if( line == "" || line == "\t" )
 		{
 			continue;
 		}
@@ -107,7 +107,13 @@ InputParameters * InputParameters::parser(const std::string & cfgfile)
 		{
 			words.push_back( wordtoken );
 		}
-		// Checkings
+		// Return, tabulate, ..., others
+		if( words.size() == 0 ) 
+		{		
+			continue;
+		}
+
+		// Checkings (already checked case 0)
 		if( words.size() % 4 != 0)
 		{
 			std::cerr << "InputParameters::parser ERROR "
@@ -173,6 +179,6 @@ InputParameters * InputParameters::parser(const std::string & cfgfile)
 			exit(-1);
 		}
 	}
-
+	
 	return ip;
 }
