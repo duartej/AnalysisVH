@@ -4,11 +4,11 @@ PACKAGE   := $(shell basename `pwd`)
 
 
 ### Dependencies
-DEPPKG     := 
-BASEDIR    := $(shell cd .. && pwd && cd ..)
+DEPPKG     := VectorUtils TResultsTable TCounterUI PUWeight \
+	DatasetManager InputParameters TreeManager CutManager \
+	CMSAnalysisSelector WH_Analysis
+BASEDIR    := $(shell pwd )
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
-DEPSLIBDIR := $(foreach DEPSDIR,$(DEPSDIR),-L$(DEPSDIR)/lib)
-DEPSSEARCHLIBDIRS := $(foreach DEPSDIR,$(DEPSDIR),$(DEPSDIR)/lib)
 
 ### Macro to extract the path to the dependency libraries
 getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
@@ -18,7 +18,8 @@ getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR)))
 all: 
 	@# Checking if it is necessary to compile the dependency libraries
 	@echo "======= $(PACKAGE): Compiling packages ======"
-	@for libdir in $(call getpkgbasedir,$(subst -l,,$@)); do \
+	@echo $(DEPSDIR)
+	@for libdir in $(DEPSDIR); do \
 		$(MAKE) -C $$libdir; \
 	done
 
