@@ -349,3 +349,75 @@ unsigned int MuonSelection::SelectIsoLeptons()
 	
 	return _selectedIsoLeptons->size();
 }
+
+//---------------------------------------------
+// Select isolated good muons
+// - Returns the number of selected isolated good muons
+// - No dependencies: FIX CUTS!!!
+//---------------------------------------------
+unsigned int MuonSelection::SelectIsoGoodLeptons(const int ) 
+{
+	//FIXME: It has to be always-- this function is called only 
+	//      once -- to be checked
+	if( _selectedGoodIsoLeptons == 0)
+	{
+		_selectedGoodIsoLeptons = new std::vector<int>;
+	}
+
+	//Empty the vector of indices --> Redundant
+	_selectedGoodIsoLeptons->clear();
+
+	// First check is already was run over close to PV muons
+	// if not do it
+	if( _selectedIsoLeptons == 0)
+	{
+		this->SelectIsoLeptons();
+	}
+	
+	//Loop over selected muons
+	for(std::vector<int>::iterator it = _selectedIsoLeptons->begin();
+			it != _selectedIsoLeptons->end(); ++it)
+	{
+		const unsigned int i = *it;
+	
+		double ptResolution = _data->GetMuondeltaPt()->at(i)/
+			_data->GetMuonPt()->at(i);
+		
+		//Fill Histograms
+		//if (fFillHistos) 
+		//{
+		//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
+		//}
+		
+		//Lepton ID
+		if(   ( 
+      ( fSelector->T_Muon_IsGlobalMuon->at(iMuon) == true && 
+	fSelector->T_Muon_NValidHitsSATrk->at(iMuon) > fCutMinNValidHitsSATrk &&
+	fSelector->T_Muon_NormChi2GTrk->at(iMuon) < fCutMaxNormChi2GTrk && 
+	fSelector->T_Muon_NumOfMatches->at(iMuon) > fCutMinNumOfMatches 
+      ) ||
+      ( fSelector->T_Muon_IsAllTrackerMuons->at(iMuon) && 
+	fSelector->T_Muon_IsTMLastStationTight->at(iMuon) 
+      ) 
+     ) && 
+     fSelector->T_Muon_NValidPixelHitsInTrk->at(iMuon) > fCutMinNValidPixelHitsInTrk && 
+#ifdef MINITREES
+     fSelector->T_Muon_NValidHitsInTrk->at(iMuon) > fCutMinNValidHitsInTrk &&
+#endif
+#ifdef LATINOTREES
+     fSelector->T_Muon_InnerTrackFound->at(iMuon) > fCutMinNValidHitsInTrk &&           
+#endif
+     fabs(ptResolution) < fCutMaxDeltaPtMuOverPtMu  
+    )
+    pass = true;
+
+
+    if (!IsGoodMuon(i)) continue;
+
+
+    // If we got here it means the muon is good
+    fSelectedIsoGoodMuons->push_back(i);
+  }
+
+  return fSelectedIsoGoodMuons->size();
+}

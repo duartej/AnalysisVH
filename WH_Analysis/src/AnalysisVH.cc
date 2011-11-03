@@ -558,6 +558,17 @@ void AnalysisVH::InsideLoop()
 	
 	FillHistoPerCut(_iHas2IsoLeptons, puw, fsNTau);
 	
+	// (4) Isolated good muons --> Identification !!!
+	//--------------------
+	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNIsoGoodLeptons();
+	fHNSelectedIsoGoodMuons->Fill(nSelectedIsoGoodMuons,puw);
+	
+	if(nSelectedIsoGoodMuons < _nLeptons)
+	{
+		return;
+	}
+	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);
+	
 }
 
 void AnalysisVH::Summary()
