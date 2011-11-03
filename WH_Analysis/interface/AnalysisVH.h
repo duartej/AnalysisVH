@@ -139,8 +139,8 @@ class AnalysisVH : public CMSAnalysisSelector
 		std::vector<TLorentzVector> * fGenMuon;  //TLorentzVector with the 3 muons from W or tau
 
 
-		// Cut selections --> FIXME: This has to be included in the CMSAnalysisSelector
-		CutManager * _selectioncuts;
+		// Included in the CMSAnalysisSelector !! TO DELETE
+		//CutManager * _selectioncuts;
 		
 		// PU Weight utility
 		//----------------------------------------------------------------------------

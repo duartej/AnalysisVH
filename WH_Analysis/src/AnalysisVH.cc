@@ -28,11 +28,11 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	fIsData(false),
 	fIsWH(false),
 	fLuminosity(0),
-	_selectioncuts(selectioncuts),
 	fPUWeight(0),
 	_tree(0)
 {
 	// FIXME: Check that the data is attached to the selector manager
+	fLeptonSelection = selectioncuts;
 
 	// The Inputparameters have to be initialized before, just to complete it
 	// introducing the set of datasets: 
@@ -109,56 +109,56 @@ void AnalysisVH::InitialiseParameters()
 	cuts->push_back(dummy);
 	ip->TheNamedDouble("MinMuPt3", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetPtMinCuts(*cuts);
+	fLeptonSelection->SetPtMinCuts(*cuts);
 	cuts->clear();
 	
 	ip->TheNamedDouble("MaxAbsEta", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetABSEtaMaxCuts(*cuts);
+	fLeptonSelection->SetABSEtaMaxCuts(*cuts);
 	cuts->clear();
 
 	//   - IP and DeltaZ of track associated with muon w.r.t PV
 	ip->TheNamedDouble("MaxMuIP2DInTrackR1", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR1);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR1);
 	cuts->clear();
 
 	ip->TheNamedDouble("MaxMuIP2DInTrackR2", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR2);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR2);
 	cuts->clear();
 
 	ip->TheNamedDouble("MaxDeltaZMu", dummy );
 	cuts->push_back(dummy);
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxDeltaZMu);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxDeltaZMu);
 	cuts->clear();
 	
 	//   - Isolation: (PTtraks + ETcalo)/PTmuon
 	ip->TheNamedDouble("MaxIsoMu", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetIsoCuts(*cuts);
+	fLeptonSelection->SetIsoCuts(*cuts);
 	cuts->clear();
 	
 	//   - Max DeltaR between muons
 	ip->TheNamedDouble("MaxDeltaRMuMu",dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxDeltaRMuMu);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxDeltaRMuMu);
 	cuts->clear();
 	
 	//   - Z mass window
 	double deltazmass=0;
 	ip->TheNamedDouble("DeltaZMass", deltazmass);
 	cuts->push_back( kZMass - deltazmass );
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMinZMass);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMinZMass);
 	cuts->clear();
 	cuts->push_back( kZMass + deltazmass );
-	_selectioncuts->SetUndefCuts(*cuts,CutManager::kMaxZMass);
+	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxZMass);
 	cuts->clear();
 	
 	//   - Min MET of the event
 	ip->TheNamedDouble("MinMET", dummy);
 	cuts->push_back(dummy);
-	_selectioncuts->SetEventCuts(*cuts);
+	fLeptonSelection->SetEventCuts(*cuts);
 	cuts->clear();
 
 	delete cuts;
@@ -486,7 +486,6 @@ void AnalysisVH::InsideLoop()
 
 	if(fIsWH && (procn != _iWH || fsNTau != _iFSmmm))
 	{
-		_selectioncuts->Reset();
 		return;
 	}
 	
@@ -499,7 +498,7 @@ void AnalysisVH::InsideLoop()
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
 	int iGoodVertex = 0; // First one
-	//_selectioncuts->PassEventsCuts();
+	//fLeptonSelection->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
 	//	return;
@@ -516,12 +515,11 @@ void AnalysisVH::InsideLoop()
 	
 	// (1) Basic selection
 	//--------------------
-	unsigned int nSelectedMuons = _selectioncuts->GetNBasicLeptons();
+	unsigned int nSelectedMuons = fLeptonSelection->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
 
 	if(nSelectedMuons < _nLeptons)
 	{
-		_selectioncuts->Reset();
 		return;
 	}
 	
@@ -529,26 +527,21 @@ void AnalysisVH::InsideLoop()
 	
 	// (2) PV selection
 	//--------------------
-	unsigned int nSelectedPVMuons = _selectioncuts->GetNLeptonsCloseToPV();
+	unsigned int nSelectedPVMuons = fLeptonSelection->GetNLeptonsCloseToPV();
 	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw); 
 	
 	if(nSelectedPVMuons < _nLeptons)
 	{
-		_selectioncuts->Reset();
 		return;
 	}
 
 	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
 
 	
-	// FIXME: This has to be put in the CMSAnalysisSelector class in Process
-	// and after InsideLoop()
-	_selectioncuts->Reset();
 }
 
 void AnalysisVH::Summary()
 {
-	std::cout << *_selectioncuts << std::endl;
 	std::cout << std::endl << "[ AnalisysVH::Sumary ]" << std::endl << std::endl;
   
 	std::cout << "N. events by process ID:" << std::endl;

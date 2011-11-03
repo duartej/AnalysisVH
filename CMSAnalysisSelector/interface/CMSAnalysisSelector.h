@@ -34,12 +34,15 @@ class TreeManager;
 // implementation file
 #include "TCounterUI.h"
 #include "InputParameters.h"
+#include "CutManager.h"
 
 class CMSAnalysisSelector : public TSelector {
  public :
   /////////////////////////////////////////////////////////
   //Methods from TSelector
-  CMSAnalysisSelector(TreeManager * data): TSelector(), fData(data), fNEventsProcessed(0) { }
+  CMSAnalysisSelector(TreeManager * data): 
+	  TSelector(), fData(data), fInputParameters(0), 
+	  fNEventsProcessed(0), fLeptonSelection(0) { }
   virtual ~CMSAnalysisSelector() { }
   virtual Int_t   Version() const { return 2; }
   //virtual void    Begin(TTree *tree);
@@ -136,6 +139,7 @@ class CMSAnalysisSelector : public TSelector {
  protected:
   InputParameters* fInputParameters;
   TCounterUI*      fNEventsProcessed;
+  CutManager *     fLeptonSelection;   // FIXME: Podria ser un map<enum lepton type,manager>??
 
 
 

@@ -143,6 +143,9 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    // Run the user function
    InsideLoop();
 
+   // Resetting the used vectors
+   fLeptonSelection->Reset();
+
 #if (DEBUGCMSANALYSISSELECTOR >= 2 )
   std::cout << "DEBUG: <== CMSAnalysisSelector::Process()" << std::endl;
 #endif
