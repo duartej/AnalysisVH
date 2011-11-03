@@ -9,6 +9,7 @@ CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_nLeptons(nLeptons),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
+	_selectedIsoLeptons(0),
 	_idxLeptons(0)
 {
 	_cuts = new std::map<cuttype,std::vector<double> *>;
@@ -114,6 +115,21 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	else
 	{
 		size = _closeToPVLeptons->size();
+	}
+
+	return size;
+}
+
+unsigned int CutManager::GetNIsoLeptons()
+{
+	int size = 0;
+	if( _selectedIsoLeptons == 0)
+	{
+		size = this->SelectIsoLeptons();
+	}
+	else
+	{
+		size = _selectedIsoLeptons->size();
 	}
 
 	return size;

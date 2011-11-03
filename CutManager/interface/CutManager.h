@@ -66,7 +66,8 @@ class CutManager
 		//! Return if the i-lepton passed the cuts
 		virtual bool PassTopologicalCuts(const unsigned int & i,
 				const double & pt, const double & eta) const = 0;
-		virtual bool PassIsoCuts(const unsigned int & i)         = 0;
+		virtual bool PassIsoCuts(const double & i,
+				const double & pt, const double & eta) const = 0;
 		virtual bool PassIdCuts(const unsigned int  & i)         = 0;
 		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
 		virtual bool PassUndefCuts( const unsigned int & i, const int & cutindex ) = 0;
@@ -76,12 +77,16 @@ class CutManager
 		unsigned int GetNBasicLeptons(); 
 		//! Number of leptons closest to PV
 		unsigned int GetNLeptonsCloseToPV();
+		//! Number of Isolated leptons 
+		unsigned int GetNIsoLeptons();
 
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts
 		virtual unsigned int SelectBasicLeptons() = 0; 
 		//! Select leptons close to the Primary Vertex
 		virtual unsigned int SelectLeptonsCloseToPV() = 0;
+		//! Select isolated leptons 
+		virtual unsigned int SelectIsoLeptons() = 0;
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -129,6 +134,8 @@ class CutManager
 		std::vector<int> * _selectedbasicLeptons;
 		//! Vector of index of leptons closest to PV
 		std::vector<int> * _closeToPVLeptons;
+		//! Vector of index of isolated leptons 
+		std::vector<int> * _selectedIsoLeptons;
 		//! Vector of leptons indices which have been pass all the cuts
 		std::vector<int> * _idxLeptons;
 

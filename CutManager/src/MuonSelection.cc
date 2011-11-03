@@ -27,18 +27,18 @@ bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt
 	{
 		etacut = (*(*_cuts)[_etaCuts])[i];
 	}
-	bool hols=true;
+	
 	if( fabs(eta) >= etacut )
 	{
 
-		hols= false;
+		return false;
 	}
 
 	// Use the lowest value of the pt
 	double ptcut = (*(*_cuts)[_ptCuts])[(*_cuts)[_ptCuts]->size()-1];
 	if( pt <= ptcut )
 	{
-		hols= false;
+		return false;
 	}
 
 	return true;
@@ -46,9 +46,75 @@ bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt
 
 
 
-bool MuonSelection::PassIsoCuts(const unsigned int & i)
+bool MuonSelection::PassIsoCuts(const double & isolation, const double & mupt,
+		const double & mueta) const
 {
+	// Note that this cut do not depend of the muon,
+	// the index of the cut is region-dependent
+
+	// Check the cut has been configured
+	this->checkercutinit(_IsoCuts);
+	if( (*_cuts)[_IsoCuts]->size() < 4 )
+	{
+		std::cerr << "MuonSelection::PassIsoCuts ERROR: The configuration"
+			<< " file does not contain the needed isolation cuts: "
+			<< "MaxPTIsolationR1, MaxPTIsolationR2, MaxPTIsolationR3,"
+			<< " MaxPTIsolationR4. Exiting..."  << std::endl;
+		exit(-1);
+	}
+	const double CutMaxPTIsolationR1 = (*(*_cuts)[_IsoCuts])[0];
+	const double CutMaxPTIsolationR2 = (*(*_cuts)[_IsoCuts])[1];
+	const double CutMaxPTIsolationR3 = (*(*_cuts)[_IsoCuts])[2];
+	const double CutMaxPTIsolationR4 = (*(*_cuts)[_IsoCuts])[3];
+	//WARNING: HARDCODED limit of the eta regions and Pt
+	//The eta/pt plane is divided in 4 regions and the cut on isolation
+	//is different in each region
+	//
+	// PT ^
+	//   /|\ |
+	//    |  |
+	//    |R1|R2
+	// 20-+--+---
+	//    |R3|R4
+	//    +--+---> eta
+	//       |
+	//      1.479 
+	const double etaLimit = 1.479;
+	const double ptLimit  = 20.0;
+
+	double IsoCut = -1;
+	// High Pt Region:
+	if( mupt > ptLimit )
+	{
+		// Low eta region: R1
+		if( fabs(mueta) < etaLimit ) 
+		{
+			IsoCut = CutMaxPTIsolationR1;
+		}
+		// High eta region: R2
+		else  
+		{
+			IsoCut = CutMaxPTIsolationR2;
+		}
+	}
+	// Low Pt Region:
+	else
+	{
+		// Low eta region: R3
+		if( fabs(mueta) < etaLimit )
+		{
+			IsoCut = CutMaxPTIsolationR3;
+		}
+		// High eta region: R4
+		else
+		{
+			IsoCut = CutMaxPTIsolationR4;
+		}
+	}
+
+	return ( isolation < IsoCut );
 }
+
 bool MuonSelection::PassIdCuts(const unsigned int & i)
 {
 }
@@ -69,13 +135,14 @@ bool MuonSelection::PassUndefCuts( const unsigned int & i, const int & cutindex 
 //---------------------------------------------
 unsigned int MuonSelection::SelectBasicLeptons() 
 {
-	//First event
+	//FIXME: It has to be always-- this function is called only 
+	//      once -- to be checked
 	if( _selectedbasicLeptons == 0 )
 	{
 		_selectedbasicLeptons = new std::vector<int>;
 	}
 
-	// Empty the selected muons vector
+	// Empty the selected muons vector --> Redundant to be removed
 	_selectedbasicLeptons->clear();
 	
 	// Loop over muons
@@ -126,13 +193,14 @@ unsigned int MuonSelection::SelectBasicLeptons()
 //---------------------------------------------
 unsigned int MuonSelection::SelectLeptonsCloseToPV() 
 {
-	//First event
+	//FIXME: It has to be always-- this function is called only 
+	//      once -- to be checked
 	if( _closeToPVLeptons == 0)
 	{
 		_closeToPVLeptons = new std::vector<int>;
 	}
 
-	//Empty the vector of indices
+	//Empty the vector of indices --> Redundant
 	_closeToPVLeptons->clear();
 
 	// First check is already was run over selected muons
@@ -208,4 +276,76 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 	}
 	
 	return _closeToPVLeptons->size();
+}
+
+//---------------------------------------------
+// Select isolated muons
+// - Returns the number of selected isolated muons
+// - Depends on MaxIsoMu cut
+//---------------------------------------------
+unsigned int MuonSelection::SelectIsoLeptons() 
+{
+	//FIXME: It has to be always-- this function is called only 
+	//      once -- to be checked
+	if( _selectedIsoLeptons == 0)
+	{
+		_selectedIsoLeptons = new std::vector<int>;
+	}
+
+	//Empty the vector of indices --> Redundant
+	_selectedIsoLeptons->clear();
+
+	// First check is already was run over close to PV muons
+	// if not do it
+	if( _closeToPVLeptons == 0)
+	{
+		this->SelectLeptonsCloseToPV();
+	}
+	
+	//Loop over selected muons
+	for(std::vector<int>::iterator it = _closeToPVLeptons->begin();
+			it != _closeToPVLeptons->end(); ++it)
+	{
+		unsigned int i = *it;
+		
+		//Build 4 vector for muon
+		TLorentzVector Mu(_data->GetMuonPx()->at(i), 
+				_data->GetMuonPy()->at(i),
+				_data->GetMuonPz()->at(i), 
+				_data->GetMuonEnergy()->at(i));
+		
+		//[Require muons to be isolated]
+		//-------------------
+		//The eta/pt plane is divided in 4 regions and the cut 
+		// on isolation is different in each region
+		//
+		// PT ^
+		//   /|\ |
+		//    |  |
+		//    |R1|R2
+		// 20-+--+---
+		//    |R3|R4
+		//    +--+---> eta
+		//       |
+		//      1.479 
+//#ifdef MINITREES
+		double isolation = (_data->GetMuonSumIsoTrack()->at(i) + 
+				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
+//#endif
+//#ifdef LATINOTREES
+//		double isolation =(fSelector->T_Muon_muSmurfPF->at(i) )/ Mu.Pt();
+//#endif
+		
+		bool isolatedMuon = this->PassIsoCuts(isolation,Mu.Pt(),Mu.Eta());
+		
+		if( !isolatedMuon )
+		{
+			continue;
+		}
+		
+		// If we got here it means the muon is good
+		_selectedIsoLeptons->push_back(i);
+	}
+	
+	return _selectedIsoLeptons->size();
 }

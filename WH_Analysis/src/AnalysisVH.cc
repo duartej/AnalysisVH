@@ -134,7 +134,15 @@ void AnalysisVH::InitialiseParameters()
 	cuts->clear();
 	
 	//   - Isolation: (PTtraks + ETcalo)/PTmuon
-	ip->TheNamedDouble("MaxIsoMu", dummy);
+	ip->TheNamedDouble("MaxPTIsolationR1",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxPTIsolationR2",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxPTIsolationR3",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxPTIsolationR4",dummy);
+	cuts->push_back(dummy);
+	ip->TheNamedDouble("MaxIsoMu", dummy);  // OBSOLETE--> Now in regions
 	cuts->push_back(dummy);
 	fLeptonSelection->SetIsoCuts(*cuts);
 	cuts->clear();
@@ -537,6 +545,18 @@ void AnalysisVH::InsideLoop()
 
 	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
 
+
+	// (3) Isolated muons
+	//--------------------
+	unsigned int nSelectedIsoMuons = fLeptonSelection->GetNIsoLeptons();
+	_histos[fHNSelectedIsoMuons]->Fill(nSelectedIsoMuons,puw);  
+	
+	if(nSelectedIsoMuons < _nLeptons)
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iHas2IsoLeptons, puw, fsNTau);
 	
 }
 

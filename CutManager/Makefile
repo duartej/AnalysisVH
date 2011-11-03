@@ -38,7 +38,7 @@ getdictname   = $(patsubst interface/%,%,$(shell echo $(1)|cut -d. -f1| tr A-Z a
 
 #### Variables to generate the dictionaries:
 #- Extract all the headers containing ClassDef call
-TARGETDICTHEADER := $(shell grep -R ClassDef ./interface/*.h | sed -e 's/[^:]:*ClassDef[^ ]*//' -e 's/://' -e 's/\.\///')
+TARGETDICTHEADER := $(shell grep -H -R ClassDef ./interface/*.h | sed -e 's/[^:]:*ClassDef[^ ]*//' -e 's/://' -e 's/\.\///')
 #- Creating the dict names: .h and .cc
 DICTHEADER       := $(foreach VAR,$(TARGETDICTHEADER),$(shell echo $(VAR) | cut -d. -f1| tr A-Z a-z)dict.h )
 DICTSRC          := $(patsubst interface/%.h,src/%.cxx,$(DICTHEADER))

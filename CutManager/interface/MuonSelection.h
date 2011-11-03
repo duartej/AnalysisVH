@@ -52,7 +52,8 @@ class MuonSelection : public CutManager
 		virtual bool PassEventCuts();
 		virtual bool PassTopologicalCuts(const unsigned int & i, 
 				const double & pt, const double & eta) const;
-		virtual bool PassIsoCuts(const unsigned int & i);
+		virtual bool PassIsoCuts(const double & i,
+				const double & pt, const double & eta) const;
 		virtual bool PassIdCuts(const unsigned int & i);
 		virtual bool PassQualityCuts(const unsigned int & i);
 		virtual bool PassUndefCuts(const unsigned int & i,
@@ -67,6 +68,9 @@ class MuonSelection : public CutManager
 		// Select close to PV muons: 
 		// - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu Undef cuts
 		unsigned int SelectLeptonsCloseToPV();
+		// Select Iso Leptons: 
+		// - Depends on MaxPTIsolationR# dependent of the region
+		unsigned int SelectIsoLeptons();
 
 	ClassDef(MuonSelection,0);
 };
