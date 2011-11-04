@@ -136,7 +136,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		unsigned int fNGenElectrons;             //Number of generated electrons from W or tau
 		unsigned int fNGenMuons;                 //Number of generated muons from W or tau
-		std::vector<TLorentzVector> * fGenMuon;  //TLorentzVector with the 3 muons from W or tau
+		std::vector<TLorentzVector> fGenMuon;  //TLorentzVector with the 3 muons from W or tau
 
 
 		// Included in the CMSAnalysisSelector !! TO DELETE

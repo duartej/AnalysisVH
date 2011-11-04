@@ -66,8 +66,12 @@ class CutManager
 		//! Return if the i-lepton passed the cuts
 		virtual bool PassTopologicalCuts(const unsigned int & i,
 				const double & pt, const double & eta) const = 0;
+		//! Return if all the muons in the analysis passed the minimum pt assigned
+		virtual bool PassPtCuts(const unsigned int & nLeptons) const = 0;
+		//! Return if the i-lepton pass the isolation cuts
 		virtual bool PassIsoCuts(const double & i,
 				const double & pt, const double & eta) const = 0;
+		//! Return if the i-lepton pass the identification cuts
 		virtual bool PassIdCuts(const unsigned int  & i, 
 				const double & ptResolution)           const = 0;
 		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
@@ -92,6 +96,10 @@ class CutManager
 		virtual unsigned int SelectIsoLeptons() = 0;
 		//! Select good Identified leptons 
 		virtual unsigned int SelectGoodIdLeptons() = 0;
+
+		//-- Getters
+		//! Get good leptons (passing the PV, Iso and ID cuts)
+		virtual std::vector<int> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
@@ -143,7 +151,7 @@ class CutManager
 		std::vector<int> * _selectedIsoLeptons;
 		//! Vector of index of good identified leptons 
 		std::vector<int> * _selectedGoodIdLeptons;
-		//! Vector of leptons indices which have been pass all the cuts
+		//! Vector of leptons indices which have been pass all the cuts--> Anteriores
 		std::vector<int> * _idxLeptons;
 
 	ClassDef(CutManager,0);

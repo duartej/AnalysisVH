@@ -52,6 +52,7 @@ class MuonSelection : public CutManager
 		virtual bool PassEventCuts();
 		virtual bool PassTopologicalCuts(const unsigned int & i, 
 				const double & pt, const double & eta) const;
+		virtual bool PassPtCuts(const unsigned int & nLeptons) const;
 		virtual bool PassIsoCuts(const double & i,
 				const double & pt, const double & eta) const;
 		virtual bool PassIdCuts(const unsigned int & i, 

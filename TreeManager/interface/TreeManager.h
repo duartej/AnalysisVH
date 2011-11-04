@@ -85,6 +85,8 @@ class TreeManager
 		virtual std::vector<float>* GetMuonPy() const = 0;
 		virtual std::vector<float>* GetMuonPz() const = 0;
 		virtual std::vector<float>* GetMuonEnergy() const = 0;
+
+		virtual std::vector<float>* GetMuonCharge() const = 0;
 		
 		// ------- Isolation
 		virtual std::vector<float>* GetMuonSumIsoTrack() const = 0;
@@ -158,6 +160,7 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetMuonPy() const");
 			methods.push_back("virtual std::vector<float>* GetMuonPz() const");
 			methods.push_back("virtual std::vector<float>* GetMuonEnergy() const");
+			methods.push_back("virtual std::vector<float>* GetMuonCharge() const");
 			
 			// Isolation
 			methods.push_back("virtual std::vector<float>* GetMuonSumIsoTrack() const");

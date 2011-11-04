@@ -96,6 +96,8 @@ void AnalysisVH::InitialiseParameters()
 {
 	InputParameters * ip = this->GetInputParameters();
 
+	// FIXME: I need a method to checked that the cut
+	// is really in the configuration file
 	//Cuts
 	//----
 	//   - Pt of leptons
@@ -210,6 +212,7 @@ void AnalysisVH::InitialiseParameters()
 	std::cout << "DEBUG: IsWH   = " << fIsWH << std::endl;
 	std::cout << "DEBUG: IsData = " << fIsData << std::endl;
 #endif
+	std::cout << *fLeptonSelection << std::endl;
 }
 
 void AnalysisVH::Initialise()
@@ -430,8 +433,10 @@ void AnalysisVH::InsideLoop()
 			<< "/" << fNGenMuons << "/" << (3-fNGenMuons-fNGenElectrons) << std::endl;
 		std::cout << "DEBUG: fsNTau --> " << fsNTau << std::endl;
 #endif
+		// Initialize generation vector
+		fGenMuon.clear();
 		//   Sort by energy
-		if(fNGenMuons == 3)  // FIXME:: PORQUE SOLO 3??
+		if(fNGenMuons == _nLeptons)  // FIXME:: PORQUE SOLO 3??
 		{
 			std::map<float,TLorentzVector> vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
@@ -444,11 +449,11 @@ void AnalysisVH::InsideLoop()
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
 
-			fGenMuon = new std::vector<TLorentzVector>;
+			//fGenMuon = new std::vector<TLorentzVector>;
 			for(std::vector<TLorentzVector>::reverse_iterator it = vGenMuon->rbegin(); 
 					it != vGenMuon->rend(); ++it)
 			{
-				fGenMuon->push_back( *it );
+				fGenMuon.push_back( *it );
 			}
 			delete vGenMuon;
 			vGenMuon = 0;
@@ -457,7 +462,8 @@ void AnalysisVH::InsideLoop()
 			for (unsigned int i = 0; i < fNGenMuons; ++i) 
 			{
 				std::cout << "[" << i << "] <- [" << igenmuons[i] 
-					<< "] PT = " << (*fGenMuon)[i].Pt() 
+					//<< "] PT = " << (*fGenMuon)[i].Pt() 
+					<< "] PT = " << fGenMuon[i].Pt() 
 					<< " - ET = " << fData->GetGenMuonEnergy()->at(igenmuons[i]) 
 					<< std::endl;
 			}      
@@ -465,8 +471,8 @@ void AnalysisVH::InsideLoop()
 			FillGenPlots(_iAllEvents,puw);
 			
 			// Freeing memory
-			delete fGenMuon;
-			fGenMuon = 0;
+			//delete fGenMuon;
+			//fGenMuon = 0;
 		}
 	}
 	
@@ -521,7 +527,7 @@ void AnalysisVH::InsideLoop()
 
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
-	int iGoodVertex = 0; // First one
+	//int iGoodVertex = 0; // First one
 	//fLeptonSelection->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
@@ -587,30 +593,138 @@ void AnalysisVH::InsideLoop()
 	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
       
 	// The leading lepton has to have PT > fCutMinMuPt (20 most probably)
+	// Applying the pt-cuts
 	//-------------------------------------------------------------------
-	// + Get the indices of good muons
-	std::vector<unsigned int>* themuons = fMuonSelector->GetIsolatedGoodMuons();
-
-      	// + Get indices of first 3 muons
-	unsigned int imuon1 = themuons->at(0);
-      	unsigned int imuon2 = themuons->at(1);
-      	//fHPtMu1->Fill(T_Muon_Pt->at(imuon1), puw);
-	//fHPtMu2->Fill(T_Muon_Pt->at(imuon2), puw);
-
-      	if(nSelectedIsoGoodMuons == 2) 
+	if( ! fLeptonSelection->PassPtCuts(_nLeptons) )
 	{
-		if(T_Muon_Pt->at(imuon1) < fCutMinMuPt1 || _data->GetMuonPt()->at(imuon2) < fCutMinMuPt3)     return;
-  }
-  else {
-    unsigned int imuon3 = themuons->at(2);
-    // + Check cuts on Pt of three muons
-    if (
-	T_Muon_Pt->at(imuon1) < fCutMinMuPt1 || 
-	T_Muon_Pt->at(imuon2) < fCutMinMuPt2 ||
-	T_Muon_Pt->at(imuon3) < fCutMinMuPt3
-	)
-      return;
-  }
+		return;
+	}
+	
+	FillHistoPerCut(_iMuPTPattern, puw, fsNTau);
+	
+	// Keep events with just 3 leptons and store momentum and charge
+	//---------------------------------------------------------------------------
+	if(nSelectedIsoGoodMuons != _nLeptons)
+	{
+		return;
+	}
+	// Indexs of good leptons
+	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons();
+	// + Fill histograms with Pt and Eta
+	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	{
+		unsigned int i = *it;
+		TLorentzVector vL(fData->GetMuonPx()->at(i), 
+				fData->GetMuonPy()->at(i),
+				fData->GetMuonPz()->at(i), 
+				fData->GetMuonEnergy()->at(i)); 
+		fHPtMu[i]->Fill(vL.Pt(), puw);
+		fHEtaMu[i]->Fill(vL.Eta(), puw);
+		fHDeltaRGenRecoMu[i]->Fill(vL.DeltaR(fGenMuon[i]), puw);
+	}
+	FillGenPlots(_iHasExactly3Leptons,puw);
+	
+	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
+	// + Store Momentum and charge for the muons
+	std::vector<TLorentzVector> lepton;
+	std::vector<int> leptonCharge;
+	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++i) 
+	{
+		const unsigned int i = *it;
+		lepton.push_back( TLorentzVector(fData->GetMuonPx()->at(i), 
+					fData->GetMuonPy()->at(i), 
+					fData->GetMuonPz()->at(i), 
+					fData->GetMuonEnergy()->at(i))
+				); 
+		leptonCharge.push_back( fData->GetMuonCharge()->at(i) );
+	}
+	// Discard extra electrons and extra muons
+	// ------------------------------------------------------------------
+	// 
+	// Not yet implemented...
+  
+	// Discard 3 muons with the same charge
+	// ------------------------------------------------------------------
+	// 
+	// + Add up charges. If the abs value of the total number is equal to N then 
+	//   all have the same sign
+	int charge = 0;
+	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++i) 
+	{
+		unsigned int i = *it;
+		charge += fData->GetMuonCharge->at(i);
+	}
+	// Fill muon charge before rejecting or accepting  
+	_histos[fHMuonCharge]->Fill(charge, puw);
+	
+	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
+  
+	// Find muons with opposite charges and calculate DeltaR, invMass...
+	// Keep the pair with DeltaR minimum
+	// ------------------------------------------------------------------
+	// 
+	// + Store the index of the opposite charge muons in pairs
+	std::vector<std::pair<int,int> > leptonPair;
+	//unsigned int ipair = 0;
+	int kbegin = 0;
+	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
+	{
+		int kfromend = leptonCharge.size()-1;
+		for(std::vector<int>::reverse_iterator rIt = leptonCharge.rbegin(); 
+				rIt != it; ++rIt)
+		{
+			if( (*it)*(*rIt) < 0 )
+			{
+				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
+			}
+			kfromend--;
+		}
+		kbegin++;
+	}
+	// + Find Min/Max DeltaR and DeltaPhi
+	// Using ordering from maps (from lower to higher)
+	std::map<double,std::pair<int,int> > deltaRMuMu;
+	std::map<double,std::pair<int,int> > deltaPhiMuMu;
+	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
+			it != leptonPair.end(), ++it)
+	{
+		unsigned int i1 = it->first;
+		unsigned int i2 = it->second;
+		const double deltaR = lepton[i1].DeltaR(lepton[i2]);
+		deltaRMuMu[deltaR] = *it;
+		const double deltaPhi = TMath::Abs(lepton[i1].DeltaPhi(lepton[i2]));
+		deltaPhiMuMu[deltaPhi] = *it;
+std::cout << "DEBUG: i1 = " << i1 << ", i2 = " << i2 << std::endl;
+std::cout << "DEBUG: DeltaR = " << deltaR<< ", DeltaPhi = " << deltaPhi << std::endl;
+	}
+	
+	double minDeltaRMuMu   = *(deltaRMuMu.begin());
+	double maxDeltaRMuMu   = *(deltaRMuMu.end());
+	double minDeltaPhiMuMu = *(deltaPhiMuMu.begin());
+	double maxDeltaPhiMuMu = *(deltaPhiMuMu.end());
+std::cout << "DEBUG: DeltaR Min/Max= " << minDeltaRMuMu << " / " << maxDeltaRMuMu << std::endl;
+sd::cout << "DEBUG: DeltaPhi Min/Max= " << minDeltaPhiMuMu << " / " << maxDeltaPhiMuMu << endl;
+        
+        // + Calculate inv mass of closest pair in R plane
+	const unsigned int i1 = (deltaRMuMu.begin())->first;
+	const unsigned int i2 = (deltaRMuMu.end())->second;
+
+	const double invMassMuMuH = (lepton[i1] + lepton[i2]).M();
+
+	// + Fill histograms
+	//   - Smallest and Largest DeltaR between 2 opposite charged muons
+	fHMinDeltaRMuMu->Fill(minDeltaRMuMu,puw);
+	fHMaxDeltaRMuMu->Fill(maxDeltaRMuMu,puw);
+	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
+	fHMinDeltaPhiMuMu->Fill(minDeltaPhiMuMu,puw);
+	fHMaxDeltaPhiMuMu->Fill(maxDeltaPhiMuMu,puw);
+	//   - Invariant mass of leptons supposedly from H
+	fHHInvMass->Fill(invMassMuMuH,puw);
 }
 
 void AnalysisVH::Summary()
@@ -658,8 +772,10 @@ void AnalysisVH::FillGenPlots(ECutLevel cut, double puw)
 	{
 		for (unsigned int i = 0; i < fNGenMuons; i++) 
 		{
-			fHGenPtMu[i][cut]->Fill((*fGenMuon)[i].Pt(), puw);
-			fHGenEtaMu[i][cut]->Fill((*fGenMuon)[i].Eta(), puw);
+			//fHGenPtMu[i][cut]->Fill((*fGenMuon)[i].Pt(), puw);
+			//fHGenEtaMu[i][cut]->Fill((*fGenMuon)[i].Eta(), puw);
+			fHGenPtMu[i][cut]->Fill(fGenMuon[i].Pt(), puw);
+			fHGenEtaMu[i][cut]->Fill(fGenMuon[i].Eta(), puw);
 		}
 	}
 }

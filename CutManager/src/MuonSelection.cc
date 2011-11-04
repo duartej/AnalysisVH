@@ -48,6 +48,35 @@ bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt
 	return true;
 }
 
+// Specific muon pt-cuts (for the good identified-isolated muons)
+bool MuonSelection::PassPtCuts(const unsigned int & nLeptons) const
+{
+	this->checkercutinit(_ptCuts);
+	// 
+	if( nLeptons != (*_cuts)[_ptCuts]->size() )
+	{
+		std::cerr << "MuonSelection::PassPtCuts ERROR: Have " << nLeptons 
+			<< " muons to analyze but the config file only contain " 
+			<< (*_cuts)[_ptCuts]->size() << " pt-cuts. Modify in consonance."
+			<< "\nExiting..." << std::endl;
+		exit(-1);
+	}
+	
+	// Use the lowest value of the pt-- Ordered
+        for(std::vector<int>::iterator it = _selectedGoodIdLeptons->begin(); 
+			it != _selectedGoodIdLeptons->end() ; ++it)
+	{
+		const unsigned int i = *it;
+		const double ptcut = (*(*_cuts)[_ptCuts])[i];
+		if( _data->GetMuonPt()->at(i) < ptcut )
+		{
+			return false;
+		}
+	}
+	// allright, all muons passed their cuts
+	return true;
+}
+
 
 
 bool MuonSelection::PassIsoCuts(const double & isolation, const double & mupt,
@@ -140,29 +169,29 @@ bool MuonSelection::PassIdCuts(const unsigned int & i, const double & ptResoluti
 	// FIXME: This has to be improved to avoid errors when introducing
 	//        the cuts
 
-	const int CutMinNValidHitsSATrk     = int((*(*_cuts)[_IsoCuts])[0]);
-	const double CutMaxNormChi2GTrk     = (*(*_cuts)[_IsoCuts])[1];
-	const int CutMinNumOfMatches        = int((*(*_cuts)[_IsoCuts])[2]);
-	const int CutMinNValidPixelHitsInTrk= int((*(*_cuts)[_IsoCuts])[3]);
-	const int CutMinNValidHitsInTrk     = int((*(*_cuts)[_IsoCuts])[4]);
-	const double CutMaxDeltaPtMuOverPtMu= (*(*_cuts)[_IsoCuts])[5];
-		
-	bool passSpecific = false;
+	const int CutMinNValidHitsSATrk     = (*(*_cuts)[_IdCuts])[0];
+	const double CutMaxNormChi2GTrk     = (*(*_cuts)[_IdCuts])[1];
+	const int CutMinNumOfMatches        = (*(*_cuts)[_IdCuts])[2];
+	const int CutMinNValidPixelHitsInTrk= (*(*_cuts)[_IdCuts])[3];
+	const int CutMinNValidHitsInTrk     = (*(*_cuts)[_IdCuts])[4];
+	const double CutMaxDeltaPtMuOverPtMu= (*(*_cuts)[_IdCuts])[5];
+
+	bool passcutsforGlb = false;
 	// If is global Muon using its ID cuts
 	if( _data->IsGlobalMuon()->at(i) )
 	{
-		passSpecific = _data->GetMuonNValidHitsSATrk()->at(i) > CutMinNValidHitsSATrk
+		passcutsforGlb = _data->GetMuonNValidHitsSATrk()->at(i) > CutMinNValidHitsSATrk
 		    && _data->GetMuonNormChi2GTrk()->at(i) < CutMaxNormChi2GTrk 
 		    && _data->GetMuonNumOfMatches()->at(i) > CutMinNumOfMatches;
 	}
-	else if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
+	
+	bool passcutsforSA = false;
+	if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
 	{
-		passSpecific = _data->IsTMLastStationTight()->at(i);
+		passcutsforSA = _data->IsTMLastStationTight()->at(i);
 	}
-	else    // We can go already
-	{
-		return false;
-	}
+
+	const bool passSpecific = passcutsforGlb || passcutsforSA;
 
 	// Already we can go off
 	if( ! passSpecific )
@@ -445,7 +474,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
-		//Lepton ID
+	        //Lepton ID
 		if( ! this->PassIdCuts(i,ptResolution) )
 		{
 			continue;
@@ -456,3 +485,4 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 
   return _selectedGoodIdLeptons->size();
 }
+
