@@ -5,253 +5,317 @@
 
 #include<cmath>
 
-bool MuonSelection::PassTriggerCuts()
+
+// Helper function to calculate the size of an array
+//template<typename T, int size>
+//int GetArrayLength(T(&)[size])
+//{
+//	return size;
+//}
+
+
+// Por si acaso
+int GetArrayLength(const double  * arr)
 {
-	//Not implemented
-	return true;
+	int arrSize = sizeof(arr)/sizeof(double);
+
+	return arrSize;
 }
 
-bool MuonSelection::PassEventCuts(const double & MET) const
-{
-	this->checkercutinit(_eventCuts);
-	// Extract the index (possibly only one, all have the
-	// same cut)
-	double CutMinMET = (*_cuts)[_eventCuts]->at(0);
-	
-	return ( MET > CutMinMET );
+//Constructor
+MuonSelection::MuonSelection( TreeManager * data, const int & nLeptons) : 
+	CutManager(data,nLeptons),
+	kMinMuPt1(-1),
+	kMinMuPt2(-1),      
+	kMinMuPt3(-1),          
+	kMaxAbsEta(-1),         		
+	kMaxMuIP2DInTrackR1(-1),
+	kMaxMuIP2DInTrackR2(-1), 		
+	kMaxDeltaZMu(-1), 
+	kMaxDeltaRMuMu(-1),
+	kMinMET(-1),
+	kDeltaZMass(-1),
+	kMaxZMass(-1),
+	kMinZMass(-1),
+	kMaxPTIsolationR1(-1),
+	kMaxPTIsolationR2(-1),
+	kMaxPTIsolationR3(-1),
+	kMaxPTIsolationR4(-1),
+	kMinNValidHitsSATrk(-1),
+	kMaxNormChi2GTrk(-1),
+	kMinNumOfMatches(-1),
+	kMinNValidPixelHitsInTrk(-1),
+	kMinNValidHitsInTrk(-1),
+	kMaxDeltaPtMuOverPtMu(-1)  
+{ 
+	// Initialize the selection codenames
+	_codenames.insert("PtMuonsCuts");
+	_codenames.insert("DeltaRMuMuCut");
+	_codenames.insert("ZMassWindow");
+	_codenames.insert("MinMET");
 }
 
 
-bool MuonSelection::PassTopologicalCuts(const unsigned int & i,const double & pt,
-		const double & eta) const
-{
-	this->checkercutinit(_ptCuts);
-	this->checkercutinit(_etaCuts);
-	// Extract the index (possibly only one, all have the
-	// same cut)
-	double etacut = (*_cuts)[_etaCuts]->at(0);
-	// 
-	if( i < (*_cuts)[_etaCuts]->size() )
+void MuonSelection::LockCuts(){
+	// initializing the cuts: Note that before use some cut
+	// it has to be checked if it was initialized
+	for(std::map<std::string,double>::iterator cut = _cuts->begin(); 
+			cut != _cuts->end();++cut)
 	{
-		etacut = (*(*_cuts)[_etaCuts])[i];
+		if( cut->first == "MinMuPt1" )
+		{
+			kMinMuPt1 = cut->second;
+		}
+		else if( cut->first == "MinMuPt2" )
+		{
+			kMinMuPt2 = cut->second;
+		}
+		else if( cut->first == "MinMuPt3" )
+		{
+			kMinMuPt3 = cut->second;
+		}
+		else if( cut->first == "MaxAbsEta" )
+		{
+			kMaxAbsEta = cut->second;
+		}
+		else if( cut->first == "MaxMuIP2DInTrackR1" )
+		{
+			kMaxMuIP2DInTrackR1 = cut->second;
+		}
+		else if( cut->first == "MaxMuIP2DInTrackR2" )
+		{
+			kMaxMuIP2DInTrackR2 = cut->second;
+		}
+		else if( cut->first == "MaxDeltaZMu" )
+		{
+			kMaxDeltaZMu = cut->second;
+		}
+		else if( cut->first == "DeltaZMass" )
+		{
+			kMaxDeltaZMu = cut->second;
+		}
+		else if( cut->first == "MaxDeltaRMuMu" )
+		{
+			kMaxDeltaRMuMu = cut->second;
+		}
+		else if( cut->first == "MinMET" )
+		{
+			kMinMET = cut->second;
+		}
+		else if( cut->first == "MaxPTIsolationR1" )
+		{
+			kMaxPTIsolationR1 = cut->second;
+		}
+		else if( cut->first == "MaxPTIsolationR3" )
+		{
+			kMaxPTIsolationR2 = cut->second;
+		}
+		else if( cut->first == "MaxPTIsolationR3" )
+		{
+			kMaxPTIsolationR3 = cut->second;
+		}
+		else if( cut->first == "MaxPTIsolationR4" )
+		{
+			kMaxPTIsolationR4 = cut->second;
+		}
+		else if( cut->first == "MinNValidHitsSATrk" )
+		{
+			kMinNValidHitsSATrk = cut->second;
+		}
+		else if( cut->first == "MaxNormChi2GTrk" )
+		{
+			kMaxNormChi2GTrk = cut->second;
+		}
+		else if( cut->first == "MinNumOfMatches" )
+		{
+			kMinNumOfMatches = cut->second;
+		}
+		else if( cut->first == "MinNValidPixelHitsInTrk" )
+		{
+			kMinNValidPixelHitsInTrk = cut->second;
+		}
+		else if( cut->first == "MinNValidHitsInTrk" )
+		{
+			kMinNValidHitsInTrk = cut->second;
+		}
+		else if( cut->first == "MaxDeltaPtMuOverPtMu" )
+		{
+			kMaxDeltaPtMuOverPtMu = cut->second;
+		}
 	}
-	
-	if( fabs(eta) >= etacut )
-	{
-
-		return false;
-	}
-
-	// Use the lowest value of the pt
-	double ptcut = (*(*_cuts)[_ptCuts])[(*_cuts)[_ptCuts]->size()-1];
-	if( pt <= ptcut )
-	{
-		return false;
-	}
-
-	return true;
 }
 
-// Specific muon pt-cuts (for the good identified-isolated muons)
-bool MuonSelection::PassPtCuts(const unsigned int & nLeptons) const
+// Helper function
+std::vector<std::string> MuonSelection::GetCodenames() const
 {
-	this->checkercutinit(_ptCuts);
-	// 
-	if( nLeptons != (*_cuts)[_ptCuts]->size() )
+	return std::vector<std::string>(_codenames.begin(),_codenames.end());
+}
+
+bool MuonSelection::IsPass(const std::string & codename, const double varAux[] ) const
+{
+	// Checking
+	if( _codenames.count( codename ) != 1 )
 	{
-		std::cerr << "MuonSelection::PassPtCuts ERROR: Have " << nLeptons 
-			<< " muons to analyze but the config file only contain " 
-			<< (*_cuts)[_ptCuts]->size() << " pt-cuts. Modify in consonance."
-			<< "\nExiting..." << std::endl;
+		std::cerr << "MuonSelection::IsPass ERROR: "
+			<< "There is no selection chain called '" << codename
+			<< "' implemented. The available selection names are:"
+			<< std::endl;
+		std::vector<std::string> v = this->GetCodenames();
+		for(unsigned int i = 0; i < v.size();++i)
+		{
+			std::cout << " +" << v[i] << std::endl;
+		}
 		exit(-1);
 	}
-	
+
+	bool ispass = false;
+	if( codename == "PtMuonsCuts" )
+	{
+		// We need the arguments index of the vector, pt and eta
+		if( varAux == 0 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains: the number of final state leptons "
+				<< "signature . Exiting!!" 
+				<< std::endl;
+			exit(-1);
+		}
+		if( GetArrayLength(varAux) != 1 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains: the number of final state leptons "
+				<< "signature . Exiting!!" 
+				<< std::endl;
+			exit(-1);
+		}
+
+		ispass = this->IsPassPtCuts(varAux[0],varAux[1],varAux[2]);
+	}
+	else if( codename == "DeltaRMuMuCut" )
+	{
+		// We need the arguments index of the vector, pt and eta
+		if( varAux == 0 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as argument the double array[1] "
+				<< "which contains the DeltaR between the muons. Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+		if( GetArrayLength(varAux) != 3 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains the DeltaR between the muons. Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+
+		ispass = this->IsPassDeltaRCut(varAux[0]);
+	}
+	else if( codename == "ZMassWindow" )
+	{
+		// We need the arguments index of the vector, pt and eta
+		if( varAux == 0 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains the invariant mass of the muon system."
+			        << " Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+		if( GetArrayLength(varAux) != 3 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains the invariant mass of the muon system."
+			        << " Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+
+		ispass = ! this->IsInsideZWindow(varAux[0]);
+	}
+	else if( codename == "MinMET" )
+	{
+		// We need the arguments index of the vector, pt and eta
+		if( varAux == 0 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains the MET. Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+		if( GetArrayLength(varAux) != 3 )
+		{
+			std::cerr << "MuonSelection::IsPass ERROR: "
+				<< "Don't pass as second argument a double array[1] "
+				<< "which contains the MET. Exiting!!"
+				<< std::endl;
+			exit(-1);
+		}
+
+		ispass = this->IsPassMETCut(varAux[0]);
+	}
+	else
+	{
+			std::cerr << "MuonSelection::IsPass NOT IMPLEMENTED ERROR\n"
+				<< "The codename '" << codename << "' is"
+				<< "not implemented as a cut, you should update this"
+				<< " function. Exiting!!"
+				<< std::endl;
+			exit(-1);
+	}
+
+	return ispass;
+}
+
+
+bool MuonSelection::IsPassMETCut(const double & MET) const
+{	
+	return ( MET > kMinMET );
+}
+
+
+// Specific muon pt-cuts (for the good identified-isolated muons)
+bool MuonSelection::IsPassPtCuts(const unsigned int & nLeptons,
+		const double & pt, const double & eta) const
+{
+	std::vector<double> vptcut;
+	vptcut.push_back(kMinMuPt1);
+	vptcut.push_back(kMinMuPt2);
+	vptcut.push_back(kMinMuPt3);
+	int k = 0;
 	// Use the lowest value of the pt-- Ordered
         for(std::vector<int>::iterator it = _selectedGoodIdLeptons->begin(); 
 			it != _selectedGoodIdLeptons->end() ; ++it)
 	{
 		const unsigned int i = *it;
-		const double ptcut = (*(*_cuts)[_ptCuts])[i];
+		const double ptcut = vptcut[k];
 		if( _data->GetMuonPt()->at(i) < ptcut )
 		{
 			return false;
 		}
+		k++;
 	}
 	// allright, all muons passed their cuts
 	return true;
 }
 
 
-
-bool MuonSelection::PassIsoCuts(const double & isolation, const double & mupt,
-		const double & mueta) const
+bool MuonSelection::IsPassDeltaRCut( const double & minDeltaRMuMu ) const
 {
-	// Note that this cut do not depend of the muon,
-	// the index of the cut is region-dependent
-
-	// Check the cut has been configured
-	this->checkercutinit(_IsoCuts);
-	if( (*_cuts)[_IsoCuts]->size() < 4 )
-	{
-		std::cerr << "MuonSelection::PassIsoCuts ERROR: The configuration"
-			<< " file does not contain the needed isolation cuts: "
-			<< "MaxPTIsolationR1, MaxPTIsolationR2, MaxPTIsolationR3,"
-			<< " MaxPTIsolationR4. Exiting..."  << std::endl;
-		exit(-1);
-	}
-	const double CutMaxPTIsolationR1 = (*(*_cuts)[_IsoCuts])[0];
-	const double CutMaxPTIsolationR2 = (*(*_cuts)[_IsoCuts])[1];
-	const double CutMaxPTIsolationR3 = (*(*_cuts)[_IsoCuts])[2];
-	const double CutMaxPTIsolationR4 = (*(*_cuts)[_IsoCuts])[3];
-	//WARNING: HARDCODED limit of the eta regions and Pt
-	//The eta/pt plane is divided in 4 regions and the cut on isolation
-	//is different in each region
-	//
-	// PT ^
-	//   /|\ |
-	//    |  |
-	//    |R1|R2
-	// 20-+--+---
-	//    |R3|R4
-	//    +--+---> eta
-	//       |
-	//      1.479 
-	const double etaLimit = 1.479;
-	const double ptLimit  = 20.0;
-
-	double IsoCut = -1;
-	// High Pt Region:
-	if( mupt > ptLimit )
-	{
-		// Low eta region: R1
-		if( fabs(mueta) < etaLimit ) 
-		{
-			IsoCut = CutMaxPTIsolationR1;
-		}
-		// High eta region: R2
-		else  
-		{
-			IsoCut = CutMaxPTIsolationR2;
-		}
-	}
-	// Low Pt Region:
-	else
-	{
-		// Low eta region: R3
-		if( fabs(mueta) < etaLimit )
-		{
-			IsoCut = CutMaxPTIsolationR3;
-		}
-		// High eta region: R4
-		else
-		{
-			IsoCut = CutMaxPTIsolationR4;
-		}
-	}
-
-	return ( isolation < IsoCut );
-}
-
-
-bool MuonSelection::PassIdCuts(const unsigned int & i, const double & ptResolution) const
-{
-	// Note that this cut do not depend of the muon,
-	// the index of the cut is region-dependent
-
-	// Check the cut has been configured
-	this->checkercutinit(_IdCuts);
-	if( (*_cuts)[_IdCuts]->size() < 6 )
-	{
-		std::cerr << "MuonSelection::PassIsoCuts ERROR: The configuration"
-			<< " file does not contain the needed isolation cuts:\n "
-			<< "MinNValidHitsSATrk, MaxNormChi2GTrk, MinNumOfMatches,"
-			<< " MinNValidPixelHitsInTrk, MinNValidHitsInTrk,"
-			<< " MaxDeltaPtMuOverPtMu (in this order). Exiting..."  
-			<< std::endl;
-		exit(-1);
-	}
-	// FIXME: This has to be improved to avoid errors when introducing
-	//        the cuts
-
-	const int CutMinNValidHitsSATrk     = (*(*_cuts)[_IdCuts])[0];
-	const double CutMaxNormChi2GTrk     = (*(*_cuts)[_IdCuts])[1];
-	const int CutMinNumOfMatches        = (*(*_cuts)[_IdCuts])[2];
-	const int CutMinNValidPixelHitsInTrk= (*(*_cuts)[_IdCuts])[3];
-	const int CutMinNValidHitsInTrk     = (*(*_cuts)[_IdCuts])[4];
-	const double CutMaxDeltaPtMuOverPtMu= (*(*_cuts)[_IdCuts])[5];
-
-	bool passcutsforGlb = false;
-	// If is global Muon using its ID cuts
-	if( _data->IsGlobalMuon()->at(i) )
-	{
-		passcutsforGlb = _data->GetMuonNValidHitsSATrk()->at(i) > CutMinNValidHitsSATrk
-		    && _data->GetMuonNormChi2GTrk()->at(i) < CutMaxNormChi2GTrk 
-		    && _data->GetMuonNumOfMatches()->at(i) > CutMinNumOfMatches;
-	}
-	
-	bool passcutsforSA = false;
-	if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
-	{
-		passcutsforSA = _data->IsTMLastStationTight()->at(i);
-	}
-
-	const bool passSpecific = passcutsforGlb || passcutsforSA;
-
-	// Already we can go off
-	if( ! passSpecific )
-	{
-		return false;
-	}
-
-	bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > CutMinNValidPixelHitsInTrk 
-//#ifdef MINITREES
-	    && _data->GetMuonNValidHitsInTrk()->at(i) > CutMinNValidHitsInTrk 
-//#endif
-//#ifdef LATINOTREES
-//          && _data->GetMuonInnerTrackFound()->at(i) > CutMinNValidHitsInTrk 
-//#endif
-           && fabs(ptResolution) < CutMaxDeltaPtMuOverPtMu;
-
-	//Fill Histograms
-	//if (fFillHistos) 
-	//{
-	//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-	//}
-	
-	// Remember, if you are here, passSpecific=true
-	return Idcuts;
-}
-
-bool MuonSelection::PassQualityCuts(const unsigned int & i)
-{
-	//Not implemented 
-	return true;
-}
-bool MuonSelection::PassUndefCuts( const unsigned int & i, const int & cutindex )
-{
-	//Not implemented
-	return true;
-}
-
-bool MuonSelection::PassDeltaRCut( const double & minDeltaRMuMu ) const
-{
-	this->checkerundefcutinit(CutManager::kMaxDeltaRMuMu);
-
-	const double CutMaxDeltaRMuMu = (*(*_undefcuts)[CutManager::kMaxDeltaRMuMu])[0];	
-
-	return ( minDeltaRMuMu <= CutMaxDeltaRMuMu );
+	return ( minDeltaRMuMu <= kMaxDeltaRMuMu );
 }
 
 // Return true if it is inside the Z window
-bool MuonSelection::PassZWindow( const double & invariantMass ) const
+bool MuonSelection::IsInsideZWindow( const double & invariantMass ) const
 {
-	this->checkerundefcutinit(CutManager::kMaxZMass);
-	this->checkerundefcutinit(CutManager::kMinZMass);
-
-	const double MaxZMass = (*(*_undefcuts)[CutManager::kMaxZMass])[0];	
-	const double MinZMass = (*(*_undefcuts)[CutManager::kMinZMass])[0];
-
-	return ( MaxZMass > invariantMass && invariantMass > MinZMass);
+	return ( kMaxZMass > invariantMass && invariantMass > kMinZMass);
 }
 
 //FIXME: Asumo que estan ordenados por Pt!!! Commprobar
@@ -291,9 +355,8 @@ unsigned int MuonSelection::SelectBasicLeptons()
 		
 		//[Cut in Eta and Pt]
 		//-------------------
-		//if(fabs(Mu.Eta()) >= fCutMaxMuEta) continue;
-		//if (Mu.Pt()        <= fCutMinMuPt) continue;
-		if( ! this->PassTopologicalCuts(i,Mu.Pt(),Mu.Eta()) )
+		//if( ! this->IsPassAcceptanceCuts(i,Mu.Pt(),Mu.Eta()) )
+		if( fabs(Mu.Eta()) >= kMaxAbsEta || Mu.Pt() <= kMinMuPt3 )
 		{
 			continue;
 		}
@@ -379,23 +442,19 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 			IPMu     = fSelector->T_Muon_IP2DUnBiasedPV->at(i);
 		}
 #endif*/
-		// Checking the cuts are defined
-		this->checkerundefcutinit(kMaxMuIP2DInTrackR1);
-		this->checkerundefcutinit(kMaxMuIP2DInTrackR2);
-		this->checkerundefcutinit(kMaxDeltaZMu);
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
-		if(ptMu >= 20.0 && fabs(IPMu) > (*(*_undefcuts)[kMaxMuIP2DInTrackR1])[0] ) 
+		if(ptMu >= 20.0 && fabs(IPMu) > kMaxMuIP2DInTrackR1 ) 
 		{
 			continue;
 		}
-		else if(ptMu < 20.0  && fabs(IPMu) > (*(*_undefcuts)[kMaxMuIP2DInTrackR2])[0] ) 
+		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
 		{
 			continue;
 		}
 		
-		if(fabs(deltaZMu) > (*(*_undefcuts)[kMaxDeltaZMu])[0]) 
+		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
 			continue;
 		}
@@ -453,7 +512,55 @@ unsigned int MuonSelection::SelectIsoLeptons()
 //		double isolation =(fSelector->T_Muon_muSmurfPF->at(i) )/ Mu.Pt();
 //#endif
 		
-		bool isolatedMuon = this->PassIsoCuts(isolation,Mu.Pt(),Mu.Eta());
+		//WARNING: HARDCODED limit of the eta regions and Pt
+		//The eta/pt plane is divided in 4 regions and the cut on isolation
+		//is different in each region
+		//
+		// PT ^
+		//   /|\ |
+		//    |  |
+		//    |R1|R2
+		// 20-+--+---
+		//    |R3|R4
+		//    +--+---> eta
+		//       |
+		//      1.479 
+		const double etaLimit = 1.479;
+		const double ptLimit  = 20.0;
+
+		double IsoCut = -1;
+		const double mupt = Mu.Pt();
+		const double mueta= Mu.Eta();
+		// High Pt Region:
+		if( mupt > ptLimit )
+		{
+			// Low eta region: R1
+			if( fabs(mueta) < etaLimit ) 
+			{
+				IsoCut = kMaxPTIsolationR1;
+			}
+			// High eta region: R2
+			else  
+			{
+				IsoCut = kMaxPTIsolationR2;
+			}
+		}
+		// Low Pt Region:
+		else
+		{
+			// Low eta region: R3
+			if( fabs(mueta) < etaLimit )
+			{
+				IsoCut = kMaxPTIsolationR3;
+			}
+			// High eta region: R4
+			else
+			{
+				IsoCut = kMaxPTIsolationR4;
+			}
+		}
+		
+		const bool isolatedMuon = (isolation < IsoCut);
 		
 		if( !isolatedMuon )
 		{
@@ -499,15 +606,54 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
-	        //Lepton ID
-		if( ! this->PassIdCuts(i,ptResolution) )
+	        //Lepton ID and quality cuts
+		bool passcutsforGlb = false;
+		// If is global Muon using its ID cuts
+		if( _data->IsGlobalMuon()->at(i) )
+		{
+			passcutsforGlb = _data->GetMuonNValidHitsSATrk()->at(i) > kMinNValidHitsSATrk
+			    && _data->GetMuonNormChi2GTrk()->at(i) < kMaxNormChi2GTrk 
+			    && _data->GetMuonNumOfMatches()->at(i) > kMinNumOfMatches;
+		}
+		
+		bool passcutsforSA = false;
+		if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
+		{
+			passcutsforSA = _data->IsTMLastStationTight()->at(i);
+		}
+	
+		const bool passSpecific = passcutsforGlb || passcutsforSA;
+	
+		// Already we can go off
+		if( ! passSpecific )
+		{
+			return false;
+		}
+
+		bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk 
+//#ifdef MINITREES
+		    && _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk 
+//#endif
+//#ifdef LATINOTREES
+//          && _data->GetMuonInnerTrackFound()->at(i) > CutMinNValidHitsInTrk 
+//#endif
+	           && fabs(ptResolution) < kMaxDeltaPtMuOverPtMu;
+
+		//Fill Histograms
+		//if (fFillHistos) 
+		//{
+		//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
+		//}
+		
+		// Remember, if you are here, passSpecific=true
+		if( ! Idcuts )
 		{
 			continue;
 		}
 		// If we got here it means the muon is good
 		_selectedGoodIdLeptons->push_back(i);
-  }
-
-  return _selectedGoodIdLeptons->size();
+      	}
+	
+      	return _selectedGoodIdLeptons->size();
 }
 

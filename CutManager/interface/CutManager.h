@@ -22,64 +22,33 @@
 #include<vector>
 #include<map>
 #include<iostream>
+#include<string>
 
 #include"TreeManager.h"
-
-enum cuttype 
-{
-	_triggerCuts,
-	_eventCuts,
-	_ptCuts,
-	_etaCuts,
-	_IsoCuts,
-	_IdCuts,
-	_qualityCuts,
-};
 
 
 class CutManager
 {
 	public:
-		//! Enum class to encode the specifics cuts (Undef): this has to be growing
-		//! every time it is incorporated a new one cut: FIXME::> Ha de convertirse en un mapa _undefcuts[nombrecorte], facilitara
-		// las cosas y no creo que introduzca demasiada lentitud
-		enum 
-		{ 
-			kMaxDeltaRMuMu, kMaxMuIP2DInTrackR1, kMaxMuIP2DInTrackR2,
-			kMaxDeltaZMu,
-			kMaxZMass, kMinZMass,
-		};
 		//! Constructor
-		CutManager(TreeManager * data, const int & nLeptons = 2); 
+		CutManager(TreeManager * data, const int & nLeptons = 3); 
 		//! Destructor
 		virtual ~CutManager();
 
 		//! Resetting the index vectors before analyse another entry
 		virtual void Reset();
-		
-		//-- Cut definitions to be implemented in the 
-		//   concrete classes
-		//! Return if pass the trigger related cuts: FIXME
-		virtual bool PassTriggerCuts()     = 0;
-		//! Return if pass some Events related cuts: FIXME
-		virtual bool PassEventCuts(const double & met) const = 0;
-		//! Return if the i-lepton passed the cuts
-		virtual bool PassTopologicalCuts(const unsigned int & i,
-				const double & pt, const double & eta) const = 0;
-		//! Return if all the muons in the analysis passed the minimum pt assigned
-		virtual bool PassPtCuts(const unsigned int & nLeptons) const = 0;
-		//! Return if the i-lepton pass the isolation cuts
-		virtual bool PassIsoCuts(const double & i,
-				const double & pt, const double & eta) const = 0;
-		//! Return if the i-lepton pass the identification cuts
-		virtual bool PassIdCuts(const unsigned int  & i, 
-				const double & ptResolution)           const = 0;
-		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
-		virtual bool PassUndefCuts( const unsigned int & i, const int & cutindex ) = 0;
 
-		//! Very specific cuts
-		virtual bool PassDeltaRCut( const double & minDeltaR ) const = 0 ;
-		virtual bool PassZWindow( const double & invariantMass ) const = 0 ;
+		//! Must be call it after the inclusion of all the cuts
+		//! This funtion actually does the initialization of the cuts 
+		//! introduced previously and must be implemented in the concrete classes
+		virtual void LockCuts() = 0;
+
+		//! Return whether a serie of cuts encoded as 'codename' has been passed
+		virtual bool IsPass(const std::string & codename, 
+			       const double auxVar[] = 0 ) const = 0;
+		//! Return a vector of string containing the names of the 'codenams'
+		virtual std::vector<std::string> GetCodenames() const = 0;
+
 		
 		//! Selection stuff
 		//! Number of leptons which pass the basic selection. FIXME: Description
@@ -108,40 +77,17 @@ class CutManager
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client
 		inline virtual void SetNLeptons( const unsigned int & nLeptons ) { _nLeptons = nLeptons; }
-		//! Set the trigger cuts to be applied sequentially in the event
-		virtual void SetTriggerCuts( const std::vector<double> & cuts);
-		//! Set the event cuts to be applied sequentially in the event
-		virtual void SetEventCuts( const std::vector<double> & cuts);
-		//! Set the cuts to be applied to the i-lepton 
-		virtual void SetPtMinCuts( const std::vector<double> & cuts);
-		virtual void SetABSEtaMaxCuts( const std::vector<double> & cuts);
-		virtual void SetIsoCuts( const std::vector<double> & cuts);
-		virtual void SetIdCuts( const std::vector<double> & cuts);
-		virtual void SetQualityCuts( const std::vector<double> & cuts);
-		//! This function has to implemented with an enumerate type which defines
-		//! the cutindex 
-		virtual void SetUndefCuts( const std::vector<double> & cuts, const int & cutindex );
-
+		//! Set a cut named 'cutname'
+		void SetCut(const std::string & cutname, const double & value);
 
 		friend std::ostream & operator<<(std::ostream & out, const CutManager & cm );
-		//friend class TreeManager; // Accessing to the data members of TreeManager
 
 	protected:
-		// Exits if the cuts are not initialized
-		void checkercutinit(const cuttype & cutclass) const;
-		void checkerundefcutinit( const int & cutclass ) const;
-
-		void setcut( const cuttype & cutclass, const std::vector<double> & cuts );
-		//! Container of the data
+		//! Container of the data:  FIXME: IT is needed?
 		TreeManager * _data;
 
-		//! Cut information: cuts are applied (when proceed) in the lepton 
-		//!                  pt decreasing order; it means that the first
-		//!                  element of the cut vector will apply the cut
-		//!                  to the highest pt lepton
-		std::map<cuttype, std::vector<double> *> * _cuts;
-		//! Cut information for the undefined and specific cuts
-		std::map<int, std::vector<double> *> * _undefcuts;
+		//! Mapping name of the cut with its value (must be a double)
+		std::map<std::string,double> * _cuts;
 
 		//! Number of leptons to be considered in the analysis
 		unsigned int _nLeptons;
@@ -164,41 +110,16 @@ class CutManager
 //! Print method
 inline std::ostream & operator<<(std::ostream & out, const CutManager & cutmanager)
 {
-	out << "==== Selection Cuts: " << std::endl;
+	out << "============ Selection Cuts: " << std::endl;
 	if( cutmanager._cuts != 0 )
 	{
-		for(std::map<cuttype,std::vector<double> *>::iterator it = cutmanager._cuts->begin();
+		for(std::map<std::string,double>::iterator it = cutmanager._cuts->begin();
 				it != cutmanager._cuts->end(); ++it)
 		{
-			out << "  Type-" << it->first << ": [ ";
-			if( it->second != 0)
-			{
-				for(unsigned int i = 0; i < it->second->size(); ++i)
-				{
-					out << (*it->second)[i] << " ";
-				}
-			}
-			out << "]" << std::endl;;
+			out << " + " << it->first << it->second << std::endl;
 		}
 	}
-	
-	if( cutmanager._undefcuts != 0 )
-	{
-		for(std::map<int,std::vector<double> *>::iterator it = cutmanager._undefcuts->begin();
-				it != cutmanager._undefcuts->end(); ++it)
-		{
-			out << " Undef Type-" << it->first << ": [ ";
-			if( it->second != 0)
-			{
-				for(unsigned int i = 0; i < it->second->size(); ++i)
-				{
-					out << (*it->second)[i] << " ";
-				}
-			}
-			out << "]" << std::endl;
-		}
-	}
-		
+	out << "|============ Selection Cuts ============| " << std::endl;
 
 	return out;
 }
