@@ -318,30 +318,30 @@ void AnalysisVH::Initialise()
 	}
 	
 	//Smallest DeltaR between 2 opp. sign leptons
-	fHMinDeltaRMuMu = CreateH1D("fHMinDeltaRMuMu", "Smallest #Delta R_{#mu#mu}",
+	_histos[fHMinDeltaRMuMu] = CreateH1D("fHMinDeltaRMuMu", "Smallest #Delta R_{#mu#mu}",
 			125, 0, 5);
 	//Smallest DeltaR between 2 opp. sign leptons
-	fHMaxDeltaRMuMu = CreateH1D("fHMaxDeltaRMuMu", "Largest #Delta R_{#mu#mu}",
+	_histos[fHMaxDeltaRMuMu] = CreateH1D("fHMaxDeltaRMuMu", "Largest #Delta R_{#mu#mu}",
 			125, 0, 5);
 	
 	//Smallest DeltaPhi between 2 opp. sign leptons
-	fHMinDeltaPhiMuMu = CreateH1D("fHMinDeltaPhiMuMu", "Smallest #Delta #phi_{#mu#mu}",
+	_histos[fHMinDeltaPhiMuMu] = CreateH1D("fHMinDeltaPhiMuMu", "Smallest #Delta #phi_{#mu#mu}",
 			120, 0, TMath::Pi());
 	//Largest DeltaPhi between 2 opp. sign leptons
-	fHMaxDeltaPhiMuMu = CreateH1D("fHMaxDeltaPhiMuMu", "Largest #Delta #phi_{#mu#mu}",
+	_histos[fHMaxDeltaPhiMuMu] = CreateH1D("fHMaxDeltaPhiMuMu", "Largest #Delta #phi_{#mu#mu}",
 			120, 0, TMath::Pi());
 	
 	// Selected Isolated Good Muons
-	fHMuonCharge = CreateH1D("fHMuonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
+	_histos[fHMuonCharge] = CreateH1D("fHMuonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
 		
 	// Invariant mass of leptons supposedly from H  
-	fHHInvMass = CreateH1D("fHHInvMass", "M^{inv.}_{#mu#mu}", 150, 0, 150);
+	_histos[fHHInvMass] = CreateH1D("fHHInvMass", "M^{inv.}_{#mu#mu}", 150, 0, 150);
 	
 	// Invariant mass of leptons in/out of Z peak
-	fHZInvMass = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",150, 0, 150);
+	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",150, 0, 150);
 	
 	// Missing ET after inv mass cut
-	fHMET = CreateH1D("fHMET", "MET",160, 0, 160);
+	_histos[fHMET] = CreateH1D("fHMET", "MET",160, 0, 160);
 	
 }
 
@@ -609,8 +609,9 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	// Indexs of good leptons
-	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons();
+	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	// + Fill histograms with Pt and Eta
+	int k = 0;  // Note that k is the index of the vectors, not the TTree
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
@@ -618,9 +619,10 @@ void AnalysisVH::InsideLoop()
 				fData->GetMuonPy()->at(i),
 				fData->GetMuonPz()->at(i), 
 				fData->GetMuonEnergy()->at(i)); 
-		fHPtMu[i]->Fill(vL.Pt(), puw);
-		fHEtaMu[i]->Fill(vL.Eta(), puw);
-		fHDeltaRGenRecoMu[i]->Fill(vL.DeltaR(fGenMuon[i]), puw);
+		fHPtMu[k]->Fill(vL.Pt(), puw);
+		fHEtaMu[k]->Fill(vL.Eta(), puw);
+		fHDeltaRGenRecoMu[k]->Fill(vL.DeltaR(fGenMuon.at(k)), puw);
+		k++;
 	}
 	FillGenPlots(_iHasExactly3Leptons,puw);
 	
@@ -628,7 +630,7 @@ void AnalysisVH::InsideLoop()
 	// + Store Momentum and charge for the muons
 	std::vector<TLorentzVector> lepton;
 	std::vector<int> leptonCharge;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++i) 
+	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		const unsigned int i = *it;
 		lepton.push_back( TLorentzVector(fData->GetMuonPx()->at(i), 
@@ -649,10 +651,10 @@ void AnalysisVH::InsideLoop()
 	// + Add up charges. If the abs value of the total number is equal to N then 
 	//   all have the same sign
 	int charge = 0;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++i) 
+	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-		charge += fData->GetMuonCharge->at(i);
+		charge += fData->GetMuonCharge()->at(i);
 	}
 	// Fill muon charge before rejecting or accepting  
 	_histos[fHMuonCharge]->Fill(charge, puw);
@@ -663,35 +665,32 @@ void AnalysisVH::InsideLoop()
 	}
 	
 	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
-  
+	
 	// Find muons with opposite charges and calculate DeltaR, invMass...
 	// Keep the pair with DeltaR minimum
 	// ------------------------------------------------------------------
 	// 
-	// + Store the index of the opposite charge muons in pairs
+	// + Store the real vector index of the opposite charge muons in pairs
+	//   (for the lepton and leptonCharge vectors: 0,...,nLeptons)
 	std::vector<std::pair<int,int> > leptonPair;
 	//unsigned int ipair = 0;
-	int kbegin = 0;
-	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
+	for(unsigned int kbegin = 0; kbegin < leptonCharge.size(); ++kbegin)
 	{
-		int kfromend = leptonCharge.size()-1;
-		for(std::vector<int>::reverse_iterator rIt = leptonCharge.rbegin(); 
-				rIt != it; ++rIt)
+		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
 		{
-			if( (*it)*(*rIt) < 0 )
+			if( leptonCharge[kbegin]*leptonCharge[kfromend] < 0 )
 			{
 				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
 			}
-			kfromend--;
 		}
-		kbegin++;
 	}
 	// + Find Min/Max DeltaR and DeltaPhi
 	// Using ordering from maps (from lower to higher)
+	// Again uses the index of the lepton and leptonCharge vectors
 	std::map<double,std::pair<int,int> > deltaRMuMu;
 	std::map<double,std::pair<int,int> > deltaPhiMuMu;
 	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
-			it != leptonPair.end(), ++it)
+			it != leptonPair.end(); ++it)
 	{
 		unsigned int i1 = it->first;
 		unsigned int i2 = it->second;
@@ -699,52 +698,47 @@ void AnalysisVH::InsideLoop()
 		deltaRMuMu[deltaR] = *it;
 		const double deltaPhi = TMath::Abs(lepton[i1].DeltaPhi(lepton[i2]));
 		deltaPhiMuMu[deltaPhi] = *it;
-std::cout << "DEBUG: i1 = " << i1 << ", i2 = " << i2 << std::endl;
-std::cout << "DEBUG: DeltaR = " << deltaR<< ", DeltaPhi = " << deltaPhi << std::endl;
 	}
 	
-	double minDeltaRMuMu   = *(deltaRMuMu.begin());
-	double maxDeltaRMuMu   = *(deltaRMuMu.end());
-	double minDeltaPhiMuMu = *(deltaPhiMuMu.begin());
-	double maxDeltaPhiMuMu = *(deltaPhiMuMu.end());
-std::cout << "DEBUG: DeltaR Min/Max= " << minDeltaRMuMu << " / " << maxDeltaRMuMu << std::endl;
-sd::cout << "DEBUG: DeltaPhi Min/Max= " << minDeltaPhiMuMu << " / " << maxDeltaPhiMuMu << endl;
+	double minDeltaRMuMu   = (deltaRMuMu.begin())->first;
+	double maxDeltaRMuMu   = (deltaRMuMu.rbegin())->first;
+	double minDeltaPhiMuMu = (deltaPhiMuMu.begin())->first;
+	double maxDeltaPhiMuMu = (deltaPhiMuMu.rbegin())->first;
         
         // + Calculate inv mass of closest pair in R plane
-	const unsigned int i1 = (deltaRMuMu.begin())->first;
-	const unsigned int i2 = (deltaRMuMu.end())->second;
-
+	// Remember map<double,pair>  (second is the pair)
+	const unsigned int i1 = ((deltaRMuMu.begin())->second).first;
+	const unsigned int i2 = ((deltaRMuMu.begin())->second).second;
 	const double invMassMuMuH = (lepton[i1] + lepton[i2]).M();
 
 	// + Fill histograms
 	//   - Smallest and Largest DeltaR between 2 opposite charged muons
-	fHMinDeltaRMuMu->Fill(minDeltaRMuMu,puw);
-	fHMaxDeltaRMuMu->Fill(maxDeltaRMuMu,puw);
+	_histos[fHMinDeltaRMuMu]->Fill(minDeltaRMuMu,puw);
+	_histos[fHMaxDeltaRMuMu]->Fill(maxDeltaRMuMu,puw);
 	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
-	fHMinDeltaPhiMuMu->Fill(minDeltaPhiMuMu,puw);
-	fHMaxDeltaPhiMuMu->Fill(maxDeltaPhiMuMu,puw);
+	_histos[fHMinDeltaPhiMuMu]->Fill(minDeltaPhiMuMu,puw);
+	_histos[fHMaxDeltaPhiMuMu]->Fill(maxDeltaPhiMuMu,puw);
 	//   - Invariant mass of leptons supposedly from H
-	fHHInvMass->Fill(invMassMuMuH,puw);
+	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
   
 	
 	// Jet Veto
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
-	for(unsigned int k = 0; k < GetJetAKPF2PATEnergy->size(); ++k) 
+	for(unsigned int k = 0; k < fData->GetJetAKPF2PATEnergy()->size(); ++k) 
 	{
-		TLorentzVector Jet(GetJetAKPF2PATPx()->at(k), 
-				GetJetAKPF2PATPy()->at(k), 
-				GetJetAKPF2PATPz()->at(k), 
-				GetJetAKPF2PATEnergy()->at(k));
+		TLorentzVector Jet(fData->GetJetAKPF2PATPx()->at(k), 
+				fData->GetJetAKPF2PATPy()->at(k), 
+				fData->GetJetAKPF2PATPz()->at(k), 
+				fData->GetJetAKPF2PATEnergy()->at(k));
 		//FIXME: Add the cuts to the config file
-		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(muon[0])) > 0.3 
-				&& fabs(Jet.DeltaR(muon[1])) > 0.3 && 
-				fabs(Jet.DeltaR(muon[2])) > 0.3) 
+		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
+				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
+				fabs(Jet.DeltaR(lepton[2])) > 0.3) 
 		{
 			nJets++;
 		}
 	}
-	
 	if(nJets > 0)
 	{
 		return;
@@ -753,27 +747,27 @@ sd::cout << "DEBUG: DeltaPhi Min/Max= " << minDeltaPhiMuMu << " / " << maxDeltaP
   	
 	// Cut in DeltaR
 	//------------------------------------------------------------------
-	if(minDeltaRMuMu > fCutMaxDeltaRMuMu) 
+	if( ! fLeptonSelection->PassDeltaRCut( minDeltaRMuMu ) )
 	{
 		return;
 	}
 	
 	FillHistoPerCut(_iDeltaR, puw, fsNTau);
   	
-	// Check invariant mass of muons with opposite charge
+	// Check invariant mass of muons with opposite charge (outside Z)
 	//------------------------------------------------------------------
-	if(fCutMinDeltaZMass < invMassMuMuH && invMassMuMuH < fCutMaxDeltaZMass)
+	if( fLeptonSelection->PassZWindow( invMassMuMuH ) )
 	{
 		return;
 	}
 	
-	fHZInvMass->Fill(invMassMuMuH,puw);
+	_histos[fHZInvMass]->Fill(invMassMuMuH,puw);
 	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
 	
 	// MET
 	//------------------------------------------------------------------
-	fHMET->Fill(T_METPF_ET,puw);
-	if(GetMETPFET() < fCutMinMET)
+	_histos[fHMET]->Fill(fData->GetMETPFET(),puw);
+	if( ! fLeptonSelection->PassEventCuts(fData->GetMETPFET()) ) 
 	{
 		return;
 	}

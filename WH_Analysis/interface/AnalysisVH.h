@@ -90,7 +90,10 @@ class AnalysisVH : public CMSAnalysisSelector
 		//! For histograms
 		enum { fHProcess , fHGenFinalState , fHGenFinalStateNoTaus, fHNGenWMuons,
 			fHEventsPerCut, fHEventsPerCut3Mu, fHNRecoMuons, fHNSelectedMuons,
-			fHNSelectedPVMuons, fHNSelectedIsoMuons, fHNSelectedIsoGoodMuons 
+			fHNSelectedPVMuons, fHNSelectedIsoMuons, fHNSelectedIsoGoodMuons,
+			fHMinDeltaRMuMu, fHMaxDeltaRMuMu, fHMinDeltaPhiMuMu, fHMaxDeltaPhiMuMu,
+			fHMuonCharge, fHHInvMass, fHZInvMass, fHMET
+
 		};
 
 		// State prepare analisis
@@ -167,14 +170,14 @@ class AnalysisVH : public CMSAnalysisSelector
 		TH1D* fHPtMu[3];               //Pt of 1st/2nd/3rd good isolated muon
 		TH1D* fHEtaMu[3];              //Eta of 1st/2nd/3rd good isolated muon
 		TH1D* fHDeltaRGenRecoMu[3];    //DeltaR between reco and gen muons
-		TH1D* fHMinDeltaRMuMu;         //Smallest DeltaR between 2 opp. sign leptons
-		TH1D* fHMaxDeltaRMuMu;         //Largest DeltaR between 2 opp. sign leptons
-		TH1D* fHMinDeltaPhiMuMu;       //Smallest Delta phi between 2 opp. sign leptons
-		TH1D* fHMaxDeltaPhiMuMu;       //Largest Delta phi between 2 opp. sign leptons
-		TH1D* fHMuonCharge;            //Sum charges of muons
-		TH1D* fHHInvMass;              //Invariant mass of leptons supposedly from H
-		TH1D* fHZInvMass;              //Invariant mass of leptons in/out of Z peak
-		TH1D* fHMET;                   //Missing ET after inv mass cut
+		//TH1D* fHMinDeltaRMuMu;         //Smallest DeltaR between 2 opp. sign leptons
+		//TH1D* fHMaxDeltaRMuMu;         //Largest DeltaR between 2 opp. sign leptons
+		//TH1D* fHMinDeltaPhiMuMu;       //Smallest Delta phi between 2 opp. sign leptons
+		//TH1D* fHMaxDeltaPhiMuMu;       //Largest Delta phi between 2 opp. sign leptons
+		//TH1D* fHMuonCharge;            //Sum charges of muons
+		//TH1D* fHHInvMass;              //Invariant mass of leptons supposedly from H
+		//TH1D* fHZInvMass;              //Invariant mass of leptons in/out of Z peak
+		//TH1D* fHMET;                   //Missing ET after inv mass cut
 
 		// FIXME ----
 		std::map<int,TH1D*> _histos;

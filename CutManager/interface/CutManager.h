@@ -47,7 +47,7 @@ class CutManager
 		{ 
 			kMaxDeltaRMuMu, kMaxMuIP2DInTrackR1, kMaxMuIP2DInTrackR2,
 			kMaxDeltaZMu,
-			kMaxZMass, kMinZMass 
+			kMaxZMass, kMinZMass,
 		};
 		//! Constructor
 		CutManager(TreeManager * data, const int & nLeptons = 2); 
@@ -62,7 +62,7 @@ class CutManager
 		//! Return if pass the trigger related cuts: FIXME
 		virtual bool PassTriggerCuts()     = 0;
 		//! Return if pass some Events related cuts: FIXME
-		virtual bool PassEventCuts()       = 0;
+		virtual bool PassEventCuts(const double & met) const = 0;
 		//! Return if the i-lepton passed the cuts
 		virtual bool PassTopologicalCuts(const unsigned int & i,
 				const double & pt, const double & eta) const = 0;
@@ -76,6 +76,10 @@ class CutManager
 				const double & ptResolution)           const = 0;
 		virtual bool PassQualityCuts(const unsigned int & i)     = 0;
 		virtual bool PassUndefCuts( const unsigned int & i, const int & cutindex ) = 0;
+
+		//! Very specific cuts
+		virtual bool PassDeltaRCut( const double & minDeltaR ) const = 0 ;
+		virtual bool PassZWindow( const double & invariantMass ) const = 0 ;
 		
 		//! Selection stuff
 		//! Number of leptons which pass the basic selection. FIXME: Description

@@ -11,10 +11,14 @@ bool MuonSelection::PassTriggerCuts()
 	return true;
 }
 
-bool MuonSelection::PassEventCuts()
+bool MuonSelection::PassEventCuts(const double & MET) const
 {
-	// Not implemented
-	return true;
+	this->checkercutinit(_eventCuts);
+	// Extract the index (possibly only one, all have the
+	// same cut)
+	double CutMinMET = (*_cuts)[_eventCuts]->at(0);
+	
+	return ( MET > CutMinMET );
 }
 
 
@@ -227,6 +231,27 @@ bool MuonSelection::PassUndefCuts( const unsigned int & i, const int & cutindex 
 {
 	//Not implemented
 	return true;
+}
+
+bool MuonSelection::PassDeltaRCut( const double & minDeltaRMuMu ) const
+{
+	this->checkerundefcutinit(CutManager::kMaxDeltaRMuMu);
+
+	const double CutMaxDeltaRMuMu = (*(*_undefcuts)[CutManager::kMaxDeltaRMuMu])[0];	
+
+	return ( minDeltaRMuMu <= CutMaxDeltaRMuMu );
+}
+
+// Return true if it is inside the Z window
+bool MuonSelection::PassZWindow( const double & invariantMass ) const
+{
+	this->checkerundefcutinit(CutManager::kMaxZMass);
+	this->checkerundefcutinit(CutManager::kMinZMass);
+
+	const double MaxZMass = (*(*_undefcuts)[CutManager::kMaxZMass])[0];	
+	const double MinZMass = (*(*_undefcuts)[CutManager::kMinZMass])[0];
+
+	return ( MaxZMass > invariantMass && invariantMass > MinZMass);
 }
 
 //FIXME: Asumo que estan ordenados por Pt!!! Commprobar

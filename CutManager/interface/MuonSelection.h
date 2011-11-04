@@ -49,7 +49,7 @@ class MuonSelection : public CutManager
 		
 		//-- Cut definitions
 		virtual bool PassTriggerCuts();
-		virtual bool PassEventCuts();
+		virtual bool PassEventCuts(const double & met) const;
 		virtual bool PassTopologicalCuts(const unsigned int & i, 
 				const double & pt, const double & eta) const;
 		virtual bool PassPtCuts(const unsigned int & nLeptons) const;
@@ -60,6 +60,9 @@ class MuonSelection : public CutManager
 		virtual bool PassQualityCuts(const unsigned int & i);
 		virtual bool PassUndefCuts(const unsigned int & i,
 				const int & cutindex );
+
+		virtual bool PassDeltaRCut( const double & minDeltaR ) const;
+		virtual bool PassZWindow( const double & invariantMass ) const;
 
 		//-- Selection
 		//---------------------------------------------

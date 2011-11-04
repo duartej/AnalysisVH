@@ -86,7 +86,7 @@ class TreeManager
 		virtual std::vector<float>* GetMuonPz() const = 0;
 		virtual std::vector<float>* GetMuonEnergy() const = 0;
 
-		virtual std::vector<float>* GetMuonCharge() const = 0;
+		virtual std::vector<int>* GetMuonCharge() const = 0;
 		
 		// ------- Isolation
 		virtual std::vector<float>* GetMuonSumIsoTrack() const = 0;
@@ -126,7 +126,7 @@ class TreeManager
 		virtual std::vector<float>* GetJetAKPF2PATEnergy() const = 0;
 
 		//-- Met
-		virtual std::vector<float>* GetMETPFET() const = 0;
+		virtual const float GetMETPFET() const = 0;
 		
 		//-- Vertex
 		virtual std::vector<float>* GetVertexz() const = 0;
@@ -170,7 +170,7 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetMuonPy() const");
 			methods.push_back("virtual std::vector<float>* GetMuonPz() const");
 			methods.push_back("virtual std::vector<float>* GetMuonEnergy() const");
-			methods.push_back("virtual std::vector<float>* GetMuonCharge() const");
+			methods.push_back("virtual std::vector<int>* GetMuonCharge() const");
 			
 			// Isolation
 			methods.push_back("virtual std::vector<float>* GetMuonSumIsoTrack() const");
@@ -208,7 +208,7 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATEnergy() const");
 
 			//-- Met
-			methods.push_back("virtual std::vector<float>* GetMETPFET() const");
+			methods.push_back("virtual const float GetMETPFET() const");
 			
 			//-- Vertex
 			methods.push_back("virtual std::vector<float>* GetVertexz() const");
