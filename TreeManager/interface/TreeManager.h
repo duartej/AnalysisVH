@@ -118,6 +118,16 @@ class TreeManager
 		virtual std::vector<float>* GetMuonNormChi2GTrk() const = 0;
 		// --- End Reco Muon
 		
+		
+		//-- Jet
+		virtual std::vector<float>* GetJetAKPF2PATPx() const = 0;
+		virtual std::vector<float>* GetJetAKPF2PATPy() const = 0;
+		virtual std::vector<float>* GetJetAKPF2PATPz() const = 0;
+		virtual std::vector<float>* GetJetAKPF2PATEnergy() const = 0;
+
+		//-- Met
+		virtual std::vector<float>* GetMETPFET() const = 0;
+		
 		//-- Vertex
 		virtual std::vector<float>* GetVertexz() const = 0;
 		
@@ -190,6 +200,15 @@ class TreeManager
 			methods.push_back("virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const");
 			methods.push_back("virtual std::vector<int>* GetMuonNValidHitsInTrk() const");
 			methods.push_back("virtual std::vector<float>* GetMuonNormChi2GTrk() const");
+		
+			//-- Jet
+			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPx() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPy() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPz() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATEnergy() const");
+
+			//-- Met
+			methods.push_back("virtual std::vector<float>* GetMETPFET() const");
 			
 			//-- Vertex
 			methods.push_back("virtual std::vector<float>* GetVertexz() const");

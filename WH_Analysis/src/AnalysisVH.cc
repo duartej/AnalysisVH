@@ -725,6 +725,60 @@ sd::cout << "DEBUG: DeltaPhi Min/Max= " << minDeltaPhiMuMu << " / " << maxDeltaP
 	fHMaxDeltaPhiMuMu->Fill(maxDeltaPhiMuMu,puw);
 	//   - Invariant mass of leptons supposedly from H
 	fHHInvMass->Fill(invMassMuMuH,puw);
+  
+	
+	// Jet Veto
+	//------------------------------------------------------------------
+	unsigned int nJets = 0;
+	for(unsigned int k = 0; k < GetJetAKPF2PATEnergy->size(); ++k) 
+	{
+		TLorentzVector Jet(GetJetAKPF2PATPx()->at(k), 
+				GetJetAKPF2PATPy()->at(k), 
+				GetJetAKPF2PATPz()->at(k), 
+				GetJetAKPF2PATEnergy()->at(k));
+		//FIXME: Add the cuts to the config file
+		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(muon[0])) > 0.3 
+				&& fabs(Jet.DeltaR(muon[1])) > 0.3 && 
+				fabs(Jet.DeltaR(muon[2])) > 0.3) 
+		{
+			nJets++;
+		}
+	}
+	
+	if(nJets > 0)
+	{
+		return;
+	}
+	FillHistoPerCut(_iJetVeto, puw, fsNTau);
+  	
+	// Cut in DeltaR
+	//------------------------------------------------------------------
+	if(minDeltaRMuMu > fCutMaxDeltaRMuMu) 
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iDeltaR, puw, fsNTau);
+  	
+	// Check invariant mass of muons with opposite charge
+	//------------------------------------------------------------------
+	if(fCutMinDeltaZMass < invMassMuMuH && invMassMuMuH < fCutMaxDeltaZMass)
+	{
+		return;
+	}
+	
+	fHZInvMass->Fill(invMassMuMuH,puw);
+	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
+	
+	// MET
+	//------------------------------------------------------------------
+	fHMET->Fill(T_METPF_ET,puw);
+	if(GetMETPFET() < fCutMinMET)
+	{
+		return;
+	}
+	
+	FillHistoPerCut(_iMET, puw, fsNTau);
 }
 
 void AnalysisVH::Summary()
