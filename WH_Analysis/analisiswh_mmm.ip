@@ -12,9 +12,10 @@
 @var double  MaxMuIP2DInTrackR2  0.01;
 
 @var double  MaxDeltaZMu         15.0;
-@var double  DeltaZMass          15.0;
 @var double  MaxDeltaRMuMu       1.2;
+
 @var double  MinMET              40.0;
+@var double  DeltaZMass          15.0;
 
 @var double  MaxPTIsolationR1    0.13;
 @var double  MaxPTIsolationR2    0.09;

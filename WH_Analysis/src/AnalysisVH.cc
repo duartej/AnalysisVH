@@ -99,96 +99,48 @@ void AnalysisVH::InitialiseParameters()
 	// FIXME: I need a method to checked that the cut
 	// is really in the configuration file
 	//Cuts
-	//----
+	//---- FIXME: Recupera las explicaciones
+	std::vector<std::string> cuts;
+	cuts.push_back("MinMuPt1");
+	cuts.push_back("MinMuPt2");
+	cuts.push_back("MinMuPt3");
+	cuts.push_back("MaxAbsEta");
+	cuts.push_back("MaxMuIP2DInTrackR1");
+	cuts.push_back("MaxMuIP2DInTrackR2");
+	cuts.push_back("MaxDeltaZMu") ;
+	cuts.push_back("MaxPTIsolationR1");
+	cuts.push_back("MaxPTIsolationR2");
+	cuts.push_back("MaxPTIsolationR3");
+	cuts.push_back("MaxPTIsolationR4");
+	cuts.push_back("MaxIsoMu");  // OBSOLETE--> Now in regions
+	cuts.push_back("MinNValidHitsSATrk");
+	cuts.push_back("MaxNormChi2GTrk");
+	cuts.push_back("MinNumOfMatches");
+	cuts.push_back("MinNValidPixelHitsInTrk");
+	cuts.push_back("MinNValidHitsInTrk");
+	cuts.push_back("MaxDeltaPtMuOverPtMu");
+	cuts.push_back("MaxDeltaRMuMu");
+	cuts.push_back("MinMET");
+
 	//   - Pt of leptons
-	std::vector<double> * cuts = new std::vector<double>;
 	double dummy = 0;
-	// Possiblemente se pueda coger dependiendo
-	// que analisis (mu o ele) y extraerlo aqui
-	ip->TheNamedDouble("MinMuPt1", dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MinMuPt2", dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MinMuPt3", dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetPtMinCuts(*cuts);
-	cuts->clear();
-	
-	ip->TheNamedDouble("MaxAbsEta", dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetABSEtaMaxCuts(*cuts);
-	cuts->clear();
-
-	//   - IP and DeltaZ of track associated with muon w.r.t PV
-	ip->TheNamedDouble("MaxMuIP2DInTrackR1", dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR1);
-	cuts->clear();
-
-	ip->TheNamedDouble("MaxMuIP2DInTrackR2", dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxMuIP2DInTrackR2);
-	cuts->clear();
-
-	ip->TheNamedDouble("MaxDeltaZMu", dummy );
-	cuts->push_back(dummy);
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxDeltaZMu);
-	cuts->clear();
-	
-	//   - Isolation: (PTtraks + ETcalo)/PTmuon
-	ip->TheNamedDouble("MaxPTIsolationR1",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxPTIsolationR2",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxPTIsolationR3",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxPTIsolationR4",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxIsoMu", dummy);  // OBSOLETE--> Now in regions
-	cuts->push_back(dummy);
-	fLeptonSelection->SetIsoCuts(*cuts);
-	cuts->clear();
-
-	//   - Identification (Good leptons)
-	ip->TheNamedDouble("MinNValidHitsSATrk",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxNormChi2GTrk",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MinNumOfMatches",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MinNValidPixelHitsInTrk",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MinNValidHitsInTrk",dummy);
-	cuts->push_back(dummy);
-	ip->TheNamedDouble("MaxDeltaPtMuOverPtMu",dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetIdCuts(*cuts);
-	cuts->clear();
-	
-	//   - Max DeltaR between muons
-	ip->TheNamedDouble("MaxDeltaRMuMu",dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxDeltaRMuMu);
-	cuts->clear();
+	for(std::vector<std::string>::iterator it = cuts.begin();
+			it != cuts.end(); ++it)
+	{
+		ip->TheNamedDouble(it->c_str(), dummy);
+		fLeptonSelection->SetCut(it->c_str(),dummy);
+		dummy = 0;
+	}
 	
 	//   - Z mass window
 	double deltazmass=0;
 	ip->TheNamedDouble("DeltaZMass", deltazmass);
-	cuts->push_back( kZMass - deltazmass );
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMinZMass);
-	cuts->clear();
-	cuts->push_back( kZMass + deltazmass );
-	fLeptonSelection->SetUndefCuts(*cuts,CutManager::kMaxZMass);
-	cuts->clear();
-	
-	//   - Min MET of the event
-	ip->TheNamedDouble("MinMET", dummy);
-	cuts->push_back(dummy);
-	fLeptonSelection->SetEventCuts(*cuts);
-	cuts->clear();
+	fLeptonSelection->SetCuts("kMaxZMass",kZMass+deltazmass);
+	fLeptonSelection->SetCuts("kMinZMass",kZMass-deltazmass);
 
-	delete cuts;
-	cuts = 0;
+
+	// All the cuts introduced, locking up to fix them
+	fLeptonSelection->LockCuts();
 	
 	// Variables describing dataset...
 	//--------------------------------
