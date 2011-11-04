@@ -304,7 +304,7 @@ void AnalysisVH::Initialise()
 			"Selected good Isolated #mu", 10, -0.5, 9.5);
 	
 	// Pt and eta of first/second/third good isolated muon
-	for (unsigned int i = 0; i < 3; i++) 
+	for(unsigned int i = 0; i < _nLeptons; i++) 
 	{
 		TString ptname  = Form("fHPtMu%i", i+1);
 		TString pttitle = Form("P_{T}^{#mu_{%i}}", i+1);
@@ -346,6 +346,9 @@ void AnalysisVH::Initialise()
 }
 
 
+//---------------------------------------------------------------------
+// InsideLoop
+//---------------------------------------------------------------------
 void AnalysisVH::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
@@ -436,9 +439,9 @@ void AnalysisVH::InsideLoop()
 		// Initialize generation vector
 		fGenMuon.clear();
 		//   Sort by energy
-		if(fNGenMuons == _nLeptons)  // FIXME:: PORQUE SOLO 3??
+		if(fNGenMuons == 3)  // FIXME:: PORQUE SOLO 3??
 		{
-			std::map<float,TLorentzVector> vOrder;
+			std::map<double,TLorentzVector> vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
 			for(unsigned int i = 0; i < fNGenMuons; i++) 
 			{
@@ -448,12 +451,11 @@ void AnalysisVH::InsideLoop()
 							fData->GetGenMuonEnergy()->at(igenmuons[i])) );
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
-
 			//fGenMuon = new std::vector<TLorentzVector>;
-			for(std::vector<TLorentzVector>::reverse_iterator it = vGenMuon->rbegin(); 
-					it != vGenMuon->rend(); ++it)
+			for(std::map<double,TLorentzVector>::reverse_iterator it = vOrder.rbegin(); 
+					it != vOrder.rend(); ++it)
 			{
-				fGenMuon.push_back( *it );
+				fGenMuon.push_back( it->second );
 			}
 			delete vGenMuon;
 			vGenMuon = 0;
