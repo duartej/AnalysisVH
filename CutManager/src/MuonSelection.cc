@@ -366,8 +366,6 @@ unsigned int MuonSelection::SelectBasicLeptons()
 //---------------------------------------------
 unsigned int MuonSelection::SelectLeptonsCloseToPV() 
 {
-	//FIXME: It has to be always-- this function is called only 
-	//      once -- to be checked
 	if( _closeToPVLeptons == 0)
 	{
 		_closeToPVLeptons = new std::vector<int>;

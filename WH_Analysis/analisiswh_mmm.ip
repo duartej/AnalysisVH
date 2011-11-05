@@ -10,8 +10,8 @@
 
 @var double  MaxMuIP2DInTrackR1  0.02;
 @var double  MaxMuIP2DInTrackR2  0.01;
+@var double  MaxDeltaZMu         0.1;
 
-@var double  MaxDeltaZMu         15.0;
 @var double  MaxDeltaRMuMu       1.2;
 
 @var double  MinMET              40.0;

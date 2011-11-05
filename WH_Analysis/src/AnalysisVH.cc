@@ -508,7 +508,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedMuons = fLeptonSelection->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
 
-	if(nSelectedMuons < _nLeptons)
+	if(nSelectedMuons < _nLeptons-1)
 	{
 		return;
 	}
@@ -520,7 +520,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedPVMuons = fLeptonSelection->GetNLeptonsCloseToPV();
 	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw); 
 	
-	if(nSelectedPVMuons < _nLeptons)
+	if(nSelectedPVMuons < _nLeptons-1)
 	{
 		return;
 	}
@@ -533,7 +533,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedIsoMuons = fLeptonSelection->GetNIsoLeptons();
 	_histos[fHNSelectedIsoMuons]->Fill(nSelectedIsoMuons,puw);  
 	
-	if(nSelectedIsoMuons < _nLeptons)
+	if(nSelectedIsoMuons < _nLeptons-1)
 	{
 		return;
 	}
@@ -545,7 +545,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
 	_histos[fHNSelectedIsoGoodMuons]->Fill(nSelectedIsoGoodMuons,puw);
 	
-	if(nSelectedIsoGoodMuons < _nLeptons)
+	if(nSelectedIsoGoodMuons < _nLeptons-1)
 	{
 		return;
 	}
