@@ -6,22 +6,6 @@
 #include<cmath>
 
 
-// Helper function to calculate the size of an array
-//template<typename T, int size>
-//int GetArrayLength(T(&)[size])
-//{
-//	return size;
-//}
-
-
-// Por si acaso
-int GetArrayLength(const double  * arr)
-{
-	int arrSize = sizeof(arr)/sizeof(double);
-
-	return arrSize;
-}
-
 //Constructor
 MuonSelection::MuonSelection( TreeManager * data, const int & nLeptons) : 
 	CutManager(data,nLeptons),
@@ -142,6 +126,24 @@ void MuonSelection::LockCuts(){
 		{
 			kMaxDeltaPtMuOverPtMu = cut->second;
 		}
+		else if( cut->first == "MaxZMass" )
+		{
+			kMaxZMass = cut->second;
+		}
+		else if( cut->first == "MinZMass" )
+		{
+			kMinZMass = cut->second;
+		}
+		/*else --> Noooo, pues esta funcion se utiliza tambien
+		           para recibir otros cortes genericos
+		{
+			std::cerr << "MuonSelection::LockCuts ERROR:"
+				<< " The cut named '" << cut->second << "' is not"
+				<< " implemented. It has to be included in this method"
+				<< " if you want to use it. Exiting..."
+				<< std::endl;
+			exit(-1);
+		}*/
 	}
 }
 
@@ -151,7 +153,7 @@ std::vector<std::string> MuonSelection::GetCodenames() const
 	return std::vector<std::string>(_codenames.begin(),_codenames.end());
 }
 
-bool MuonSelection::IsPass(const std::string & codename, const double varAux[] ) const
+bool MuonSelection::IsPass(const std::string & codename, const std::vector<double> * varAux ) const
 {
 	// Checking
 	if( _codenames.count( codename ) != 1 )
@@ -171,100 +173,80 @@ bool MuonSelection::IsPass(const std::string & codename, const double varAux[] )
 	bool ispass = false;
 	if( codename == "PtMuonsCuts" )
 	{
-		// We need the arguments index of the vector, pt and eta
-		if( varAux == 0 )
-		{
-			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
-				<< "which contains: the number of final state leptons "
-				<< "signature . Exiting!!" 
-				<< std::endl;
-			exit(-1);
-		}
-		if( GetArrayLength(varAux) != 1 )
-		{
-			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
-				<< "which contains: the number of final state leptons "
-				<< "signature . Exiting!!" 
-				<< std::endl;
-			exit(-1);
-		}
-
-		ispass = this->IsPassPtCuts(varAux[0],varAux[1],varAux[2]);
+		ispass = this->IsPassPtCuts();
 	}
 	else if( codename == "DeltaRMuMuCut" )
 	{
-		// We need the arguments index of the vector, pt and eta
 		if( varAux == 0 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as argument the double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the DeltaR between the muons. Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
-		if( GetArrayLength(varAux) != 3 )
+		// We need the arguments index of the vector, pt and eta
+		if( varAux->size() != 1 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the DeltaR between the muons. Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
 
-		ispass = this->IsPassDeltaRCut(varAux[0]);
+		ispass = this->IsPassDeltaRCut((*varAux)[0]);
 	}
 	else if( codename == "ZMassWindow" )
 	{
-		// We need the arguments index of the vector, pt and eta
+		// We need the invariant mass of the muon system as second argument
 		if( varAux == 0 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the invariant mass of the muon system."
 			        << " Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
-		if( GetArrayLength(varAux) != 3 )
+		if( varAux->size() != 1 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the invariant mass of the muon system."
 			        << " Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
 
-		ispass = ! this->IsInsideZWindow(varAux[0]);
+		ispass = (! this->IsInsideZWindow((*varAux)[0]));
 	}
 	else if( codename == "MinMET" )
 	{
-		// We need the arguments index of the vector, pt and eta
 		if( varAux == 0 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the MET. Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
-		if( GetArrayLength(varAux) != 3 )
+		// We need the arguments MET of the event
+		if( varAux->size() != 1 )
 		{
 			std::cerr << "MuonSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a double array[1] "
+				<< "Don't pass as second argument a vector<double> "
 				<< "which contains the MET. Exiting!!"
 				<< std::endl;
 			exit(-1);
 		}
 
-		ispass = this->IsPassMETCut(varAux[0]);
+		ispass = this->IsPassMETCut((*varAux)[0]);
 	}
 	else
 	{
 			std::cerr << "MuonSelection::IsPass NOT IMPLEMENTED ERROR\n"
-				<< "The codename '" << codename << "' is"
+				<< "The codename '" << codename << "' is "
 				<< "not implemented as a cut, you should update this"
 				<< " function. Exiting!!"
 				<< std::endl;
@@ -282,15 +264,14 @@ bool MuonSelection::IsPassMETCut(const double & MET) const
 
 
 // Specific muon pt-cuts (for the good identified-isolated muons)
-bool MuonSelection::IsPassPtCuts(const unsigned int & nLeptons,
-		const double & pt, const double & eta) const
+bool MuonSelection::IsPassPtCuts() const
 {
 	std::vector<double> vptcut;
 	vptcut.push_back(kMinMuPt1);
 	vptcut.push_back(kMinMuPt2);
 	vptcut.push_back(kMinMuPt3);
 	int k = 0;
-	// Use the lowest value of the pt-- Ordered
+	// Ordered from higher to lower pt
         for(std::vector<int>::iterator it = _selectedGoodIdLeptons->begin(); 
 			it != _selectedGoodIdLeptons->end() ; ++it)
 	{

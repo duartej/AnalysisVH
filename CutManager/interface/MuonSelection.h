@@ -57,7 +57,7 @@ class MuonSelection : public CutManager
 		//-- Some special cuts which are use directly from
 		//   the anlysis client (used as wrapper)
 		virtual bool IsPass(const std::string & codename, 
-				const double auxVar[] = 0 ) const;
+				const std::vector<double> * auxVar = 0 ) const;
 
 		//-- Acceptance cuts: 
 	//	bool IsPassAcceptanceCuts(const unsigned int & i,
@@ -86,8 +86,7 @@ class MuonSelection : public CutManager
 	private:
 		//-- The effective cuts whose would be called by IsPass
 		//   method
-		bool IsPassPtCuts(const unsigned & i, const double & pt,
-				const double & eta) const;
+		bool IsPassPtCuts() const;
 		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
 		bool IsInsideZWindow(const double & invariantMass) const; 
 		bool IsPassMETCut(const double & MET) const;

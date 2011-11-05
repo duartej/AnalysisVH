@@ -101,28 +101,34 @@ void AnalysisVH::InitialiseParameters()
 	//Cuts
 	//---- FIXME: Recupera las explicaciones
 	std::vector<std::string> cuts;
+	//   - Pt and Eta of muons
 	cuts.push_back("MinMuPt1");
 	cuts.push_back("MinMuPt2");
 	cuts.push_back("MinMuPt3");
 	cuts.push_back("MaxAbsEta");
+	//   - IP and DeltaZ of track associated with muon w.r.t PV
 	cuts.push_back("MaxMuIP2DInTrackR1");
 	cuts.push_back("MaxMuIP2DInTrackR2");
 	cuts.push_back("MaxDeltaZMu") ;
+  	//   - Isolation: (PTtraks + ETcalo)/PTmuon: different regions
 	cuts.push_back("MaxPTIsolationR1");
 	cuts.push_back("MaxPTIsolationR2");
 	cuts.push_back("MaxPTIsolationR3");
 	cuts.push_back("MaxPTIsolationR4");
 	cuts.push_back("MaxIsoMu");  // OBSOLETE--> Now in regions
+	//   - Quality and Identification
 	cuts.push_back("MinNValidHitsSATrk");
 	cuts.push_back("MaxNormChi2GTrk");
 	cuts.push_back("MinNumOfMatches");
 	cuts.push_back("MinNValidPixelHitsInTrk");
 	cuts.push_back("MinNValidHitsInTrk");
 	cuts.push_back("MaxDeltaPtMuOverPtMu");
+	//   - Max DeltaR between muons
 	cuts.push_back("MaxDeltaRMuMu");
+  	//   - Min MET of the event
 	cuts.push_back("MinMET");
 
-	//   - Pt of leptons
+	// Now including all the cuts to the manager
 	double dummy = 0;
 	for(std::vector<std::string>::iterator it = cuts.begin();
 			it != cuts.end(); ++it)
@@ -135,8 +141,8 @@ void AnalysisVH::InitialiseParameters()
 	//   - Z mass window
 	double deltazmass=0;
 	ip->TheNamedDouble("DeltaZMass", deltazmass);
-	fLeptonSelection->SetCuts("kMaxZMass",kZMass+deltazmass);
-	fLeptonSelection->SetCuts("kMinZMass",kZMass-deltazmass);
+	fLeptonSelection->SetCut("MaxZMass",kZMass+deltazmass);
+	fLeptonSelection->SetCut("MinZMass",kZMass-deltazmass);
 
 
 	// All the cuts introduced, locking up to fix them
@@ -549,11 +555,11 @@ void AnalysisVH::InsideLoop()
 	// The leading lepton has to have PT > fCutMinMuPt (20 most probably)
 	// Applying the pt-cuts
 	//-------------------------------------------------------------------
-	if( ! fLeptonSelection->PassPtCuts(_nLeptons) )
+	
+	if( ! fLeptonSelection->IsPass("PtMuonsCuts") )
 	{
 		return;
 	}
-	
 	FillHistoPerCut(_iMuPTPattern, puw, fsNTau);
 	
 	// Keep events with just 3 leptons and store momentum and charge
@@ -700,8 +706,10 @@ void AnalysisVH::InsideLoop()
 	FillHistoPerCut(_iJetVeto, puw, fsNTau);
   	
 	// Cut in DeltaR
+	std::vector<double> * auxVar= new std::vector<double>;
+	auxVar->push_back(minDeltaRMuMu);
 	//------------------------------------------------------------------
-	if( ! fLeptonSelection->PassDeltaRCut( minDeltaRMuMu ) )
+	if( ! fLeptonSelection->IsPass("DeltaRMuMuCut", auxVar) )
 	{
 		return;
 	}
@@ -710,7 +718,8 @@ void AnalysisVH::InsideLoop()
   	
 	// Check invariant mass of muons with opposite charge (outside Z)
 	//------------------------------------------------------------------
-	if( fLeptonSelection->PassZWindow( invMassMuMuH ) )
+	(*auxVar)[0] = invMassMuMuH;
+	if( ! fLeptonSelection->IsPass("ZMassWindow", auxVar) )
 	{
 		return;
 	}
@@ -720,11 +729,15 @@ void AnalysisVH::InsideLoop()
 	
 	// MET
 	//------------------------------------------------------------------
-	_histos[fHMET]->Fill(fData->GetMETPFET(),puw);
-	if( ! fLeptonSelection->PassEventCuts(fData->GetMETPFET()) ) 
+	const double met = fData->GetMETPFET();
+	_histos[fHMET]->Fill(met,puw);
+	(*auxVar)[0] = met;
+	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
 		return;
 	}
+	delete auxVar;
+	auxVar=0;
 	
 	FillHistoPerCut(_iMET, puw, fsNTau);
 }

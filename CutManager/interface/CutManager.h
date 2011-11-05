@@ -45,7 +45,7 @@ class CutManager
 
 		//! Return whether a serie of cuts encoded as 'codename' has been passed
 		virtual bool IsPass(const std::string & codename, 
-			       const double auxVar[] = 0 ) const = 0;
+			       const std::vector<double> * auxVar = 0 ) const = 0;
 		//! Return a vector of string containing the names of the 'codenams'
 		virtual std::vector<std::string> GetCodenames() const = 0;
 
@@ -116,7 +116,7 @@ inline std::ostream & operator<<(std::ostream & out, const CutManager & cutmanag
 		for(std::map<std::string,double>::iterator it = cutmanager._cuts->begin();
 				it != cutmanager._cuts->end(); ++it)
 		{
-			out << " + " << it->first << it->second << std::endl;
+			out << " + " << it->first << ": " << it->second << std::endl;
 		}
 	}
 	out << "|============ Selection Cuts ============| " << std::endl;
