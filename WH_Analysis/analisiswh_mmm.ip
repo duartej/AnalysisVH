@@ -29,5 +29,5 @@
 @var double  MinNValidHitsInTrk       10;
 @var double  MaxDeltaPtMuOverPtMu     0.1;
 
-@var int     nEvents             -1;
+@var int     nEvents             100;
 @var int     firstEvent          0;

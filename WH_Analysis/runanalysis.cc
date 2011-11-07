@@ -284,7 +284,10 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 int main(int argc, char *argv[])
 {
 	const char * dataName; // = "WH160";
-	const char * cfgfile = "analisiswh_mmm.ip";
+	const char * cfgfile    = "analisiswh_mmm.ip";
+	const char * outputfilechar;
+
+	bool getOF = false;
 	//Parsing input options
 	if(argc == 1)
 	{
@@ -292,6 +295,7 @@ int main(int argc, char *argv[])
 		std::cout << "" << std::endl;
 		std::cout << "Options:" << std::endl;
 		std::cout << "    -c configuration file " << std::endl;
+		std::cout << "    -o output root file " << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "List of known dataname:" << std::endl;
 		std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
@@ -315,8 +319,15 @@ int main(int argc, char *argv[])
 			{
 				cfgfile = argv[i+1];
 			}
+			
+			if( strcmp(argv[i],"-o") == 0 )
+			{
+				outputfilechar = argv[i+1];
+				getOF = true;
+			}
 		}
 	}
+
 #ifdef TIMERS
 	TStopwatch timer;
 	timer.Start();
@@ -401,7 +412,6 @@ int main(int argc, char *argv[])
 			<< "using 0 as default" << std::endl;
 		firstEvent = 0; 
 	}
-//	nEvents = 2000; //PROV
 	std::cout << tchaindataset->GetEntries() << std::endl;
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
@@ -411,9 +421,39 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	//
-	// Create the ouptut file and fill it
+	// Create the output file and fill it
 	// FIXME: Esto va aqui?? o mejor en el destructor del AnalysisVH
-	std::string outputfile("outputtest.root");
+	// Putting the outputfile name per default
+	std::string outputfile;
+	if( ! getOF )
+	{
+		// Extract the name of the file and get the last 
+		std::string filename( ip->TheNamedString("datafilenames_0") );
+		size_t barlastpos = filename.rfind("/")+1;
+		if( barlastpos == filename.npos )
+		{
+			// all the string is valid
+			barlastpos = 0;
+		}
+		// Extracting the .root suffix
+		const size_t rootpos = filename.find(".root");
+		const size_t length  = rootpos-barlastpos;
+		std::string almostfinalname = filename.substr(barlastpos,length);
+		// And extract the Tree_
+		size_t prefix = almostfinalname.rfind("Tree_")+5;
+		if( prefix == almostfinalname.npos )
+		{
+			prefix = 0;
+		}
+		std::string finalname = almostfinalname.substr(prefix);;
+
+		outputfile = "Results/"+std::string(ip->TheNamedString("MyAnalysis"))+"_"
+			+finalname+".root";
+	}
+	else
+	{
+		outputfile = outputfilechar;
+	}
 	std::cout << ">> Saving results to " << outputfile << " ..." << std::endl;
 	TString outputfileTS = TString(outputfile);
 	if(gSystem->FindFile(".", outputfileTS)) 
