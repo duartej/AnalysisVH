@@ -90,7 +90,7 @@ void MuonSelection::LockCuts(){
 		{
 			kMaxPTIsolationR1 = cut->second;
 		}
-		else if( cut->first == "MaxPTIsolationR3" )
+		else if( cut->first == "MaxPTIsolationR2" )
 		{
 			kMaxPTIsolationR2 = cut->second;
 		}
@@ -524,8 +524,7 @@ unsigned int MuonSelection::SelectIsoLeptons()
 				IsoCut = kMaxPTIsolationR2;
 			}
 		}
-		// Low Pt Region:
-		else
+		else  // Low Pt Region:
 		{
 			// Low eta region: R3
 			if( fabs(mueta) < etaLimit )
