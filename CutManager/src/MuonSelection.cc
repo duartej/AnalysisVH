@@ -584,6 +584,35 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
+/*bool pass=false;
+  //Lepton ID
+  if( 
+     ( 
+      ( _data->IsGlobalMuon()->at(i) == true && 
+	_data->GetMuonNValidHitsSATrk()->at(i) > kMinNValidHitsSATrk &&
+	_data->GetMuonNormChi2GTrk()->at(i) < kMaxNormChi2GTrk && 
+	_data->GetMuonNumOfMatches()->at(i) > kMinNumOfMatches 
+      ) ||
+      ( _data->IsAllTrackerMuons()->at(i) && 
+	_data->IsTMLastStationTight()->at(i) 
+      ) 
+     ) && 
+     _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk && 
+#ifdef MINITREES
+     _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk &&
+#endif
+#ifdef LATINOTREES
+     _data->GetMuonInnerTrackFound()->at(i) > kMinNValidHitsInTrk &&           
+#endif
+     fabs(ptResolution) < kMaxDeltaPtMuOverPtMu  
+    )
+    pass = true;
+
+*/	      	//Fill Histograms
+		//if (fFillHistos) 
+		//{
+		//     fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
+		//}
 	        //Lepton ID and quality cuts
 		bool passcutsforGlb = false;
 		// If is global Muon using its ID cuts
@@ -602,10 +631,11 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		const bool passSpecific = passcutsforGlb || passcutsforSA;
 	
-		// Already we can go off
+		// If is not global with quality or tracker with quality TMLast..
+		// can continue
 		if( ! passSpecific )
 		{
-			return false;
+			continue;
 		}
 
 		bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk 
@@ -621,7 +651,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 		//if (fFillHistos) 
 		//{
 		//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-		//}
+		//}*/
 		
 		// Remember, if you are here, passSpecific=true
 		if( ! Idcuts )
