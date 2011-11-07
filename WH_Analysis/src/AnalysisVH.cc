@@ -495,6 +495,9 @@ void AnalysisVH::InsideLoop()
 	//}
 	FillHistoPerCut(_iGoodVertex, puw, fsNTau);
 	
+
+	// First looking at events with 2 leptons
+	//const int kNMuons = 2; --> Defined in the preamble
 	// Muon selection
 	//------------------------------------------------------------------
 	//
@@ -508,7 +511,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedMuons = fLeptonSelection->GetNBasicLeptons();
 	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
 
-	if(nSelectedMuons < _nLeptons-1)
+	if(nSelectedMuons < kNMuons)
 	{
 		return;
 	}
@@ -520,7 +523,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedPVMuons = fLeptonSelection->GetNLeptonsCloseToPV();
 	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw); 
 	
-	if(nSelectedPVMuons < _nLeptons-1)
+	if(nSelectedPVMuons < kNMuons)
 	{
 		return;
 	}
@@ -533,7 +536,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedIsoMuons = fLeptonSelection->GetNIsoLeptons();
 	_histos[fHNSelectedIsoMuons]->Fill(nSelectedIsoMuons,puw);  
 	
-	if(nSelectedIsoMuons < _nLeptons-1)
+	if(nSelectedIsoMuons < kNMuons)
 	{
 		return;
 	}
@@ -545,7 +548,7 @@ void AnalysisVH::InsideLoop()
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
 	_histos[fHNSelectedIsoGoodMuons]->Fill(nSelectedIsoGoodMuons,puw);
 	
-	if(nSelectedIsoGoodMuons < _nLeptons-1)
+	if(nSelectedIsoGoodMuons < kNMuons)
 	{
 		return;
 	}
@@ -587,7 +590,8 @@ void AnalysisVH::InsideLoop()
 	FillGenPlots(_iHasExactly3Leptons,puw);
 	
 	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
-	// + Store Momentum and charge for the muons
+	// + Store Momentum and charge for the muons : FIXME: This loop inside the
+	// last one
 	std::vector<TLorentzVector> lepton;
 	std::vector<int> leptonCharge;
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
@@ -600,6 +604,7 @@ void AnalysisVH::InsideLoop()
 				); 
 		leptonCharge.push_back( fData->GetMuonCharge()->at(i) );
 	}
+	
 	// Discard extra electrons and extra muons
 	// ------------------------------------------------------------------
 	// 
@@ -759,6 +764,7 @@ void AnalysisVH::Summary()
 	for(unsigned int i = 0; i < _iNCuts; i++)
 	{
 		std::cout << _histos[fHEventsPerCut]->GetBinContent(i+1) << " ["
+			<< 100.0*_histos[fHEventsPerCut]->GetBinContent(i+1)/_histos[fHEventsPerCut]->GetBinContent(1)
 			<< "%] selected events (" << kCutNames[i] << ")" << std::endl;
 	}
 	std::cout << std::endl << std::endl;
@@ -783,7 +789,7 @@ void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const
 
 void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
 {
-	if (fIsWH && fNGenMuons == 3) 
+	if (fIsWH && fNGenMuons == _nLeptons) 
 	{
 		for (unsigned int i = 0; i < fNGenMuons; i++) 
 		{
