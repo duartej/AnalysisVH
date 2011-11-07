@@ -270,10 +270,12 @@ bool MuonSelection::IsPassPtCuts() const
 	vptcut.push_back(kMinMuPt1);
 	vptcut.push_back(kMinMuPt2);
 	vptcut.push_back(kMinMuPt3);
-	int k = 0;
-	// Ordered from higher to lower pt
-        for(std::vector<int>::iterator it = _selectedGoodIdLeptons->begin(); 
-			it != _selectedGoodIdLeptons->end() ; ++it)
+	int k = 2;
+	// Ordered from higher to lower pt: begin from the lowest in order
+	// to accomplish the old cut pt1 = 20 pt2 = 10 when you are dealing
+	// with two leptons
+        for(std::vector<int>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
+			it != _selectedGoodIdLeptons->rend() ; ++it)
 	{
 		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
@@ -281,7 +283,7 @@ bool MuonSelection::IsPassPtCuts() const
 		{
 			return false;
 		}
-		k++;
+		k--;
 	}
 	// allright, all muons passed their cuts
 	return true;
@@ -584,35 +586,6 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	
 		double ptResolution = _data->GetMuondeltaPt()->at(i)/
 			_data->GetMuonPt()->at(i);
-/*bool pass=false;
-  //Lepton ID
-  if( 
-     ( 
-      ( _data->IsGlobalMuon()->at(i) == true && 
-	_data->GetMuonNValidHitsSATrk()->at(i) > kMinNValidHitsSATrk &&
-	_data->GetMuonNormChi2GTrk()->at(i) < kMaxNormChi2GTrk && 
-	_data->GetMuonNumOfMatches()->at(i) > kMinNumOfMatches 
-      ) ||
-      ( _data->IsAllTrackerMuons()->at(i) && 
-	_data->IsTMLastStationTight()->at(i) 
-      ) 
-     ) && 
-     _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk && 
-#ifdef MINITREES
-     _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk &&
-#endif
-#ifdef LATINOTREES
-     _data->GetMuonInnerTrackFound()->at(i) > kMinNValidHitsInTrk &&           
-#endif
-     fabs(ptResolution) < kMaxDeltaPtMuOverPtMu  
-    )
-    pass = true;
-
-*/	      	//Fill Histograms
-		//if (fFillHistos) 
-		//{
-		//     fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-		//}
 	        //Lepton ID and quality cuts
 		bool passcutsforGlb = false;
 		// If is global Muon using its ID cuts
