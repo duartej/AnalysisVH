@@ -168,16 +168,24 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 }
 
 // Overloaded function to extract the file names from a previous stored file
-// It will catch the files inside a subset
-std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataName, const int & subset = 0 )
+// It will catch the files inside a subset: if datanamefile != is the name
+std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataName, const char * datanamefile = 0 )
 {
 	TString dataNameprov(dataName);
-	if (dataNameprov.Contains("WH")) 
+	const char * filename = 0;
+	if( datanamefile == 0 )
 	{
-		dataNameprov.Replace(0,2, "WHToWW2L");
+		if (dataNameprov.Contains("WH")) 
+		{
+			dataNameprov.Replace(0,2, "WHToWW2L");
+		}
+		dataNameprov += "_datanames.dn";
+		filename = dataNameprov.Data();
 	}
-	dataNameprov += "_datanames.dn";
-	const char * filename = dataNameprov.Data();
+	else
+	{
+		filename = datanamefile; 
+	}
 
 	std::ifstream inputf( filename );
 	if( ! inputf.is_open() )
@@ -283,9 +291,10 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 
 int main(int argc, char *argv[])
 {
-	const char * dataName; // = "WH160";
-	const char * cfgfile    = "analisiswh_mmm.ip";
-	const char * outputfilechar;
+	const char * dataName       = 0; // = "WH160";
+	const char * cfgfile        = "analisiswh_mmm.ip";
+	const char * outputfilechar = 0;
+	const char * datanamefile   = 0;
 
 	bool getOF = false;
 	//Parsing input options
@@ -295,6 +304,7 @@ int main(int argc, char *argv[])
 		std::cout << "" << std::endl;
 		std::cout << "Options:" << std::endl;
 		std::cout << "    -c configuration file " << std::endl;
+		std::cout << "    -d dataname file" << std::endl;
 		std::cout << "    -o output root file " << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "List of known dataname:" << std::endl;
@@ -325,6 +335,10 @@ int main(int argc, char *argv[])
 				outputfilechar = argv[i+1];
 				getOF = true;
 			}
+			if( strcmp(argv[i],"-d") == 0 )
+			{
+				datanamefile = argv[i+1];
+			}
 		}
 	}
 
@@ -340,7 +354,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Extract the datafiles from the file created in the "local" path
-	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles( dataName );
+	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles( dataName, datanamefile );
 	std::vector<TString> datafiles = dum.second;
 	treeTypes dataType  = dum.first;
 	

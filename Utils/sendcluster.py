@@ -74,16 +74,16 @@ class clustermanager(object):
 		
 		if self.status == "submit":
 			# Check if we have the names of the data files: FIXME: Nota que con la version
-			# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo 
-			filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
-			if not os.path.exists(filedatanames):
+			# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo !!??
+			self.filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
+			if not os.path.exists(self.filedatanames):
 				# if not created previously
 				message  = "\nclustermanager: I need the list of file names, execute:"
 				message += "\n'datamanager "+self.originaldataname+" -c "+self.cfgfile+"'"
 				message += "\nAnd then launch again this script\n"
 				sys.exit(message)
 			# Extract the total number of events and split 
-			self.nevents = self.getevents(filedatanames)
+			self.nevents = self.getevents(self.filedatanames)
 			# Checking if has sense the njobs
 			if self.nevents/10 < self.njobs:
 				message = "clustermanager: WARNING the Number of jobs introduced '"\
@@ -112,7 +112,8 @@ class clustermanager(object):
 				foundoutfiles.append( self.checkjob(id) )
 			
 			# If we have all the outputfiles we can gathering
-			if foundoutfiles == self.outputfiles:
+			if foundoutfiles == self.outputfiles.values():
+				print 'hola'
 				self.gatherfiles()
 
 	def gatherfiles(self):
@@ -123,20 +124,20 @@ class clustermanager(object):
 		
 		print "Joining all the files in one: "
 		# FIXME: Only there are 1 file, not needed the hadd
-		finalfile = os.path.join("Results",self.dataname)
+		finalfile = os.path.join("Results",self.dataname+".root")
 		command = [ 'hadd', finalfile ]
 		for f in self.outputfiles.itervalues():
 			command.append( f )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-		if p[1] != "":
-			message = "\nclustermanager.gatherfiles: ERROR Something wrong with hadd\n"
-			message += p[1]+"\n"
-			sys.exit(message)
+		#if p[1] != "":
+		#	message = "\nclustermanager.gatherfiles: ERROR Something wrong with hadd\n"
+		#	message += p[1]+"\n"
+		#	sys.exit(message)
 
-		else:
-			print "Created "+finalfile
-			print "========= Process Completed ========="
-			#FIXME: REMOVE THE OLD FILES
+		#else:
+		print "Created "+finalfile
+		print "========= Process Completed ========="
+		#FIXME: REMOVE THE OLD FILES
 
 
 
@@ -145,7 +146,7 @@ class clustermanager(object):
 		"""
 		from subprocess import Popen,PIPE
 		import os
-		
+
 		print "Checking the job status:"
 		command = [ 'qstat','-j',id ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
@@ -234,14 +235,15 @@ class clustermanager(object):
 		
 		# Putting the datamembers: FIXME: If you want all the datanames
 		# do it with the __dict__ and __setattr__ methods
-		self.dataname    = copyself.dataname
-		self.jobsid      = copyself.jobsid
-		self.outputfiles = copyself.outputfiles
-		self.njobs       = copyself.njobs
-		self.jobsidID    = copyself.jobsidID
-		self.basedir     = copyself.basedir
-		self.pkgpath     = copyself.pkgpath
-		self.libsdir     = copyself.libsdir
+		self.dataname     = copyself.dataname
+		self.jobsid       = copyself.jobsid
+		self.outputfiles  = copyself.outputfiles
+		self.njobs        = copyself.njobs
+		self.jobsidID     = copyself.jobsidID
+		self.basedir      = copyself.basedir
+		self.pkgpath      = copyself.pkgpath
+		self.libsdir      = copyself.libsdir
+		self.filedatanames= copyself.filedatanames
 		
 		d.close()
 
@@ -334,7 +336,7 @@ class clustermanager(object):
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -c "+cfgname+" -o "+outputname+"\n"
+		lines += executable+" "+self.dataname+" -c "+cfgname+" -d "+self.filedatanames+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
 		f = open(filename,"w")
