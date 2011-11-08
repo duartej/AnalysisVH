@@ -2,7 +2,6 @@
 
 """
 Python script to send jobs to cluster
-PRIMERA VERSION: NO SEPARA LOS DATASETS EN MULTIPLES JOBS: opcion -j no activa
 """
 
 class clustermanager(object):
@@ -18,7 +17,8 @@ class clustermanager(object):
 		import os
 		import sys
 		
-		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile' ]
+		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile', 'packagepath' ]
+		self.pkgpath = "."
 		for key,value in keywords.iteritems():
 			if key not in validkeys:
 				message = "\nclustermanager: ERROR Not a valid argument '"+key+\
@@ -26,7 +26,10 @@ class clustermanager(object):
 				sys.exit(message)
 			
 			if key == 'dataname':
-				self.dataname = value # FIXME: Put the correct name
+				self.dataname = value
+				self.originaldataname = value
+				if 'WH' in value:
+					self.dataname = self.dataname.replace("WH","WHToWW2L")
 			elif key == 'cfgfile':
 				#Checking is a file and can be find it
 				if not os.path.exists(value):
@@ -34,14 +37,49 @@ class clustermanager(object):
 					sys.exit( message )
 				self.cfgfile = os.path.abspath(value)
 			elif key == 'njobs':
-				self.njobs = value
+				self.njobs = int(value)
 			elif key == 'precompile':
 				self.precompile = True
+			elif key == 'packagepath':
+				# Check if exist the path and it is correct
+				if not os.path.exists( value ):
+					message = "\nclustermanager: ERROR Not found the analysis " \
+							"package '"+value+"'\n"
+					sys.exit( message )
+				if not os.path.exists( os.path.join(value,"interface/AnalysisBuilder.h") ):
+					message = "\nclustermanager: ERROR the path introduced '" \
+							+value+"' do not contain the header interface/AnalysisBuilder.h\n"
+					sys.exit( message )
+				self.pkgpath = value
 		
-		# Extract the total number of events and split 
-		self.jobidevt = self.getevents(value)
 		self.status = status
+		
 		if self.status == "submit":
+			# Check if we have the names of the data files
+			filedatanames = self.dataname+"_datanames.dn"
+			if not os.path.exists(filedatanames):
+				# if not created previously
+				message  = "\nclustermanager: I need the list of file names, execute:"
+				message += "\n'datamanager "+self.originaldataname+" -c "+self.cfgfile+"'"
+				message += "\nAnd then launch again this script\n"
+				sys.exit(message)
+			# Extract the total number of events and split 
+			self.nevents = self.getevents(filedatanames)
+			# Checking if has sense the njobs
+			if self.nevents/10 < self.njobs:
+				message = "clustermanager: WARNING the Number of jobs introduced '"\
+						+str(self.njobs)+"' make no sense: changing to 10 "
+				print message
+				self.njobs = 10
+			evtperjob = self.nevents/self.njobs 
+			remainevt  = self.nevents % self.njobs
+			self.jobidevt = []
+			for i in xrange(self.njobs-1):
+				self.jobidevt.append( (i,(i*evtperjob,(i+1)*evtperjob-1)) )
+			# And the last
+			self.jobidevt.append( (self.njobs-1,\
+					((self.njobs-1)*evtperjob,self.njobs*evtperjob+remainevt ) ) )
+			# Submit the jobs
 			self.submit()
 
 
@@ -71,15 +109,17 @@ class clustermanager(object):
 			# Splitting the config file in the number of jobs
 			iconfig = self.createconfig(i,evttuple)
 			# Creating the bash script to send the job
-			if self.precompile:
-				# Send the previous job to compile and update the code
-				# create job to compile
-				jobnames = createbash('datamanagercreator',self.dataname,self.cfgfile)
-			else:
-				jobnames = createbash('runanalysis',self.dataname,self.cfgfile)
-			# sending the jobs
-			for job in jobnames:
-				jobsid.append( sendjob(job) )
+#			if self.precompile:
+#				# Send the previous job to compile and update the code
+#				# create job to compile
+#				jobnames = createbash(os.path.join(self.pkgpath,'datamanagercreator'),\
+#						self.dataname,self.cfgfile)
+#			else:
+#				jobnames = createbash(os.path.join(self.pkgpath,'runanalysis'),\
+#						self.dataname,self.cfgfile)
+#			# sending the jobs
+#			for job in jobnames:
+#				jobsid.append( sendjob(job) )
 		
 		os.chdir(launchDir)
 		print ""
@@ -91,7 +131,7 @@ class clustermanager(object):
 		print "Good Luck!"
 		print ""
 		
-	def getevents(self,jobsNumber):
+	def getevents(self,filedatanames):
 		"""Extract the number of events of a dataname
 		and split them in the jobsNumber
 		WARNING: As we are using possibly the 2.4
@@ -100,19 +140,53 @@ class clustermanager(object):
 		Returns a list of tuples of [(jobid,(Evt0,EvtN)),...]
 		"""
 		from subprocess import Popen,PIPE
+		import sys
 
-		# Extract the files
-		f = open(self.cfgfile)
+		# Extract the file names (just need the first one)
+		f = open(filedatanames)
 		lines = f.readlines()
-		datafiles = []
+		f.close()
+		datafiles = set([])
 		for l in lines:
 			if ".root" in l:
-				datafiles.append( l )
+				# FIXME Find a way to deal with blablabl_bal_numbero.root
+				datafiles.add( l.split(".root")[0] )
 		# Binary to extract the entries
-		p = Popen( [ 'ls' ],stdout=PIPE,stderr=PIPE ).communicate()
-		print p
+		command = [ '../bin/extractEvents' ]
+		for f in datafiles:
+			command.append( f+"*" )
+		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+		if p[1] != "":
+			message = "\nclustermanager: ERROR from 'extractEvents':\n"
+			message = p[1]+"\n"
+			sys.exit(message)
 
-		return []
+		totalevts = p[0]
+		return int(totalevts)
+	
+	def createconfig(self,jobNumber,evtTuple):
+	        """From a reference cfgfile, constructs a new config file
+		with the tuple of events to be analysed.
+		Returns the new of the config (str)
+		"""
+		import sys
+		# Reading the config file
+		f = open(self.cfgfile)
+		lines  = f.readlines()
+		f.close()
+		newlines = []
+		for l in lines:
+			newlines.append( l )
+			if 'nEvents' in l:
+				newlines[-1] = "@var int  nEvents "+str(evtTuple[1])+";\n"
+			if 'firstEvent' in l:
+				newlines[-1] = "@var int  firstEvent "+str(evtTuple[0])+";\n"
+		
+		newcfgnamePROV = os.path.basename(self.cfgfile)
+		newcfgname = newcfgnamePROV.replace( ".", "_"+str(jobNumber)+"." )
+		f = open( newcfgname, "w" )
+		f.writelines( newlines )
+		f.close()
 
 
 
@@ -123,13 +197,6 @@ def sendjob(bashscript):
 	"""
 
 
-def createconfig(cfgfile,jobNumber,evtTuple):
-	"""
-	From a reference cfgfile, constructs a new config file
-	with the tuple of events to be analysed.
-	Returns the new of the config (str)
-	"""
-	pass
 
 
 def createbash(executable,dataname,cfgfile,jobsNumber):
@@ -172,7 +239,7 @@ if __name__ == '__main__':
 
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(shouldCompile=False,jobsNumber=1)
+	parser.set_defaults(shouldCompile=False,jobsNumber=10)
 	parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
 	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
 	parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
@@ -198,10 +265,6 @@ if __name__ == '__main__':
 	if opt.dataname is None:
 		message = "\nsendcluster: ERROR the '-d' option is mandatory.\n"
 		sys.exit( message )
-	# Not implemented yet
-	if opt.jobsNumber != 1:
-		message = "WARNING: Not implemented yet splitting jobs. Forcing '-j 1'"
-		opt.jobsNumber = 1
 
 	# Instanciation of the class manager depending the action to be done
 	if opt.action is None:

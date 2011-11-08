@@ -7,6 +7,8 @@
 #ifndef __CINT__
 #include<iostream>
 #include<stdlib.h>
+#include<vector>
+#include<cstring>
 #endif
 
 #include "TFile.h"
@@ -23,9 +25,13 @@ int main( int argc, const char * argv[])
 		exit(-1);
 	}
 	
-	const char *files = argv[1];
+	std::vector<std::string> files;
+	for(int i = 1; i < argc; ++i)
+	{
+		files.push_back( argv[i] );
+	}
 	// 
-	if( files == "" )
+	if( files.size() == 0 )
 	{
 		std::cerr << "ERROR: you must enter a valid file name" << std::endl;
 		exit(-1);
@@ -33,7 +39,10 @@ int main( int argc, const char * argv[])
 
 	TChain * chain = new TChain("Tree");
 
-	chain->Add(files);
+	for(unsigned int i = 0; i < files.size(); ++i)
+	{
+		chain->Add(files[i].c_str());
+	}
 
 	std::cout << chain->GetEntries() << std::endl;
 
