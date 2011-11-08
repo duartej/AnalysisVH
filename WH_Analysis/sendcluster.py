@@ -2,6 +2,9 @@
 
 """
 Python script to send jobs to cluster
+Exemple of usage:
+python sendcluster.py -a submit -c ../analisiswh_mmm.ip -d WH120 -j 1 --pkgdir=../ --basedir=../../
+python sendcluster.py -a harvest --wd=cluster_WHToWW2L120
 """
 
 class clustermanager(object):
@@ -16,9 +19,8 @@ class clustermanager(object):
 		import os
 		import sys
 		
-		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile', 'packagepath',\
-				'workingdir' ]
-		self.pkgpath = "."
+		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile', 'pkgdir',\
+				'workingdir', 'basedir' ]
 		self.precompile = False
 		self.outputfiles= {}
 		for key,value in keywords.iteritems():
@@ -42,7 +44,7 @@ class clustermanager(object):
 				self.njobs = int(value)
 			elif key == 'precompile':
 				self.precompile = True
-			elif key == 'packagepath':
+			elif key == 'pkgdir':
 				# Check if exist the path and it is correct
 				if not os.path.exists( value ):
 					message = "\nclustermanager: ERROR Not found the analysis " \
@@ -53,6 +55,18 @@ class clustermanager(object):
 							+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 					sys.exit( message )
 				self.pkgpath = value
+			elif key == 'basedir':
+				# Check if exist the path and it is correct
+				if not os.path.exists( value ):
+					message = "\nclustermanager: ERROR Not found the base directory '" \
+							+value+"'\n"
+					sys.exit( message )
+				if not os.path.exists( os.path.join(value,"CutManager") ):
+					message = "\nclustermanager: ERROR the path introduced '" \
+							+value+"' is not the base directory\n"
+					sys.exit( message )
+				self.basedir = os.path.abspath(value)
+				self.libsdir = os.path.join(self.basedir,"libs")
 			elif key == 'workingdir':
 				self.cwd = value
 		
@@ -159,9 +173,9 @@ class clustermanager(object):
 		# Checking we have the datamembers initialized: FIXME
 		#Creacion del directorio de trabajo
 		launchDir = os.getenv( 'PWD' )
-		executedir=os.path.join(launchDir,"cluster_"+self.dataname)
+		self.cwd=os.path.join(launchDir,"cluster_"+self.dataname)
 		try:
-			os.mkdir( executedir )
+			os.mkdir( self.cwd )
 		except OSError:
 			# FIXME
 			message  = "\nclustermanager: ERROR I cannot create the directory '"+executedir+"'"
@@ -170,7 +184,7 @@ class clustermanager(object):
 			# FIXME: Comprobar si hay jobs activos---> usa status method
 			sys.exit(message)
 		# Moving to that dir
-		os.chdir( executedir )
+		os.chdir( self.cwd )
 		# Extract the number of events per job
 		jobnames = []
 		for i,evttuple in self.jobidevt:
@@ -180,11 +194,11 @@ class clustermanager(object):
 			if self.precompile:
 				# Send the previous job to compile and update the code
 				# create job to compile
-				jobnames.append( self.createbash(os.path.join(self.pkgpath,'datamanagercreator'),\
+				jobnames.append( self.createbash(os.path.join(self.pkgpath,'./datamanagercreator'),\
 						iconfigname,i) )
 				break
 			else:
-				jobnames.append( self.createbash(os.path.join(self.pkgpath,'runanalysis'),\
+				jobnames.append( self.createbash(os.path.join(self.pkgpath,'./runanalysis'),\
 						iconfigname,i) )
 		# sending the jobs
 		jobsid = []
@@ -224,6 +238,9 @@ class clustermanager(object):
 		self.outputfiles = copyself.outputfiles
 		self.njobs       = copyself.njobs
 		self.jobsidID    = copyself.jobsidID
+		self.basedir     = copyself.basedir
+		self.pkgpath     = copyself.pkgpath
+		self.libsdir     = copyself.libsdir
 		
 		d.close()
 
@@ -250,6 +267,7 @@ class clustermanager(object):
 		"""
 		from subprocess import Popen,PIPE
 		import sys
+		import os
 
 		# Extract the file names (just need the first one)
 		f = open(filedatanames)
@@ -261,7 +279,8 @@ class clustermanager(object):
 				# FIXME Find a way to deal with blablabl_bal_numbero.root
 				datafiles.add( l.split(".root")[0] )
 		# Binary to extract the entries
-		command = [ '../bin/extractEvents' ]
+		binexe = os.path.join(self.basedir,"bin/extractEvents")
+		command = [ binexe ]
 		for f in datafiles:
 			command.append( f+"*" )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
@@ -312,6 +331,8 @@ class clustermanager(object):
 		lines  = "#!\\bin\\bash\n"
 		lines += "\n# Script created automatically by sendcluster.py utility\n"
 		lines += "\nmkdir -p Results\n"
+		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+"\n"
+		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
 		lines += executable+" "+self.dataname+" -c "+cfgname+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
@@ -368,6 +389,8 @@ if __name__ == '__main__':
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
 	parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
 	parser.add_option( '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
+	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
+	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
 	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
 	parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
 	parser.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the config file (absolute path)' )
@@ -385,7 +408,7 @@ if __name__ == '__main__':
 		sys.exit( message )
 	
 	if opt.action == 'submit':
-		if opt.config is None:
+		if not opt.config:
 			message = "\nsendcluster: ERROR the '-c' option is mandatory.\n"
 			sys.exit( message )
 		else:
@@ -395,14 +418,22 @@ if __name__ == '__main__':
 				sys.exit( message )
 			configabspath = os.path.abspath(opt.config)
 		#Dataname obligatorio:
-		if opt.dataname is None:
+		if not opt.dataname:
 			message = "\nsendcluster: ERROR the '-d' option is mandatory.\n"
+			sys.exit( message )
+		# Dirs 
+		if not opt.pkgdir:
+			message = "\nsendcluster: ERROR the '--pkgdir' option is mandatory.\n"
+			sys.exit( message )
+		if not opt.basedir:
+			message = "\nsendcluster: ERROR the '--basedir' option is mandatory.\n"
 			sys.exit( message )
 		# Instantiate and submit
 		manager = None
 		if opt.action == 'submit':
 			manager = clustermanager('submit',dataname=opt.dataname,\
-					cfgfile=configabspath,njobs=opt.jobsNumber)
+					cfgfile=configabspath,njobs=opt.jobsNumber, \
+					pkgdir=opt.pkgdir,basedir=opt.basedir)
 	elif opt.action == 'harvest':
 		if opt.workingdir is None:
 			message = "\nsendcluster: ERROR the '--cw' option is mandatory.\n"
