@@ -73,8 +73,9 @@ class clustermanager(object):
 		self.status = status
 		
 		if self.status == "submit":
-			# Check if we have the names of the data files
-			filedatanames = self.dataname+"_datanames.dn"
+			# Check if we have the names of the data files: FIXME: Nota que con la version
+			# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo 
+			filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
 			if not os.path.exists(filedatanames):
 				# if not created previously
 				message  = "\nclustermanager: I need the list of file names, execute:"
