@@ -62,17 +62,17 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		std::vector<TString> data2= 
              		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
              				       "Tree_DoubleMuV4_Skim2LPt1010_929.7");
-		AddDataFiles(data1,datafiles);
+		AddDataFiles(data2,datafiles);
                 
 		std::vector<TString> data3= 
              		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
              				  "Tree_DoubleMuAug5_Skim2LPt1010_368.0");
-		AddDataFiles(data1,datafiles);
+		AddDataFiles(data3,datafiles);
              	
 		std::vector<TString> data4= 
              		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
 				  "Tree_DoubleMuV6_Skim2LPt1010_658.9");
-		AddDataFiles(data1,datafiles);
+		AddDataFiles(data4,datafiles);
 	
 		std::cout << ">> List of Real Data Files:" << std::endl;
 		
