@@ -106,19 +106,17 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		std::cout << std::endl;
 		dm->Dump();
 #endif
-		
-		if(datafiles.size() == 0) 
-		{
-			std::cerr << "ERROR: Could not find dataset " 
-				<< dataName << " with DatasetManager for folder " 
-				<< folder << "!!!" << std::endl;
-			std::cerr << "       Exiting!" << std::endl;      
-			exit(-1);
-		}
-
 		// Freeing memory
 		delete dm; 
 		dm = 0;
+	}
+	
+	if(datafiles.size() == 0) 
+	{
+		std::cerr << "ERROR: Could not find dataset '" 
+			<< dataName << "' with DatasetManager!!! " << std::endl;
+		std::cerr << "       Exiting!" << std::endl;      
+		exit(-1);
 	}
 
 	// Persistency
