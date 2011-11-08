@@ -54,7 +54,7 @@ class clustermanager(object):
 					message = "\nclustermanager: ERROR the path introduced '" \
 							+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 					sys.exit( message )
-				self.pkgpath = value
+				self.pkgpath = os.path.abspath(value)
 			elif key == 'basedir':
 				# Check if exist the path and it is correct
 				if not os.path.exists( value ):
@@ -68,7 +68,7 @@ class clustermanager(object):
 				self.basedir = os.path.abspath(value)
 				self.libsdir = os.path.join(self.basedir,"libs")
 			elif key == 'workingdir':
-				self.cwd = value
+				self.cwd = os.path.abspath(value)
 		
 		self.status = status
 		
@@ -178,7 +178,7 @@ class clustermanager(object):
 			os.mkdir( self.cwd )
 		except OSError:
 			# FIXME
-			message  = "\nclustermanager: ERROR I cannot create the directory '"+executedir+"'"
+			message  = "\nclustermanager: ERROR I cannot create the directory '"+self.cwd+"'"
 			message += "\nPossibly the job is currently in use. Remove the directory if you "
 			message += "want to send it again.\n"
 			# FIXME: Comprobar si hay jobs activos---> usa status method
