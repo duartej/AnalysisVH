@@ -166,6 +166,8 @@ int main(int argc, char *argv[])
 {
 	const char * dataName; // = "WH160";
 	const char * analysispkgpath = ".";
+	bool justdatafiles = false;
+	const char * creadn = 0;
 	
 	//Parsing input options
 	if(argc == 1)
@@ -173,7 +175,8 @@ int main(int argc, char *argv[])
 		std::cout << "usage: datamanagercreator dataname [options]" << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "Options:" << std::endl;
-		std::cout << "    -p base path of the analysis package " << std::endl;
+		std::cout << "    -p 'base path of the analysis package' " << std::endl;
+		std::cout << "    -c 'all'  all the datanames .dn files creation only" << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "List of known dataname:" << std::endl;
 		std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
@@ -199,9 +202,24 @@ int main(int argc, char *argv[])
 			}
 			
 		}
+		for(int i = 2; i < argc; i++) 
+		{
+			if( strcmp(argv[i],"-p") == 0 )
+			{
+				analysispkgpath = argv[i+1];
+			}
+			if( strcmp(argv[i],"-c") == 0 )
+			{
+				if( strcmp(argv[i+1],"all") != 0 )
+				{
+					creadn = dataName;
+				}
+				justdatafiles = true;
+			}			
+		}
 	}
 
-	std::set<const char*> knowndata;
+	std::set<std::string> knowndata;
 	// Signal
         knowndata.insert("WH160");
         knowndata.insert("WH120");
@@ -232,7 +250,7 @@ int main(int argc, char *argv[])
 	knowndata.insert("TbarW");
 
 	// Checking the validity of the input dataname
-	if( knowndata.find(dataName) == knowndata.end() )
+	if( knowndata.find(std::string(dataName)) == knowndata.end() )
 	{
 		std::cerr << "datamanagercreator: ERROR dataname '" << dataName << "'"
 			<< " not implemented! Exiting..." << std::endl;
@@ -243,6 +261,19 @@ int main(int argc, char *argv[])
 	treeTypes dataType;
 	std::vector<TString> datafiles;
 	datafiles = extractdatafiles( TString(dataName) );
+	if( justdatafiles )
+	{
+		if( creadn == 0 )
+		{
+			// Creating all the .dn
+			for(std::set<std::string>::iterator it = knowndata.begin();
+					it != knowndata.end(); ++it)
+			{
+				std::vector<TString> dummy = extractdatafiles( TString(*it) );
+			}
+		}
+		return 0;
+	}
 	// Create datamanager
 	std::pair<std::string,treeTypes> selfilenameTreeType = createdatamanager(datafiles);
 	std::string selectorfilename = selfilenameTreeType.first;
