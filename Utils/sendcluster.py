@@ -353,7 +353,7 @@ class clustermanager(object):
 		# OJO NO HE PUESTO REQUERIMIENTOS DE MEMORIA, CPU...
 		print "Sending to cluster: "+bashscript
 		command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
-				'-P','l.gaes','-l', 'inmediate', '-l','h_rt=01:00:00',bashscript ]
+				'-P','l.gaes','-l', 'immediate', '-l','h_rt=01:00:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
 			message = "\nclustermanager: ERROR from 'qsub':\n"
