@@ -120,24 +120,39 @@ class clustermanager(object):
 		"""
 		from subprocess import Popen,PIPE
 		import os
+		import tarfile
+		import glob
 		
-		print "Joining all the files in one: "
+		print "=== ",self.dataname,": Joining all the files in one"
 		# FIXME: Only there are 1 file, not needed the hadd
 		finalfile = os.path.join("Results",self.dataname+".root")
 		command = [ 'hadd', finalfile ]
 		for f in self.outputfiles.itervalues():
 			command.append( f )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-		#if p[1] != "":
-		#	message = "\nclustermanager.gatherfiles: ERROR Something wrong with hadd\n"
-		#	message += p[1]+"\n"
-		#	sys.exit(message)
+		# Checking if everything was allright
+		totalevts = self.getevents(finalfile,True)
+		if totalevts != self.nevents:
+			message  = "\nclustermanager.gatherfiles: WARNING the total file"
+			message += "'"+finalfile+"' do not contain all the events:\n"
+			message += "Total events to be processed:"+str(self.nevents)+"\n"
+			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
+			print message
+			return 
+		# If everything was fine, deleting the files 
+		# and cleaning the directory
+		for f in self.outputfiles.itervalues():
+			os.remove( f )
+		# Taring and compressing
+		filestotar = glob.glob("./*.*")
+		filestotar.append( ".storedmanager")
+		tar = tarfile.open(os.path.basedir(self.cwd)+".tar.gz","w:gz")
+		for f in filestotar:
+			tar.add(f)
+		tar.close()
 
-		#else:
 		print "Created "+finalfile
 		print "========= Process Completed ========="
-		#FIXME: REMOVE THE OLD FILES
-
 
 
 	def checkjob(self, id):
@@ -241,6 +256,7 @@ class clustermanager(object):
 		self.pkgpath      = copyself.pkgpath
 		self.libsdir      = copyself.libsdir
 		self.filedatanames= copyself.filedatanames
+		self.nevents      = copyself.nevents
 		
 		d.close()
 
@@ -257,32 +273,51 @@ class clustermanager(object):
 		d.close()
 
 		
-	def getevents(self,filedatanames):
+	def getevents(self,filedatanames,direct=False):
 		"""Extract the number of events of a dataname
-		and split them in the jobsNumber
+		and split them in the jobsNumber.
+		There are two modes:
+		 1. direct = True
+		    The arg. 'filedatanames' is directly the 
+		    file to inspect
+		 2. direct = False
+		    The arg. 'filedatanames' is the path of 
+		    a files containing the paths of the root
+		    files to inspect
 		WARNING: As we are using possibly the 2.4
 		we don't have ROOT so I used a wrapper in C++
 		to extract it
-		Returns a list of tuples of [(jobid,(Evt0,EvtN)),...]
+		Returns the total number of events
 		"""
 		from subprocess import Popen,PIPE
 		import sys
 		import os
 
-		# Extract the file names (just need the first one)
-		f = open(filedatanames)
-		lines = f.readlines()
-		f.close()
-		datafiles = set([])
-		for l in lines:
-			if ".root" in l:
-				# FIXME Find a way to deal with blablabl_bal_numbero.root
-				datafiles.add( l.split(".root")[0] )
+		# Extract the file names: Two modes:
+		# the arg filedatanames is directly the file to inspect
+		if direct:
+			datafiles = set([os.path.abspath(filedatanames)])
+		# the arg filedatanames contain a list of files to inspect
+		else:
+			f = open(filedatanames)
+			lines = f.readlines()
+			f.close()
+			datafiles = set([])
+			for l in lines:
+				if ".root" in l:
+					# FIXME Find a way to deal 
+					# with blablabl_bal_numbero.root
+					datafiles.add( l.split(".root")[0] )
+
 		# Binary to extract the entries
 		binexe = os.path.join(self.basedir,"bin/extractEvents")
 		command = [ binexe ]
 		for f in datafiles:
 			command.append( f+"*" )
+		# The flag to evaluate processed file and extract the *
+		if direct:
+			command[-1] = command[-1][:-1]
+			command.append( "-h" )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
 			message = "\nclustermanager: ERROR from 'extractEvents':\n"
