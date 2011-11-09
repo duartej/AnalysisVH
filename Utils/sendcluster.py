@@ -151,6 +151,16 @@ class clustermanager(object):
 		for f in filestotar:
 			tar.add(f)
 		tar.close()
+		# if everything was fine, deleting the files
+		if os.path.exists(os.path.basename(self.cwd)+".tar.gz"):
+			for f in filestotar:
+				os.remove(f)
+		else:
+			message += "===================================================\n"
+			message  = "clustermanager.gatherfiles: WARNING I can't manage\n"
+			message += "to create the backup .tar.gz file\n"
+			message += "===================================================\n"
+			print message
 
 		print "Created "+finalfile
 		print "========= Process Completed ========="
