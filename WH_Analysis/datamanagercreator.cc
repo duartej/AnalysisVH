@@ -234,7 +234,7 @@ int main(int argc, char *argv[])
 	knowndata.insert("ZJets_Madgraph");
 	knowndata.insert("DYee");
 	knowndata.insert("DYmumu");
-	knowndata.insert("Dytautau");
+	knowndata.insert("DYtautau");
 	knowndata.insert("Zee_Powheg");
 	knowndata.insert("Zmumu_Powheg");
 	knowndata.insert("Ztautau_Powheg");
