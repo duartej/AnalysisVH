@@ -147,7 +147,7 @@ class clustermanager(object):
 		# Taring and compressing
 		filestotar = glob.glob("./*.*")
 		filestotar.append( ".storedmanager")
-		tar = tarfile.open(os.path.basedir(self.cwd)+".tar.gz","w:gz")
+		tar = tarfile.open(os.path.basename(self.cwd)+".tar.gz","w:gz")
 		for f in filestotar:
 			tar.add(f)
 		tar.close()
