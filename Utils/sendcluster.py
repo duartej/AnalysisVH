@@ -110,6 +110,7 @@ class clustermanager(object):
 
 			foundoutfiles = []
 			print "====== Checking the job status ======"
+			print "Jobs in the cluster:",
 			for id,bashscript in self.jobsid:
 				foundoutfiles.append( self.checkjob(id) )
 			print ""
@@ -190,7 +191,7 @@ class clustermanager(object):
 			return self.outputfiles[self.jobsidID[id]]
 		else:
 			# Still in the cluster
-			print "=== Job '"+id+"' is still in the cluster",
+			print id,
 
 
 	def submit(self):
@@ -248,10 +249,15 @@ class clustermanager(object):
 		"""
 		import shelve
 		import sys
+		import glob
 
 		d = shelve.open(".storedmanager")
 		if not d.has_key("storedmanager"):
-			message = "\nclustermanager.retrieve: ERROR Not found the" \
+			# Check if already is done the file
+			if len(glob.glob("*.tar.gz")) != 0:
+				message = "clustermanager.retrive: The job is already DONE!"
+			else:
+				message = "\nclustermanager.retrieve: ERROR Not found the" \
 					+" class stored in .storedmanager file"
 			sys.exit(message)
 
@@ -337,7 +343,8 @@ class clustermanager(object):
 			sys.exit(message)
 
 		totalevts = p[0]
-		return int(totalevts)
+		# Just checking the exponential format
+		return int(float(totalevts))
 	
 	def createconfig(self,jobNumber,evtTuple):
 	        """From a reference cfgfile, constructs a new config file
