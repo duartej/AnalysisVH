@@ -26,7 +26,9 @@ all:
 	@echo "======= $(PACKAGE): Creating library links ======"
 	@mkdir -p $(BASEDIR)/libs 
 	@for libdir in $(DEPSDIR); do \
-		ln -s $$libdir/lib/lib`basename $$libdir`.so libs/lib`basename $$libdir`.so; \
+		if [ ! -h libs/lib`basename $$libdir`.so ]; then \
+		       ln -s $$libdir/lib/lib`basename $$libdir`.so libs/lib`basename $$libdir`.so; \
+		fi; \
 	done
 
 
