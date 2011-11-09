@@ -109,8 +109,10 @@ class clustermanager(object):
 			self.retrieve()
 
 			foundoutfiles = []
+			print "====== Checking the job status ======"
 			for id,bashscript in self.jobsid:
 				foundoutfiles.append( self.checkjob(id) )
+			print ""
 			
 			# If we have all the outputfiles we can gathering
 			if foundoutfiles == self.outputfiles.values():
@@ -172,7 +174,6 @@ class clustermanager(object):
 		from subprocess import Popen,PIPE
 		import os
 
-		print "Checking the job status:"
 		command = [ 'qstat','-j',id ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		# The job is done and disappeared from the scheluder
@@ -189,7 +190,7 @@ class clustermanager(object):
 			return self.outputfiles[self.jobsidID[id]]
 		else:
 			# Still in the cluster
-			print "=== Job '"+id+"' is still in the cluster"
+			print "=== Job '"+id+"' is still in the cluster",
 
 
 	def submit(self):
