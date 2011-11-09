@@ -113,7 +113,6 @@ class clustermanager(object):
 			
 			# If we have all the outputfiles we can gathering
 			if foundoutfiles == self.outputfiles.values():
-				print 'hola'
 				self.gatherfiles()
 
 	def gatherfiles(self):
@@ -304,10 +303,11 @@ class clustermanager(object):
 		lines  = f.readlines()
 		f.close()
 		newlines = []
+		nEvents = evtTuple[1]-evtTuple[0]
 		for l in lines:
 			newlines.append( l )
 			if 'nEvents' in l:
-				newlines[-1] = "@var int  nEvents "+str(evtTuple[1])+";\n"
+				newlines[-1] = "@var int  nEvents "+str(nEvents)+";\n"
 			if 'firstEvent' in l:
 				newlines[-1] = "@var int  firstEvent "+str(evtTuple[0])+";\n"
 		
