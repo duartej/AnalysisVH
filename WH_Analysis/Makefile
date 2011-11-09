@@ -64,16 +64,16 @@ getheaderdict = $(patsubst %:$(1),%,$(filter %:$(1), $(PAIRDICTHEADER)))
 
 all: lib/lib$(PACKAGE).so
 
-datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
+bin/datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
 	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
-	@$(shell mkdir -p lib)
+	@$(shell mkdir -p bin)
 	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
 		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -L./lib $< -o $@  
 	@echo "... Done $@"
 
-runanalysis: runanalysis.cc $(DEPSLIBS) $(TREEDICT)
+bin/runanalysis: runanalysis.cc $(DEPSLIBS) $(TREEDICT)
 	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
-	@$(shell mkdir -p lib)
+	@$(shell mkdir -p bin)
 	@$(CXX) -DTIMERS $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
 		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -l$(PACKAGE) -L./lib $< -o $@  
 	@echo "... Done $@"
