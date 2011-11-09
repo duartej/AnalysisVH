@@ -87,11 +87,12 @@ class clustermanager(object):
 			# Checking if has sense the njobs
 			if self.nevents/10 < self.njobs:
 				message = "clustermanager: WARNING the Number of jobs introduced '"\
-						+str(self.njobs)+"' make no sense: changing to 10 "
+						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
-				self.njobs = 10
+				self.njobs = 1
 			evtperjob = self.nevents/self.njobs 
-			remainevt  = self.nevents % self.njobs
+			# Recall: the first event is 0, the last event: Entries-1
+			remainevt  = (self.nevents % self.njobs)-1 
 			self.jobidevt = []
 			for i in xrange(self.njobs-1):
 				self.jobidevt.append( (i,(i*evtperjob,(i+1)*evtperjob-1)) )
@@ -338,7 +339,7 @@ class clustermanager(object):
 		lines  = f.readlines()
 		f.close()
 		newlines = []
-		nEvents = evtTuple[1]-evtTuple[0]
+		nEvents = (evtTuple[1]-evtTuple[0])+1
 		for l in lines:
 			newlines.append( l )
 			if 'nEvents' in l:
