@@ -311,7 +311,7 @@ void AnalysisVH::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
-	std::cout << "New event" << std::endl;
+	std::cout << "New event: " << fData->GetEventEventNumber() << std::endl;
 #endif
 	// Get PU Weight
 	//----------------------------------------------------------------------
@@ -575,6 +575,9 @@ void AnalysisVH::InsideLoop()
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
+#ifdef DEBUGANALYSIS
+	std::cout << "Numbre of Muons: " << fData->GetMuonPx()->size() << std::endl;
+#endif 
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
@@ -584,7 +587,10 @@ void AnalysisVH::InsideLoop()
 				fData->GetMuonEnergy()->at(i)); 
 		fHPtMu[k]->Fill(vL.Pt(), puw);
 		fHEtaMu[k]->Fill(vL.Eta(), puw);
-		fHDeltaRGenRecoMu[k]->Fill(vL.DeltaR(fGenMuon.at(k)), puw);
+		if( fGenMuon.size() != 0 )
+		{
+			fHDeltaRGenRecoMu[k]->Fill(vL.DeltaR(fGenMuon.at(k)), puw);
+		}
 		k++;
 	}
 	FillGenPlots(_iHasExactly3Leptons,puw);
