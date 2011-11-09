@@ -1,0 +1,34 @@
+********************
+**                **
+** Changelog      **
+**                **
+********************
+
+Nov. 9th 2011--  Tag release v0.1 : First version working
+  * Synchronised with original-PROOF code (IFCA-UO/WH  MAIN r1.11)
+  * Found a bug in PROOF's code: line 566 'imuon' should be 'i' (r1.12)
+
+
+
+TODO:
+  1. Incorporate the latino's trees
+  2. Incorporate (create) an electron analysis
+  3. Incorporate (create) a lepton analysis
+  4. Use directly the tree->GetLeaf("nameofthebranch")->GetValue(index) (index=0 if there is no vector)
+     Checks:
+             * How much time is this slowing down the reading process?
+	     * Is the amount of time aceptable?
+
+
+####  Some Comments
+** Me quede en la creacion del analisis final:
+   El flujo deberia ser:
+    1. Ejecutable que llama al SelectorCreator para crear el CMSAnalysisSelector concreto (MiniTrees, TESCO)
+       Necesita de un fichero .root como argumento (el que se va a basar para crear el selector)
+    2. Anyadir al header del analisis (AnalysisWH_mmm) la herencia del recien creado selector y posteriormente
+       compilar
+    3. Finalmente lanzar el verdadero proceso de analisis utilizando la clase AnalysisWH_mmm
+   Todo esto debe estar controlado por un python/bash 
+
+   En los makefiles he de incorporar el hecho de que si se compila una libreria dependiente de otro paquete, deberia
+   volver a linkar la libreria actual...
