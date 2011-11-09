@@ -16,7 +16,7 @@
 #include<cstdlib>
 #include<string>
 #include<vector>
-#include<queue>
+#include<set>
 
 #endif
 
@@ -165,9 +165,7 @@ std::pair<std::string,treeTypes> createdatamanager(const std::vector<TString> & 
 int main(int argc, char *argv[])
 {
 	const char * dataName; // = "WH160";
-	const char * cfgfile        = "analisiswh_mmm.ip";
 	const char * analysispkgpath = ".";
-	//const char * analysisheader = "interface/AnalysisWH_mmm.h";
 	
 	//Parsing input options
 	if(argc == 1)
@@ -175,7 +173,6 @@ int main(int argc, char *argv[])
 		std::cout << "usage: datamanagercreator dataname [options]" << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "Options:" << std::endl;
-		std::cout << "    -c configuration file " << std::endl;
 		std::cout << "    -p base path of the analysis package " << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "List of known dataname:" << std::endl;
@@ -183,7 +180,7 @@ int main(int argc, char *argv[])
 		std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
 		std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 		std::cout << "    Zbb + Jets:        Zbb" << std::endl;
-		std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW" << std::endl;
+		std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW" << std::endl;
 		return -1;
 	}
 	else if( argc == 2)
@@ -196,10 +193,6 @@ int main(int argc, char *argv[])
 		dataName = argv[1];
 		for(int i = 2; i < argc; i++) 
 		{
-			if( strcmp(argv[i],"-c") == 0 )
-			{
-				cfgfile = argv[i+1];
-			}
 			if( strcmp(argv[i],"-p") == 0 )
 			{
 				analysispkgpath = argv[i+1];
@@ -207,7 +200,46 @@ int main(int argc, char *argv[])
 			
 		}
 	}
-	
+
+	std::set<const char*> knowndata;
+	// Signal
+        knowndata.insert("WH160");
+        knowndata.insert("WH120");
+        knowndata.insert("WH130");
+        knowndata.insert("WH140");
+        knowndata.insert("WH150");
+        knowndata.insert("WH170");
+        knowndata.insert("WH180");
+        knowndata.insert("WH190");
+        knowndata.insert("WH200");
+	// Z+jets
+	knowndata.insert("ZJets_Madgraph");
+	knowndata.insert("DYee");
+	knowndata.insert("DYmumu");
+	knowndata.insert("Dytautau");
+	knowndata.insert("Zee_Powheg");
+	knowndata.insert("Zmumu_Powheg");
+	knowndata.insert("Ztautau_Powheg");
+	// Zbb+jets
+	knowndata.insert("Zbb");
+	// Other background
+	knowndata.insert("WZ");
+	knowndata.insert("ZZ");
+	knowndata.insert("WW");
+	knowndata.insert("TTbar_Madgraph");
+	knowndata.insert("WJets_Madgraph");
+	knowndata.insert("TW");
+	knowndata.insert("TbarW");
+
+	// Checking the validity of the input dataname
+	if( knowndata.find(dataName) == knowndata.end() )
+	{
+		std::cerr << "datamanagercreator: ERROR dataname '" << dataName << "'"
+			<< " not implemented! Exiting..." << std::endl;
+		exit(-1);
+	}
+
+
 	treeTypes dataType;
 	std::vector<TString> datafiles;
 	datafiles = extractdatafiles( TString(dataName) );

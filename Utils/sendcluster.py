@@ -196,12 +196,10 @@ class clustermanager(object):
 			if self.precompile:
 				# Send the previous job to compile and update the code
 				# create job to compile
-				jobnames.append( self.createbash(os.path.join(self.pkgpath,'./datamanagercreator'),\
-						iconfigname,i) )
+				jobnames.append( self.createbash('datamanagercreator',iconfigname,i) )
 				break
 			else:
-				jobnames.append( self.createbash(os.path.join(self.pkgpath,'./runanalysis'),\
-						iconfigname,i) )
+				jobnames.append( self.createbash('runanalysis',iconfigname,i) )
 		# sending the jobs
 		jobsid = []
 		# Storing the cluster job id with the number of job (ID)
@@ -331,10 +329,10 @@ class clustermanager(object):
 		outputname = os.path.join("Results",self.dataname+"_"+str(jobnumber)+".root")
 		self.outputfiles[jobnumber] = outputname
 
-		lines  = "#!\\bin\\bash\n"
+		lines  = "#!/bin/bash\n"
 		lines += "\n# Script created automatically by sendcluster.py utility\n"
 		lines += "\nmkdir -p Results\n"
-		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+"\n"
+		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
 		lines += executable+" "+self.dataname+" -c "+cfgname+" -d "+self.filedatanames+" -o "+outputname+"\n"
 	
@@ -353,7 +351,7 @@ class clustermanager(object):
 		from subprocess import Popen,PIPE
 		
 		# OJO NO HE PUESTO REQUERIMIENTOS DE MEMORIA, CPU...
-		print "Sending to cluster:"+bashscript
+		print "Sending to cluster: "+bashscript
 		command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
 				'-P','l.gaes','-l','h_rt=00:10:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
