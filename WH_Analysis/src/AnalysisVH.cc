@@ -68,7 +68,7 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	TList * inputlist = new TList;
 	inputlist->Add(fInputParameters);
 	this->SetInputList(inputlist);
-
+	
 	/*
 	for(unsigned int i = 0; i < _datafiles.size(); ++i)
 	{

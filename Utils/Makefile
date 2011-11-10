@@ -17,6 +17,8 @@ PYEXE      := $(patsubst %.py,$(BINPATH)/%,$(PYSOURCES))
 ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)
 ROOTLIBS   ?= $(shell root-config --libs)
+# To include the package libraries
+ROOTLIBDIR += -L$(GENERALPATH)/libs   
 
 
 all: $(EXE) $(PYEXE)
