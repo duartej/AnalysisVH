@@ -385,7 +385,7 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 
 	// Assuming all the vertices are good, getting the first one:
 	// the one which points more tracks to him (nombre de variable buscar)
-	unsigned int iGoodVertex = 0;
+	//unsigned int iGoodVertex = 0;
 
 	//Loop over selected muons
 	for(std::vector<int>::iterator it = _selectedbasicLeptons->begin();
@@ -401,28 +401,26 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 
 		//[Require muons to be close to PV] --> FIXME: MiniTRees, buscar forma de cambiarlo...
 		//-------------------
-		double deltaZMu = _data->GetMuonvz()->at(i) - _data->GetVertexz()->at(iGoodVertex);
-		double IPMu     = _data->GetMuonIP2DInTrack()->at(i);
-/*#ifdef MINITREES
-		// Next two lines for pure minitrees
-		double deltaZMu = fSelector->T_Muon_vz->at(i) - fSelector->T_Vertex_z->at(iGoodVertex);
-		double IPMu     = fSelector->T_Muon_IP2DInTrack->at(i);
-#endif
-#ifdef LATINOTREES
+//#ifdef MINITREES
+//		// Next two lines for pure minitrees
+//		double deltaZMu = _data->GetMuonvz()->at(i) - _data->GetVertexz()->at(iGoodVertex);
+//		double IPMu     = _data->GetMuonIP2DInTrack()->at(i);
+//#endif
+//#ifdef LATINOTREES
 		// Next two lines for latinos
 		double deltaZMu = 0;
 		double IPMu = 0;
 		// + Lara
-		if (fUseBiased) {
-			deltaZMu = fSelector->T_Muon_dzPVBiasedPV->at(i);
-			IPMu     = fSelector->T_Muon_IP2DBiasedPV->at(i);
-		}
+//		if (fUseBiased) {
+		deltaZMu = _data->GetMuondzPVBiasedPV()->at(i);
+		IPMu     = _data->GetMuonIP2DBiasedPV()->at(i);
+//		}
 		// + Jonatan
-		else {
-			deltaZMu = fSelector->T_Muon_dzPVUnBiasedPV->at(i);
-			IPMu     = fSelector->T_Muon_IP2DUnBiasedPV->at(i);
-		}
-#endif*/
+//		else {
+//			deltaZMu = _data->GetMuondzPVUnBiasedPV()->at(i);
+//			IPMu     = _data->GetMuonIP2DUnBiasedPV()->at(i);
+//		}
+//#endif
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
@@ -486,11 +484,11 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		//[Require muons to be isolated]
 		//-------------------
 //#ifdef MINITREES
-		double isolation = (_data->GetMuonSumIsoTrack()->at(i) + 
-				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
+//		double isolation = (_data->GetMuonSumIsoTrack()->at(i) + 
+//				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
 //#endif
 //#ifdef LATINOTREES
-//		double isolation =(fSelector->T_Muon_muSmurfPF->at(i) )/ Mu.Pt();
+		double isolation =(_data->GetMuonmuSmurfPF()->at(i) )/Mu.Pt();
 //#endif
 		
 		//WARNING: HARDCODED limit of the eta regions and Pt
@@ -613,10 +611,10 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 
 		bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk 
 //#ifdef MINITREES
-		    && _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk 
+//		    && _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk 
 //#endif
 //#ifdef LATINOTREES
-//          && _data->GetMuonInnerTrackFound()->at(i) > CutMinNValidHitsInTrk 
+ 	            && _data->GetMuonInnerTrackFound()->at(i) > kMinNValidHitsInTrk 
 //#endif
 	           && fabs(ptResolution) < kMaxDeltaPtMuOverPtMu;
 

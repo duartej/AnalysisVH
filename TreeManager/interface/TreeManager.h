@@ -91,6 +91,7 @@ class TreeManager
 		// ------- Isolation
 		virtual std::vector<float>* GetMuonSumIsoTrack() const = 0;
 		virtual std::vector<float>* GetMuonSumIsoCalo() const = 0;
+		virtual std::vector<float>* GetMuonmuSmurfPF() const = 0;
 		
 		// ------- Position
 		virtual std::vector<float>* GetMuonvx() const = 0;
@@ -114,7 +115,8 @@ class TreeManager
 		virtual std::vector<int>* GetMuonNValidHitsSATrk() const = 0;
 		virtual std::vector<int>* GetMuonNumOfMatches() const = 0;
 		virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const = 0;
-		virtual std::vector<int>* GetMuonNValidHitsInTrk() const = 0;
+		//virtual std::vector<int>* GetMuonNValidHitsInTrk() const = 0;
+		virtual std::vector<int>* GetMuonInnerTrackFound() const = 0;
 		virtual std::vector<float>* GetMuonNormChi2GTrk() const = 0;
 		// --- End Reco Muon
 		
@@ -179,6 +181,7 @@ class TreeManager
 			// Isolation
 			methods.push_back("virtual std::vector<float>* GetMuonSumIsoTrack() const");
 			methods.push_back("virtual std::vector<float>* GetMuonSumIsoCalo() const");
+			methods.push_back("virtual std::vector<float>* GetMuonmuSmurfPF() const");
 			
 			// Position
 			methods.push_back("virtual std::vector<float>* GetMuonvx() const");
@@ -202,7 +205,8 @@ class TreeManager
 			methods.push_back("virtual std::vector<int>* GetMuonNValidHitsSATrk() const");
 			methods.push_back("virtual std::vector<int>* GetMuonNumOfMatches() const");
 			methods.push_back("virtual std::vector<int>* GetMuonNValidPixelHitsInTrk() const");
-			methods.push_back("virtual std::vector<int>* GetMuonNValidHitsInTrk() const");
+			//methods.push_back("virtual std::vector<int>* GetMuonNValidHitsInTrk() const");
+			methods.push_back("virtual std::vector<int>* GetMuonInnerTrackFound() const");
 			methods.push_back("virtual std::vector<float>* GetMuonNormChi2GTrk() const");
 		
 			//-- Jet
