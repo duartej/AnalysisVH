@@ -23,6 +23,23 @@ class clustermanager(object):
 				'workingdir', 'basedir' ]
 		self.precompile = False
 		self.outputfiles= {}
+		# Trying to extract the env variables to define 
+		# the path of the General package
+		if os.getenv("VHSYS"):
+			self.basedir = os.path.abspath(os.getenv("VHSYS"))
+			self.libsdir = os.path.join(self.basedir,"libs")
+			if not os.path.exists( os.path.join(self.basedir,"CutManager") ):
+				message = "\n\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+						+value+"' is not the base directory for the package 'VHAnalysis'\n"
+				sys.exit( message )
+		# for the analysis specific package
+		if os.getenv("ANALYSISSYS"):
+			self.pkgpath = os.path.abspath(os.getenv("ANALYSISSYS"))
+			if not os.path.exists( os.path.join(self.pkgpath,"interface/AnalysisBuilder.h") ):
+				message = "\n\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+						+value+"' do not contain the header interface/AnalysisBuilder.h\n"
+				sys.exit( message )
+
 		for key,value in keywords.iteritems():
 			if key not in validkeys:
 				message = "\nclustermanager: ERROR Not a valid argument '"+key+\
@@ -45,22 +62,18 @@ class clustermanager(object):
 			elif key == 'precompile':
 				self.precompile = True
 			elif key == 'pkgdir':
+				if not value:
+					continue
 				# Check if exist the path and it is correct
-				if not os.path.exists( value ):
-					message = "\nclustermanager: ERROR Not found the analysis " \
-							"package '"+value+"'\n"
-					sys.exit( message )
 				if not os.path.exists( os.path.join(value,"interface/AnalysisBuilder.h") ):
 					message = "\nclustermanager: ERROR the path introduced '" \
 							+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 					sys.exit( message )
 				self.pkgpath = os.path.abspath(value)
 			elif key == 'basedir':
+				if not value:
+					continue
 				# Check if exist the path and it is correct
-				if not os.path.exists( value ):
-					message = "\nclustermanager: ERROR Not found the base directory '" \
-							+value+"'\n"
-					sys.exit( message )
 				if not os.path.exists( os.path.join(value,"CutManager") ):
 					message = "\nclustermanager: ERROR the path introduced '" \
 							+value+"' is not the base directory\n"
@@ -70,6 +83,21 @@ class clustermanager(object):
 			elif key == 'workingdir':
 				self.cwd = os.path.abspath(value)
 		
+		# Checked if basedir and pkgpath are there
+		try:
+			dummy = self.basedir
+		except AttributeError:
+		        message  = "\033[1;31mclustermanager: ERROR\033[1;m You have to introduce the base directory for the package VHAnalysis\n"
+			message += "Or you can use an environment variable: 'export VHSYS=path'"
+			sys.exit(message)
+		try:
+			dummy = self.pkgpath
+		except AttributeError:
+		        message  = "\033[1;31mclustermanager: ERROR\033[1;m You have to introduce the base analysis directory\n"
+			message += "Or you can use an environment variable: 'export ANALYSISSYS=path'"
+			sys.exit(message)
+
+
 		self.status = status
 		
 		if self.status == "submit":
@@ -86,7 +114,7 @@ class clustermanager(object):
 			self.nevents = self.getevents(self.filedatanames)
 			# Checking if has sense the njobs
 			if self.nevents < 10000:
-				message = "clustermanager: WARNING the Number of jobs introduced '"\
+				message = "\033[1;33mclustermanager: WARNING\033[1;m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
 				self.njobs = 1
@@ -137,7 +165,7 @@ class clustermanager(object):
 		# Checking if everything was allright
 		totalevts = self.getevents(finalfile,True)
 		if totalevts != self.nevents:
-			message  = "\nclustermanager.gatherfiles: WARNING the total file"
+			message  = "\033[1;33mclustermanager.gatherfiles: WARNING\033[1;m the total file"
 			message += "'"+finalfile+"' do not contain all the events:\n"
 			message += "Total events to be processed:"+str(self.nevents)+"\n"
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
@@ -159,10 +187,8 @@ class clustermanager(object):
 			for f in filestotar:
 				os.remove(f)
 		else:
-			message += "===================================================\n"
-			message  = "clustermanager.gatherfiles: WARNING I can't manage\n"
+			message  = "\033[1;33mclustermanager.gatherfiles: WARNING\033[1;m I can't manage\n"
 			message += "to create the backup .tar.gz file\n"
-			message += "===================================================\n"
 			print message
 
 		print "Created "+finalfile
@@ -440,7 +466,7 @@ if __name__ == '__main__':
 	parser = OptionParser()
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
 	parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
-	parser.add_option( '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
+	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
 	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
@@ -472,13 +498,6 @@ if __name__ == '__main__':
 		#Dataname obligatorio:
 		if not opt.dataname:
 			message = "\nsendcluster: ERROR the '-d' option is mandatory.\n"
-			sys.exit( message )
-		# Dirs 
-		if not opt.pkgdir:
-			message = "\nsendcluster: ERROR the '--pkgdir' option is mandatory.\n"
-			sys.exit( message )
-		if not opt.basedir:
-			message = "\nsendcluster: ERROR the '--basedir' option is mandatory.\n"
 			sys.exit( message )
 		# Instantiate and submit
 		manager = None
