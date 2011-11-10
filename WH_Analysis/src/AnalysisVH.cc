@@ -693,15 +693,15 @@ void AnalysisVH::InsideLoop()
 	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
   
 	
-	// Jet Veto
+	// Jet Veto:
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
-	for(unsigned int k = 0; k < fData->GetJetAKPF2PATEnergy()->size(); ++k) 
+	for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
 	{
-		TLorentzVector Jet(fData->GetJetAKPF2PATPx()->at(k), 
-				fData->GetJetAKPF2PATPy()->at(k), 
-				fData->GetJetAKPF2PATPz()->at(k), 
-				fData->GetJetAKPF2PATEnergy()->at(k));
+		TLorentzVector Jet(fData->GetJetAKPFNoPUPx()->at(k), 
+				fData->GetJetAKPFNoPUPy()->at(k), 
+				fData->GetJetAKPFNoPUPz()->at(k), 
+				fData->GetJetAKPFNoPUEnergy()->at(k));
 		//FIXME: Add the cuts to the config file
 		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
 				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
