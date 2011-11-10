@@ -36,6 +36,11 @@
 #include "TStopwatch.h"
 #endif
 
+
+// Global variables
+double xsection = 0;
+int    evtsample= 0;
+
 // Storing the datafiles
 void AddDataFiles(const std::vector<TString> & files, 
 		std::vector<TString> & datafiles)
@@ -55,12 +60,11 @@ void PrintDataFiles(const std::vector<TString> & dataFiles)
 // Giving a dataset extract all the files and stores them in a file
 const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 {
-	///////////////////////////////
-	// INPUT DATA SAMPLE
-	// 
-	// 1) Load DatasetManager
-	DatasetManager* dm = 0;
-	
+	bool storeXSE = false;
+
+	// 1) Load the files
+	DatasetManager * dm = 0;
+
 	std::vector<TString> datafiles;
 	// 2) Asign the files 
 	if(dataName.Contains("LocalWH")) 
@@ -103,6 +107,8 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	}
 	else 
 	{
+		storeXSE=true;
+
 		TString folder("Summer11");
 		TString skim("Skim2LPt1010");
 		//TString folder("Spring11Latinos");
@@ -120,6 +126,9 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		
 		dm->LoadDataset(dataName);  // Load information about a given dataset
 		AddDataFiles(dm->GetFiles(),datafiles); //Find files
+
+		xsection = dm->GetCrossSection();
+		evtsample= dm->GetEventsInTheSample();
 		
 #ifdef DEBUG
 		std::cout << std::endl;
@@ -166,6 +175,13 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	}
 
 	of << treeType << std::endl;
+	// CrossSection and number of events if proceed
+	if( storeXSE )
+	{
+		of << "XS:" << xsection << std::endl;
+		of << "NEvents:" << evtsample << std::endl;
+	}
+
 	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
 	{
 		of << it->Data() << std::endl;
@@ -177,7 +193,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 
 // Overloaded function to extract the file names from a previous stored file
 // It will catch the files inside a subset: if datanamefile != is the name
-std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataName, const char * datanamefile = 0 )
+std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataName, const char * datanamefile = 0 )
 {
 	TString dataNameprov(dataName);
 	const char * filename = 0;
@@ -199,14 +215,7 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataNa
 	if( ! inputf.is_open() )
 	{
 		// Call the extractdatafiles overloaded to create the filename
-		std::vector<TString> dum = extractdatafiles(TString(dataName));
 		return extractdatafiles(dataName);
-		// And call again this function
-	/*	std::cerr << "ERROR: Imposible to open the file '" << filename 
-			<< "' to retrieve file names information.\n"
-			<< "Run this code previously with the '-t local' option to create the file"
-			<< std::endl;
-		exit(-1);*/
 	}
 	
 	// TreeType
@@ -220,11 +229,22 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles( const char * dataNa
 
 	std::vector<TString> datafiles;
 	std::string line;
+
 	// TString construction
 	while( ! inputf.eof() )
 	{	
 		getline(inputf,line);
-		if( line != "")
+		if( line.find("XS:") != line.npos )
+		{
+			std::stringstream sXS(line.substr(3));
+			sXS >> xsection; 
+		}
+		else if(line.find("NEvents:") != line.npos)
+		{
+			std::stringstream sNE(line.substr(8));
+			sNE >> evtsample;
+		}
+		else if( line != "" )
 		{
 			datafiles.push_back( TString(line) );
 		}
@@ -266,12 +286,15 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	}
 	ip->SetNamedInt("NEventsSkim", chain->GetEntries());
 	delete chain;
+	// + Cross section after skimming
+	if((!dataName.Contains("Data"))  && (!dataName.Contains("LocalWH"))) 
+	{
+		ip->SetNamedDouble("CrossSection", xsection);
+		ip->SetNamedInt("NEventsSample", evtsample);
+	}
 
 	// + Data Name
 	ip->SetNamedString("DataName", dataName.Data());
-	// + Luminosity
-	// + Cuts
-	//   - Pt
 	
 	///////////////////////////////
 	// NAME OF ANALYSIS CLASS. 
@@ -362,7 +385,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Extract the datafiles from the file created in the "local" path
-	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles( dataName, datanamefile );
+	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles(dataName, datanamefile );
 	std::vector<TString> datafiles = dum.second;
 	treeTypes dataType  = dum.first;
 	
@@ -374,7 +397,6 @@ int main(int argc, char *argv[])
 	// Initialize the analysis specific parameters using a config file
 	InputParameters * ip = setparameters(datafiles,TString(dataName),cfgfile); 
 	//ip->DumpParms();
-
 
 	TChain * tchaindataset = 0;
 	// Data: FIXME: Extract this info from a centralized way (TreeManager?)

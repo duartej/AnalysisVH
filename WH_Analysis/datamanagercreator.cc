@@ -40,6 +40,10 @@ void AddDataFiles(const std::vector<TString> & files,
 // Giving a dataset extract all the files
 const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 {
+	double xsection = 0;
+	int    evtsample= 0;
+	bool storeXSE = false;
+
 	///////////////////////////////
 	// INPUT DATA SAMPLE
 	// 
@@ -79,6 +83,8 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	}
 	else 
 	{
+		storeXSE = true;
+
 		TString folder("Summer11");
 		TString skim("Skim2LPt1010");
 		//TString folder("Spring11Latinos");
@@ -96,6 +102,9 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		
 		dm->LoadDataset(dataName);  // Load information about a given dataset
 		AddDataFiles(dm->GetFiles(),datafiles); //Find files
+		
+		xsection = dm->GetCrossSection();
+		evtsample= dm->GetEventsInTheSample();
 		
 #ifdef DEBUG
 		std::cout << std::endl;
@@ -140,6 +149,14 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	}
 
 	of << treeType << std::endl;
+	
+	// CrossSection and number of events if proceed
+	if( storeXSE )
+	{
+		of << "XS:" << xsection << std::endl;
+		of << "NEvents:" << evtsample << std::endl;
+	}
+	// Datafiles
 	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
 	{
 		of << it->Data() << std::endl;
@@ -248,6 +265,9 @@ int main(int argc, char *argv[])
 	knowndata.insert("WJets_Madgraph");
 	knowndata.insert("TW");
 	knowndata.insert("TbarW");
+
+	//Data 
+	knowndata.insert("Data");
 
 	// Checking the validity of the input dataname
 	if( knowndata.find(std::string(dataName)) == knowndata.end() )
