@@ -104,7 +104,7 @@ void MuonSelection::LockCuts(){
 		}
 		else if( cut->first == "MinNValidHitsSATrk" )
 		{
-			kMinNValidHitsSATrk = cut->second;
+			kMinNValidHitsSATrk = (int)cut->second;
 		}
 		else if( cut->first == "MaxNormChi2GTrk" )
 		{
@@ -112,15 +112,15 @@ void MuonSelection::LockCuts(){
 		}
 		else if( cut->first == "MinNumOfMatches" )
 		{
-			kMinNumOfMatches = cut->second;
+			kMinNumOfMatches = (int)cut->second;
 		}
 		else if( cut->first == "MinNValidPixelHitsInTrk" )
 		{
-			kMinNValidPixelHitsInTrk = cut->second;
+			kMinNValidPixelHitsInTrk = (int)cut->second;
 		}
 		else if( cut->first == "MinNValidHitsInTrk" )
 		{
-			kMinNValidHitsInTrk = cut->second;
+			kMinNValidHitsInTrk = (int)cut->second;
 		}
 		else if( cut->first == "MaxDeltaPtMuOverPtMu" )
 		{
