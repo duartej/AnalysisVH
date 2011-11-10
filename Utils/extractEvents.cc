@@ -55,7 +55,7 @@ int main( int argc, const char * argv[])
 	{
 		TFile * f = new TFile(files[0].c_str());
 		TH1D *  h = (TH1D*)f->Get("fHProcess");
-		std::cout << h->GetEntries() << std::endl;
+		std::cout << int(h->GetEntries()) << std::endl;
 
 		f->Close();
 		delete f;

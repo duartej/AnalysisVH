@@ -85,7 +85,7 @@ class clustermanager(object):
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# Checking if has sense the njobs
-			if self.nevents/10 < self.njobs:
+			if self.nevents < 10000:
 				message = "clustermanager: WARNING the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
@@ -323,15 +323,13 @@ class clustermanager(object):
 			datafiles = set([])
 			for l in lines:
 				if ".root" in l:
-					# FIXME Find a way to deal 
-					# with blablabl_bal_numbero.root
-					datafiles.add( l.split(".root")[0] )
-
+					datafiles.add(l.replace("\n",""))
+		
 		# Binary to extract the entries
 		binexe = os.path.join(self.basedir,"bin/extractEvents")
 		command = [ binexe ]
 		for f in datafiles:
-			command.append( f+"*" )
+			command.append( f )
 		# The flag to evaluate processed file and extract the *
 		if direct:
 			command[-1] = command[-1][:-1]
@@ -344,7 +342,7 @@ class clustermanager(object):
 
 		totalevts = p[0]
 		# Just checking the exponential format
-		return int(float(totalevts))
+		return int(totalevts)
 	
 	def createconfig(self,jobNumber,evtTuple):
 	        """From a reference cfgfile, constructs a new config file
