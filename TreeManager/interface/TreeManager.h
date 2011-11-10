@@ -120,10 +120,14 @@ class TreeManager
 		
 		
 		//-- Jet
-		virtual std::vector<float>* GetJetAKPF2PATPx() const = 0;
+		virtual std::vector<float>* GetJetAKPFNoPUPx() const = 0;
+		virtual std::vector<float>* GetJetAKPFNoPUPy() const = 0;
+		virtual std::vector<float>* GetJetAKPFNoPUPz() const = 0;
+		virtual std::vector<float>* GetJetAKPFNoPUEnergy() const = 0;
+		/*virtual std::vector<float>* GetJetAKPF2PATPx() const = 0;
 		virtual std::vector<float>* GetJetAKPF2PATPy() const = 0;
 		virtual std::vector<float>* GetJetAKPF2PATPz() const = 0;
-		virtual std::vector<float>* GetJetAKPF2PATEnergy() const = 0;
+		virtual std::vector<float>* GetJetAKPF2PATEnergy() const = 0; MINITREES*/
 
 		//-- Met
 		virtual const float GetMETPFET() const = 0;
@@ -202,10 +206,14 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetMuonNormChi2GTrk() const");
 		
 			//-- Jet
-			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPx() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPx() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPy() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPz() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUEnergy() const");
+			/*methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPx() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPy() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPz() const");
-			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATEnergy() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATEnergy() const"); MINITREES*/
 
 			//-- Met
 			methods.push_back("virtual const float GetMETPFET() const");
