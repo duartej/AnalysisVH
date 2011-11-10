@@ -4,9 +4,14 @@
 **                **
 ********************
 
-Nov. 9th 2011--  Tag release v0.1 : First version working
+Nov. 9th 2011 --  Tag release v0.1 : First version working
   * Synchronised with original-PROOF code (IFCA-UO/WH  MAIN r1.11)
   * Found a bug in PROOF's code: line 566 'imuon' should be 'i' (r1.12)
+Nov. 10th 2011--  Tag release v0.2 : Freeze version with MiniTrees (before change to Latinos)
+  * Improved sendcluster utility (to send analysis to cluster and gather the outputs)
+  * Added haddPlus utility, hadd improved version to deal with InputParamters and TCounterUI
+    objects
+  * Fixed some methods in order to make the plot utilities work with the outputs
 
 
 
