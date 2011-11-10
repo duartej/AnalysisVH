@@ -59,27 +59,24 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	else if(dataName.Contains("Data")) 
 	{
 		std::vector<TString> data1= 
-			DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
-					"Tree_DoubleMu_May10_Skim2LPt1010_216.2");
+			DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC_Reload", 
+					"Tree_DoubleMu_May10_Skim2LPt1010_215.3");
 		AddDataFiles(data1,datafiles);
                 
 		std::vector<TString> data2= 
-             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
-             				       "Tree_DoubleMuV4_Skim2LPt1010_929.7");
+             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC_Reload", 
+             				       "Tree_DoubleMuV4_Skim2LPt1010_927.9");
 		AddDataFiles(data2,datafiles);
                 
 		std::vector<TString> data3= 
-             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
-             				  "Tree_DoubleMuAug5_Skim2LPt1010_368.0");
+             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC_Reload", 
+             				  "Tree_DoubleMuAug5_Skim2LPt1010_334.4");
 		AddDataFiles(data3,datafiles);
              	
 		std::vector<TString> data4= 
-             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC", 
-				  "Tree_DoubleMuV6_Skim2LPt1010_658.9");
+             		  DatasetManager::GetRealDataFiles("Data7TeVRun2011A_newJEC_Reload", 
+				  "Tree_DoubleMuV6_Skim2LPt1010_662.9");
 		AddDataFiles(data4,datafiles);
-	
-		std::cout << ">> List of Real Data Files:" << std::endl;
-		
 	}
 	else 
 	{
