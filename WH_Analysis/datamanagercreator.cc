@@ -180,7 +180,7 @@ int main(int argc, char *argv[])
 	const char * dataName; // = "WH160";
 	const char * analysispkgpath = ".";
 	bool justdatafiles = false;
-	const char * creadn = 0;
+	const char * creadn = dataName;
 	
 	//Parsing input options
 	if(argc == 1)
@@ -188,8 +188,10 @@ int main(int argc, char *argv[])
 		std::cout << "usage: datamanagercreator dataname [options]" << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "Options:" << std::endl;
-		std::cout << "    -p 'base path of the analysis package' " << std::endl;
-		std::cout << "    -c 'all'  all the datanames .dn files creation only" << std::endl;
+		std::cout << "    -p <base_path_of_the_analysis_package> " << std::endl;
+		std::cout << "    -c Avoid the TreeManager concrete class creation " << std::endl;
+		std::cout << "       generating just the dataname.dn file" << std::endl;
+		std::cout << "    -a Using with the '-c' flag create all the known datanames" << std::endl;
 		std::cout << "" << std::endl;
 		std::cout << "List of known dataname:" << std::endl;
 		std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
@@ -223,12 +225,12 @@ int main(int argc, char *argv[])
 			}
 			if( strcmp(argv[i],"-c") == 0 )
 			{
-				if( strcmp(argv[i+1],"all") != 0 )
-				{
-					creadn = dataName;
-				}
 				justdatafiles = true;
-			}			
+			}	
+			if( strcmp(argv[i],"-a") == 0 )
+			{
+				creadn = 0;
+			}
 		}
 	}
 
