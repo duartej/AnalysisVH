@@ -38,7 +38,7 @@ void AddDataFiles(const std::vector<TString> & files,
 }
 
 // Giving a dataset extract all the files
-const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
+const std::vector<TString> * extractdatafiles(TString dataName = "HW160" )
 {
 	double xsection = 0;
 	int    evtsample= 0;
@@ -50,33 +50,33 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	// 1) Load DatasetManager
 	DatasetManager* dm = 0;
 	
-	std::vector<TString> datafiles;
+	std::vector<TString> * datafiles = new std::vector<TString>;
 	// 2) Asign the files 
 	if(dataName.Contains("LocalWH")) 
 	{
-		datafiles.push_back( "/hadoop/PrivateProduction/WH_2l_42X/Tree_WH_2l_42X.root" );
+		datafiles->push_back( "/hadoop/PrivateProduction/WH_2l_42X/Tree_WH_2l_42X.root" );
 	}
 	else if(dataName.Contains("Data")) 
 	{
 		std::vector<TString> data1= 
 			DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
 					"Tree_DoubleMuMay10_210.5");
-		AddDataFiles(data1,datafiles);
+		AddDataFiles(data1,*datafiles);
                 
 		std::vector<TString> data2= 
              		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
              				       "Tree_DoubleMuV4_927.9");
-		AddDataFiles(data2,datafiles);
+		AddDataFiles(data2,*datafiles);
                 
 		std::vector<TString> data3= 
              		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
              				  "Tree_DoubleMuAug5_334.4");
-		AddDataFiles(data3,datafiles);
+		AddDataFiles(data3,*datafiles);
              	
 		std::vector<TString> data4= 
              		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
 				  "Tree_DoubleMuV6_662.9");
-		AddDataFiles(data4,datafiles);
+		AddDataFiles(data4,*datafiles);
 	}
 	else 
 	{
@@ -84,7 +84,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 
 		//TString folder("Summer11");
 		//TString skim("Skim2LPt1010");
-		TString folder("Spring11Latinos");
+		TString folder("Summer11 Latinos");
 		TString skim("/");
 
 		if (dataName.Contains("WH")) 
@@ -100,7 +100,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		dm = new DatasetManager(folder, skim);
 		
 		dm->LoadDataset(dataName);  // Load information about a given dataset
-		AddDataFiles(dm->GetFiles(),datafiles); //Find files
+		AddDataFiles(dm->GetFiles(),*datafiles); //Find files
 		
 		xsection = dm->GetCrossSection();
 		evtsample= dm->GetEventsInTheSample();
@@ -119,12 +119,9 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		dm = 0;
 	}
 	
-	if(datafiles.size() == 0) 
+	if(datafiles->size() == 0) 
 	{
-		std::cerr << "ERROR: Could not find dataset '" 
-			<< dataName << "' with DatasetManager!!! " << std::endl;
-		std::cerr << "       Exiting!" << std::endl;      
-		exit(-1);
+		return 0;
 	}
 
 	// Persistency
@@ -138,7 +135,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	}
 	// TreeType
 	treeTypes treeType;
-	if( datafiles[0].Contains("TESCO") )
+	if( (*datafiles)[0].Contains("TESCO") )
 	{
 		treeType = TESCO;
 	}
@@ -156,7 +153,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 		of << "NEvents:" << evtsample << std::endl;
 	}
 	// Datafiles
-	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
+	for(std::vector<TString>::iterator it = datafiles->begin(); it != datafiles->end(); ++it)
 	{
 		of << it->Data() << std::endl;
 	}
@@ -278,8 +275,15 @@ int main(int argc, char *argv[])
 
 
 	treeTypes dataType;
-	std::vector<TString> datafiles;
-	datafiles = extractdatafiles( TString(dataName) );
+	const std::vector<TString> * datafiles = extractdatafiles( TString(dataName) );
+	if( datafiles == 0 )
+	{
+		std::cerr << "ERROR: Could not find dataset '" 
+			<< dataName << "' with DatasetManager!!! " << std::endl;
+		std::cerr << "       Exiting!" << std::endl;      
+		exit(-1);
+	}
+
 	if( justdatafiles )
 	{
 		if( creadn == 0 )
@@ -288,13 +292,18 @@ int main(int argc, char *argv[])
 			for(std::set<std::string>::iterator it = knowndata.begin();
 					it != knowndata.end(); ++it)
 			{
-				std::vector<TString> dummy = extractdatafiles( TString(*it) );
+				const std::vector<TString> * dummy = extractdatafiles( TString(*it) );
+				if( dummy != 0 )
+				{
+					delete dummy;
+					dummy = 0;
+				}
 			}
 		}
 		return 0;
 	}
 	// Create datamanager
-	std::pair<std::string,treeTypes> selfilenameTreeType = createdatamanager(datafiles);
+	std::pair<std::string,treeTypes> selfilenameTreeType = createdatamanager(*datafiles);
 	std::string selectorfilename = selfilenameTreeType.first;
 	dataType = selfilenameTreeType.second;
 	
@@ -308,6 +317,12 @@ int main(int argc, char *argv[])
 	system( command2.c_str() );
 	// Compilation stuff
 	//system("make");
+
+	// Freeing mem
+	if( datafiles != 0)
+	{
+		delete datafiles;
+	}
 
 	return 0;
 }

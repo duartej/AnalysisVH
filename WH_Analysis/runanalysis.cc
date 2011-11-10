@@ -109,7 +109,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 
 		//TString folder("Summer11");
 		//TString skim("Skim2LPt1010");
-		TString folder("Spring11Latinos");
+		TString folder("Summer11 Latinos");
 		TString skim("/");
 
 		if (dataName.Contains("WH")) 
