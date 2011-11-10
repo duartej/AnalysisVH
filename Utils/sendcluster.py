@@ -158,7 +158,7 @@ class clustermanager(object):
 		print "=== ",self.dataname,": Joining all the files in one"
 		# FIXME: Only there are 1 file, not needed the hadd
 		finalfile = os.path.join("Results",self.dataname+".root")
-		command = [ 'hadd', finalfile ]
+		command = [ 'haddPlus', finalfile ]
 		for f in self.outputfiles.itervalues():
 			command.append( f )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
