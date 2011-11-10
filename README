@@ -18,6 +18,8 @@ TODO:
      Checks:
              * How much time is this slowing down the reading process?
 	     * Is the amount of time aceptable?
+  5. Check with the *.sh.e* the good behaviour of the job
+
 
 
 ####  Some Comments
