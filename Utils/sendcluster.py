@@ -330,9 +330,8 @@ class clustermanager(object):
 		command = [ binexe ]
 		for f in datafiles:
 			command.append( f )
-		# The flag to evaluate processed file and extract the *
+		# The flag to evaluate processed file
 		if direct:
-			command[-1] = command[-1][:-1]
 			command.append( "-h" )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
