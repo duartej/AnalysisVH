@@ -77,6 +77,42 @@ class TreeManager
 
 		// ---- End Generation
 
+		// ---- Reco Electron
+		// ------- kinematic
+		virtual std::vector<float>* GetElecPt() const = 0;
+		virtual std::vector<float>* GetElecPx() const = 0;
+		virtual std::vector<float>* GetElecPy() const = 0;
+		virtual std::vector<float>* GetElecPz() const = 0;
+		virtual std::vector<float>* GetElecEnergy() const = 0;
+		
+		virtual std::vector<int>* GetElecCharge() const = 0;
+		
+		// ------- Position
+		virtual std::vector<float>* GetElecvx() const = 0;
+		virtual std::vector<float>* GetElecvy() const = 0;
+		virtual std::vector<float>* GetElecvz() const = 0;
+
+		// ------- Quality
+		virtual std::vector<float>* GetElecSCEta() const = 0;
+		virtual std::vector<float>* GetElecdeltaPhiIn() const = 0;
+		virtual std::vector<float>* GetElecdeltaEtaIn() const = 0;
+		virtual std::vector<float>* GetElecHtoE() const = 0;
+		virtual std::vector<float>* GetElecfBrem() const = 0;
+		virtual std::vector<float>* GetEleceSuperClusterOverP() const = 0;
+		virtual std::vector<float>* GetElecsigmaIetaIeta() const = 0;
+		
+		// ------- Isolation
+		virtual std::vector<float>* GetEleceleSmurfPF() const = 0;
+		virtual std::vector<bool>* GetElecpassesNewConversion() const = 0;
+		virtual std::vector<int>* GetElecnHits() const = 0;
+		
+		// ------- IP, PV stuff
+		virtual std::vector<float>* GetElecIP2DInTrack() const = 0;
+		virtual std::vector<float>* GetElecIP2DBiasedPV() const = 0;
+		virtual std::vector<float>* GetElecIP2DUnBiasedPV() const = 0;
+		virtual std::vector<float>* GetElecdzPVBiasedPV() const = 0;
+		virtual std::vector<float>* GetElecdzPVUnBiasedPV() const = 0;
+
 		// ---- Reco Muon
 		// ------- kinematic
 		virtual std::vector<float>* GetMuonPt() const = 0;
@@ -167,9 +203,46 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetGenMuonPx()     const");
 			methods.push_back("virtual std::vector<float>* GetGenMuonPy()     const");
 			methods.push_back("virtual std::vector<float>* GetGenMuonPz()     const");
-		
-			// Reco Muons
+			
+			// Reco Electrons
+			// kinematic
+			methods.push_back("virtual std::vector<float>* GetElecPt() const");
+			methods.push_back("virtual std::vector<float>* GetElecPx() const");
+			methods.push_back("virtual std::vector<float>* GetElecPy() const");
+			methods.push_back("virtual std::vector<float>* GetElecPz() const");
+			methods.push_back("virtual std::vector<float>* GetElecEnergy() const");
+			
+			methods.push_back("virtual std::vector<int>* GetElecCharge() const");
+			
+			// Position
+			methods.push_back("virtual std::vector<float>* GetElecvx() const");
+			methods.push_back("virtual std::vector<float>* GetElecvy() const");
+			methods.push_back("virtual std::vector<float>* GetElecvz() const");
+	
+			// Quality
+			methods.push_back("virtual std::vector<float>* GetElecSCEta() const");
+			methods.push_back("virtual std::vector<float>* GetElecdeltaPhiIn() const");
+			methods.push_back("virtual std::vector<float>* GetElecdeltaEtaIn() const");
+			methods.push_back("virtual std::vector<float>* GetElecHtoE() const");
+			methods.push_back("virtual std::vector<float>* GetElecfBrem() const");
+			methods.push_back("virtual std::vector<float>* GetEleceSuperClusterOverP() const");
+			methods.push_back("virtual std::vector<float>* GetElecsigmaIetaIeta() const");
+
 			// Isolation
+			methods.push_back("virtual std::vector<float>* GetEleceleSmurfPF() const");
+			methods.push_back("virtual std::vector<bool>* GetElecpassesNewConversion() const");
+			methods.push_back("virtual std::vector<int>* GetElecnHits() const");
+			
+			// IP, PV stuff
+			methods.push_back("virtual std::vector<float>* GetElecIP2DInTrack() const");
+			methods.push_back("virtual std::vector<float>* GetElecIP2DBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetElecIP2DUnBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetElecdzPVBiasedPV() const");
+			methods.push_back("virtual std::vector<float>* GetElecdzPVUnBiasedPV() const");
+
+
+			// Reco Muons
+			// kinematic
 			methods.push_back("virtual std::vector<float>* GetMuonPt() const");
 			methods.push_back("virtual std::vector<float>* GetMuondeltaPt() const");
 			methods.push_back("virtual std::vector<float>* GetMuonPx() const");
