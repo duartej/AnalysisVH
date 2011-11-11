@@ -133,7 +133,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		//! Methods to fill histograms
 		void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
 				const unsigned int & fs);
-		void FillGenPlots(ECutLevel cut, double puw); 
+		virtual void FillGenPlots(ECutLevel cut, double puw) = 0; //FIXME. de momento 
 
 		// Number of final state leptons
 		unsigned int _nLeptons;

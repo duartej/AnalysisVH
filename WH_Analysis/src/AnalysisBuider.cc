@@ -1,6 +1,7 @@
 
 #include "AnalysisBuilder.h"
 #include "AnalysisWHmmm.h"
+#include "AnalysisWHeee.h"
 
 #include "TreeManagerMiniTrees.h"
 #include "MuonSelection.h"
@@ -23,11 +24,17 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputPa
 	if( thetype == MiniTrees )
 	{
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
-		// The selector: si son Muones...
-		MuonSelection * selectioncuts = new MuonSelection(data);
-		//ElecSelection * selectioncuts = new ElecSelection(data);
-
-		an = new AnalysisWHmmm( data, ip, selectioncuts, tree );
+		if( leptonskind == 0 )
+		{
+			// The selector: si son Muones...
+			MuonSelection * selectioncuts = new MuonSelection(data);
+			an = new AnalysisWHmmm( data, ip, selectioncuts, tree );
+		}
+		else if( leptonskind == 1 )
+		{
+			ElecSelection * selectioncuts = new ElecSelection(data);
+			an = new AnalysisWHeee( data, ip, selectioncuts, tree );
+		}				
 	}
 
 	return an;

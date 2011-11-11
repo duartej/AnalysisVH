@@ -423,7 +423,7 @@ int main(int argc, char *argv[])
 		tchaindataset->Add(*it);
 	}
 
-	tchaindataset->GetListOfFiles()->Print();
+	//tchaindataset->GetListOfFiles()->Print();
 
 
 #ifdef TIMERS
@@ -433,7 +433,8 @@ int main(int argc, char *argv[])
 #endif
 	// Creating selector
 	// --- Mira el constructor...
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 0, ip, tchaindataset );
+	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 0, ip, tchaindataset );
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 1, ip, tchaindataset ); // Elec
 
 #ifdef TIMERS
 	//T4
