@@ -88,12 +88,25 @@ class AnalysisVH : public CMSAnalysisSelector
 {
 	public: 
 		//! For histograms
-		enum { fHProcess , fHGenFinalState , fHGenFinalStateNoTaus, fHNGenWMuons,
-			fHEventsPerCut, fHEventsPerCut3Mu, fHNRecoMuons, fHNSelectedMuons,
-			fHNSelectedPVMuons, fHNSelectedIsoMuons, fHNSelectedIsoGoodMuons,
-			fHMinDeltaRMuMu, fHMaxDeltaRMuMu, fHMinDeltaPhiMuMu, fHMaxDeltaPhiMuMu,
-			fHMuonCharge, fHHInvMass, fHZInvMass, fHMET
-
+		enum {  fHProcess,                //Process ID
+			fHGenFinalState, 	  //Final state from generation (incl. taus)
+			fHGenFinalStateNoTaus,    //Final state from generation (no taus)
+			fHNGenWLeptons,		  //Generated leptons coming from a W
+			fHEventsPerCut,           //Events passing every cut
+			fHEventsPerCut3Lepton,    //Events passing every cut that are 3 lepton from gen
+			fHNRecoLeptons,           //Reconstructed leptons in the event
+			fHNSelectedLeptons,       //Leptons passing the basic selection
+			fHNSelectedPVLeptons,     //Selected Leptons close to the PV
+			fHNSelectedIsoLeptons,    //Selected Isolated leptons
+			fHNSelectedIsoGoodLeptons,//Selected Isolated Good Leptons
+			fHMinDeltaRLp1Lp2,        //Smallest DeltaR between 2 opp. sign leptons
+			fHMaxDeltaRLp1Lp2,         //Largest DeltaR between 2 opp. sign leptons
+			fHMinDeltaPhiLp1Lp2,      //Smallest Delta phi between 2 opp. sign leptons
+			fHMaxDeltaPhiLp1Lp2,      //Largest Delta phi between 2 opp. sign leptons
+			fHLeptonCharge,           //Sum charges of leptons
+			fHHInvMass,               //Invariant mass of leptons supposedly from H
+			fHZInvMass,               //Invariant mass of leptons in/out of Z peak
+			fHMET                     //Missing ET after inv mass cut
 		};
 
 		// State prepare analisis
@@ -108,12 +121,13 @@ class AnalysisVH : public CMSAnalysisSelector
 		
 		virtual void InitialiseParameters();
 		virtual void Initialise();
-		virtual void InsideLoop();
+		virtual void InsideLoop() = 0;
 		virtual void Summary();
 
 	private:
 		AnalysisVH();
 
+	protected: 
 		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 				const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
@@ -139,12 +153,8 @@ class AnalysisVH : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		unsigned int fNGenElectrons;             //Number of generated electrons from W or tau
 		unsigned int fNGenMuons;                 //Number of generated muons from W or tau
-		std::vector<TLorentzVector> fGenMuon;  //TLorentzVector with the 3 muons from W or tau
+		std::vector<TLorentzVector> fGenLepton;  //TLorentzVector with the 3 muons from W or tau
 
-
-		// Included in the CMSAnalysisSelector !! TO DELETE
-		//CutManager * _selectioncuts;
-		
 		// PU Weight utility
 		//----------------------------------------------------------------------------
 		PUWeight* fPUWeight;		
@@ -152,35 +162,19 @@ class AnalysisVH : public CMSAnalysisSelector
 		// FIXME: NECESARIO???
 		TTree * _tree;
 
-		// Histograms FIXME: 3 --> nLeptons
+		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
+		//                         y map: { #id : { # corte: TH1D } }
 		//----------------------------------------------------------------------------
-		//TH1D* fHProcess;               //Process ID
-		//TH1D* fHGenFinalState;         //Final state from generation (incl. taus)
-		//TH1D* fHGenFinalStateNoTaus;   //Final state from generation (no taus)
-		//TH1D* fHNGenWMuons;            //Generated muons coming from a W
-		TH1D* fHGenPtMu[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
-		TH1D* fHGenEtaMu[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
-		//TH1D* fHEventsPerCut;          //Events passing every cut
-		//TH1D* fHEventsPerCut3Mu;       //Events passing every cut that are 3 mu from gen
-		//TH1D* fHNRecoMuons;            //Reconstructed muons in the event
-		//TH1D* fHNSelectedMuons;        //Muons passing the basic selection
-		//TH1D* fHNSelectedPVMuons;      //Selected Muons close to the PV
-		//TH1D* fHNSelectedIsoMuons;     //Selected Isolated Muons
-		//TH1D* fHNSelectedIsoGoodMuons; //Selected Isolated Good Muons
-		TH1D* fHPtMu[3];               //Pt of 1st/2nd/3rd good isolated muon
-		TH1D* fHEtaMu[3];              //Eta of 1st/2nd/3rd good isolated muon
-		TH1D* fHDeltaRGenRecoMu[3];    //DeltaR between reco and gen muons
-		//TH1D* fHMinDeltaRMuMu;         //Smallest DeltaR between 2 opp. sign leptons
-		//TH1D* fHMaxDeltaRMuMu;         //Largest DeltaR between 2 opp. sign leptons
-		//TH1D* fHMinDeltaPhiMuMu;       //Smallest Delta phi between 2 opp. sign leptons
-		//TH1D* fHMaxDeltaPhiMuMu;       //Largest Delta phi between 2 opp. sign leptons
-		//TH1D* fHMuonCharge;            //Sum charges of muons
-		//TH1D* fHHInvMass;              //Invariant mass of leptons supposedly from H
-		//TH1D* fHZInvMass;              //Invariant mass of leptons in/out of Z peak
-		//TH1D* fHMET;                   //Missing ET after inv mass cut
+		TH1D* fHGenPtLepton[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
+		TH1D* fHGenEtaLepton[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
+		TH1D* fHPtLepton[3];               //Pt of 1st/2nd/3rd good isolated muon
+		TH1D* fHEtaLepton[3];              //Eta of 1st/2nd/3rd good isolated muon
+		TH1D* fHDeltaRGenRecoLepton[3];    //DeltaR between reco and gen muons
 
-		// FIXME ----
+		// -- Histograms
 		std::map<int,TH1D*> _histos;
+		//std::map<int,std::map<int,TH1D*> > _histos3Leptons; / { nombre_enum: { #lepton: TH1D* , .. } ..
+		//std::map<int,std::map<int, std::map<int,TH1D*> > > _histos3LeptonsPerCut; / { nombre_enum: { #lepton: { # corte: TH1D* ,  .. } .. } 
 
 
 	public:

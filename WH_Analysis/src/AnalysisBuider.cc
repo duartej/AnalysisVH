@@ -1,9 +1,10 @@
 
 #include "AnalysisBuilder.h"
-#include "AnalysisVH.h"
+#include "AnalysisWHmmm.h"
 
 #include "TreeManagerMiniTrees.h"
 #include "MuonSelection.h"
+#include "ElecSelection.h"
 
 //FIXME:PROV@
 #include<iostream>
@@ -24,8 +25,9 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputPa
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
 		// The selector: si son Muones...
 		MuonSelection * selectioncuts = new MuonSelection(data);
+		//ElecSelection * selectioncuts = new ElecSelection(data);
 
-		an = new AnalysisVH( data, ip, selectioncuts, tree );
+		an = new AnalysisWHmmm( data, ip, selectioncuts, tree );
 	}
 
 	return an;

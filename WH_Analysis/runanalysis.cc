@@ -456,7 +456,7 @@ int main(int argc, char *argv[])
 			<< "using 0 as default" << std::endl;
 		firstEvent = 0; 
 	}
-	std::cout << tchaindataset->GetEntries() << std::endl;
+	//std::cout << tchaindataset->GetEntries() << std::endl;
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
 #ifdef TIMERS

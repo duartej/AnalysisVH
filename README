@@ -12,11 +12,13 @@ Nov. 10th 2011--  Tag release v0.2 : Freeze version with MiniTrees (before chang
   * Added haddPlus utility, hadd improved version to deal with InputParamters and TCounterUI
     objects
   * Fixed some methods in order to make the plot utilities work with the outputs
+Nov. 11th 2011--  Tag release v0.3 : First version with Latinos
+  * TreeManager include electron methods
 
 
 
 TODO:
-  1. Incorporate the latino's trees
+  1. Incorporate the latino's trees ----> DONE
   2. Incorporate (create) an electron analysis
   3. Incorporate (create) a lepton analysis
   4. Use directly the tree->GetLeaf("nameofthebranch")->GetValue(index) (index=0 if there is no vector)

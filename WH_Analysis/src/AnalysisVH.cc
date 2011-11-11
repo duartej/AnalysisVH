@@ -9,7 +9,7 @@
 #include "PUWeight.h"
 
 #include "TTree.h"
-#include "TH1F.h"
+#include "TH1D.h"
 #include "TMath.h"
 
 // To be changed: FIXME
@@ -210,19 +210,19 @@ void AnalysisVH::Initialise()
 	_histos[fHGenFinalStateNoTaus]->Sumw2();
 
 	// Generated muons coming from a W
-	_histos[fHNGenWMuons] = CreateH1D("fHNGenWMuons", "N Gen #mu from W", 5, -0.5, 4.5);
+	_histos[fHNGenWLeptons] = CreateH1D("fHNGenWLeptons", "N Gen #mu from W", 5, -0.5, 4.5);
 	
 	// PT and Eta of most energetic gen muon from W or tau
 	for(unsigned int i = 0; i < _nLeptons; i++) 
 	{
 		for (unsigned int j = 0; j < _iNCuts; j++) 
 		{
-			TString ptname  = Form("fHGenPtMu%i_%i", i+1,j);
+			TString ptname  = Form("fHGenPtLepton%i_%i", i+1,j);
 			TString pttitle = Form("P_{T} #mu_{gen}^{%i} from W (#tau)", i+1);
-			TString etaname  = Form("fHGenEtaMu%i_%i", i+1,j);
+			TString etaname  = Form("fHGenEtaLepton%i_%i", i+1,j);
 			TString etatitle = Form("#eta #mu_{gen}^{%i} from W (#tau)", i+1);
-			fHGenPtMu[i][j]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
-			fHGenEtaMu[i][j] = CreateH1D(etaname, etatitle, 100, -5, 5);
+			fHGenPtLepton[i][j]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+			fHGenEtaLepton[i][j] = CreateH1D(etaname, etatitle, 100, -5, 5);
 		}
 	}
 
@@ -236,61 +236,61 @@ void AnalysisVH::Initialise()
 	}
   
 	// Events passing every cut that are 3 mu from gen
-	_histos[fHEventsPerCut3Mu] = CreateH1D("fHEventsPerCut3Mu", "Events passing each cut that are 3 mu from gen", 
+	_histos[fHEventsPerCut3Lepton] = CreateH1D("fHEventsPerCut3Lepton", "Events passing each cut that are 3 mu from gen", 
 			_iNCuts, 0, _iNCuts);
 	for(unsigned int i = 0; i < _iNCuts; i++)
 	{
-		_histos[fHEventsPerCut3Mu]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
 	}
 
 	// Reconstructed muons in the event
-	_histos[fHNRecoMuons] = CreateH1D("fHNRecoMuons", "Reconstructed #mu", 
+	_histos[fHNRecoLeptons] = CreateH1D("fHNRecoLeptons", "Reconstructed #mu", 
 			10, -0.5, 9.5);
 	
 	// Muons passing the basic selection
-	_histos[fHNSelectedMuons] = CreateH1D("fHNSelectedMuons", "Selected #mu", 
+	_histos[fHNSelectedLeptons] = CreateH1D("fHNSelectedLeptons", "Selected #mu", 
 			       10, -0.5, 9.5);
 
 	// Selected Muons close to the PV
-	_histos[fHNSelectedPVMuons] = CreateH1D("fHNSelectedPVMuons", 
+	_histos[fHNSelectedPVLeptons] = CreateH1D("fHNSelectedPVLeptons", 
 			"Selected #mu close to PV", 10, -0.5, 9.5);
 	// Selected Isolated Muons
-	_histos[fHNSelectedIsoMuons] = CreateH1D("fHNSelectedIsoMuons", 
+	_histos[fHNSelectedIsoLeptons] = CreateH1D("fHNSelectedIsoLeptons", 
 			"Selected Isolated #mu", 10, -0.5, 9.5);
 	// Selected Isolated Good Muons
-	_histos[fHNSelectedIsoGoodMuons] = CreateH1D("fHNSelectedIsoGoodMuons", 
+	_histos[fHNSelectedIsoGoodLeptons] = CreateH1D("fHNSelectedIsoGoodLeptons", 
 			"Selected good Isolated #mu", 10, -0.5, 9.5);
 	
 	// Pt and eta of first/second/third good isolated muon
 	for(unsigned int i = 0; i < _nLeptons; i++) 
 	{
-		TString ptname  = Form("fHPtMu%i", i+1);
+		TString ptname  = Form("fHPtLepton%i", i+1);
 		TString pttitle = Form("P_{T}^{#mu_{%i}}", i+1);
-		TString etaname  = Form("fHEtaMu%i", i+1);
+		TString etaname  = Form("fHEtaLepton%i", i+1);
 		TString etatitle = Form("#eta^{#mu_{%i}}", i+1);
-		TString drname  = Form("fHDeltaRGenRecoMu%i", i+1);
+		TString drname  = Form("fHDeltaRGenRecoLepton%i", i+1);
 		TString drtitle = Form("#Delta R for #mu %i", i+1);
-		fHPtMu[i]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
-		fHEtaMu[i] = CreateH1D(etaname, etatitle, 100, -5, 5);
-		fHDeltaRGenRecoMu[i] = CreateH1D(drname, drtitle, 150, 0, 5);
+		fHPtLepton[i]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+		fHEtaLepton[i] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		fHDeltaRGenRecoLepton[i] = CreateH1D(drname, drtitle, 150, 0, 5);
 	}
 	
 	//Smallest DeltaR between 2 opp. sign leptons
-	_histos[fHMinDeltaRMuMu] = CreateH1D("fHMinDeltaRMuMu", "Smallest #Delta R_{#mu#mu}",
+	_histos[fHMinDeltaRLp1Lp2] = CreateH1D("fHMinDeltaRLp1Lp2", "Smallest #Delta R_{#mu#mu}",
 			125, 0, 5);
 	//Smallest DeltaR between 2 opp. sign leptons
-	_histos[fHMaxDeltaRMuMu] = CreateH1D("fHMaxDeltaRMuMu", "Largest #Delta R_{#mu#mu}",
+	_histos[fHMaxDeltaRLp1Lp2] = CreateH1D("fHMaxDeltaRLp1Lp2", "Largest #Delta R_{#mu#mu}",
 			125, 0, 5);
 	
 	//Smallest DeltaPhi between 2 opp. sign leptons
-	_histos[fHMinDeltaPhiMuMu] = CreateH1D("fHMinDeltaPhiMuMu", "Smallest #Delta #phi_{#mu#mu}",
+	_histos[fHMinDeltaPhiLp1Lp2] = CreateH1D("fHMinDeltaPhiLp1Lp2", "Smallest #Delta #phi_{#mu#mu}",
 			120, 0, TMath::Pi());
 	//Largest DeltaPhi between 2 opp. sign leptons
-	_histos[fHMaxDeltaPhiMuMu] = CreateH1D("fHMaxDeltaPhiMuMu", "Largest #Delta #phi_{#mu#mu}",
+	_histos[fHMaxDeltaPhiLp1Lp2] = CreateH1D("fHMaxDeltaPhiLp1Lp2", "Largest #Delta #phi_{#mu#mu}",
 			120, 0, TMath::Pi());
 	
 	// Selected Isolated Good Muons
-	_histos[fHMuonCharge] = CreateH1D("fHMuonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
+	_histos[fHLeptonCharge] = CreateH1D("fHLeptonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
 		
 	// Invariant mass of leptons supposedly from H  
 	_histos[fHHInvMass] = CreateH1D("fHHInvMass", "M^{inv.}_{#mu#mu}", 150, 0, 150);
@@ -304,7 +304,7 @@ void AnalysisVH::Initialise()
 }
 
 
-//---------------------------------------------------------------------
+/*//---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
 void AnalysisVH::InsideLoop()
@@ -334,7 +334,7 @@ void AnalysisVH::InsideLoop()
 		unsigned int nmusfromW = fData->GetGenMuonSt3PID()->size();
 		unsigned int ntausfromW = fData->GetGenTauSt3PID()->size();
 		
-		_histos[fHNGenWMuons]->Fill(nmusfromW,puw); 
+		_histos[fHNGenWLeptons]->Fill(nmusfromW,puw); 
 		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);
 		_histos[fHGenFinalState]->Fill(fsTaus, puw);
 		
@@ -395,7 +395,7 @@ void AnalysisVH::InsideLoop()
 		std::cout << "DEBUG: fsNTau --> " << fsNTau << std::endl;
 #endif
 		// Initialize generation vector
-		fGenMuon.clear();
+		fGenLepton.clear();
 		//   Sort by energy
 		if(fNGenMuons == 3)  // FIXME:: PORQUE SOLO 3??
 		{
@@ -409,11 +409,11 @@ void AnalysisVH::InsideLoop()
 							fData->GetGenMuonEnergy()->at(igenmuons[i])) );
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
-			//fGenMuon = new std::vector<TLorentzVector>;
+			//fGenLepton = new std::vector<TLorentzVector>;
 			for(std::map<double,TLorentzVector>::reverse_iterator it = vOrder.rbegin(); 
 					it != vOrder.rend(); ++it)
 			{
-				fGenMuon.push_back( it->second );
+				fGenLepton.push_back( it->second );
 			}
 			delete vGenMuon;
 			vGenMuon = 0;
@@ -422,8 +422,8 @@ void AnalysisVH::InsideLoop()
 			for (unsigned int i = 0; i < fNGenMuons; ++i) 
 			{
 				std::cout << "[" << i << "] <- [" << igenmuons[i] 
-					//<< "] PT = " << (*fGenMuon)[i].Pt() 
-					<< "] PT = " << fGenMuon[i].Pt() 
+					//<< "] PT = " << (*fGenLepton)[i].Pt() 
+					<< "] PT = " << fGenLepton[i].Pt() 
 					<< " - ET = " << fData->GetGenMuonEnergy()->at(igenmuons[i]) 
 					<< std::endl;
 			}      
@@ -431,8 +431,8 @@ void AnalysisVH::InsideLoop()
 			FillGenPlots(_iAllEvents,puw);
 			
 			// Freeing memory
-			//delete fGenMuon;
-			//fGenMuon = 0;
+			//delete fGenLepton;
+			//fGenLepton = 0;
 		}
 	}
 	
@@ -504,12 +504,12 @@ void AnalysisVH::InsideLoop()
 	//this->SetGoodVertexIndex(iGoodVertex);
 	
 	// Store the number of reconstructed muons without any filter
-	_histos[fHNRecoMuons]->Fill(fData->GetMuonPx()->size());
+	_histos[fHNRecoLeptons]->Fill(fData->GetMuonPx()->size());
 	
 	// (1) Basic selection
 	//--------------------
 	unsigned int nSelectedMuons = fLeptonSelection->GetNBasicLeptons();
-	_histos[fHNSelectedMuons]->Fill(nSelectedMuons,puw);
+	_histos[fHNSelectedLeptons]->Fill(nSelectedMuons,puw);
 
 	if(nSelectedMuons < kNMuons)
 	{
@@ -521,7 +521,7 @@ void AnalysisVH::InsideLoop()
 	// (2) PV selection
 	//--------------------
 	unsigned int nSelectedPVMuons = fLeptonSelection->GetNLeptonsCloseToPV();
-	_histos[fHNSelectedPVMuons]->Fill(nSelectedPVMuons,puw); 
+	_histos[fHNSelectedPVLeptons]->Fill(nSelectedPVMuons,puw); 
 	
 	if(nSelectedPVMuons < kNMuons)
 	{
@@ -534,7 +534,7 @@ void AnalysisVH::InsideLoop()
 	// (3) Isolated muons
 	//--------------------
 	unsigned int nSelectedIsoMuons = fLeptonSelection->GetNIsoLeptons();
-	_histos[fHNSelectedIsoMuons]->Fill(nSelectedIsoMuons,puw);  
+	_histos[fHNSelectedIsoLeptons]->Fill(nSelectedIsoMuons,puw);  
 	
 	if(nSelectedIsoMuons < kNMuons)
 	{
@@ -546,7 +546,7 @@ void AnalysisVH::InsideLoop()
 	// (4) Isolated good muons: Identification
 	//--------------------
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
-	_histos[fHNSelectedIsoGoodMuons]->Fill(nSelectedIsoGoodMuons,puw);
+	_histos[fHNSelectedIsoGoodLeptons]->Fill(nSelectedIsoGoodMuons,puw);
 	
 	if(nSelectedIsoGoodMuons < kNMuons)
 	{
@@ -585,11 +585,11 @@ void AnalysisVH::InsideLoop()
 				fData->GetMuonPy()->at(i),
 				fData->GetMuonPz()->at(i), 
 				fData->GetMuonEnergy()->at(i)); 
-		fHPtMu[k]->Fill(vL.Pt(), puw);
-		fHEtaMu[k]->Fill(vL.Eta(), puw);
-		if( fGenMuon.size() != 0 )
+		fHPtLepton[k]->Fill(vL.Pt(), puw);
+		fHEtaLepton[k]->Fill(vL.Eta(), puw);
+		if( fGenLepton.size() != 0 )
 		{
-			fHDeltaRGenRecoMu[k]->Fill(vL.DeltaR(fGenMuon.at(k)), puw);
+			fHDeltaRGenRecoLepton[k]->Fill(vL.DeltaR(fGenLepton.at(k)), puw);
 		}
 		k++;
 	}
@@ -628,7 +628,7 @@ void AnalysisVH::InsideLoop()
 		charge += fData->GetMuonCharge()->at(i);
 	}
 	// Fill muon charge before rejecting or accepting  
-	_histos[fHMuonCharge]->Fill(charge, puw);
+	_histos[fHLeptonCharge]->Fill(charge, puw);
 	
 	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
 	{
@@ -684,11 +684,11 @@ void AnalysisVH::InsideLoop()
 
 	// + Fill histograms
 	//   - Smallest and Largest DeltaR between 2 opposite charged muons
-	_histos[fHMinDeltaRMuMu]->Fill(minDeltaRMuMu,puw);
-	_histos[fHMaxDeltaRMuMu]->Fill(maxDeltaRMuMu,puw);
+	_histos[fHMinDeltaRLp1Lp2]->Fill(minDeltaRMuMu,puw);
+	_histos[fHMaxDeltaRLp1Lp2]->Fill(maxDeltaRMuMu,puw);
 	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
-	_histos[fHMinDeltaPhiMuMu]->Fill(minDeltaPhiMuMu,puw);
-	_histos[fHMaxDeltaPhiMuMu]->Fill(maxDeltaPhiMuMu,puw);
+	_histos[fHMinDeltaPhiLp1Lp2]->Fill(minDeltaPhiMuMu,puw);
+	_histos[fHMaxDeltaPhiLp1Lp2]->Fill(maxDeltaPhiMuMu,puw);
 	//   - Invariant mass of leptons supposedly from H
 	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
   
@@ -751,7 +751,7 @@ void AnalysisVH::InsideLoop()
 	auxVar=0;
 	
 	FillHistoPerCut(_iMET, puw, fsNTau);
-}
+} */
 
 void AnalysisVH::Summary()
 {
@@ -789,7 +789,7 @@ void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const
 	_histos[fHEventsPerCut]->Fill(cut, puw);
 	if (fs == _iFSmmm)
 	{
-		_histos[fHEventsPerCut3Mu]->Fill(cut, puw);
+		_histos[fHEventsPerCut3Lepton]->Fill(cut, puw);
 	}
 }
 
@@ -799,10 +799,10 @@ void AnalysisVH::FillGenPlots(ECutLevel cut, double puw)
 	{
 		for (unsigned int i = 0; i < fNGenMuons; i++) 
 		{
-			//fHGenPtMu[i][cut]->Fill((*fGenMuon)[i].Pt(), puw);
-			//fHGenEtaMu[i][cut]->Fill((*fGenMuon)[i].Eta(), puw);
-			fHGenPtMu[i][cut]->Fill(fGenMuon[i].Pt(), puw);
-			fHGenEtaMu[i][cut]->Fill(fGenMuon[i].Eta(), puw);
+			//fHGenPtLepton[i][cut]->Fill((*fGenLepton)[i].Pt(), puw);
+			//fHGenEtaLepton[i][cut]->Fill((*fGenLepton)[i].Eta(), puw);
+			fHGenPtLepton[i][cut]->Fill(fGenLepton[i].Pt(), puw);
+			fHGenEtaLepton[i][cut]->Fill(fGenLepton[i].Eta(), puw);
 		}
 	}
 }
