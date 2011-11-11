@@ -279,7 +279,7 @@ bool ElecSelection::IsPassPtCuts() const
 	{
 		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
-		if( _data->GetMuonPt()->at(i) < ptcut )
+		if( _data->GetElecPt()->at(i) < ptcut )
 		{
 			return false;
 		}
@@ -346,7 +346,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		//[If the muon is standalone, and it is neither Tracker 
 		//nor Global then get rid of it]
 		//-------------------
-		/*Bool_t isEB=false;
+		Bool_t isEB=false;
 		
 		if( fabs(_data->GetElecSCEta()->at(i)) < 1.479 ) isEB=true;
   		bool isGoodElectronBool=   ((( isEB && Elec.Pt() < 20 && _data->GetElecsigmaIetaIeta()->at(i) < 0.01 &&           
@@ -370,7 +370,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		if( ! isGoodElectronBool )
 		{
 			continue;
-		}*/
+		}
   
 		/*if(  _data->IsAllStandAloneMuons()->at(i) 
 				&& !_data->IsGlobalMuon()->at(i) 
@@ -572,8 +572,8 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		}
 
 		// Extra: Conversion
-		if( ! (_data->GetElecpassesNewConversion()->at(i) )) //  && 
-//				_data->GetElecnHits()->at(i)) )
+		if( ! (_data->GetElecpassesNewConversion()->at(i)  && 
+				_data->GetElecnHits()->at(i) == 0) )
 		{
 			continue;
 		}
