@@ -2,6 +2,7 @@
 #include "TreeManager.h"
 
 #include "TLeaf.h"
+#include <iostream>
 
 void TreeManager::GetEntry(const int & entry)
 {
@@ -15,5 +16,6 @@ void TreeManager::GetEntry(const int & entry)
 type TreeManager::GetEntry(const char * branchname, const int & index)*/
 double TreeManager::Get(const char * branchname, const int & index) const
 {
+	std::cout << fChain->GetLeaf(branchname)->GetLen() << std::endl;
 	return fChain->GetLeaf(branchname)->GetValue(index);
 }

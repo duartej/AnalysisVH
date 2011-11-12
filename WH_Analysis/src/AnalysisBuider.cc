@@ -11,7 +11,7 @@
 #include<iostream>
 
 // Or template ??
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputParameters *ip, TTree * tree )
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, LeptonTypes leptonskind, InputParameters *ip, TTree * tree )
 {
 
 	AnalysisVH * an = 0;
@@ -24,14 +24,16 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, int leptonskind, InputPa
 	if( thetype == MiniTrees )
 	{
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
-		if( leptonskind == 0 )
+		if( leptonskind == MUON )
 		{
+		std::cout<<" Muon Analysis " << std::endl;
 			// The selector: si son Muones...
 			MuonSelection * selectioncuts = new MuonSelection(data);
 			an = new AnalysisWHmmm( data, ip, selectioncuts, tree );
 		}
-		else if( leptonskind == 1 )
+		else if( leptonskind == ELECTRON )
 		{
+		std::cout<<" Electron Analysis " << std::endl;
 			ElecSelection * selectioncuts = new ElecSelection(data);
 			an = new AnalysisWHeee( data, ip, selectioncuts, tree );
 		}				

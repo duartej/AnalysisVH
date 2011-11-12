@@ -178,7 +178,6 @@ void AnalysisWHeee::InsideLoop()
 	//------------------------------------------------------------------
 	int procn = _iOther;
 	const int processID = fData->GetEventprocessID();
-//std::cout << "PROBANDO TREEMANAGER (int): process=" << processID << " new:" << fData->Get("T_Event_processID",0) << std::endl;
 	if(processID >= 0 && processID <= 4)  //ZJets
 	{
 		procn = _iVarious;
@@ -316,7 +315,7 @@ void AnalysisWHeee::InsideLoop()
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-std::cout << "PROBANDO TREEMANAGER (std::vector<float>): process=" << fData->GetElecPx() << " new:" << fData->Get("T_Elec_Px",i) << std::endl;
+std::cout << "PROBANDO TREEMANAGER (std::vector<float>): process=" << fData->GetElecPx()->at(i) << " new:" << fData->Get("T_Elec_Px",i) << std::endl;
 		TLorentzVector vL(fData->GetElecPx()->at(i), 
 				fData->GetElecPy()->at(i),
 				fData->GetElecPz()->at(i), 
