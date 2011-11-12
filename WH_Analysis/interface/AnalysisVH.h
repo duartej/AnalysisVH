@@ -131,8 +131,8 @@ class AnalysisVH : public CMSAnalysisSelector
 		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 				const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
-		void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
-				const unsigned int & fs);
+		virtual void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
+				const unsigned int & fs) = 0;  //FIXME de momento
 		virtual void FillGenPlots(ECutLevel cut, double puw) = 0; //FIXME. de momento 
 
 		// Number of final state leptons

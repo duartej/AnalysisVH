@@ -11,6 +11,15 @@ const double kZMass = 91.1876;
 const unsigned int kNMuons = 2; 
 const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParticle("W+")->PdgCode()
 const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()
+ 
+void AnalysisWHmmm::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
+{
+	_histos[fHEventsPerCut]->Fill(cut, puw);
+	if (fs == _iFSmmm)
+	{
+		_histos[fHEventsPerCut3Lepton]->Fill(cut, puw);
+	}
+}
 
 void AnalysisWHmmm::FillGenPlots(ECutLevel cut, double puw) 
 {

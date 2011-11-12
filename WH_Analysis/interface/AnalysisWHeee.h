@@ -38,6 +38,8 @@ class AnalysisWHeee : public AnalysisVH
 	protected:
 		virtual void InsideLoop();
 		//virtual void Initialise();
+		virtual void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
+				const unsigned int & fs) ;  //FIXME de momento
 		virtual void FillGenPlots(ECutLevel cut, double puw); //FIXME. de momento 
 
 	private:

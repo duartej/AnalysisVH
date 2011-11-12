@@ -784,14 +784,14 @@ void AnalysisVH::Summary()
 //---------------------------------------------------------------------
 //
 
-void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
+/*void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
 {
 	_histos[fHEventsPerCut]->Fill(cut, puw);
 	if (fs == _iFSmmm)
 	{
 		_histos[fHEventsPerCut3Lepton]->Fill(cut, puw);
 	}
-}
+}*/
 
 /*void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
 {
