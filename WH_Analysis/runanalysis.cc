@@ -27,6 +27,7 @@
 
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
+#include "LeptonTypes.h"
 
 
 // ROOT
@@ -318,6 +319,23 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	return ip;
 }
 
+void help_usage()
+{
+	std::cout << "usage: runanalysis dataname [options]" << std::endl;
+	std::cout << "" << std::endl;
+	std::cout << "Options:" << std::endl;
+	std::cout << "    -c configuration file " << std::endl;
+	std::cout << "    -d dataname file" << std::endl;
+	std::cout << "    -l <Muon|Electron> (Muon per default)" << std::endl;
+	std::cout << "    -o output root file " << std::endl;
+	std::cout << "" << std::endl;
+	std::cout << "List of known dataname:" << std::endl;
+	std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
+	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
+	std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
+	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
+	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW" << std::endl;
+}
 
 
 int main(int argc, char *argv[])
@@ -326,24 +344,13 @@ int main(int argc, char *argv[])
 	const char * cfgfile        = "analisiswh_mmm.ip";
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
+	const char * leptontypeOpt  = "Muon";
 
 	bool getOF = false;
 	//Parsing input options
 	if(argc == 1)
 	{
-		std::cout << "usage: runanalysis dataname [options]" << std::endl;
-		std::cout << "" << std::endl;
-		std::cout << "Options:" << std::endl;
-		std::cout << "    -c configuration file " << std::endl;
-		std::cout << "    -d dataname file" << std::endl;
-		std::cout << "    -o output root file " << std::endl;
-		std::cout << "" << std::endl;
-		std::cout << "List of known dataname:" << std::endl;
-		std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
-		std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
-		std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
-		std::cout << "    Zbb + Jets:        Zbb" << std::endl;
-		std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW" << std::endl;
+		help_usage();
 		return -1;
 	}
 	else if( argc == 2)
@@ -369,6 +376,17 @@ int main(int argc, char *argv[])
 			if( strcmp(argv[i],"-d") == 0 )
 			{
 				datanamefile = argv[i+1];
+			}
+			if( strcmp(argv[i],"-l") == 0 )
+			{
+				leptontypeOpt = argv[i+1];
+				if( strcmp(leptontypeOpt,"Muon") != 0 &&
+						strcmp(leptontypeOpt,"Electron") != 0 )
+				{
+					std::cerr << "runanalysis ERROR: Not implemented '" << leptontypeOpt 
+						<< "' in '-l' option. Valid arguments are: Muon Electron" << std::endl;
+					return -1;
+				}
 			}
 		}
 	}
@@ -431,10 +449,31 @@ int main(int argc, char *argv[])
 	t3 = timer.RealTime();
 	timer.Start();
 #endif
-	// Creating selector
-	// --- Mira el constructor...
-	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 0, ip, tchaindataset );
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, 1, ip, tchaindataset ); // Elec
+	// Creating Analysis
+	// -- Check the lepton analysis type
+	LeptonTypes leptontype = MUON;
+	if( strcmp(leptontypeOpt,"Muon") == 0)
+	{
+		leptontype = MUON;
+	}
+	else if(strcmp(leptontypeOpt,"Electron") == 0 )
+	{
+		leptontype = ELECTRON;
+	}
+	else
+	{
+		std::cerr << "runanalysis: Unexpected Error!! Not well parsed LeptonType" 
+			<< std::endl;
+		if( tchaindataset != 0 )
+		{
+			delete tchaindataset;
+			tchaindataset = 0;
+		}
+		return -1;
+	}
+
+	// Analysis
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, leptontype, ip, tchaindataset ); 
 
 #ifdef TIMERS
 	//T4
