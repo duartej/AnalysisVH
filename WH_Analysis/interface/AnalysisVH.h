@@ -10,6 +10,7 @@
 #include "TreeManager.h"
 #include "CutLevels.h"
 #include "LeptonTypes.h"
+#include "SignatureFS.h"
 
 #include "TString.h"
 #include "TLorentzVector.h"
@@ -45,7 +46,7 @@ enum {_iWH,        //0 Higgs
 
 // + Gen Final States (incl taus)
 // CODE: Nelectrons*1000+Nmuons*100+Ntaus*10
-enum {
+/*enum {
   _iFSeee, // = 3000,   // 3 electrons
   _iFSmmm, // = 300,    // 3 muons
   _iFSttt, // = 30,     // 3 taus
@@ -58,7 +59,7 @@ enum {
   _iFSemt, // = 1110,   // 1 electron  1 muon 1 tau
   _iFSunknown, // = 0,  // Something went wrong
   _iFStotal // = 11    // Remember to change everytime you add/remove on
-};
+};*/
 
 
 const TString kProcesses[] = { "WH",
@@ -70,7 +71,7 @@ const TString kProcesses[] = { "WH",
                          "Z/W+Jets and ttbar",
                          "Other" };
 
-const TString kFinalStates[] = {
+/*const TString kFinalStates[] = {
   "e e e",
   "#mu #mu #mu",
   "#tau #tau #tau",
@@ -83,7 +84,7 @@ const TString kFinalStates[] = {
   "e #mu #tau",
   "Unknown"
 };
-
+*/
 
 class AnalysisVH : public CMSAnalysisSelector 
 {
@@ -110,19 +111,16 @@ class AnalysisVH : public CMSAnalysisSelector
 			fHMET                     //Missing ET after inv mass cut
 		};
 
-		// State prepare analisis
+		//! Constructor (TO BE DEPRECATED: tree)
 		AnalysisVH( TreeManager * data, InputParameters * ip, 
-				CutManager * selectorcuts, TTree * tree );
-		// State runanalisis
-		//AnalysisVH( CMSAnalysisSelector * consel) : _cmsselector(conselr) { } 
+				CutManager * selectorcuts, const unsigned int & finalstate );
+		//! Destructor
 		virtual ~AnalysisVH();
 
 	protected:
-	//	TreeManager * _data; 
-		
 		virtual void InitialiseParameters();
 		virtual void Initialise();
-		virtual void InsideLoop() = 0;
+		virtual void InsideLoop(); // = 0;
 		virtual void Summary();
 
 	private:
@@ -130,18 +128,17 @@ class AnalysisVH : public CMSAnalysisSelector
 
 
 	protected: // TO BE CHANGED --> PRIVATE
-		const TLorentzVector GetTLorentzVector( const LeptonTypes & lt, 
-				const int & index ) const;
+		const TLorentzVector GetTLorentzVector( const int & index ) const;
 		// Overloaded for other objects than leptons
 		const TLorentzVector GetTLorentzVector( const char * namep, 
 				const int & index ) const;
 
-		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
-				const unsigned int & ntaus ) const ;
+		//unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
+		//		const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
 		virtual void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
-				const unsigned int & fs) = 0;  //FIXME de momento
-		virtual void FillGenPlots(ECutLevel cut, double puw) = 0; //FIXME. de momento 
+				const unsigned int & fs); // = 0;  //FIXME de momento
+		virtual void FillGenPlots(ECutLevel cut, double puw); //= 0; //FIXME. de momento 
 
 		// Number of final state leptons
 		unsigned int _nLeptons;
@@ -157,18 +154,26 @@ class AnalysisVH : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		double fLuminosity;
 
+		//! Signature of the analysis (giving by Signature::EFS enum)
+		unsigned int fFS;
+
+		//! Type of leptons in the analysis
+		LeptonTypes fLeptonType;                
+		const char * fLeptonName;             // Name used in the TTree (Muon, Elec)
+
 		// Leptons at generation
 		//----------------------------------------------------------------------------
-		unsigned int fNGenElectrons;             //Number of generated electrons from W or tau
-		unsigned int fNGenMuons;                 //Number of generated muons from W or tau
-		std::vector<TLorentzVector> fGenLepton;  //TLorentzVector with the 3 muons from W or tau
+		unsigned int fNGenElectrons;           //Number of generated electrons from W or tau
+		unsigned int fNGenMuons;               //Number of generated muons from W or tau
+		unsigned int * fNGenLeptons;           //A reference to the Gen Lepton of the analysis (one of the two last data members)
+		std::vector<TLorentzVector> fGenLepton;//TLorentzVector with the 3 muons from W or tau
 
 		// PU Weight utility
 		//----------------------------------------------------------------------------
 		PUWeight* fPUWeight;		
 
 		// FIXME: NECESARIO???
-		TTree * _tree;
+	//	TTree * _tree;
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }

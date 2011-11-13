@@ -1,41 +1,62 @@
 
 #include "AnalysisBuilder.h"
-#include "AnalysisWHmmm.h"
-#include "AnalysisWHeee.h"
+#include "AnalysisVH.h"
+//#include "AnalysisWHmmm.h"
+//#include "AnalysisWHeee.h"
 
 #include "TreeManagerMiniTrees.h"
 #include "MuonSelection.h"
 #include "ElecSelection.h"
+#include "LeptonTypes.h"
+#include "SignatureFS.h"
 
-//FIXME:PROV@
 #include<iostream>
+#include<stdlib.h>
 
-// Or template ??
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, LeptonTypes leptonskind, InputParameters *ip, TTree * tree )
+// Or template ??--> Clase lista para construir diferentes analysis AnalysisVH <-- AnalysisWH (3leptones), <-- Analysis...
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, InputParameters *ip, TTree *tree )
 {
 
 	AnalysisVH * an = 0;
 
-	// FIXME: Por el momento lo dejo asi, si incluyo tipo 
-	// De analisis se tendran que cambiar unas cuantas cosas
-	// para instanciar correctamente...
+	// Signature of the analysis:
+	unsigned int finalstate = SignatureFS::GetFSID(finalstateStr);
+	// what leptons I need
+	LeptonTypes lepton1;
+	//LeptonTypes lepton2;
+	//LeptonTypes lepton3;
+	
+	if( finalstate == SignatureFS::_iFSmmm )
+	{
+		lepton1 = MUON;
+	}
+	else if( finalstate == SignatureFS::_iFSeee )
+	{
+		lepton1 = ELECTRON;
+	}
+	else
+	{
+		std::cerr << "AnalysisBuilder::Build: '" << finalstateStr << "'"
+			<< " Not implemented yet. Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+
 
 	// Tree type --> to decide selector
 	if( thetype == MiniTrees )
 	{
 		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
-		if( leptonskind == MUON )
+		if( lepton1 == MUON )
 		{
-		std::cout<<" Muon Analysis " << std::endl;
 			// The selector: si son Muones...
 			MuonSelection * selectioncuts = new MuonSelection(data);
-			an = new AnalysisWHmmm( data, ip, selectioncuts, tree );
+			an = new AnalysisVH( data, ip, selectioncuts, finalstate);
 		}
-		else if( leptonskind == ELECTRON )
+		else if( lepton1 == ELECTRON )
 		{
-		std::cout<<" Electron Analysis " << std::endl;
 			ElecSelection * selectioncuts = new ElecSelection(data);
-			an = new AnalysisWHeee( data, ip, selectioncuts, tree );
+			an = new AnalysisVH( data, ip, selectioncuts, finalstate);
 		}				
 	}
 

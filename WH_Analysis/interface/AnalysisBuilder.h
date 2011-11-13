@@ -10,7 +10,6 @@
 
 
 #include "TreeTypes.h"
-#include "LeptonTypes.h"
 
 class AnalysisVH;
 class InputParameters;
@@ -19,7 +18,7 @@ class TTree;
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( treeTypes thetype, LeptonTypes leptonstype, InputParameters *ip, TTree * tree );
+		static AnalysisVH * Build( treeTypes thetype, const char * finalstate, InputParameters *ip, TTree *tree);
 
 };
 

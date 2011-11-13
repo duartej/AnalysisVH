@@ -22,14 +22,18 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 
 // Prepare analysis Constructor
 AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip, 
-		CutManager * selectioncuts, TTree * tree ) : // Tree : TO BE DEPRECATED
+		CutManager * selectioncuts, const unsigned int & finalstate ) :
 	CMSAnalysisSelector(data),
-	_nLeptons(3), //FIXME: argumento de entrada
+	_nLeptons(3), //FIXME: argumento de entrada ? --> No dependera de la SignatureFS
 	fIsData(false),
 	fIsWH(false),
 	fLuminosity(0),
-	fPUWeight(0),
-	_tree(0)
+	fFS(999),
+	fLeptonName(0),
+	fNGenElectrons(0),
+	fNGenMuons(0),
+	fNGenLeptons(0),
+	fPUWeight(0)
 {
 	// FIXME: Check that the data is attached to the selector manager
 	fLeptonSelection = selectioncuts;
@@ -68,12 +72,24 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	TList * inputlist = new TList;
 	inputlist->Add(fInputParameters);
 	this->SetInputList(inputlist);
-	
-	/*
-	for(unsigned int i = 0; i < _datafiles.size(); ++i)
+
+	// The signature of the analysis
+	fFS = finalstate;
+	// And the link to the Gen we want to use
+	if( fFS == SignatureFS::_iFSmmm )
 	{
-		std::cout << _datafiles[i] << std::endl;
-	}*/
+		fLeptonType = MUON;
+		fLeptonName = "Muon";
+		fNGenLeptons = &fNGenMuons;
+	}
+	else if( fFS == SignatureFS::_iFSeee )
+	{
+		fLeptonType = ELECTRON;
+		fLeptonName = "Elec";
+		fNGenLeptons = &fNGenElectrons;
+	}
+	// else ???? Ya deberia estar controlado antes
+	// anyway FIXME: meter aqui un exit
 }
 
 AnalysisVH::~AnalysisVH()
@@ -193,19 +209,19 @@ void AnalysisVH::Initialise()
 	
 	// Final state from generation (incl. taus)
 	_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
-			_iFStotal, 0, _iFStotal);
-	for(unsigned int i = 0; i < _iFStotal; i++)
+			SignatureFS::_iFStotal, 0, SignatureFS::_iFStotal);
+	for(unsigned int i = 0; i < SignatureFS::_iFStotal; i++)
 	{
-		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,SignatureFS::kFinalStates[i]);
 	}
 	_histos[fHGenFinalState]->Sumw2();
 
 	// Final state from generation (no taus)
 	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
-			_iFStotal, 0, _iFStotal);
-	for(unsigned int i = 0; i < _iFStotal; i++)
+			SignatureFS::_iFStotal, 0, SignatureFS::_iFStotal);
+	for(unsigned int i = 0; i < SignatureFS::_iFStotal; i++)
 	{
-		_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,kFinalStates[i]);
+		_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,SignatureFS::kFinalStates[i]);
 	}
 	_histos[fHGenFinalStateNoTaus]->Sumw2();
 
@@ -303,27 +319,12 @@ void AnalysisVH::Initialise()
 	
 }
 
-const TLorentzVector AnalysisVH::GetTLorentzVector( const LeptonTypes & lt, const int & index) const
+const TLorentzVector AnalysisVH::GetTLorentzVector( const int & index) const
 {
-	std::string name;
-	if( lt == MUON )
-	{
-		name = "Muon";
-	}
-	else if( lt == ELECTRON )
-	{
-		name = "Elec";
-	}
-	else
-	{
-		std::cerr << "AnalysVH::GetTLorentzVector: Unknown LeptonType"
-			<< "'" << lt << std::endl;
-		exit(-1);
-	}
-	const std::string px("T_"+name+"_Px");
-	const std::string py("T_"+name+"_Py");
-	const std::string pz("T_"+name+"_Pz");
-	const std::string energy("T_"+name+"_Energy");
+	const std::string px("T_"+std::string(fLeptonName)+"_Px");
+	const std::string py("T_"+std::string(fLeptonName)+"_Py");
+	const std::string pz("T_"+std::string(fLeptonName)+"_Pz");
+	const std::string energy("T_"+std::string(fLeptonName)+"_Energy");
 
 	return TLorentzVector( fData->Get<float>(px.c_str(),index),
 			fData->Get<float>(py.c_str(),index),
@@ -335,10 +336,11 @@ const TLorentzVector AnalysisVH::GetTLorentzVector( const LeptonTypes & lt, cons
 // Overloaded function to extract 4-moments of other than leptons
 const TLorentzVector AnalysisVH::GetTLorentzVector( const char * name, const int & index) const
 {
-	const std::string px("T_"+std::string(name)+"_Px");
-	const std::string py("T_"+std::string(name)+"_Py");
-	const std::string pz("T_"+std::string(name)+"_Pz");
-	const std::string energy("T_"+std::string(name)+"_Energy");
+	std::string namestr = name;
+	const std::string px("T_"+namestr+"_Px");
+	const std::string py("T_"+namestr+"_Py");
+	const std::string pz("T_"+namestr+"_Pz");
+	const std::string energy("T_"+namestr+"_Energy");
 
 	return TLorentzVector( fData->Get<float>(px.c_str(),index),
 			fData->Get<float>(py.c_str(),index),
@@ -347,7 +349,8 @@ const TLorentzVector AnalysisVH::GetTLorentzVector( const char * name, const int
 			);
 }
 
-/*//---------------------------------------------------------------------
+
+//---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
 void AnalysisVH::InsideLoop()
@@ -366,19 +369,19 @@ void AnalysisVH::InsideLoop()
 
 	// Generation studies
 	//----------------------------------------------------------------------
-	unsigned int fsTaus = _iFSunknown;
-	unsigned int fsNTau = _iFSunknown;
+	unsigned int fsTaus = SignatureFS::_iFSunknown;
+	unsigned int fsNTau = SignatureFS::_iFSunknown;
 	fNGenElectrons = 0; //Number of generated electrons from W or tau
 	fNGenMuons = 0;     //Number of generated muons from W or tau
 	if(fIsWH) 
 	{
 		// + Classify by leptonic final state (taus undecayed)
-		unsigned int nelecsfromW = fData->GetGenElecSt3PID()->size();
-		unsigned int nmusfromW = fData->GetGenMuonSt3PID()->size();
-		unsigned int ntausfromW = fData->GetGenTauSt3PID()->size();
+		unsigned int nelecsfromW = fData->GetSize<int>("T_Gen_ElecSt3_PID");
+		unsigned int nmusfromW = fData->GetSize<int>("T_Gen_MuonSt3_PID");
+		unsigned int ntausfromW = fData->GetSize<int>("T_Gen_TauSt3_PID");
 		
 		_histos[fHNGenWLeptons]->Fill(nmusfromW,puw); 
-		fsTaus = GetFSID(nelecsfromW, nmusfromW, ntausfromW);
+		fsTaus = SignatureFS::GetFSID(nelecsfromW, nmusfromW, ntausfromW);
 		_histos[fHGenFinalState]->Fill(fsTaus, puw);
 		
 #ifdef DEBUGANALYSIS
@@ -386,50 +389,59 @@ void AnalysisVH::InsideLoop()
 			<< "/" << nmusfromW << "/" << ntausfromW << std::endl;
 		std::cout << "DEBUG: fsTaus --> " << fsTaus << std::endl;
 #endif
+		int igen[3] = {-1, -1, -1 };
 		// + Classify by leptonic final state (no taus)
-		for(unsigned int i = 0; i < fData->GetGenElecMPID()->size(); i++) 
+		for(unsigned int i = 0; i < fData->GetSize<int>("T_Gen_Elec_MPID"); i++) 
 		{
 #ifdef DEBUGANALYSIS
-			std::cout << "DEBUG: Elec [" << i << "/" << fData->GetGenElecMPID()->size() << "]" 
-				<< " Status: " << fData->GetGenElecMSt()->at(i)
-				<< " Mother: " << fData->GetGenElecMPID()->at(i)
-				<< " E: " << fData->GetGenElecEnergy()->at(i)
-				<< " Px: " << fData->GetGenElecPx()->at(i)
+			std::cout << "DEBUG: Elec [" << i << "/" << fData->GetSize<int>("T_Gen_Elec_MPID") << "]" 
+				<< " Status: " << fData->Get<int>("T_Gen_Elec_MSt",i)
+				<< " Mother: " << fData->Get<int>("T_Gen_Elec_MPID",i)
+				<< " E: " << fData->Get<float>("T_Gen_Elec_Energy",i)
+				<< " Px: " << fData->Get<float>("T_Gen_Elec_Px",i)
 				<< std::endl;
 #endif
 			//I have seen that electrons from taus have status 2 and are not replicated
-			unsigned int mpidel  = TMath::Abs(fData->GetGenElecMPID()->at(i));
+			unsigned int mpidel  = TMath::Abs(fData->Get<int>("T_Gen_Elec_MPID",i));
 			if ( mpidel == kWPID || mpidel == kTauPID) 
 			{
+				if( fLeptonType == ELECTRON )
+				{
+					igen[fNGenElectrons] = i;
+				}
 				fNGenElectrons++;
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG:     Good!" << std::endl;
 #endif
 			}
 		}
-		int igenmuons[3] = {-1, -1, -1}; //Index of generated muons from W or tau
-		for (unsigned int i = 0; i < fData->GetGenMuonMPID()->size(); ++i) 
+		
+		for (unsigned int i = 0; i < fData->GetSize<int>("T_Gen_Muon_MPID"); ++i) 
 		{
 #ifdef DEBUGANALYSIS
-			std::cout << "DEBUG: Muon [" << i << "/" << fData->GetGenMuonMPID()->size() << "]" 
-				<< " Status: " << fData->GetGenMuonMSt()->at(i)
-				<< " Mother: " << fData->GetGenMuonMPID()->at(i)
-				<< " E: " << fData->GetGenMuonEnergy()->at(i)
-				<< " Px: " << fData->GetGenMuonPx()->at(i)
+			std::cout << "DEBUG: Muon [" << i << "/" << fData->GetSize<int>("T_Gen_Muon_MPID") << "]" 
+				<< " Status: " << fData->Get<int>("T_Gen_Muon_MSt",i)
+				<< " Mother: " << fData->Get<int>("T_Gen_Muon_MPID",i)
+				<< " E: " << fData->Get<int>("T_Gen_Muon_Energy",i)
+				<< " Px: " << fData->Get<int>("T_Gen_Muon_Px",i)
 				<< std::endl;
+			b
 #endif
 			//I have seen that muons from taus have status 2 and are not replicated
-			unsigned int mpid  = TMath::Abs(fData->GetGenMuonMPID()->at(i));
+			unsigned int mpid  = TMath::Abs(fData->Get<int>("T_Gen_Muon_MPID",i));
 			if ( mpid == kWPID || mpid == kTauPID) 
 			{
-				igenmuons[fNGenMuons] = i;
+				if( fLeptonType == MUON )
+				{
+					igen[fNGenMuons] = i;
+				}
 				fNGenMuons++;
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG:     Good! " << fNGenMuons << std::endl;
 #endif
 			}
 		}
-		fsNTau = GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
+		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
 		_histos[fHGenFinalStateNoTaus]->Fill(fsNTau, puw);
 		
 #ifdef DEBUGANALYSIS
@@ -440,19 +452,16 @@ void AnalysisVH::InsideLoop()
 		// Initialize generation vector
 		fGenLepton.clear();
 		//   Sort by energy
-		if(fNGenMuons == 3)  // FIXME:: PORQUE SOLO 3??
+		if(*fNGenLeptons == 3)  // FIXME:: PORQUE SOLO 3??
 		{
 			std::map<double,TLorentzVector> vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
-			for(unsigned int i = 0; i < fNGenMuons; i++) 
+			std::string genname = std::string("Gen_"+std::string(fLeptonName));
+			for(unsigned int i = 0; i < *fNGenLeptons; i++) 
 			{
-				vGenMuon->push_back( TLorentzVector(fData->GetGenMuonPx()->at(igenmuons[i]), 
-							fData->GetGenMuonPy()->at(igenmuons[i]), 
-							fData->GetGenMuonPz()->at(igenmuons[i]),
-							fData->GetGenMuonEnergy()->at(igenmuons[i])) );
+				vGenMuon->push_back( this->GetTLorentzVector( genname.c_str(),igen[i]) );
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
-			//fGenLepton = new std::vector<TLorentzVector>;
 			for(std::map<double,TLorentzVector>::reverse_iterator it = vOrder.rbegin(); 
 					it != vOrder.rend(); ++it)
 			{
@@ -462,20 +471,15 @@ void AnalysisVH::InsideLoop()
 			vGenMuon = 0;
 			
 #ifdef DEBUGANALYSIS
-			for (unsigned int i = 0; i < fNGenMuons; ++i) 
+			for (unsigned int i = 0; i < *fNGenLeptons; ++i) 
 			{
-				std::cout << "[" << i << "] <- [" << igenmuons[i] 
-					//<< "] PT = " << (*fGenLepton)[i].Pt() 
+				std::cout << "Lepton:" << genname << " [" << i << "] <- [" << igen[i] 
 					<< "] PT = " << fGenLepton[i].Pt() 
-					<< " - ET = " << fData->GetGenMuonEnergy()->at(igenmuons[i]) 
+					<< " - ET = " << fGenLepton[i].Energy() 
 					<< std::endl;
 			}      
 #endif
 			FillGenPlots(_iAllEvents,puw);
-			
-			// Freeing memory
-			//delete fGenLepton;
-			//fGenLepton = 0;
 		}
 	}
 	
@@ -486,7 +490,7 @@ void AnalysisVH::InsideLoop()
 	// Proccess ID
 	//------------------------------------------------------------------
 	int procn = _iOther;
-	const int processID = fData->GetEventprocessID();
+	const int processID = fData->Get<int>("T_Event_processID");//GetEventprocessID();
 	if(processID >= 0 && processID <= 4)  //ZJets
 	{
 		procn = _iVarious;
@@ -517,7 +521,7 @@ void AnalysisVH::InsideLoop()
 	}
 	_histos[fHProcess]->Fill(procn);
 
-	if(fIsWH && (procn != _iWH || fsNTau != _iFSmmm))
+	if(fIsWH && (procn != _iWH || fsNTau != fFS))
 	{
 		return;
 	}
@@ -547,7 +551,8 @@ void AnalysisVH::InsideLoop()
 	//this->SetGoodVertexIndex(iGoodVertex);
 	
 	// Store the number of reconstructed muons without any filter
-	_histos[fHNRecoLeptons]->Fill(fData->GetMuonPx()->size());
+	std::string leptonpx = std::string("T_"+std::string(fLeptonName)+"_Px");
+	_histos[fHNRecoLeptons]->Fill(fData->GetSize<float>(leptonpx.c_str()));//GetElecPx()->size());
 	
 	// (1) Basic selection
 	//--------------------
@@ -619,15 +624,12 @@ void AnalysisVH::InsideLoop()
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
 #ifdef DEBUGANALYSIS
-	std::cout << "Numbre of Muons: " << fData->GetMuonPx()->size() << std::endl;
+	std::cout << "Numbre of " << fLeptonName << ": " << fData->GetSize<float>(leptonpx.c_str()) << std::endl; //GetElecPx()->size() << std::endl;
 #endif 
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-		TLorentzVector vL(fData->GetMuonPx()->at(i), 
-				fData->GetMuonPy()->at(i),
-				fData->GetMuonPz()->at(i), 
-				fData->GetMuonEnergy()->at(i)); 
+		const TLorentzVector vL = this->GetTLorentzVector(i);
 		fHPtLepton[k]->Fill(vL.Pt(), puw);
 		fHEtaLepton[k]->Fill(vL.Eta(), puw);
 		if( fGenLepton.size() != 0 )
@@ -643,15 +645,12 @@ void AnalysisVH::InsideLoop()
 	// last one
 	std::vector<TLorentzVector> lepton;
 	std::vector<int> leptonCharge;
+	const std::string chargedm("T_"+std::string(fLeptonName)+"_Charge");
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		const unsigned int i = *it;
-		lepton.push_back( TLorentzVector(fData->GetMuonPx()->at(i), 
-					fData->GetMuonPy()->at(i), 
-					fData->GetMuonPz()->at(i), 
-					fData->GetMuonEnergy()->at(i))
-				); 
-		leptonCharge.push_back( fData->GetMuonCharge()->at(i) );
+		lepton.push_back( this->GetTLorentzVector(i) );
+		leptonCharge.push_back( fData->Get<int>(chargedm.c_str(),i) );
 	}
 	
 	// Discard extra electrons and extra muons
@@ -665,10 +664,9 @@ void AnalysisVH::InsideLoop()
 	// + Add up charges. If the abs value of the total number is equal to N then 
 	//   all have the same sign
 	int charge = 0;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
 	{
-		unsigned int i = *it;
-		charge += fData->GetMuonCharge()->at(i);
+		charge += *it;
 	}
 	// Fill muon charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
@@ -687,7 +685,6 @@ void AnalysisVH::InsideLoop()
 	// + Store the real vector index of the opposite charge muons in pairs
 	//   (for the lepton and leptonCharge vectors: 0,...,nLeptons)
 	std::vector<std::pair<int,int> > leptonPair;
-	//unsigned int ipair = 0;
 	for(unsigned int kbegin = 0; kbegin < leptonCharge.size(); ++kbegin)
 	{
 		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
@@ -739,12 +736,10 @@ void AnalysisVH::InsideLoop()
 	// Jet Veto:
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
-	for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
+	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
+	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
 	{
-		TLorentzVector Jet(fData->GetJetAKPFNoPUPx()->at(k), 
-				fData->GetJetAKPFNoPUPy()->at(k), 
-				fData->GetJetAKPFNoPUPz()->at(k), 
-				fData->GetJetAKPFNoPUEnergy()->at(k));
+		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
 		//FIXME: Add the cuts to the config file
 		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
 				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
@@ -794,7 +789,7 @@ void AnalysisVH::InsideLoop()
 	auxVar=0;
 	
 	FillHistoPerCut(_iMET, puw, fsNTau);
-} */
+}
 
 void AnalysisVH::Summary()
 {
@@ -827,90 +822,24 @@ void AnalysisVH::Summary()
 //---------------------------------------------------------------------
 //
 
-/*void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
+void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
 {
 	_histos[fHEventsPerCut]->Fill(cut, puw);
-	if (fs == _iFSmmm)
+	if(fs == fFS)
 	{
 		_histos[fHEventsPerCut3Lepton]->Fill(cut, puw);
 	}
-}*/
+}
 
-/*void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
+void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
 {
-	if (fIsWH && fNGenMuons == _nLeptons) 
+	if (fIsWH && (*fNGenLeptons) == _nLeptons) 
 	{
-		for (unsigned int i = 0; i < fNGenMuons; i++) 
+		for(unsigned int i = 0; i < (*fNGenLeptons); i++) 
 		{
-			//fHGenPtLepton[i][cut]->Fill((*fGenLepton)[i].Pt(), puw);
-			//fHGenEtaLepton[i][cut]->Fill((*fGenLepton)[i].Eta(), puw);
 			fHGenPtLepton[i][cut]->Fill(fGenLepton[i].Pt(), puw);
 			fHGenEtaLepton[i][cut]->Fill(fGenLepton[i].Eta(), puw);
 		}
 	}
-}*/
-
-// Get Final state
-unsigned int AnalysisVH::GetFSID(const unsigned int & nel, 
-		const unsigned int & nmu, const unsigned int & ntau) const 
-{
-	unsigned int fs = _iFSunknown;
-        if (nel == 3)
-        {
-		fs = _iFSeee;
-	}
-        else if (nel == 2) 
-        {
-		if (nmu == 1)
-		{
-			fs = _iFSeem;
-		}
-		else if (ntau == 1)
-		{
-			fs = _iFSeet;
-		}
-	}
-	else if (nel == 1) 
-	{
-		if (nmu == 2)
-		{
-			fs = _iFSmme;
-		}
-		else if(ntau == 2)
-		{
-			fs = _iFStte;
-		}
-		else if (nmu == 1 && ntau == 1)
-		{
-			fs = _iFSemt;
-		}
-	}
-	else if(nel == 0) 
-	{
-		if (nmu == 3)
-		{
-			fs = _iFSmmm;
-		}
-		else if (ntau == 3)
-		{
-			fs = _iFSttt;
-		}
-		else if (nmu == 2 && ntau == 1)
-		{
-			fs = _iFSmmt;
-		}
-		else if (nmu == 1 && ntau == 2)
-		{
-			fs = _iFSttm;
-		}
-	}
-        
-/*	unsigned int fs = _iFSunknown;
-	const unsigned int fsencoded = nel*1000+nmu*100+ntau*10;
-
-	return fsencoded;
-}*/
-        return fs;
 }
-
 

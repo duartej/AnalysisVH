@@ -27,7 +27,6 @@
 
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
-#include "LeptonTypes.h"
 
 
 // ROOT
@@ -326,7 +325,7 @@ void help_usage()
 	std::cout << "Options:" << std::endl;
 	std::cout << "    -c configuration file " << std::endl;
 	std::cout << "    -d dataname file" << std::endl;
-	std::cout << "    -l <Muon|Electron> (Muon per default)" << std::endl;
+	std::cout << "    -l <mmm|eee>  Final state signature (mmm per default)" << std::endl;
 	std::cout << "    -o output root file " << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "List of known dataname:" << std::endl;
@@ -344,7 +343,7 @@ int main(int argc, char *argv[])
 	const char * cfgfile        = "analisiswh_mmm.ip";
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
-	const char * leptontypeOpt  = "Muon";
+	const char * fsSignature    = "mmm";
 
 	bool getOF = false;
 	//Parsing input options
@@ -379,12 +378,12 @@ int main(int argc, char *argv[])
 			}
 			if( strcmp(argv[i],"-l") == 0 )
 			{
-				leptontypeOpt = argv[i+1];
-				if( strcmp(leptontypeOpt,"Muon") != 0 &&
-						strcmp(leptontypeOpt,"Electron") != 0 )
+				fsSignature = argv[i+1];
+				if( strcmp(fsSignature,"mmm") != 0 &&
+						strcmp(fsSignature,"eee") != 0 )
 				{
-					std::cerr << "runanalysis ERROR: Not implemented '" << leptontypeOpt 
-						<< "' in '-l' option. Valid arguments are: Muon Electron" << std::endl;
+					std::cerr << "runanalysis ERROR: Not implemented '" << fsSignature
+						<< "' in '-l' option. Valid arguments are: mmm eee" << std::endl;
 					return -1;
 				}
 			}
@@ -450,30 +449,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	// -- Check the lepton analysis type
-	LeptonTypes leptontype = MUON;
-	if( strcmp(leptontypeOpt,"Muon") == 0)
-	{
-		leptontype = MUON;
-	}
-	else if(strcmp(leptontypeOpt,"Electron") == 0 )
-	{
-		leptontype = ELECTRON;
-	}
-	else
-	{
-		std::cerr << "runanalysis: Unexpected Error!! Not well parsed LeptonType" 
-			<< std::endl;
-		if( tchaindataset != 0 )
-		{
-			delete tchaindataset;
-			tchaindataset = 0;
-		}
-		return -1;
-	}
-
-	// Analysis
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, leptontype, ip, tchaindataset ); 
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ip, tchaindataset ); 
 
 #ifdef TIMERS
 	//T4
