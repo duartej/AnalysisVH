@@ -14,29 +14,26 @@ Nov. 10th 2011--  Tag release v0.2 : Freeze version with MiniTrees (before chang
   * Fixed some methods in order to make the plot utilities work with the outputs
 Nov. 11th 2011--  Tag release v0.3 : First version with Latinos
   * TreeManager include electron methods
+Nov. 13th 2011--  Tag release v1.0 : Analysis independence of the final state
+  * AnalysisVH (will be) base class for a concrete final state analysis, independently of 
+  the final state signature
+  * TreeManager extracts directly the data members of a TChain without build the Tree structure
+  of a file. TO BE DEPRECATED: 
+                              - wrappers methods to get the datamembers of a TChain
+			      - construction of the TreeManagerMiniTrees code, and as consequence
+			      there will be no longer need to launch the datamanagercreator (it will
+			      be renamed to extractdatafiles or something like that)
+
 
 
 TODO:
   1. Incorporate the latino's trees ----> DONE
-  2. Incorporate (create) an electron analysis
-  3. Incorporate (create) a lepton analysis
-  4. Use directly the tree->GetLeaf("nameofthebranch")->GetValue(index) (index=0 if there is no vector)
+  2. Incorporate (create) an electron analysis ---> DONE
+  3. Incorporate (create) a lepton analysis  
+  4. Use directly the tree->GetLeaf("nameofthebranch")->GetValue(index) (index=0 if there is no vector) --> DONE
      Checks:
              * How much time is this slowing down the reading process?
 	     * Is the amount of time aceptable?
   5. Check with the *.sh.e* the good behaviour of the job
 
 
-
-####  Some Comments
-** Me quede en la creacion del analisis final:
-   El flujo deberia ser:
-    1. Ejecutable que llama al SelectorCreator para crear el CMSAnalysisSelector concreto (MiniTrees, TESCO)
-       Necesita de un fichero .root como argumento (el que se va a basar para crear el selector)
-    2. Anyadir al header del analisis (AnalysisWH_mmm) la herencia del recien creado selector y posteriormente
-       compilar
-    3. Finalmente lanzar el verdadero proceso de analisis utilizando la clase AnalysisWH_mmm
-   Todo esto debe estar controlado por un python/bash 
-
-   En los makefiles he de incorporar el hecho de que si se compila una libreria dependiente de otro paquete, deberia
-   volver a linkar la libreria actual...
