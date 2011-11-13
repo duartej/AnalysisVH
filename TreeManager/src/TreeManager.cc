@@ -17,9 +17,9 @@ void TreeManager::GetEntry(const int & entry)
 	}
 }
 
-/*template class<type>
-type TreeManager::GetEntry(const char * branchname, const int & index)*/
-double TreeManager::Get(const char * branchname, const int & index) const
+
+template <class T>
+T TreeManager::Get(const char * branchname, const int & index) const
 {
 	// Checking for existence
 	if( fChain->GetBranch(branchname) == 0 )
@@ -35,7 +35,7 @@ double TreeManager::Get(const char * branchname, const int & index) const
 		TBranchElement * branch = (TBranchElement*)(fChain->GetBranch(branchname));
 		char * address = branch->GetObject();
 		void * theobj  = address;
-		std::vector<float> * thevector = static_cast<std::vector<float>* >(theobj);
+		std::vector<T> * thevector = static_cast<std::vector<T>* >(theobj);
 
 		if( thevector == 0 )
 		{
@@ -58,6 +58,11 @@ double TreeManager::Get(const char * branchname, const int & index) const
 	}
 	else
 	{
-		return fChain->GetLeaf(branchname)->GetValue(0);
+		return (T)(fChain->GetLeaf(branchname)->GetValue(0));
 	}
 }
+
+// Declaration of the used types 
+template int TreeManager::Get<int>(const char*,const int &) const;
+template float TreeManager::Get<float>(const char*,const int &) const;
+template bool TreeManager::Get<bool>(const char*,const int &) const;

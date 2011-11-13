@@ -325,10 +325,10 @@ const TLorentzVector AnalysisVH::GetTLorentzVector( const LeptonTypes & lt, cons
 	const std::string pz("T_"+name+"_Pz");
 	const std::string energy("T_"+name+"_Energy");
 
-	return TLorentzVector( fData->Get(px.c_str(),index),
-			fData->Get(py.c_str(),index),
-			fData->Get(pz.c_str(),index),
-			fData->Get(energy.c_str(),index)
+	return TLorentzVector( fData->Get<float>(px.c_str(),index),
+			fData->Get<float>(py.c_str(),index),
+			fData->Get<float>(pz.c_str(),index),
+			fData->Get<float>(energy.c_str(),index)
 			);
 }
 
@@ -897,3 +897,5 @@ unsigned int AnalysisVH::GetFSID(const unsigned int & nel,
 }*/
         return fs;
 }
+
+
