@@ -332,6 +332,21 @@ const TLorentzVector AnalysisVH::GetTLorentzVector( const LeptonTypes & lt, cons
 			);
 }
 
+// Overloaded function to extract 4-moments of other than leptons
+const TLorentzVector AnalysisVH::GetTLorentzVector( const char * name, const int & index) const
+{
+	const std::string px("T_"+std::string(name)+"_Px");
+	const std::string py("T_"+std::string(name)+"_Py");
+	const std::string pz("T_"+std::string(name)+"_Pz");
+	const std::string energy("T_"+std::string(name)+"_Energy");
+
+	return TLorentzVector( fData->Get<float>(px.c_str(),index),
+			fData->Get<float>(py.c_str(),index),
+			fData->Get<float>(pz.c_str(),index),
+			fData->Get<float>(energy.c_str(),index)
+			);
+}
+
 /*//---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------

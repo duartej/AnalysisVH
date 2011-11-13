@@ -46,6 +46,9 @@ class TreeManager
 		
 		template <class T>
 		T Get(const char * branchname,const int & index = 0) const;
+
+		template <class T>
+		unsigned int GetSize(const char * branchname) const;
 		// ==== ADD HERE YOUR NEW METHOD AND DON'T FORGET 
 		//      TO INCLUDE ALSO IN TreeManager::getmethods 
 		// ==================================================

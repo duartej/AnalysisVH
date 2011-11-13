@@ -132,6 +132,9 @@ class AnalysisVH : public CMSAnalysisSelector
 	protected: // TO BE CHANGED --> PRIVATE
 		const TLorentzVector GetTLorentzVector( const LeptonTypes & lt, 
 				const int & index ) const;
+		// Overloaded for other objects than leptons
+		const TLorentzVector GetTLorentzVector( const char * namep, 
+				const int & index ) const;
 
 		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 				const unsigned int & ntaus ) const ;

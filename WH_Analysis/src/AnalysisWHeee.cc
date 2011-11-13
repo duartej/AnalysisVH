@@ -344,7 +344,8 @@ void AnalysisWHeee::InsideLoop()
 					fData->GetElecEnergy()->at(i))
 				); */
 		lepton.push_back( this->GetTLorentzVector(ELECTRON,i) );
-		leptonCharge.push_back( fData->Get<int>("T_Elec_Charge",i) );
+		const char * charge = "T_Elec_Charge";
+		leptonCharge.push_back( fData->Get<int>(charge,i) );
 	}
 	
 	// Discard extra electrons and extra muons
@@ -358,10 +359,13 @@ void AnalysisWHeee::InsideLoop()
 	// + Add up charges. If the abs value of the total number is equal to N then 
 	//   all have the same sign
 	int charge = 0;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	/*for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	{*/
+	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
 	{
-		unsigned int i = *it;
-		charge += fData->GetElecCharge()->at(i);
+		//unsigned int i = *it;
+		//charge += fData->GetElecCharge()->at(i);
+		charge += *it;
 	}
 	// Fill muon charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
@@ -432,12 +436,14 @@ void AnalysisWHeee::InsideLoop()
 	// Jet Veto:
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
-	for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
+	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
+	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
 	{
-		TLorentzVector Jet(fData->GetJetAKPFNoPUPx()->at(k), 
+	/*	TLorentzVector Jet(fData->GetJetAKPFNoPUPx()->at(k), 
 				fData->GetJetAKPFNoPUPy()->at(k), 
 				fData->GetJetAKPFNoPUPz()->at(k), 
-				fData->GetJetAKPFNoPUEnergy()->at(k));
+				fData->GetJetAKPFNoPUEnergy()->at(k));*/
+		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
 		//FIXME: Add the cuts to the config file
 		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
 				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
