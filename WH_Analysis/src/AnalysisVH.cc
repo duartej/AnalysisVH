@@ -303,6 +303,34 @@ void AnalysisVH::Initialise()
 	
 }
 
+const TLorentzVector AnalysisVH::GetTLorentzVector( const LeptonTypes & lt, const int & index) const
+{
+	std::string name;
+	if( lt == MUON )
+	{
+		name = "Muon";
+	}
+	else if( lt == ELECTRON )
+	{
+		name = "Elec";
+	}
+	else
+	{
+		std::cerr << "AnalysVH::GetTLorentzVector: Unknown LeptonType"
+			<< "'" << lt << std::endl;
+		exit(-1);
+	}
+	const std::string px("T_"+name+"_Px");
+	const std::string py("T_"+name+"_Py");
+	const std::string pz("T_"+name+"_Pz");
+	const std::string energy("T_"+name+"_Energy");
+
+	return TLorentzVector( fData->Get(px.c_str(),index),
+			fData->Get(py.c_str(),index),
+			fData->Get(pz.c_str(),index),
+			fData->Get(energy.c_str(),index)
+			);
+}
 
 /*//---------------------------------------------------------------------
 // InsideLoop

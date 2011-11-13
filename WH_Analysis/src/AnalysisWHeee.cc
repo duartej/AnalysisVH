@@ -315,10 +315,11 @@ void AnalysisWHeee::InsideLoop()
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-		TLorentzVector vL(fData->GetElecPx()->at(i), 
+		/*TLorentzVector vL(fData->GetElecPx()->at(i), 
 				fData->GetElecPy()->at(i),
 				fData->GetElecPz()->at(i), 
-				fData->GetElecEnergy()->at(i)); 
+				fData->GetElecEnergy()->at(i)); */
+		const TLorentzVector vL = this->GetTLorentzVector(ELECTRON,i);
 		fHPtLepton[k]->Fill(vL.Pt(), puw);
 		fHEtaLepton[k]->Fill(vL.Eta(), puw);
 		if( fGenLepton.size() != 0 )
@@ -337,11 +338,12 @@ void AnalysisWHeee::InsideLoop()
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		const unsigned int i = *it;
-		lepton.push_back( TLorentzVector(fData->GetElecPx()->at(i), 
+		/*lepton.push_back( TLorentzVector(fData->GetElecPx()->at(i), 
 					fData->GetElecPy()->at(i), 
 					fData->GetElecPz()->at(i), 
 					fData->GetElecEnergy()->at(i))
-				); 
+				); */
+		lepton.push_back( this->GetTLorentzVector(ELECTRON,i) );
 		leptonCharge.push_back( fData->GetElecCharge()->at(i) );
 	}
 	

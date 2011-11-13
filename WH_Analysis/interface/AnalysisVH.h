@@ -9,6 +9,7 @@
 #include "CMSAnalysisSelector.h"
 #include "TreeManager.h"
 #include "CutLevels.h"
+#include "LeptonTypes.h"
 
 #include "TString.h"
 #include "TLorentzVector.h"
@@ -127,7 +128,11 @@ class AnalysisVH : public CMSAnalysisSelector
 	private:
 		AnalysisVH();
 
-	protected: 
+
+	protected: // TO BE CHANGED --> PRIVATE
+		const TLorentzVector GetTLorentzVector( const LeptonTypes & lt, 
+				const int & index ) const;
+
 		unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 				const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
