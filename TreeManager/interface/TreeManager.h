@@ -44,7 +44,7 @@ class TreeManager
 		virtual void Init(TTree * tree) = 0;
 		virtual void GetEntry( const int & entry );
 
-		virtual double Get(const char * branchname,const int & index) const;
+		virtual double Get(const char * branchname,const int & index = 0) const;
 		// ==== ADD HERE YOUR NEW METHOD AND DON'T FORGET 
 		//      TO INCLUDE ALSO IN TreeManager::getmethods 
 		// ==================================================
