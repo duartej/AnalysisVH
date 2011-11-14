@@ -20,7 +20,7 @@ class clustermanager(object):
 		import sys
 		
 		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile', 'pkgdir',\
-				'workingdir', 'basedir' ]
+				'workingdir', 'basedir', 'finalstate' ]
 		self.precompile = False
 		self.outputfiles= {}
 		# Trying to extract the env variables to define 
@@ -29,14 +29,14 @@ class clustermanager(object):
 			self.basedir = os.path.abspath(os.getenv("VHSYS"))
 			self.libsdir = os.path.join(self.basedir,"libs")
 			if not os.path.exists( os.path.join(self.basedir,"CutManager") ):
-				message = "\n\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+				message = "\n\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' is not the base directory for the package 'VHAnalysis'\n"
 				sys.exit( message )
 		# for the analysis specific package
 		if os.getenv("ANALYSISSYS"):
 			self.pkgpath = os.path.abspath(os.getenv("ANALYSISSYS"))
 			if not os.path.exists( os.path.join(self.pkgpath,"interface/AnalysisBuilder.h") ):
-				message = "\n\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+				message = "\n\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 				sys.exit( message )
 
@@ -82,18 +82,20 @@ class clustermanager(object):
 				self.libsdir = os.path.join(self.basedir,"libs")
 			elif key == 'workingdir':
 				self.cwd = os.path.abspath(value)
+			elif key == 'finalstate':
+				self.finalstate = value
 		
 		# Checked if basedir and pkgpath are there
 		try:
 			dummy = self.basedir
 		except AttributeError:
-		        message  = "\033[1;31mclustermanager: ERROR\033[1;m You have to introduce the base directory for the package VHAnalysis\n"
+		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base directory for the package VHAnalysis"
 			message += "Or you can use an environment variable: 'export VHSYS=path'"
 			sys.exit(message)
 		try:
 			dummy = self.pkgpath
 		except AttributeError:
-		        message  = "\033[1;31mclustermanager: ERROR\033[1;m You have to introduce the base analysis directory\n"
+		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base analysis directory"
 			message += "Or you can use an environment variable: 'export ANALYSISSYS=path'"
 			sys.exit(message)
 
@@ -106,15 +108,16 @@ class clustermanager(object):
 			self.filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
 			if not os.path.exists(self.filedatanames):
 				# if not created previously
-				message  = "\nclustermanager: I need the list of file names, execute:"
+				message  = "\033[31;1mclustermanager: ERROR\033[0m"
+				message += " I need the list of file names, execute:"
 				message += "\n'datamanager "+self.originaldataname+" -c "+self.cfgfile+"'"
-				message += "\nAnd then launch again this script\n"
+				message += "\nAnd then launch again this script"
 				sys.exit(message)
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# Checking if has sense the njobs
 			if self.nevents < 10000:
-				message = "\033[1;33mclustermanager: WARNING\033[1;m the Number of jobs introduced '"\
+				message = "\033[33;1mclustermanager: WARNING\033[0m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
 				self.njobs = 1
@@ -165,7 +168,7 @@ class clustermanager(object):
 		# Checking if everything was allright
 		totalevts = self.getevents(finalfile,True)
 		if totalevts != self.nevents:
-			message  = "\033[1;33mclustermanager.gatherfiles: WARNING\033[1;m the total file"
+			message  = "\033[33;1mclustermanager.gatherfiles: WARNING\033[0m the total file"
 			message += "'"+finalfile+"' do not contain all the events:\n"
 			message += "Total events to be processed:"+str(self.nevents)+"\n"
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
@@ -187,7 +190,7 @@ class clustermanager(object):
 			for f in filestotar:
 				os.remove(f)
 		else:
-			message  = "\033[1;33mclustermanager.gatherfiles: WARNING\033[1;m I can't manage\n"
+			message  = "\033[33;1mclustermanager.gatherfiles: WARNING\033[0m I can't manage\n"
 			message += "to create the backup .tar.gz file\n"
 			print message
 
@@ -411,7 +414,8 @@ class clustermanager(object):
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -c "+cfgname+" -d "+self.filedatanames+" -o "+outputname+"\n"
+		lines += executable+" "+self.dataname+" -c "+cfgname+" -d "+self.filedatanames+\
+				" -l "+self.finalstate+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
 		f = open(filename,"w")
@@ -446,12 +450,11 @@ class clustermanager(object):
 		return (id,bashscript)
 
 
-
-from optparse import OptionParser
-
 if __name__ == '__main__':
 	import sys
 	import os
+	import glob
+	from optparse import OptionParser
 
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
@@ -467,6 +470,7 @@ if __name__ == '__main__':
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
 	parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
 	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
+	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
 	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
@@ -476,43 +480,64 @@ if __name__ == '__main__':
 			' (launching datamanager executable)' )
 	
 	( opt, args ) = parser.parse_args()
-	
+
 
 	#Archivo de configuracion obligatorio:
 	configabspath = ''
 	# Instanciation of the class manager depending the action to be done
 	if opt.action is None:
-		message = "\nsendcluster: ERROR the '-a' option is mandatory: 'submit' 'harvest'\n"
+		message = "\033[31;1msendcluster: ERROR\033[0m the '-a' option is mandatory: 'submit' 'harvest'"
 		sys.exit( message )
 	
 	if opt.action == 'submit':
 		if not opt.config:
-			message = "\nsendcluster: ERROR the '-c' option is mandatory.\n"
+			message = "\033[31;1msendcluster: ERROR\033[0m the '-c' option is mandatory"
 			sys.exit( message )
 		else:
 			#Checking is a file and can be find it
 			if not os.path.exists(opt.config):
-				message = "\nsendcluster: ERROR Not found '"+opt.config+"'.\n"
+				message = "\033[34;1msendcluster: ERROR\033[0m Not found '"+opt.config+"'"
 				sys.exit( message )
 			configabspath = os.path.abspath(opt.config)
-		#Dataname obligatorio:
+		# Dataname mandatory:
 		if not opt.dataname:
-			message = "\nsendcluster: ERROR the '-d' option is mandatory.\n"
+			# Obtaining all the datanames from files in the current directory
+			message = "\033[34;1msendcluster: INFO\033[0m obtaining the datanames"\
+					" files from the current directory"
+			print message
+			datanameslist = [ x.replace("WHToWW2L","WH").replace("_datanames.dn","") \
+					for x in glob.glob("*.dn") ]
+			# FIXME PROV
+			datanameslist = [ x for x in datanameslist if "WH" not in x ]
+		else:
+			# Checking if is a list
+			dnislist = opt.dataname.split(',')
+			if len(dnislist) > 1:
+				datanameslist = dnislist
+			else:
+				datanameslist = [ opt.dataname ]
+			
+
+		# Also final state:
+		if not opt.finalstate:
+			message = "\033[31;1msendcluster: ERROR\033[0m the '-f' option is mandatory"
 			sys.exit( message )
 		# Instantiate and submit
 		manager = None
-		if opt.action == 'submit':
-			manager = clustermanager('submit',dataname=opt.dataname,\
-					cfgfile=configabspath,njobs=opt.jobsNumber, \
-					pkgdir=opt.pkgdir,basedir=opt.basedir)
+		for dataname in datanameslist:
+			print "========= Dataname: %s" % dataname
+			manager = clustermanager('submit',dataname=dataname,cfgfile=configabspath,\
+					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
+					basedir=opt.basedir,finalstate=opt.finalstate)
+
 	elif opt.action == 'harvest':
 		if opt.workingdir is None:
-			message = "\nsendcluster: ERROR the '--cw' option is mandatory.\n"
+			message = "\033[31;1msendcluster: ERROR\033[0m the '--cw' option is mandatory"
 			sys.exit( message )
-
+		
 		if not os.path.exists(opt.workingdir):
-			message = "\nsendcluster: ERROR the working path "+opt.workingdir \
-					+"' does not exists\n"
+			message = "\033[31;1msendcluster: ERROR\033[0m the working path '"+opt.workingdir \
+					+"' does not exists"
 			sys.exit( message )
 
 		manager = clustermanager("harvest",workingdir=opt.workingdir)
