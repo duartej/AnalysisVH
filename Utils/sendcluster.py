@@ -507,8 +507,6 @@ if __name__ == '__main__':
 			print message
 			datanameslist = [ x.replace("WHToWW2L","WH").replace("_datanames.dn","") \
 					for x in glob.glob("*.dn") ]
-			# FIXME PROV
-			datanameslist = [ x for x in datanameslist if "WH" not in x ]
 		else:
 			# Checking if is a list
 			dnislist = opt.dataname.split(',')

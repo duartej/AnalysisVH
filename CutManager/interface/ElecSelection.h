@@ -1,21 +1,3 @@
-
-///////////////////////////////////////////////////////////////////////
-//
-//    FILE: ElecSelection.h
-//   CLASS: ElecSelection
-// AUTHORS: I. Gonzalez Caballero
-//    DATE: 09/05/2011
-//
-// CONTENT: This class for PAF standarizes the selection of good muons 
-//          for analysis
-//
-// Changelog: Incorporates some getters functions to the 
-//            CMSAnalysisSelector class in order to avoid the creation
-//            of every MuonSelector class for every diferent kind of
-//            tree. Now, the responsable to call the current selector
-//            to use is the client, not the MuonSelector class.
-//                                       J. Duarte Campderros Oct, 2011
-///////////////////////////////////////////////////////////////////////
 // -*- C++ -*-
 //
 // Package:    ElecSelection
@@ -23,7 +5,7 @@
 // 
 /**\class  ElecSelection.h src/ElecSelection.cc
 
- Description: Concrete class to select muons
+ Description: Concrete class to select electrons
 
  Implementation: 
 */
@@ -42,20 +24,21 @@
 
 #include<set>
 
-// Codenames of the selection cuts:
-//   -- 
 
 class ElecSelection : public CutManager
 {
 	public:
+		//! Constructor
 		ElecSelection( TreeManager * data, const int & nLeptons = 3 );
+		//! Destructor
 		virtual ~ElecSelection() { }
 
-		// Initialization of datamembers
+		//! Lock the cuts introduced (function to be call after the last
+		//! SetCut call)
 		virtual void LockCuts();
 		
-		//-- Some special cuts which are use directly from
-		//   the anlysis client (used as wrapper)
+		//! Some special cuts which are use directly from the analysis client
+		//! (used as wrapper, see valid codenames inside the implementation)
 		virtual bool IsPass(const std::string & codename, 
 				const std::vector<double> * auxVar = 0 ) const;
 
@@ -65,21 +48,20 @@ class ElecSelection : public CutManager
 
 		//-- Selection
 		//---------------------------------------------
-		// Select basic muons: 
-		// - with pt > MinPt and fabs(eta) < eta 
-		//   (see IsPassAcceptanceCuts function)
+		//! Select basic muons: 
+		//! - with pt > MinPt and fabs(eta) < eta 
 		virtual unsigned int SelectBasicLeptons();
-		// Select close to PV muons: 
-		// - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu
+		//! Select close to PV muons: 
+		//! - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu
 		virtual unsigned int SelectLeptonsCloseToPV();
-		// Select Iso Leptons: 
-		// - Depends on MaxPTIsolationR# dependent of the region
+		//! Select Iso Leptons: 
+		//! - Depends on MaxPTIsolationR# dependent of the region
 		virtual unsigned int SelectIsoLeptons();
-		// Select Good Identified Leptons: 
-		// - Depends on 
+		//! Select Good Identified Leptons: 
+		//! - Depends on ...
 		virtual unsigned int SelectGoodIdLeptons();
 
-		// Get the code names of the selection cuts
+		//! Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;
 
 
