@@ -27,6 +27,7 @@ Nov. 13th 2011--  Tag release v1.0 : Analysis independence of the final state
 
 
 TODO:
+  1a.Change the data files to be used depending the lepton final state when use data 
   1. Incorporate the latino's trees ----> DONE
   2. Incorporate (create) an electron analysis ---> DONE
   3. Incorporate (create) a lepton analysis  

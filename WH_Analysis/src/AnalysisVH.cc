@@ -89,7 +89,7 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 		fNGenLeptons = &fNGenElectrons;
 	}
 	// else ???? Ya deberia estar controlado antes
-	// anyway FIXME: meter aqui un exit
+	// anyway FIXME: meter aqui un exit--->>
 }
 
 AnalysisVH::~AnalysisVH()
@@ -779,7 +779,6 @@ void AnalysisVH::InsideLoop()
 	// MET
 	//------------------------------------------------------------------
 	const double met = fData->GetMETPFET();
-	_histos[fHMET]->Fill(met,puw);
 	(*auxVar)[0] = met;
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
@@ -788,6 +787,7 @@ void AnalysisVH::InsideLoop()
 	delete auxVar;
 	auxVar=0;
 	
+	_histos[fHMET]->Fill(met,puw);
 	FillHistoPerCut(_iMET, puw, fsNTau);
 }
 
