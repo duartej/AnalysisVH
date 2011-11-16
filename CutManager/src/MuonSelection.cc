@@ -587,7 +587,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	        //Lepton ID and quality cuts
 		bool passcutsforGlb = false;
 		// If is global Muon using its ID cuts
-		if( _data->IsGlobalMuon()->at(i) )
+		if( _data->Get<bool>("T_Muon_IsGlobalMuon",i) )
 		{
 			passcutsforGlb = _data->Get<int>("T_Muon_NValidHitsSATrk",i) > kMinNValidHitsSATrk
 			    && _data->Get<float>("T_Muon_NormChi2GTrk",i) < kMaxNormChi2GTrk 
@@ -595,7 +595,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 		}
 		
 		bool passcutsforSA = false;
-		if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
+		if( _data->Get<bool>("T_Muon_IsAllTrackerMuons",i) ) // Tracker muons
 		{
 			passcutsforSA = _data->Get<bool>("T_Muon_IsTMLastStationTight",i);
 		}

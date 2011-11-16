@@ -21,7 +21,7 @@
 #endif
 
 #include "DatasetManager.h"
-#include "TreeManagerCreator.h"
+//#include "TreeManagerCreator.h"
 #include "TreeTypes.h"
 
 
@@ -165,14 +165,14 @@ const std::vector<TString> * extractdatafiles(TString dataName = "HW160" )
 
 
 // Selector creation
-std::pair<std::string,treeTypes> createdatamanager(const std::vector<TString> & datafiles)
+/*std::pair<std::string,treeTypes> createdatamanager(const std::vector<TString> & datafiles)
 {
 	// 3. Create the selector
 	TreeManagerCreator sc(datafiles[0]);
 	sc.MakeSimpleSelector();
 
 	return std::pair<std::string,treeTypes>(sc.getSelectorFilename(),sc.getTreeType());
-}
+}*/
 
 
 int main(int argc, char *argv[])
@@ -276,7 +276,7 @@ int main(int argc, char *argv[])
 	}
 
 
-	treeTypes dataType;
+	//treeTypes dataType;
 	const std::vector<TString> * datafiles = extractdatafiles( TString(dataName) );
 	if( datafiles == 0 )
 	{
@@ -302,8 +302,10 @@ int main(int argc, char *argv[])
 				}
 			}
 		}
-		return 0;
+		//return 0;
 	}
+	return 0;
+	/*
 	// Create datamanager
 	std::pair<std::string,treeTypes> selfilenameTreeType = createdatamanager(*datafiles);
 	std::string selectorfilename = selfilenameTreeType.first;
@@ -326,5 +328,5 @@ int main(int argc, char *argv[])
 		delete datafiles;
 	}
 
-	return 0;
+	return 0;*/
 }

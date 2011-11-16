@@ -9,6 +9,17 @@
 #include <stdlib.h>
 #include <vector>
 
+
+void TreeManager::Init(TTree * tree)
+{
+	if(tree == 0)
+	{
+		return;
+	}
+
+	fChain = tree;
+}
+
 void TreeManager::GetEntry(const int & entry)
 {
 	if( fChain != 0)

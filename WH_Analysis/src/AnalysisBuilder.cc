@@ -4,7 +4,7 @@
 //#include "AnalysisWHmmm.h"
 //#include "AnalysisWHeee.h"
 
-#include "TreeManagerMiniTrees.h"
+//#include "TreeManagerMiniTrees.h"
 #include "MuonSelection.h"
 #include "ElecSelection.h"
 #include "LeptonTypes.h"
@@ -43,22 +43,23 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateS
 	}
 
 
-	// Tree type --> to decide selector
-	if( thetype == MiniTrees )
+	// Tree type --> to decide selector: TO BE DEPRECATED
+	//if( thetype == MiniTrees )
+	//{
+		//TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
+	TreeManager * data = new TreeManager();
+	if( lepton1 == MUON )
 	{
-		TreeManagerMiniTrees * data = new TreeManagerMiniTrees(tree);
-		if( lepton1 == MUON )
-		{
-			// The selector: si son Muones...
-			MuonSelection * selectioncuts = new MuonSelection(data);
-			an = new AnalysisVH( data, ip, selectioncuts, finalstate);
-		}
-		else if( lepton1 == ELECTRON )
-		{
-			ElecSelection * selectioncuts = new ElecSelection(data);
-			an = new AnalysisVH( data, ip, selectioncuts, finalstate);
-		}				
+		// The selector: si son Muones...
+		MuonSelection * selectioncuts = new MuonSelection(data);
+		an = new AnalysisVH( data, ip, selectioncuts, finalstate);
 	}
+	else if( lepton1 == ELECTRON )
+	{
+		ElecSelection * selectioncuts = new ElecSelection(data);
+		an = new AnalysisVH( data, ip, selectioncuts, finalstate);
+	}				
+	//}
 
 	return an;
 }

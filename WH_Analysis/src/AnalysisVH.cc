@@ -778,7 +778,7 @@ void AnalysisVH::InsideLoop()
 	
 	// MET
 	//------------------------------------------------------------------
-	const double met = fData->GetMETPFET();
+	const double met = fData->Get<float>("T_METPF_ET");
 	(*auxVar)[0] = met;
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{

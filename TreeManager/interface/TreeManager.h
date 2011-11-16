@@ -39,10 +39,10 @@ class TreeManager
 {
 	public:
 		TreeManager() : fChain(0) { }
-		virtual ~TreeManager() { };
+		virtual ~TreeManager() { }; // WHY virtual??!!!
 
-		virtual void Init(TTree * tree) = 0;
-		virtual void GetEntry( const int & entry );
+		void Init(TTree * tree);  // = 0;
+		void GetEntry( const int & entry );
 		
 		template <class T>
 		T Get(const char * branchname,const int & index = 0) const;
@@ -56,7 +56,7 @@ class TreeManager
 		
 		// ---- Generation
 		// ------- Status 3 particles
-		virtual std::vector<int>* GetGenElecSt3PID() const = 0;
+		/*virtual std::vector<int>* GetGenElecSt3PID() const = 0;
 		virtual std::vector<int>* GetGenMuonSt3PID() const = 0;
 		virtual std::vector<int>* GetGenTauSt3PID()  const = 0;
 
@@ -167,13 +167,13 @@ class TreeManager
 		virtual std::vector<float>* GetJetAKPFNoPUPx() const = 0;
 		virtual std::vector<float>* GetJetAKPFNoPUPy() const = 0;
 		virtual std::vector<float>* GetJetAKPFNoPUPz() const = 0;
-		virtual std::vector<float>* GetJetAKPFNoPUEnergy() const = 0;
+		virtual std::vector<float>* GetJetAKPFNoPUEnergy() const = 0;*/
 		/*virtual std::vector<float>* GetJetAKPF2PATPx() const = 0;
 		virtual std::vector<float>* GetJetAKPF2PATPy() const = 0;
 		virtual std::vector<float>* GetJetAKPF2PATPz() const = 0;
 		virtual std::vector<float>* GetJetAKPF2PATEnergy() const = 0; MINITREES*/
 
-		//-- Met
+		/*//-- Met
 		virtual const float GetMETPFET() const = 0;
 		
 		//-- Vertex
@@ -184,11 +184,11 @@ class TreeManager
 		virtual int GetEventprocessID()   const = 0;
 		virtual int GetEventnPU()         const = 0;
 		// ==== END
-		// ==================================================
+		// ==================================================*/
   		
 		// Reflexion: to extract methods needed to be implemented
 		// in the concrete Manager... 
-		inline static std::vector<std::string> getmethods()
+		/*inline static std::vector<std::string> getmethods()
 		{
 			std::vector<std::string> methods;
 	
@@ -292,13 +292,13 @@ class TreeManager
 			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPx() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPy() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUPz() const");
-			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUEnergy() const");
+			methods.push_back("virtual std::vector<float>* GetJetAKPFNoPUEnergy() const");*/
 			/*methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPx() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPy() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATPz() const");
 			methods.push_back("virtual std::vector<float>* GetJetAKPF2PATEnergy() const"); MINITREES*/
 
-			//-- Met
+			/*//-- Met
 			methods.push_back("virtual const float GetMETPFET() const");
 			
 			//-- Vertex
@@ -310,9 +310,9 @@ class TreeManager
 			methods.push_back("virtual int GetEventnPU() const");
 			
 			return methods;
-		}
+		}*/
 
-	protected:
+	private:
 		TTree * fChain;
 
 	

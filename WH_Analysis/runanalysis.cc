@@ -21,7 +21,6 @@
 #endif
 
 #include "DatasetManager.h"
-#include "TreeManagerCreator.h"
 #include "InputParameters.h"
 #include "TreeTypes.h"
 
