@@ -466,9 +466,10 @@ if __name__ == '__main__':
 		sys.exit( message )
 
 	#Opciones de entrada
-	parser = OptionParser()
+	usage="usage: sendcluster <submit|harvest> [options]"
+	parser = OptionParser(usage=usage)
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
-	parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
+	#parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
 	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
@@ -481,15 +482,19 @@ if __name__ == '__main__':
 	
 	( opt, args ) = parser.parse_args()
 
-
+	if len(args) == 0 :
+		message = "\033[31;1msendcluster: ERROR\033[0m Note that is mandatory an action: 'submit' 'harvest'"
+		message += "\nSee usage: "+parser.usage
+		sys.exit(message)
 	#Archivo de configuracion obligatorio:
 	configabspath = ''
 	# Instanciation of the class manager depending the action to be done
-	if opt.action is None:
-		message = "\033[31;1msendcluster: ERROR\033[0m the '-a' option is mandatory: 'submit' 'harvest'"
-		sys.exit( message )
+	#if opt.action is None:
+	#	message = "\033[31;1msendcluster: ERROR\033[0m the '-a' option is mandatory: 'submit' 'harvest'"
+	#	sys.exit( message )
 	
-	if opt.action == 'submit':
+	#if opt.action == 'submit':
+	if args[0] == 'submit':
 		if not opt.config:
 			message = "\033[31;1msendcluster: ERROR\033[0m the '-c' option is mandatory"
 			sys.exit( message )
@@ -528,7 +533,8 @@ if __name__ == '__main__':
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
 					basedir=opt.basedir,finalstate=opt.finalstate)
 
-	elif opt.action == 'harvest':
+	#elif opt.action == 'harvest':
+	elif args[0] == 'harvest':
 		if opt.workingdir is None:
 			message = "\033[31;1msendcluster: ERROR\033[0m the '--cw' option is mandatory"
 			sys.exit( message )
@@ -539,6 +545,11 @@ if __name__ == '__main__':
 			sys.exit( message )
 
 		manager = clustermanager("harvest",workingdir=opt.workingdir)
+	
+	else:
+		message = "\033[31;1msendcluster: ERROR\033[0mNot recognized the action '"+args[0]+"'"
+		sys.exit( message )
+
 	
 
 
