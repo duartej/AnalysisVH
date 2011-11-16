@@ -57,6 +57,10 @@
          : rewritten from scratch by Rene Brun (30 November 2005)
             to support files with nested directories.
            Toby Burnett implemented the possibility to use indirect files.
+
+	   J. Duarte Campderros: added support for InputParameters and 
+	   TCounterUI class, also deleting the extra TKeys (cycles) 
+	   created for the InputParameters
  */
 
 #include "RConfig.h"
