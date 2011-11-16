@@ -279,7 +279,7 @@ bool MuonSelection::IsPassPtCuts() const
 	{
 		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
-		if( _data->GetMuonPt()->at(i) < ptcut )
+		if( _data->Get<float>("T_Muon_Pt",i) < ptcut )
 		{
 			return false;
 		}
@@ -322,13 +322,13 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	_selectedbasicLeptons->clear();
 	
 	// Loop over muons
-	for(unsigned int i=0; i < _data->GetMuonPx()->size(); ++i) 
+	for(unsigned int i=0; i < _data->GetSize<float>("T_Muon_Px"); ++i) 
 	{
 		//Build 4 vector for muon
-		TLorentzVector Mu(_data->GetMuonPx()->at(i), 
-				_data->GetMuonPy()->at(i), 
-				_data->GetMuonPz()->at(i), 
-				_data->GetMuonEnergy()->at(i));
+		TLorentzVector Mu(_data->Get<float>("T_Muon_Px",i), 
+				_data->Get<float>("T_Muon_Py",i), 
+				_data->Get<float>("T_Muon_Pz",i), 
+				_data->Get<float>("T_Muon_Energy",i));
 		//Fill Histograms
 		/*if(fFillHistos) 
 		{
@@ -346,9 +346,9 @@ unsigned int MuonSelection::SelectBasicLeptons()
 		//[If the muon is standalone, and it is neither Tracker 
 		//nor Global then get rid of it]
 		//-------------------
-		if(  _data->IsAllStandAloneMuons()->at(i) 
-				&& !_data->IsGlobalMuon()->at(i) 
-				&& !_data->IsAllTrackerMuons()->at(i) )
+		if(  _data->Get<bool>("T_Muon_IsAllStandAloneMuons",i) 
+				&& !_data->Get<bool>("T_Muon_IsGlobalMuon",i) 
+				&& !_data->Get<bool>("T_Muon_IsAllTrackerMuons",i) )
 		{
 			continue; // muStaOnly 
 		}
@@ -394,10 +394,10 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		unsigned int i = *it;
 
 		//Build 4 vector for muon (por que no utilizar directamente Pt
-		double ptMu = TLorentzVector(_data->GetMuonPx()->at(i), 
-				_data->GetMuonPy()->at(i), 
-				_data->GetMuonPz()->at(i), 
-				_data->GetMuonEnergy()->at(i)).Pt();
+		double ptMu = TLorentzVector(_data->Get<float>("T_Muon_Px",i), 
+				_data->Get<float>("T_Muon_Py",i), 
+				_data->Get<float>("T_Muon_Pz",i), 
+				_data->Get<float>("T_Muon_Energy",i)).Pt();
 
 		//[Require muons to be close to PV] --> FIXME: MiniTRees, buscar forma de cambiarlo...
 		//-------------------
@@ -412,8 +412,8 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		double IPMu = 0;
 		// + Lara
 //		if (fUseBiased) {
-		deltaZMu = _data->GetMuondzPVBiasedPV()->at(i);
-		IPMu     = _data->GetMuonIP2DBiasedPV()->at(i);
+		deltaZMu = _data->Get<float>("T_Muon_dzPVBiasedPV",i);
+		IPMu     = _data->Get<float>("T_Muon_IP2DBiasedPV",i);
 //		}
 		// + Jonatan
 //		else {
@@ -476,10 +476,10 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		unsigned int i = *it;
 		
 		//Build 4 vector for muon
-		TLorentzVector Mu(_data->GetMuonPx()->at(i), 
-				_data->GetMuonPy()->at(i),
-				_data->GetMuonPz()->at(i), 
-				_data->GetMuonEnergy()->at(i));
+		TLorentzVector Mu(_data->Get<float>("T_Muon_Px",i), 
+				_data->Get<float>("T_Muon_Py",i),
+				_data->Get<float>("T_Muon_Pz",i), 
+				_data->Get<float>("T_Muon_Energy",i));
 		
 		//[Require muons to be isolated]
 		//-------------------
@@ -488,7 +488,7 @@ unsigned int MuonSelection::SelectIsoLeptons()
 //				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
 //#endif
 //#ifdef LATINOTREES
-		double isolation =(_data->GetMuonmuSmurfPF()->at(i) )/Mu.Pt();
+		double isolation =(_data->Get<float>("T_Muon_muSmurfPF",i) )/Mu.Pt();
 //#endif
 		
 		//WARNING: HARDCODED limit of the eta regions and Pt
@@ -582,22 +582,22 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	{
 		const unsigned int i = *it;
 	
-		double ptResolution = _data->GetMuondeltaPt()->at(i)/
-			_data->GetMuonPt()->at(i);
+		double ptResolution = _data->Get<float>("T_Muon_deltaPt",i)/
+			_data->Get<float>("T_Muon_Pt",i);
 	        //Lepton ID and quality cuts
 		bool passcutsforGlb = false;
 		// If is global Muon using its ID cuts
 		if( _data->IsGlobalMuon()->at(i) )
 		{
-			passcutsforGlb = _data->GetMuonNValidHitsSATrk()->at(i) > kMinNValidHitsSATrk
-			    && _data->GetMuonNormChi2GTrk()->at(i) < kMaxNormChi2GTrk 
-			    && _data->GetMuonNumOfMatches()->at(i) > kMinNumOfMatches;
+			passcutsforGlb = _data->Get<int>("T_Muon_NValidHitsSATrk",i) > kMinNValidHitsSATrk
+			    && _data->Get<float>("T_Muon_NormChi2GTrk",i) < kMaxNormChi2GTrk 
+			    && _data->Get<int>("T_Muon_NumOfMatches",i) > kMinNumOfMatches;
 		}
 		
 		bool passcutsforSA = false;
 		if( _data->IsAllTrackerMuons()->at(i) ) // Tracker muons
 		{
-			passcutsforSA = _data->IsTMLastStationTight()->at(i);
+			passcutsforSA = _data->Get<bool>("T_Muon_IsTMLastStationTight",i);
 		}
 	
 		const bool passSpecific = passcutsforGlb || passcutsforSA;
@@ -609,12 +609,12 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 			continue;
 		}
 
-		bool Idcuts = _data->GetMuonNValidPixelHitsInTrk()->at(i) > kMinNValidPixelHitsInTrk 
+		bool Idcuts = _data->Get<int>("T_Muon_NValidPixelHitsInTrk",i) > kMinNValidPixelHitsInTrk 
 //#ifdef MINITREES
 //		    && _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk 
 //#endif
 //#ifdef LATINOTREES
- 	            && _data->GetMuonInnerTrackFound()->at(i) > kMinNValidHitsInTrk 
+ 	            && _data->Get<int>("T_Muon_InnerTrackFound",i) > kMinNValidHitsInTrk 
 //#endif
 	           && fabs(ptResolution) < kMaxDeltaPtMuOverPtMu;
 
