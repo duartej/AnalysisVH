@@ -24,14 +24,16 @@
 
 #include<set>
 
+class WPElecID;
 
 class ElecSelection : public CutManager
 {
 	public:
+
 		//! Constructor
 		ElecSelection( TreeManager * data, const int & nLeptons = 3 );
 		//! Destructor
-		virtual ~ElecSelection() { }
+		virtual ~ElecSelection();
 
 		//! Lock the cuts introduced (function to be call after the last
 		//! SetCut call)
@@ -72,6 +74,12 @@ class ElecSelection : public CutManager
 		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
 		bool IsInsideZWindow(const double & invariantMass) const; 
 		bool IsPassMETCut(const double & MET) const;
+		bool IsPassWP( const unsigned int & index ) const;
+
+		//! Working Point for the pt > 20 Gev/c (highPt)
+		//  and pt < 20 GeV/c (lowPt)
+		WPElecID * pWP_lowPt;
+		WPElecID * pWP_highPt;
 
 		// The list of the selection chain codenames 
 		std::set<std::string> _codenames;

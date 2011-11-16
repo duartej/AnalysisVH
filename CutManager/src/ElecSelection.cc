@@ -1,5 +1,6 @@
 
 #include "ElecSelection.h"
+#include "WPElecID.h"
 
 #include "TLorentzVector.h"
 
@@ -9,6 +10,8 @@
 //Constructor
 ElecSelection::ElecSelection( TreeManager * data, const int & nLeptons) : 
 	CutManager(data,nLeptons),
+	pWP_lowPt(0),   
+	pWP_highPt(0),    
 	kMinMuPt1(-1),
 	kMinMuPt2(-1),      
 	kMinMuPt3(-1),          
@@ -37,6 +40,26 @@ ElecSelection::ElecSelection( TreeManager * data, const int & nLeptons) :
 	_codenames.insert("DeltaRMuMuCut");
 	_codenames.insert("ZMassWindow");
 	_codenames.insert("MinMET");
+
+	// Set the Id related cuts datamembers
+	// WARNING HARDCODED (if this ok?)
+	pWP_lowPt = new WPElecID( WPElecID::WP_70 );
+	pWP_highPt = new WPElecID( WPElecID::WP_80 );
+}
+
+ElecSelection::~ElecSelection()
+{
+	if( pWP_lowPt != 0 )
+	{
+		delete pWP_lowPt;
+		pWP_lowPt = 0;
+	}
+	
+	if( pWP_highPt != 0 )
+	{
+		delete pWP_highPt;
+		pWP_highPt = 0;
+	}
 }
 
 
@@ -147,12 +170,15 @@ void ElecSelection::LockCuts(){
 	}
 }
 
-// Helper function
+//---  Helper functions
+
+// 
 std::vector<std::string> ElecSelection::GetCodenames() const
 {
 	return std::vector<std::string>(_codenames.begin(),_codenames.end());
 }
 
+// Wrapper function to evaluate cuts called directly from the client (Analysis class)
 bool ElecSelection::IsPass(const std::string & codename, const std::vector<double> * varAux ) const
 {
 	// Checking
@@ -279,7 +305,7 @@ bool ElecSelection::IsPassPtCuts() const
 	{
 		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
-		if( _data->GetElecPt()->at(i) < ptcut )
+		if( _data->Get<float>("T_Elec_Pt",i) < ptcut )
 		{
 			return false;
 		}
@@ -299,6 +325,58 @@ bool ElecSelection::IsPassDeltaRCut( const double & minDeltaRMuMu ) const
 bool ElecSelection::IsInsideZWindow( const double & invariantMass ) const
 {
 	return ( kMaxZMass > invariantMass && invariantMass > kMinZMass);
+}
+
+// Working point
+bool ElecSelection::IsPassWP( const unsigned int & index ) const
+{
+	//Variables:
+	const double sigmaietaieta = _data->Get<float>("T_Elec_sigmaIetaIeta",index);
+	const double deltaPhiIn    = _data->Get<float>("T_Elec_deltaPhiIn",index);
+	const double deltaEtaIn    = _data->Get<float>("T_Elec_deltaEtaIn",index);
+	const double HtoE          = _data->Get<float>("T_Elec_HtoE",index);
+
+	const double pt   = _data->Get<float>("T_Elec_Pt",index);
+	const double SCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+
+	bool ispass = false;
+	// BARREL Electrons
+	if( SCeta < 1.479 )
+	{
+		// Low pt Electrons
+		if( pt < 20.0 )
+		{
+			ispass = pWP_lowPt->checkBarrel( sigmaietaieta,deltaPhiIn,deltaEtaIn,HtoE ) 
+				// Extra cuts
+				// --- Breamsstrahlung (to extract background contamination
+				// from fake electrons) or  if eta < 1. then E/P > 0.95
+				&& ( (_data->Get<float>("T_Elec_fBrem",index) > 0.15) 
+				// --- NPI (look around to find this cut)
+				      ||  (SCeta < 1.0 && _data->Get<float>("T_Elec_eSuperClusterOverP",index) > 0.95)  );
+		}
+		else // High pt Electrons
+		{
+			ispass = pWP_highPt->checkBarrel( sigmaietaieta,deltaPhiIn,deltaEtaIn,HtoE );
+		}
+	}
+	else  // Endcap electrons
+	{
+		// Low pt Electrons
+		if( pt < 20.0 )
+		{
+			ispass = pWP_lowPt->checkEndcap( sigmaietaieta,deltaPhiIn,deltaEtaIn,HtoE ) 
+				// Extra cuts
+				// --- Breamsstrahlung (to extract background contamination
+				// from fake electrons)
+				&& (_data->Get<float>("T_Elec_fBrem",index) > 0.15);
+		}
+		else  // High pt Electrons
+		{
+			ispass = pWP_highPt->checkEndcap( sigmaietaieta,deltaPhiIn,deltaEtaIn,HtoE );
+		}
+	}
+	
+	return ispass;
 }
 
 //FIXME: Asumo que estan ordenados por Pt!!! Commprobar
@@ -322,13 +400,14 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	_selectedbasicLeptons->clear();
 	
 	// Loop over electrons
-	for(unsigned int i=0; i < _data->GetElecPx()->size(); ++i) 
+	for(unsigned int i=0; i < _data->GetSize<float>("T_Elec_Px"); ++i) 
 	{
 		//Build 4 vector for muon
-		TLorentzVector Elec(_data->GetElecPx()->at(i), 
-				_data->GetElecPy()->at(i), 
-				_data->GetElecPz()->at(i), 
-				_data->GetElecEnergy()->at(i));
+		// FIXME: Not needed: just extract Pt and Eta
+		TLorentzVector Elec(_data->Get<float>("T_Elec_Px",i), 
+				_data->Get<float>("T_Elec_Py",i), 
+				_data->Get<float>("T_Elec_Pz",i), 
+				_data->Get<float>("T_Elec_Energy",i));
 		//Fill Histograms
 		/*if(fFillHistos) 
 		{
@@ -343,41 +422,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		{
 			continue;
 		}
-		//[If the muon is standalone, and it is neither Tracker 
-		//nor Global then get rid of it]
-		//-------------------
-		Bool_t isEB=false;
-		
-		if( fabs(_data->GetElecSCEta()->at(i)) < 1.479 ) isEB=true;
-  		bool isGoodElectronBool=   ((( isEB && Elec.Pt() < 20 && _data->GetElecsigmaIetaIeta()->at(i) < 0.01 &&           
-                    _data->GetElecdeltaPhiIn()->at(i) > -0.03 && _data->GetElecdeltaPhiIn()->at(i) < 0.03 && 
-                    _data->GetElecdeltaEtaIn()->at(i) > -0.004 && _data->GetElecdeltaEtaIn()->at(i) < 0.004 && 
-                    _data->GetElecHtoE()->at(i) < 0.025 && (_data->GetElecfBrem()->at(i) > 0.15 || 
-		      ( fabs(_data->GetElecSCEta()->at(i)) < 1. && _data->GetEleceSuperClusterOverP()->at(i) > 0.95 )) ) || 
-                    ( (!isEB) && Elec.Pt() < 20 && _data->GetElecsigmaIetaIeta()->at(i) < 0.03 &&            
-                    _data->GetElecdeltaPhiIn()->at(i) > -0.02 && _data->GetElecdeltaPhiIn()->at(i) < 0.02 && 
-                    _data->GetElecdeltaEtaIn()->at(i) > -0.005 && _data->GetElecdeltaEtaIn()->at(i) < 0.005 && 
-                    _data->GetElecHtoE()->at(i) < 0.1 && _data->GetElecfBrem()->at(i) > 0.15) || 
-                    ( isEB && Elec.Pt() > 20 && _data->GetElecsigmaIetaIeta()->at(i) < 0.01 &&            
-                    _data->GetElecdeltaPhiIn()->at(i) > -0.06 && _data->GetElecdeltaPhiIn()->at(i) < 0.06 && 
-                    _data->GetElecdeltaEtaIn()->at(i) > -0.004 && _data->GetElecdeltaEtaIn()->at(i) < 0.004 && 
-                    _data->GetElecHtoE()->at(i) < 0.04) || 
-                    ( (!isEB) && Elec.Pt() > 20 && _data->GetElecsigmaIetaIeta()->at(i) < 0.03  &&   
-                    _data->GetElecdeltaPhiIn()->at(i) > -0.03 && _data->GetElecdeltaPhiIn()->at(i) < 0.03 && 
-                    _data->GetElecdeltaEtaIn()->at(i) > -0.007 && _data->GetElecdeltaEtaIn()->at(i) < 0.007 &&   
-                    _data->GetElecHtoE()->at(i) < 0.1 ) ) );
-
-		if( ! isGoodElectronBool )
-		{
-			continue;
-		}
   
-		/*if(  _data->IsAllStandAloneMuons()->at(i) 
-				&& !_data->IsGlobalMuon()->at(i) 
-				&& !_data->IsAllTrackerMuons()->at(i) )
-		{
-			continue; // muStaOnly 
-		}*/
 		
 		// If we got here it means the muon is good
 		_selectedbasicLeptons->push_back(i);
@@ -420,10 +465,11 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		unsigned int i = *it;
 
 		//Build 4 vector for muon (por que no utilizar directamente Pt
-		double ptMu = TLorentzVector(_data->GetElecPx()->at(i), 
-				_data->GetElecPy()->at(i), 
-				_data->GetElecPz()->at(i), 
-				_data->GetElecEnergy()->at(i)).Pt();
+		// FIXME: Not needed: just extract Pt
+		double ptMu = TLorentzVector(_data->Get<float>("T_Elec_Px",i), 
+				_data->Get<float>("T_Elec_Py",i), 
+				_data->Get<float>("T_Elec_Pz",i), 
+				_data->Get<float>("T_Elec_Energy",i)).Pt();
 
 		//[Require muons to be close to PV] --> FIXME: MiniTRees, buscar forma de cambiarlo...
 		//-------------------
@@ -438,8 +484,8 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		double IPMu = 0;
 		// + Lara
 //		if (fUseBiased) {
-		deltaZMu = _data->GetElecdzPVBiasedPV()->at(i);
-		IPMu     = _data->GetElecIP2DBiasedPV()->at(i);
+		deltaZMu = _data->Get<float>("T_Elec_dzPVBiasedPV",i);
+		IPMu     = _data->Get<float>("T_Elec_IP2DBiasedPV",i);
 //		}
 		// + Jonatan
 //		else {
@@ -502,10 +548,11 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		unsigned int i = *it;
 		
 		//Build 4 vector for muon
-		TLorentzVector Elec(_data->GetElecPx()->at(i), 
-				_data->GetElecPy()->at(i),
-				_data->GetElecPz()->at(i), 
-				_data->GetElecEnergy()->at(i));
+		// FIXME: Not needed: just extract Pt and Eta
+		TLorentzVector Elec(_data->Get<float>("T_Elec_Px",i), 
+				_data->Get<float>("T_Elec_Py",i),
+				_data->Get<float>("T_Elec_Pz",i), 
+				_data->Get<float>("T_Elec_Energy",i));
 		
 		//[Require muons to be isolated]
 		//-------------------
@@ -514,7 +561,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 //				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
 //#endif
 //#ifdef LATINOTREES
-		double isolation =(_data->GetEleceleSmurfPF()->at(i) )/Elec.Pt();
+		double isolation =(_data->Get<float>("T_Elec_eleSmurfPF",i) )/Elec.Pt();
 //#endif
 		
 		//WARNING: HARDCODED limit of the eta regions and Pt
@@ -570,13 +617,6 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		{
 			continue;
 		}
-
-		// Extra: Conversion
-		if( ! (_data->GetElecpassesNewConversion()->at(i)  && 
-				_data->GetElecnHits()->at(i) == 0) )
-		{
-			continue;
-		}
 		
 		// If we got here it means the muon is good
 		_selectedIsoLeptons->push_back(i);
@@ -614,6 +654,19 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 			it != _selectedIsoLeptons->end(); ++it)
 	{
 		const unsigned int i = *it;
+
+		// Working points (see IsPassWP function and WPElecID class)
+		if( ! IsPassWP(i) )
+		{
+			continue;
+		}
+		// Conversion
+		if( ! (_data->Get<bool>("T_Elec_passesNewConversion",i)  &&
+					_data->Get<int>("T_Elec_nHits",i) == 0) )
+		{
+			continue;
+		}
+		
 	
 		// If we got here it means the muon is good
 		_selectedGoodIdLeptons->push_back(i);
@@ -621,4 +674,6 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 	
       	return _selectedGoodIdLeptons->size();
 }
+
+
 
