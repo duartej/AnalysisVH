@@ -357,14 +357,14 @@ void AnalysisVH::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
-	std::cout << "New event: " << fData->GetEventEventNumber() << std::endl;
+	std::cout << "New event: " << fData->Get<int>("T_Event_EventNumber") << std::endl;
 #endif
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->GetEventnPU());
+		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}
 
 	// Generation studies
