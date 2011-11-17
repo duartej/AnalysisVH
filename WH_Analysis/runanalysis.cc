@@ -448,7 +448,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ip, tchaindataset ); 
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ip ); 
 
 #ifdef TIMERS
 	//T4
