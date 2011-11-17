@@ -23,7 +23,12 @@ Nov. 13th 2011--  Tag release v1.0 : Analysis independence of the final state
 			      - construction of the TreeManagerMiniTrees code, and as consequence
 			      there will be no longer need to launch the datamanagercreator (it will
 			      be renamed to extractdatafiles or something like that)
-
+Nov. 16th 2011--  Tag release v2.0 : Deprecated selector dependence of each file
+  * Not needed to created a selector specific for each data file, getting directly the values via
+  the name of the branch. It slows the process a factor 2. Nevertheless, it introduces clarity and
+  do not break the workflow creating a selector for each file (or group of files), also portability
+  between the different types of ntuples. It takes ~20m to process ~1.1M when the v01.00 took ~7m to
+  process ~1.1M of events.
 
 
 TODO:
@@ -31,10 +36,6 @@ TODO:
   1. Incorporate the latino's trees ----> DONE
   2. Incorporate (create) an electron analysis ---> DONE
   3. Incorporate (create) a lepton analysis  
-  4. Use directly the tree->GetLeaf("nameofthebranch")->GetValue(index) (index=0 if there is no vector) --> DONE
-     Checks:
-             * How much time is this slowing down the reading process?
-	     * Is the amount of time aceptable?
   5. Check with the *.sh.e* the good behaviour of the job
   6. Resume the outputs of the jobs (mainly the final table)
 
