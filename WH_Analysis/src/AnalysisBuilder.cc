@@ -14,7 +14,7 @@
 #include<stdlib.h>
 
 // Or template ??--> Clase lista para construir diferentes analysis AnalysisVH <-- AnalysisWH (3leptones), <-- Analysis...
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, InputParameters *ip, TTree *tree )
+AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, InputParameters *ip, TTree /**tree*/ )
 {
 
 	AnalysisVH * an = 0;

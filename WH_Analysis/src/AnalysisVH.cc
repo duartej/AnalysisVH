@@ -88,6 +88,7 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 		fLeptonName = "Elec";
 		fNGenLeptons = &fNGenElectrons;
 	}
+	// else if fFS == SignatrueFS::iFSmee --> fGenLeptonIndex = vector(MUON ELECTRON ELECTRON)
 	// else ???? Ya deberia estar controlado antes
 	// anyway FIXME: meter aqui un exit--->>
 }
@@ -380,7 +381,7 @@ void AnalysisVH::InsideLoop()
 		unsigned int nmusfromW = fData->GetSize<int>("T_Gen_MuonSt3_PID");
 		unsigned int ntausfromW = fData->GetSize<int>("T_Gen_TauSt3_PID");
 		
-		_histos[fHNGenWLeptons]->Fill(nmusfromW,puw); 
+		_histos[fHNGenWLeptons]->Fill(nmusfromW,puw); // BUG!!!
 		fsTaus = SignatureFS::GetFSID(nelecsfromW, nmusfromW, ntausfromW);
 		_histos[fHGenFinalState]->Fill(fsTaus, puw);
 		
@@ -452,14 +453,14 @@ void AnalysisVH::InsideLoop()
 		// Initialize generation vector
 		fGenLepton.clear();
 		//   Sort by energy
-		if(*fNGenLeptons == 3)  // FIXME:: PORQUE SOLO 3??
+		if(*fNGenLeptons == 3)  // FIXME:: PORQUE SOLO 3?? --> cAMBIAR POR nLeptons
 		{
 			std::map<double,TLorentzVector> vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
 			std::string genname = std::string("Gen_"+std::string(fLeptonName));
 			for(unsigned int i = 0; i < *fNGenLeptons; i++) 
 			{
-				vGenMuon->push_back( this->GetTLorentzVector( genname.c_str(),igen[i]) );
+				vGenMuon->push_back( this->GetTLorentzVector( genname.c_str(),igen[i]) );  // ---> BUG!!
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
 			for(std::map<double,TLorentzVector>::reverse_iterator it = vOrder.rbegin(); 
@@ -550,7 +551,7 @@ void AnalysisVH::InsideLoop()
 	//
 	//this->SetGoodVertexIndex(iGoodVertex);
 	
-	// Store the number of reconstructed muons without any filter
+	// Store the number of reconstructed leptons without any filter ---> COMO LO SOLUCIONO?
 	std::string leptonpx = std::string("T_"+std::string(fLeptonName)+"_Px");
 	_histos[fHNRecoLeptons]->Fill(fData->GetSize<float>(leptonpx.c_str()));//GetElecPx()->size());
 	
@@ -650,6 +651,7 @@ void AnalysisVH::InsideLoop()
 	{
 		const unsigned int i = *it;
 		lepton.push_back( this->GetTLorentzVector(i) );
+		// Change to: chargedm = "T_"+fLeptonSelector->GetLeptonTypeStr(i)+"charge"; 
 		leptonCharge.push_back( fData->Get<int>(chargedm.c_str(),i) );
 	}
 	
