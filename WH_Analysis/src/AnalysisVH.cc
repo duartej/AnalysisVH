@@ -33,7 +33,8 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	fNGenElectrons(0),
 	fNGenMuons(0),
 	fNGenLeptons(0),
-	fPUWeight(0)
+	fPUWeight(0),
+	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
 	fLeptonSelection = selectioncuts;
@@ -95,6 +96,13 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 
 AnalysisVH::~AnalysisVH()
 {
+	// Checking if already was stored the results,
+	// otherwise do it
+	if( ! fWasStored )
+	{
+		this->SaveOutput();
+	}
+
 	/*if( fData != 0)
 	{
 		delete fData; //WARNING: Somebody deleting-- > YES!!
@@ -107,6 +115,67 @@ AnalysisVH::~AnalysisVH()
 	{
 		delete fInput;  // new TList deleted
 	}
+}
+
+void AnalysisVH::SaveOutput( const char * outputname )
+{
+	// Create the output file and fill it
+	// Putting the outputfile name per default if not defined
+	std::string outputfile;
+
+	if( outputname == 0 )
+	{
+		// Extract the name of the file and get the last 
+		std::string filename( fInputParameters->TheNamedString("datafilenames_0") );
+		size_t barlastpos = filename.rfind("/")+1;
+		if( barlastpos == filename.npos )
+		{
+			// all the string is valid
+			barlastpos = 0;
+		}
+		// Extracting the .root suffix
+		const size_t rootpos = filename.find(".root");
+		const size_t length  = rootpos-barlastpos;
+		std::string almostfinalname = filename.substr(barlastpos,length);
+		// And extract the Tree_
+		size_t prefix = almostfinalname.rfind("Tree_")+5;
+		if( prefix == almostfinalname.npos )
+		{
+			prefix = 0;
+		}
+		std::string finalname = almostfinalname.substr(prefix);;
+
+		outputfile = "Results/"+std::string(fInputParameters->TheNamedString("MyAnalysis"))+"_"
+			+finalname+".root";
+	}
+	else
+	{
+		outputfile = outputname;
+	}
+
+	std::cout << ">> Saving results to " << outputfile << " ..." << std::endl;
+	TString outputfileTS = TString(outputfile);
+	if(gSystem->FindFile(".", outputfileTS)) 
+	{
+		std::cout << "WARNING: File " << outputfile << " already exits!" << std::endl;
+		TString outputFileBak = outputfile + ".bak";
+		std::cout << "         Moving it to " << outputFileBak << std::endl;
+		gSystem->CopyFile(outputfile.c_str(), outputFileBak.Data(), kTRUE);
+		gSystem->Unlink(outputfile.c_str());
+	}
+	TFile histoAnalysis(outputfile.c_str(), "NEW");
+	if (histoAnalysis.IsOpen()) 
+	{
+		TList* li = 0;
+		TList* lo = 0;
+		li = this->GetInputList();
+		lo = this->GetOutputList();
+		li->Write();
+		lo->Write();
+		histoAnalysis.Close();
+	}
+
+	this->fWasStored = true;
 }
 
 void AnalysisVH::InitialiseParameters()

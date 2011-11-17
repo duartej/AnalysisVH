@@ -483,7 +483,7 @@ int main(int argc, char *argv[])
 	// Create the output file and fill it
 	// FIXME: Esto va aqui?? o mejor en el destructor del AnalysisVH
 	// Putting the outputfile name per default
-	std::string outputfile;
+	/*std::string outputfile;
 	if( ! getOF )
 	{
 		// Extract the name of the file and get the last 
@@ -533,7 +533,7 @@ int main(int argc, char *argv[])
 		li->Write();
 		lo->Write();
 		histoAnalysis.Close();
-	}
+	}*/
 
 	// Now the class is in charge of deleting the InputParameter
 	// as is one of its datamembers
@@ -542,6 +542,8 @@ int main(int argc, char *argv[])
 		delete ip;
 		ip=0;
 	}*/
+	// Storing the output
+	analysis->SaveOutput( outputfilechar );
 
 	if( analysis != 0 )
 	{

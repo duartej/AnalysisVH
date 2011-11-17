@@ -117,6 +117,9 @@ class AnalysisVH : public CMSAnalysisSelector
 		//! Destructor
 		virtual ~AnalysisVH();
 
+		//! method to store the results to a file
+		void SaveOutput( const char * outputname = 0 );
+
 	protected:
 		virtual void InitialiseParameters();
 		virtual void Initialise();
@@ -188,6 +191,9 @@ class AnalysisVH : public CMSAnalysisSelector
 		std::map<int,TH1D*> _histos;
 		//std::map<int,std::map<int,TH1D*> > _histos3Leptons; / { nombre_enum: { #lepton: TH1D* , .. } ..
 		//std::map<int,std::map<int, std::map<int,TH1D*> > > _histos3LeptonsPerCut; / { nombre_enum: { #lepton: { # corte: TH1D* ,  .. } .. } 
+
+		// -- It is was stored the ouput
+		bool fWasStored;
 
 
 	public:
