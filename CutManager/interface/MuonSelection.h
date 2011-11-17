@@ -1,35 +1,19 @@
-
-///////////////////////////////////////////////////////////////////////
-//
-//    FILE: MuonSelection.h
-//   CLASS: MuonSelection
-// AUTHORS: I. Gonzalez Caballero
-//    DATE: 09/05/2011
-//
-// CONTENT: This class for PAF standarizes the selection of good muons 
-//          for analysis
-//
-// Changelog: Incorporates some getters functions to the 
-//            CMSAnalysisSelector class in order to avoid the creation
-//            of every MuonSelector class for every diferent kind of
-//            tree. Now, the responsable to call the current selector
-//            to use is the client, not the MuonSelector class.
-//                                       J. Duarte Campderros Oct, 2011
-///////////////////////////////////////////////////////////////////////
 // -*- C++ -*-
 //
-// Package:    MuonSelection
+// Package:    CutManager
 // Class:      MuonSelection
 // 
-/**\class  MuonSelection.h src/MuonSelection.cc
+/**\class  MuonSelection
 
  Description: Concrete class to select muons
 
  Implementation: 
 */
 //
-// Modifications Author: Jordi Duarte Campderros  
+// Author: Jordi Duarte Campderros  
 //         Created:  Sun Oct  30 12:20:31 CET 2011
+//         Based in the PROOF version of the code created by
+//         I. Gonzalez Caballero (May 9 2011)
 // 
 // jordi.duarte.campderros@cern.ch
 //
