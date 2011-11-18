@@ -23,6 +23,7 @@
 
 #include "TROOT.h"
 #include "CutManager.h"
+#include "LeptonMixingSelection.h"
 
 #include<set>
 
@@ -31,6 +32,9 @@
 
 class MuonSelection : public CutManager
 {
+	//! Granting access to the vector datamembers
+	friend class LeptonMixingSelection;
+
 	public:
 		MuonSelection( TreeManager * data, const int & nLeptons = 3 );
 		virtual ~MuonSelection() { }
@@ -65,7 +69,6 @@ class MuonSelection : public CutManager
 
 		// Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;
-
 
 	private:
 		//-- The effective cuts whose would be called by IsPass
@@ -105,7 +108,7 @@ class MuonSelection : public CutManager
 		int    kMinNValidPixelHitsInTrk;
 		int    kMinNValidHitsInTrk     ;
 		double kMaxDeltaPtMuOverPtMu   ;
-
+		
 	ClassDef(MuonSelection,0);
 };
 #endif

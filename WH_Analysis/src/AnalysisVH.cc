@@ -480,9 +480,6 @@ void AnalysisVH::InsideLoop()
 					igen[fNGenElectrons] = i;
 				}
 				fNGenElectrons++;
-#ifdef DEBUGANALYSIS
-				std::cout << "DEBUG:     Good!" << std::endl;
-#endif
 			}
 		}
 		
@@ -506,9 +503,6 @@ void AnalysisVH::InsideLoop()
 					igen[fNGenMuons] = i;
 				}
 				fNGenMuons++;
-#ifdef DEBUGANALYSIS
-				std::cout << "DEBUG:     Good! " << fNGenMuons << std::endl;
-#endif
 			}
 		}
 		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
@@ -529,7 +523,7 @@ void AnalysisVH::InsideLoop()
 			std::string genname = std::string("Gen_"+std::string(fLeptonName));
 			for(unsigned int i = 0; i < *fNGenLeptons; i++) 
 			{
-				vGenMuon->push_back( this->GetTLorentzVector( genname.c_str(),igen[i]) );  // ---> BUG!!
+				vGenMuon->push_back( this->GetTLorentzVector( genname.c_str(),igen[i]) ); 
 				vOrder[vGenMuon->back().Pt()] = vGenMuon->back();
 			}
 			for(std::map<double,TLorentzVector>::reverse_iterator it = vOrder.rbegin(); 

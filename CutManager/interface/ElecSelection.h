@@ -21,6 +21,7 @@
 
 #include "TROOT.h"
 #include "CutManager.h"
+#include "LeptonMixingSelection.h"
 
 #include<set>
 
@@ -28,6 +29,8 @@ class WPElecID;
 
 class ElecSelection : public CutManager
 {
+	friend class LeptonMixingSelection;
+
 	public:
 
 		//! Constructor
