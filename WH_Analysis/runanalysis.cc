@@ -25,6 +25,7 @@
 #include "DatasetManager.h"
 #include "InputParameters.h"
 #include "TreeTypes.h"
+#include "LeptonTypes.h"
 
 #include "AnalysisBuilder.h"
 #include "AnalysisVH.h"
@@ -258,6 +259,8 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 
 
 // From a config file, extract the parameters needed
+// FIXME: Necesito incluir una nueva variable fija: tipo de lepton
+// lo que devuelva sera un par<Lepton,inputPar>
 InputParameters * setparameters(const std::vector<TString> & datafiles, const TString & dataName,
 		const char * cfgfile, const char * nameIPinstance="Set Of Parameters")
 {
@@ -456,17 +459,32 @@ int main(int argc, char *argv[])
 	t2 = timer.RealTime();
 	timer.Start();
 #endif
-	std::vector<InputParameters*> ipVector;
+	std::cout << "\033[1;33mrunanalysis WARNING\033[1;m Recall to include the configuration"
+		<< " files (with '-c' option) following the order:"
+		<< "\nconfig_for_muon,config_for_elec" << std::endl;
+	std::cout << "\033[1;33mTHIS IS A PROVISIONAL WARNING" 
+		<< " UNTIL THE RIGHT ALGORITHM IS BEING IMPLEMENTED\033[1;m" 
+		<< std::endl;
+	std::map<LeptonTypes,InputParameters*> ipmap;
+	std::vector<LeptonTypes> lv;
+	lv.push_back(MUON);
+	lv.push_back(ELECTRON);
 	// Initialize the analysis specific parameters using a config file
-	for(std::vector<std::string>std::stringcfgfile = cfgfileV.begin(); 
+	if( cfgfileV.size() > 2 )
+	{
+		std::cout << "\033[1;31runanalysis ERROR\033[1;m It has been"
+		<< " introduced 2 configuration files which it has no sense:"
+		<< " There are 2 different stable lepton flavours!"
+		<< std::endl;
+		exit(-1);
+	}
+	int klv = 0;
+	for(std::vector<std::string>::iterator cfgfile = cfgfileV.begin(); 
 			cfgfile != cfgfileV.end(); ++cfgfile)
 	{
-		InputParameters * ip = setparameters(datafiles,TString(dataName),(*cfgfile).c_str()); 
-		ipVector.push_back(ip);
-		ip->DumpParms();
+		ipmap[lv.at(klv)] = setparameters(datafiles,TString(dataName),(*cfgfile).c_str());
+		++klv;
 	}
-	return 0;
-	//ip->DumpParms();
 
 	TChain * tchaindataset = 0;
 	// Data: FIXME: Extract this info from a centralized way (TreeManager?)
@@ -483,12 +501,13 @@ int main(int argc, char *argv[])
 	{
 		std::cerr << " ERROR: ROOT tree file contains an unrecongnized Tree" << std::endl;
 		// Freeing memory as the future owner of InputParameters it is not initialized even
-		for(std::vector<InputParameters*>::iterator  ip = ipVector.begin(); ip != ipVector.end(); 
+		for(std::map<LeptonTypes,InputParameters*>::iterator ip = ipmap.begin(); ip != ipmap.end(); 
 				++ip)
 		{
-			if( *ip != 0)
+			if( ip->second != 0)
 			{
-				delete *ip;
+				delete ip->second;
+				ip->second = 0;
 			}
 		}
 		exit(-1);
@@ -498,30 +517,18 @@ int main(int argc, char *argv[])
 		tchaindataset->Add(*it);
 	}
 
-	//tchaindataset->GetListOfFiles()->Print();
 
+	// Extract entries now before the InputParameters is going to 
+	// be used by the Builder (the Analysis will be the owner and
+        // there is going to delete some of them
 
-#ifdef TIMERS
-	//T3
-	t3 = timer.RealTime();
-	timer.Start();
-#endif
-	// Creating Analysis
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipVector ); 
-
-#ifdef TIMERS
-	//T4
-	t4 = timer.RealTime();
-	timer.Start();
-#endif
-	// Processing
 	// Entries
 	int nEvents = -1;
-	//FIXME!!! PROVISIONAL
-	InputParameters *ip = ipVector.at(0);
-	ip->TheNamedInt("nEvents",nEvents);
+	// Take whatever, they contain the same values
+	ipmap.begin()->second->TheNamedInt("nEvents",nEvents);
 	int firstEvent = -1 ;
-	ip->TheNamedInt("firstEvent",firstEvent);
+	ipmap.begin()->second->TheNamedInt("firstEvent",firstEvent);
+	// Processing
 	if( nEvents < 0 )
 	{
 		nEvents = TChain::kBigNumber;
@@ -532,6 +539,20 @@ int main(int argc, char *argv[])
 			<< "using 0 as default" << std::endl;
 		firstEvent = 0; 
 	}
+
+#ifdef TIMERS
+	//T3
+	t3 = timer.RealTime();
+	timer.Start();
+#endif
+	// Creating Analysis
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap ); 
+
+#ifdef TIMERS
+	//T4
+	t4 = timer.RealTime();
+	timer.Start();
+#endif
 	//std::cout << tchaindataset->GetEntries() << std::endl;
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
@@ -540,69 +561,6 @@ int main(int argc, char *argv[])
 	t5 = timer.RealTime();
 	timer.Start();
 #endif
-	//
-	// Create the output file and fill it
-	// FIXME: Esto va aqui?? o mejor en el destructor del AnalysisVH
-	// Putting the outputfile name per default
-	/*std::string outputfile;
-	if( ! getOF )
-	{
-		// Extract the name of the file and get the last 
-		std::string filename( ip->TheNamedString("datafilenames_0") );
-		size_t barlastpos = filename.rfind("/")+1;
-		if( barlastpos == filename.npos )
-		{
-			// all the string is valid
-			barlastpos = 0;
-		}
-		// Extracting the .root suffix
-		const size_t rootpos = filename.find(".root");
-		const size_t length  = rootpos-barlastpos;
-		std::string almostfinalname = filename.substr(barlastpos,length);
-		// And extract the Tree_
-		size_t prefix = almostfinalname.rfind("Tree_")+5;
-		if( prefix == almostfinalname.npos )
-		{
-			prefix = 0;
-		}
-		std::string finalname = almostfinalname.substr(prefix);;
-
-		outputfile = "Results/"+std::string(ip->TheNamedString("MyAnalysis"))+"_"
-			+finalname+".root";
-	}
-	else
-	{
-		outputfile = outputfilechar;
-	}
-	std::cout << ">> Saving results to " << outputfile << " ..." << std::endl;
-	TString outputfileTS = TString(outputfile);
-	if(gSystem->FindFile(".", outputfileTS)) 
-	{
-		std::cout << "WARNING: File " << outputfile << " already exits!" << std::endl;
-		TString outputFileBak = outputfile + ".bak";
-		std::cout << "         Moving it to " << outputFileBak << std::endl;
-		gSystem->CopyFile(outputfile.c_str(), outputFileBak.Data(), kTRUE);
-		gSystem->Unlink(outputfile.c_str());
-	}
-	TFile histoAnalysis(outputfile.c_str(), "NEW");
-	if (histoAnalysis.IsOpen()) 
-	{
-		TList* li = 0;
-		TList* lo = 0;
-		li = analysis->GetInputList();
-		lo = analysis->GetOutputList();
-		li->Write();
-		lo->Write();
-		histoAnalysis.Close();
-	}*/
-
-	// Now the class is in charge of deleting the InputParameter
-	// as is one of its datamembers
-	/*if( ip != 0 )
-	{
-		delete ip;
-		ip=0;
-	}*/
 	// Storing the output
 	analysis->SaveOutput( outputfilechar );
 

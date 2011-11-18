@@ -25,6 +25,8 @@
 #include<string>
 
 #include"TreeManager.h"
+#include "LeptonTypes.h"
+#include "InputParameters.h"
 
 
 class CutManager
@@ -38,10 +40,14 @@ class CutManager
 		//! Resetting the index vectors before analyse another entry
 		virtual void Reset();
 
+		//! Stores the cuts (data members) from an InputParameters
+		virtual void InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & ip);
+
 		//! Must be call it after the inclusion of all the cuts
 		//! This funtion actually does the initialization of the cuts 
 		//! introduced previously and must be implemented in the concrete classes
-		virtual void LockCuts() = 0;
+		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip, 
+				const std::vector<std::string> & cuts) = 0;
 
 		//! Return whether a serie of cuts encoded as 'codename' has been passed
 		virtual bool IsPass(const std::string & codename, 

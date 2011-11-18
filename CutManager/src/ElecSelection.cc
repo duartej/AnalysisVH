@@ -5,6 +5,7 @@
 #include "TLorentzVector.h"
 
 #include<cmath>
+const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 
 //Constructor
@@ -63,8 +64,37 @@ ElecSelection::~ElecSelection()
 }
 
 
-void ElecSelection::LockCuts(){
-	// initializing the cuts: Note that before use some cut
+void ElecSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipmap,
+		const std::vector<std::string> & cuts)
+{
+	// Establishing the right
+	if( ipmap.find(ELECTRON) == ipmap.end() )
+	{
+		std::cerr << "\033[1;31mElecSelection::LockCuts ERROR:\033[1;m "
+			<< "The InputParameter introduced is not for electrons!"
+			<< " Some incoherence found, check your initialization code."
+			<< std::endl;
+		exit(-1);
+	}
+	InputParameters * ip = (*(ipmap.find(ELECTRON))).second;
+
+	double dummy = 0;
+	// Putting all the cuts (received from InitialiseCuts)
+	for(std::vector<std::string>::const_iterator it = cuts.begin();
+			it != cuts.end(); ++it)
+	{
+		ip->TheNamedDouble(it->c_str(), dummy);
+		this->SetCut(it->c_str(),dummy);
+		dummy = 0;
+	}
+	//   - Z mass window
+	double deltazmass=0;
+	double kZMass = 0;
+	ip->TheNamedDouble("DeltaZMass", deltazmass);
+	this->SetCut("MaxZMass",kZMass+deltazmass);
+	this->SetCut("MinZMass",kZMass-deltazmass);
+	
+	// Filling the datamembers: Note that before use some cut
 	// it has to be checked if it was initialized
 	for(std::map<std::string,double>::iterator cut = _cuts->begin(); 
 			cut != _cuts->end();++cut)

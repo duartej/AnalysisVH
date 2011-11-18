@@ -56,6 +56,44 @@ CutManager::~CutManager()
 	}
 }
 
+// Es una funcion de esta classe quien se deberia encargar de esto o es
+// mejor que lo haga la clase analisis? Depende de lo generales que 
+// queremos que sean los corte...
+void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & ipmap)
+{
+	//---- FIXME: Recupera las explicaciones
+	std::vector<std::string> cuts;
+	//   - Pt and Eta of muons
+	cuts.push_back("MinMuPt1");
+	cuts.push_back("MinMuPt2");
+	cuts.push_back("MinMuPt3");
+	cuts.push_back("MaxAbsEta");
+	//   - IP and DeltaZ of track associated with muon w.r.t PV
+	cuts.push_back("MaxMuIP2DInTrackR1");
+	cuts.push_back("MaxMuIP2DInTrackR2");
+	cuts.push_back("MaxDeltaZMu") ;
+  	//   - Isolation: (PTtraks + ETcalo)/PTmuon: different regions
+	cuts.push_back("MaxPTIsolationR1");
+	cuts.push_back("MaxPTIsolationR2");
+	cuts.push_back("MaxPTIsolationR3");
+	cuts.push_back("MaxPTIsolationR4");
+	cuts.push_back("MaxIsoMu");  // OBSOLETE--> Now in regions
+	//   - Quality and Identification
+	cuts.push_back("MinNValidHitsSATrk");
+	cuts.push_back("MaxNormChi2GTrk");
+	cuts.push_back("MinNumOfMatches");
+	cuts.push_back("MinNValidPixelHitsInTrk");
+	cuts.push_back("MinNValidHitsInTrk");
+	cuts.push_back("MaxDeltaPtMuOverPtMu");
+	//   - Max DeltaR between muons
+	cuts.push_back("MaxDeltaRMuMu");
+  	//   - Min MET of the event
+	cuts.push_back("MinMET");
+
+	// Now including all the cuts to the manager
+	this->LockCuts(ipmap,cuts);
+}
+
 // Method to be called each time finalize a entry
 void CutManager::Reset()
 {

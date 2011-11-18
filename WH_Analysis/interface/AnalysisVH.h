@@ -4,6 +4,7 @@
 // Blabla description
 
 #include<vector>
+#include<map>
 #include<cstring>
 
 #include "CMSAnalysisSelector.h"
@@ -112,7 +113,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		};
 
 		//! Constructor (TO BE DEPRECATED: tree)
-		AnalysisVH( TreeManager * data, InputParameters * ip, 
+		AnalysisVH( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 				CutManager * selectorcuts, const unsigned int & finalstate );
 		//! Destructor
 		virtual ~AnalysisVH();

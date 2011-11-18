@@ -39,7 +39,8 @@ class LeptonMixingSelection : public CutManager
 		
 		//! Lock the cuts introduced (function to be call after the last
 		//! SetCut call)
-		virtual void LockCuts();
+		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip,
+				const std::vector<std::string> & cuts);
 		
 		//! Some special cuts which are use directly from the analysis client
 		//! (used as wrapper, see valid codenames inside the implementation)
@@ -62,7 +63,9 @@ class LeptonMixingSelection : public CutManager
 		//! - Depends on ...
 		virtual unsigned int SelectGoodIdLeptons();
 
-		//! Get the code names of the selection cuts
+		//! Get the code names of the selection cuts: as there is no difference
+		//! between leptons we can use whatever we want
+		virtual std::vector<std::string> GetCodenames() const;
 		//virtual std::vector<std::string> GetCodenames(const LeptonTypes & leptontype) const;
 
 	private:

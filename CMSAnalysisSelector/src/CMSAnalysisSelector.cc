@@ -48,25 +48,6 @@
 #endif
 
 
-/*void CMSAnalysisSelector::Begin(TTree * / *tree* /)
-{
-#ifdef DEBUGCMSANALYSISSELECTOR
-  std::cout << "DEBUG: ==> CMSAnalysisSelector::Begin()" << std::endl;
-#endif
-   // The Begin() function is called at the start of the query.
-   // When running with PROOF Begin() is only called on the client.
-   // The tree argument is deprecated (on PROOF 0 is passed).
-
-   TString option = GetOption();
-
-   // Find InputParameters object at the client
-   fInputParameters = ((InputParameters*) FindInput("Set Of Parameters"));
-   // if (fInputParameters) fInputParameters->DumpParms();
-#ifdef DEBUGCMSANALYSISSELECTOR
-  std::cout << "DEBUG: <== CMSAnalysisSelector::Begin()" << std::endl;
-#endif
-}*/
-
 void CMSAnalysisSelector::Init(TTree *tree )
 {
 	// Calling the data init
@@ -88,7 +69,6 @@ void CMSAnalysisSelector::SlaveBegin(TTree * /*tree*/)
 
    // Find InputParameters object at the workers
    fInputParameters = ((InputParameters*) FindInput("Set Of Parameters"));
-   // if (fInputParameters) fInputParameters->DumpParms();
 
    // Initialise the number of events
    fNEventsProcessed = InitCounterUI("fNEventsProcessed",

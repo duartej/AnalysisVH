@@ -10,6 +10,9 @@
 
 
 #include "TreeTypes.h"
+#include "LeptonTypes.h"
+
+#include<map>
 
 class AnalysisVH;
 class InputParameters;
@@ -17,8 +20,7 @@ class InputParameters;
 class AnalysisBuilder
 {
 	public:
-		static AnalysisVH * Build( treeTypes thetype, const char * finalstate, InputParameters *ip);
-
+		static AnalysisVH * Build( treeTypes thetype, const char * finalstate, std::map<LeptonTypes,InputParameters *> ip);
 };
 
 #endif

@@ -40,7 +40,8 @@ class MuonSelection : public CutManager
 		virtual ~MuonSelection() { }
 
 		// Initialization of datamembers
-		virtual void LockCuts();
+		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip,
+				const std::vector<std::string> & cuts);
 		
 		//-- Some special cuts which are use directly from
 		//   the anlysis client (used as wrapper)

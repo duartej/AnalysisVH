@@ -39,8 +39,9 @@ class ElecSelection : public CutManager
 		virtual ~ElecSelection();
 
 		//! Lock the cuts introduced (function to be call after the last
-		//! SetCut call)
-		virtual void LockCuts();
+		//! Fix the cuts extracted from the InputParameters
+		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip, 
+				const std::vector<std::string> & cuts);
 		
 		//! Some special cuts which are use directly from the analysis client
 		//! (used as wrapper, see valid codenames inside the implementation)

@@ -21,7 +21,7 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 
 
 // Prepare analysis Constructor
-AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip, 
+AnalysisVH::AnalysisVH(TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 		CutManager * selectioncuts, const unsigned int & finalstate ) :
 	CMSAnalysisSelector(data),
 	_nLeptons(3), //FIXME: argumento de entrada ? --> No dependera de la SignatureFS
@@ -38,22 +38,44 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 {
 	// FIXME: Check that the data is attached to the selector manager
 	fLeptonSelection = selectioncuts;
+	// Initialize the cuts for the cut manager
+	fLeptonSelection->InitialiseCuts(ipmap);
+	// Just to use the general values fLuminosity, cross section and so on....
+	// it doesn't matters which one pick up
+	// The others already can be deleted as they have already used to input the cuts
+	int ksize = ipmap.size();
+	for(std::map<LeptonTypes,InputParameters*>::iterator ipI = ipmap.begin();
+			ipI != ipmap.end(); ++ipI)
+	{
+		if( ksize == 1 )
+		{
+			fInputParameters = ipI->second;
+			break;
+		}
+
+		if( ipI->second != 0 )
+		{
+			delete ipI->second;
+			ipI->second = 0;
+		}
+		--ksize;
+	}
 
 	// The Inputparameters have to be initialized before, just to complete it
 	// introducing the set of datasets: 
 	//  --> extract filenames: datafilenames_[index]
 	std::string filenames( "datafilenames_" );
 	// -- Checking is there
-	if( ip == 0 )
+	if( fInputParameters == 0 )
 	{
-		std::cerr << "AnalysisVH::AnalysisVH ERROR: The 'InputParameters' argument "
+		std::cerr << "\033[1;31mAnalysisVH::AnalysisVH ERROR:\033[1;m The 'InputParameters' argument "
 			<< "cannot be passed as NULL pointer, initialize first!! Exiting... " << std::endl;
 		exit(-1);
 	}
 
-	if( ip->TheNamedString( filenames+"0" ) == 0 )
+	if( fInputParameters->TheNamedString( filenames+"0" ) == 0 )
 	{
-		std::cerr << "AnalysisVH::AnalysisVH ERROR: The 'InputParameters' argument "
+		std::cerr << "\033[1;31mAnalysisVH::AnalysisVH ERROR:\033[1;m The 'InputParameters' argument "
 			<< "must contain a 'datafilenames_0' value!! Exiting..." << std::endl;
 		exit(-1);
 	}
@@ -61,13 +83,12 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	int id = 0;
 	istr << id;
 	const char * filename  = 0;
-	while( (filename = ip->TheNamedString(filenames+istr.str())) )
+	while( (filename = fInputParameters->TheNamedString(filenames+istr.str())) )
 	{
 		_datafiles.push_back( filename );
 		id++;
 		istr << id;
 	}
-	fInputParameters = ip;
 
 	// Including to the list of fInputs the InputParameter
 	TList * inputlist = new TList;
@@ -81,7 +102,7 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 	{
 		fLeptonType = MUON;
 		fLeptonName = "Muon";
-		fNGenLeptons = &fNGenMuons;
+		fNGenLeptons = &fNGenMuons; // FIXME---> convierte fLeptonName, fNGeenLeptons a un vector de refernecias
 	}
 	else if( fFS == SignatureFS::_iFSeee )
 	{
@@ -89,6 +110,19 @@ AnalysisVH::AnalysisVH(TreeManager * data, InputParameters * ip,
 		fLeptonName = "Elec";
 		fNGenLeptons = &fNGenElectrons;
 	}
+	else if( fFS == SignatureFS::_iFSmme )
+	{
+		fLeptonType = MIX2MU1ELE;
+		fLeptonName = "";
+		fNGenLeptons = 0; -----> //FIXME
+	}
+	else if( fFS == SignatureFS::_iFSeem )
+	{
+		fLeptonType = MIX2ELE1MU;
+		fLeptonName = "";
+		fNGenLeptons = 0; --->
+	}
+
 	// else if fFS == SignatrueFS::iFSmee --> fGenLeptonIndex = vector(MUON ELECTRON ELECTRON)
 	// else ???? Ya deberia estar controlado antes
 	// anyway FIXME: meter aqui un exit--->>
@@ -109,7 +143,7 @@ AnalysisVH::~AnalysisVH()
 	}*/
 	if( fInputParameters != 0)
 	{
-		delete fInputParameters;
+		delete fInputParameters; 
 	}
 	if( fInput != 0 )
 	{
@@ -184,55 +218,7 @@ void AnalysisVH::InitialiseParameters()
 
 	// FIXME: I need a method to checked that the cut
 	// is really in the configuration file
-	//Cuts
-	//---- FIXME: Recupera las explicaciones
-	std::vector<std::string> cuts;
-	//   - Pt and Eta of muons
-	cuts.push_back("MinMuPt1");
-	cuts.push_back("MinMuPt2");
-	cuts.push_back("MinMuPt3");
-	cuts.push_back("MaxAbsEta");
-	//   - IP and DeltaZ of track associated with muon w.r.t PV
-	cuts.push_back("MaxMuIP2DInTrackR1");
-	cuts.push_back("MaxMuIP2DInTrackR2");
-	cuts.push_back("MaxDeltaZMu") ;
-  	//   - Isolation: (PTtraks + ETcalo)/PTmuon: different regions
-	cuts.push_back("MaxPTIsolationR1");
-	cuts.push_back("MaxPTIsolationR2");
-	cuts.push_back("MaxPTIsolationR3");
-	cuts.push_back("MaxPTIsolationR4");
-	cuts.push_back("MaxIsoMu");  // OBSOLETE--> Now in regions
-	//   - Quality and Identification
-	cuts.push_back("MinNValidHitsSATrk");
-	cuts.push_back("MaxNormChi2GTrk");
-	cuts.push_back("MinNumOfMatches");
-	cuts.push_back("MinNValidPixelHitsInTrk");
-	cuts.push_back("MinNValidHitsInTrk");
-	cuts.push_back("MaxDeltaPtMuOverPtMu");
-	//   - Max DeltaR between muons
-	cuts.push_back("MaxDeltaRMuMu");
-  	//   - Min MET of the event
-	cuts.push_back("MinMET");
-
-	// Now including all the cuts to the manager
-	double dummy = 0;
-	for(std::vector<std::string>::iterator it = cuts.begin();
-			it != cuts.end(); ++it)
-	{
-		ip->TheNamedDouble(it->c_str(), dummy);
-		fLeptonSelection->SetCut(it->c_str(),dummy);
-		dummy = 0;
-	}
-	
-	//   - Z mass window
-	double deltazmass=0;
-	ip->TheNamedDouble("DeltaZMass", deltazmass);
-	fLeptonSelection->SetCut("MaxZMass",kZMass+deltazmass);
-	fLeptonSelection->SetCut("MinZMass",kZMass-deltazmass);
-
-
-	// All the cuts introduced, locking up to fix them
-	fLeptonSelection->LockCuts();
+	//Cuts ---> Reorganized!! See CutManager src
 	
 	// Variables describing dataset...
 	//--------------------------------

@@ -137,7 +137,8 @@ class CMSAnalysisSelector : public TSelector {
 
 
  protected:
-  InputParameters* fInputParameters;
+  //! type of the leptons -> InputParameters
+  InputParameters * fInputParameters;
   TCounterUI*      fNEventsProcessed;
   CutManager *     fLeptonSelection;   // FIXME: Podria ser un map<enum lepton type,manager>??
 

@@ -59,7 +59,7 @@ void InputParameters::DumpParms() {
   std::cout << " +++++++++++++++++++++++++++++++++++++++++++++++++ " << std::endl;
 }
 
-InputParameters * InputParameters::parser(const std::string & cfgfile)
+InputParameters * InputParameters::parser(const std::string & cfgfile,const char * name)
 { 
 	// auxiliar variable
 	static std::map<std::string,int> typesmap;
@@ -88,7 +88,7 @@ InputParameters * InputParameters::parser(const std::string & cfgfile)
 	}
 
 	// Initialize an instance
-	InputParameters * ip = new InputParameters;
+	InputParameters * ip = new InputParameters(name);
 
 	std::string line;
 	// Note format: "@var Type variableName value;"

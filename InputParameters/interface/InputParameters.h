@@ -54,7 +54,8 @@ class InputParameters : public TNamed {
 
   // Parser to extract the input parameters from a file
   // an create an instance of it
-  static InputParameters * parser(const std::string & configfile);
+  static InputParameters * parser(const std::string & configfile,
+		  const char * name = "Set Of Parameters");
   
  protected:
   // Information stores

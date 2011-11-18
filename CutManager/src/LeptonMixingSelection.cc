@@ -57,14 +57,21 @@ LeptonMixingSelection::~LeptonMixingSelection()
 }
 
 
-void LeptonMixingSelection::LockCuts()
+void LeptonMixingSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipmap,
+		const std::vector<std::string> & cuts)
 {
-	fMuonSelection->LockCuts();
-	fElecSelection->LockCuts();
+	fMuonSelection->LockCuts(ipmap,cuts);
+	fElecSelection->LockCuts(ipmap,cuts);
 }
 
 //---  Helper functions
 
+// There is no difference between lepton in the codenames so taking
+// whatever
+std::vector<std::string> LeptonMixingSelection::GetCodenames() const
+{
+	return fMuonSelection->GetCodenames();
+}
 // 
 /*std::vector<std::string> LeptonMixingSelection::GetCodenames(const LeptonTypes & leptontype) const
 {
