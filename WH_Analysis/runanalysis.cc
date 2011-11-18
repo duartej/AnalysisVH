@@ -17,6 +17,8 @@
 #include<string>
 #include<vector>
 #include<queue>
+#include<map>
+#include<set>
 
 #endif
 
@@ -257,13 +259,13 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 
 // From a config file, extract the parameters needed
 InputParameters * setparameters(const std::vector<TString> & datafiles, const TString & dataName,
-		const char * cfgfile)
+		const char * cfgfile, const char * nameIPinstance="Set Of Parameters")
 {
 	// Introduce the analysis parameters
 	//TreeType treeType = kMiniTrees;
 	
 	// Parsing the config file
-	InputParameters * ip = InputParameters::parser(cfgfile);
+	InputParameters * ip = InputParameters::parser(cfgfile,nameIPinstance);
 
 	TString MySelector = ip->TheNamedString("MySelector");
 
@@ -317,21 +319,21 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	return ip;
 }
 
-void help_usage()
+void display_usage()
 {
-	std::cout << "usage: runanalysis dataname [options]" << std::endl;
+	std::cout << "\033[1;37musage:\033[1;m runanalysis dataname [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
-	std::cout << "    -c configuration file " << std::endl;
-	std::cout << "    -d dataname file" << std::endl;
-	std::cout << "    -l <mmm|eee>  Final state signature (mmm per default)" << std::endl;
-	std::cout << "    -o output root file " << std::endl;
+	std::cout << "    -c config1[,config1,...] configurations file " << std::endl;
+	std::cout << "    -d dataname.dn           filename containing the files for the 'dataname'" << std::endl;
+	std::cout << "    -l <mmm|eee>             Final state signature (mmm per default)" << std::endl;
+	std::cout << "    -o output.root           output root file " << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "List of known dataname:" << std::endl;
 	std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
-	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
+	std::cout << "    Zbb + Jets:        Zbb (NOT IMPLEMENTED)" << std::endl;
 	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW" << std::endl;
 }
 
@@ -339,55 +341,98 @@ void help_usage()
 int main(int argc, char *argv[])
 {
 	const char * dataName       = 0; // = "WH160";
-	const char * cfgfile        = "analisiswh_mmm.ip";
+	std::vector<const char *> cfgfileV;
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
 	const char * fsSignature    = "mmm";
 
 	bool getOF = false;
+
+	// Arguments used
+	std::set<int> usedargs;
 	//Parsing input options
 	if(argc == 1)
 	{
-		help_usage();
+		display_usage();
 		return -1;
-	}
-	else if( argc == 2)
-	{
-		dataName = argv[1];
 	}
 	else
 	{
 		//Argumet 1 must be a valid input fileName
-		dataName = argv[1];
-		for(int i = 2; i < argc; i++) 
+		//dataName = argv[1];
+		for(int i = 1; i < argc; i++) 
 		{
 			if( strcmp(argv[i],"-c") == 0 )
 			{
-				cfgfile = argv[i+1];
+				// Extracting if there are more than one
+				std::string rawconfigs = argv[i+1];
+				char * pch;
+				// Note that strtok changes the original
+				// string, so I must de-const..
+				char *temp = new char[rawconfigs.size()];
+				temp = const_cast<char*>(rawconfigs.c_str());
+				pch = strtok(temp," ,");
+				while( pch != 0)
+				{
+					cfgfileV.push_back(pch);
+					pch = strtok(0, " ,");
+				}
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
 			}
 			
 			if( strcmp(argv[i],"-o") == 0 )
 			{
 				outputfilechar = argv[i+1];
 				getOF = true;
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
 			}
 			if( strcmp(argv[i],"-d") == 0 )
 			{
 				datanamefile = argv[i+1];
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
 			}
 			if( strcmp(argv[i],"-l") == 0 )
 			{
 				fsSignature = argv[i+1];
-				if( strcmp(fsSignature,"mmm") != 0 &&
-						strcmp(fsSignature,"eee") != 0 )
+				if( strcmp(fsSignature,"mmm") != 0 
+						&& strcmp(fsSignature,"eee") != 0 
+						&& strcmp(fsSignature,"mme") != 0
+						&& strcmp(fsSignature,"eem") != 0 )
 				{
-					std::cerr << "runanalysis ERROR: Not implemented '" << fsSignature
+					std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m Not implemented '" << fsSignature
 						<< "' in '-l' option. Valid arguments are: mmm eee" << std::endl;
 					return -1;
 				}
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
 			}
 		}
 	}
+
+	// Extracting the data name
+        for(int i=1; i < argc; i++)
+	{
+		if(usedargs.find(i) == usedargs.end())
+		{
+			dataName = argv[i];
+			break;
+		}
+	}
+	if( dataName == 0 )
+	{
+		std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m The 'dataname' argument is mandatory!"
+			<< std::endl;
+		display_usage();
+		return -1;
+	}
+
 
 #ifdef TIMERS
 	TStopwatch timer;
@@ -410,8 +455,14 @@ int main(int argc, char *argv[])
 	t2 = timer.RealTime();
 	timer.Start();
 #endif
+	std::vector<InputParameters*> ipVector;
 	// Initialize the analysis specific parameters using a config file
-	InputParameters * ip = setparameters(datafiles,TString(dataName),cfgfile); 
+	for(std::vector<const char*>::iterator cfgfile = cfgfileV.begin(); 
+			cfgfile != cfgfileV.end(); ++cfgfile)
+	{
+		InputParameters * ip = setparameters(datafiles,TString(dataName),*cfgfile); 
+		ipVector.push_back(ip);
+	}
 	//ip->DumpParms();
 
 	TChain * tchaindataset = 0;
@@ -428,9 +479,14 @@ int main(int argc, char *argv[])
 	else
 	{
 		std::cerr << " ERROR: ROOT tree file contains an unrecongnized Tree" << std::endl;
-		if( ip != 0)
+		// Freeing memory as the future owner of InputParameters it is not initialized even
+		for(std::vector<InputParameters*>::iterator  ip = ipVector.begin(); ip != ipVector.end(); 
+				++ip)
 		{
-			delete ip;
+			if( *ip != 0)
+			{
+				delete *ip;
+			}
 		}
 		exit(-1);
 	}
@@ -448,7 +504,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ip ); 
+	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipVector ); 
 
 #ifdef TIMERS
 	//T4
@@ -458,6 +514,8 @@ int main(int argc, char *argv[])
 	// Processing
 	// Entries
 	int nEvents = -1;
+	//FIXME!!! PROVISIONAL
+	InputParameters *ip = ipVector.at(0);
 	ip->TheNamedInt("nEvents",nEvents);
 	int firstEvent = -1 ;
 	ip->TheNamedInt("firstEvent",firstEvent);
