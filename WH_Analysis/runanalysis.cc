@@ -341,7 +341,7 @@ void display_usage()
 int main(int argc, char *argv[])
 {
 	const char * dataName       = 0; // = "WH160";
-	std::vector<const char *> cfgfileV;
+	std::vector<std::string> cfgfileV;
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
 	const char * fsSignature    = "mmm";
@@ -377,6 +377,7 @@ int main(int argc, char *argv[])
 					cfgfileV.push_back(pch);
 					pch = strtok(0, " ,");
 				}
+				// Extract the null
 				usedargs.insert(i);
 				usedargs.insert(i+1);
 				i++;
@@ -457,12 +458,14 @@ int main(int argc, char *argv[])
 #endif
 	std::vector<InputParameters*> ipVector;
 	// Initialize the analysis specific parameters using a config file
-	for(std::vector<const char*>::iterator cfgfile = cfgfileV.begin(); 
+	for(std::vector<std::string>std::stringcfgfile = cfgfileV.begin(); 
 			cfgfile != cfgfileV.end(); ++cfgfile)
 	{
-		InputParameters * ip = setparameters(datafiles,TString(dataName),*cfgfile); 
+		InputParameters * ip = setparameters(datafiles,TString(dataName),(*cfgfile).c_str()); 
 		ipVector.push_back(ip);
+		ip->DumpParms();
 	}
+	return 0;
 	//ip->DumpParms();
 
 	TChain * tchaindataset = 0;
