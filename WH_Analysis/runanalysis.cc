@@ -327,10 +327,12 @@ void display_usage()
 	std::cout << "\033[1;37musage:\033[1;m runanalysis dataname [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
-	std::cout << "    -c config1[,config1,...] configurations file " << std::endl;
+	std::cout << "    -c LEPTON:config1[,LEPTON2:config1,...] " << std::endl;
+	std::cout << "                             configurations file " << std::endl;
 	std::cout << "    -d dataname.dn           filename containing the files for the 'dataname'" << std::endl;
-	std::cout << "    -l <mmm|eee>             Final state signature (mmm per default)" << std::endl;
+	std::cout << "    -l <mmm|eee|mme|eem>     Final state signature (mmm per default)" << std::endl;
 	std::cout << "    -o output.root           output root file " << std::endl;
+	std::cout << "    -h                       displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "List of known dataname:" << std::endl;
 	std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
@@ -344,7 +346,7 @@ void display_usage()
 int main(int argc, char *argv[])
 {
 	const char * dataName       = 0; // = "WH160";
-	std::vector<std::string> cfgfileV;
+	std::map<std::string,std::string> cfgfilemap;
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
 	const char * fsSignature    = "mmm";
@@ -365,6 +367,11 @@ int main(int argc, char *argv[])
 		//dataName = argv[1];
 		for(int i = 1; i < argc; i++) 
 		{
+			if( strcmp(argv[i],"-h") == 0 )
+			{
+				display_usage();
+				return 0;
+			}
 			if( strcmp(argv[i],"-c") == 0 )
 			{
 				// Extracting if there are more than one
@@ -377,7 +384,22 @@ int main(int argc, char *argv[])
 				pch = strtok(temp," ,");
 				while( pch != 0)
 				{
-					cfgfileV.push_back(pch);
+					std::istringstream insidecomma(pch);
+					std::string tempstr;
+					std::vector<std::string> tmpvectstr;
+					while(std::getline(insidecomma,tempstr,':'))
+					{
+						tmpvectstr.push_back(tempstr);
+					}
+					if( tmpvectstr.size() != 2 )
+					{
+						std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+							<< " Not able to parse '-c' option, recall the syntaxis:"
+							<< " '-c MUON:config_file,ELEC:config_file'" 
+							<< std::endl;
+						return -1;
+					}
+					cfgfilemap[tmpvectstr[0]] = tmpvectstr[1];
 					pch = strtok(0, " ,");
 				}
 				// Extract the null
@@ -419,7 +441,6 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
-
 	// Extracting the data name
         for(int i=1; i < argc; i++)
 	{
@@ -449,7 +470,7 @@ int main(int argc, char *argv[])
 	t1 = timer.RealTime();
 	timer.Start();
 #endif
-	// Extract the datafiles from the file created in the "local" path
+	// Extract the datafiles from the file which it contains them
 	std::pair<treeTypes,std::vector<TString> > dum = extractdatafiles(dataName, datanamefile );
 	std::vector<TString> datafiles = dum.second;
 	treeTypes dataType  = dum.first;
@@ -459,33 +480,47 @@ int main(int argc, char *argv[])
 	t2 = timer.RealTime();
 	timer.Start();
 #endif
-	std::cout << "\033[1;33mrunanalysis WARNING\033[1;m Recall to include the configuration"
-		<< " files (with '-c' option) following the order:"
-		<< "\nconfig_for_muon,config_for_elec" << std::endl;
-	std::cout << "\033[1;33mTHIS IS A PROVISIONAL WARNING" 
-		<< " UNTIL THE RIGHT ALGORITHM IS BEING IMPLEMENTED\033[1;m" 
-		<< std::endl;
-	std::map<LeptonTypes,InputParameters*> ipmap;
-	std::vector<LeptonTypes> lv;
-	lv.push_back(MUON);
-	lv.push_back(ELECTRON);
-	// Initialize the analysis specific parameters using a config file
-	if( cfgfileV.size() > 2 )
+	//-- Configuration of the analysis
+	// Sanity check
+	if( cfgfilemap.size() > 2 )
 	{
-		std::cout << "\033[1;31runanalysis ERROR\033[1;m It has been"
+		std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m It has been"
 		<< " introduced 2 configuration files which it has no sense:"
 		<< " There are 2 different stable lepton flavours!"
 		<< std::endl;
 		exit(-1);
 	}
-	int klv = 0;
-	for(std::vector<std::string>::iterator cfgfile = cfgfileV.begin(); 
-			cfgfile != cfgfileV.end(); ++cfgfile)
-	{
-		ipmap[lv.at(klv)] = setparameters(datafiles,TString(dataName),(*cfgfile).c_str());
-		++klv;
-	}
 
+	// Initialize the analysis specific parameters using the config file
+	std::map<LeptonTypes,InputParameters*> ipmap;
+	for(std::map<std::string,std::string>::iterator cfgfile = cfgfilemap.begin(); 
+			cfgfile != cfgfilemap.end(); ++cfgfile)
+	{
+		// finding the pairs type of lepton -> analysis config file
+		LeptonTypes lepton;
+		if( cfgfile->first == "MUON" || cfgfile->first == "MU" ||
+				cfgfile->first == "muon" || cfgfile->first == "mu" )
+		{
+			lepton = MUON;
+		}
+		else if( cfgfile->first == "ELECTRON" || cfgfile->first == "ELEC" ||
+				cfgfile->first == "elec" || cfgfile->first == "elec" )
+		{
+			lepton = ELECTRON;
+		}
+		else
+		{
+			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m Not recognized"
+				<< " '" << cfgfile->first << "' as a valid lepton to associate"
+				<< " a config file (-c option). Valid names are:"
+				<< "\nMUON MU muon mu ELECTRON ELE electron ele"
+				<< std::endl;
+			return -1;
+		}
+
+		ipmap[lepton] = setparameters(datafiles,TString(dataName),cfgfile->second.c_str());
+	}
+	
 	TChain * tchaindataset = 0;
 	// Data: FIXME: Extract this info from a centralized way (TreeManager?)
 	//              TreeTypes mejor
@@ -510,7 +545,7 @@ int main(int argc, char *argv[])
 				ip->second = 0;
 			}
 		}
-		exit(-1);
+		return -1;
 	}
 	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
 	{
