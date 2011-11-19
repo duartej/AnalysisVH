@@ -14,7 +14,8 @@ DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
 
 ### Setup content
-SETUPFILE  := "BASEDIR=$(BASEDIR)" \
+SETUPFILE  := "#!/bin/bash" \
+"BASEDIR=$(BASEDIR)" \
 "export PATH=\$$PATH:\$$BASEDIR/bin:\$$BASEDIR/WH_Analysis/bin" \
 "export LD_LIBRARY_PATH=\$$LD_LIBRARY_PATH:\$$BASEDIR/libs" \
 "export VHSYS=\$$BASEDIR" \
