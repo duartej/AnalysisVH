@@ -169,7 +169,7 @@ class AnalysisVH : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		unsigned int fNGenElectrons;           //Number of generated electrons from W or tau
 		unsigned int fNGenMuons;               //Number of generated muons from W or tau
-		unsigned int * fNGenLeptons[2];        //A reference to the two Gen Lepton of the analysis (one of the two last data members)
+		unsigned int fNGenLeptons;        //A reference to the two Gen Lepton of the analysis (one of the two last data members)
 		std::vector<TLorentzVector> fGenLepton;//TLorentzVector with the 3 muons from W or tau
 
 		// PU Weight utility
