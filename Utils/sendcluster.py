@@ -19,24 +19,25 @@ class clustermanager(object):
 		import os
 		import sys
 		
-		validkeys = [ 'dataname', 'cfgfile', 'njobs', 'precompile', 'pkgdir',\
+		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile', 'pkgdir',\
 				'workingdir', 'basedir', 'finalstate' ]
 		self.precompile = False
 		self.outputfiles= {}
+		self.leptoncfgfilemap = {}
 		# Trying to extract the env variables to define 
 		# the path of the General package
 		if os.getenv("VHSYS"):
 			self.basedir = os.path.abspath(os.getenv("VHSYS"))
 			self.libsdir = os.path.join(self.basedir,"libs")
 			if not os.path.exists( os.path.join(self.basedir,"CutManager") ):
-				message = "\n\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
+				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' is not the base directory for the package 'VHAnalysis'\n"
 				sys.exit( message )
 		# for the analysis specific package
 		if os.getenv("ANALYSISSYS"):
 			self.pkgpath = os.path.abspath(os.getenv("ANALYSISSYS"))
 			if not os.path.exists( os.path.join(self.pkgpath,"interface/AnalysisBuilder.h") ):
-				message = "\n\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
+				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 				sys.exit( message )
 
@@ -51,12 +52,19 @@ class clustermanager(object):
 				self.originaldataname = value
 				if 'WH' in value:
 					self.dataname = self.dataname.replace("WH","WHToWW2L")
-			elif key == 'cfgfile':
+			elif key == 'cfgfilemap':
 				#Checking is a file and can be find it
-				if not os.path.exists(value):
-					message = "\nclustermanager: ERROR Not found '"+value+"'.\n"
-					sys.exit( message )
-				self.cfgfile = os.path.abspath(value)
+				for lepton,cfg in value.iteritems():
+					if not os.path.exists(cfg):
+						message = "\033[1;31mclustermanager: ERROR\033[1;m Not found '"+value+"'.\n"
+						sys.exit( message )
+					if lepton.lower() != "muon" and lepton.lower() != "mu" \
+							and lepton.lower() != "electron" and lepton.lower() != "elec":
+						message = "\033[1;31mclustermanager: ERROR\033[1;m Not valid lepton assignation"
+						message +=" to the config file '"+cfg+"'. Parsed:'"+lepton.lower()+"'."
+						message += " Valid keys are: muon mu electron ele"
+						sys.exit( message )
+					self.leptoncfgfilemap[lepton] = os.path.abspath(cfg)
 			elif key == 'njobs':
 				self.njobs = int(value)
 			elif key == 'precompile':
@@ -107,10 +115,15 @@ class clustermanager(object):
 			# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo !!??
 			self.filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
 			if not os.path.exists(self.filedatanames):
+				cfglist = [ lepton+":"+cfg for lepton,cfg in self.leptoncfgfilemap.iteritems() ]
+				cfgstr = ''
+				for i in cfglist:
+					cfgstr += i+','
+				cfstr = cfgstr[:-1]
 				# if not created previously
 				message  = "\033[31;1mclustermanager: ERROR\033[0m"
 				message += " I need the list of file names, execute:"
-				message += "\n'datamanager "+self.originaldataname+" -c "+self.cfgfile+"'"
+				message += "\n'datamanager "+self.originaldataname+" -c "+cfgstr+"'"
 				message += "\nAnd then launch again this script"
 				sys.exit(message)
 			# Extract the total number of events and split 
@@ -247,15 +260,15 @@ class clustermanager(object):
 		jobnames = []
 		for i,evttuple in self.jobidevt:
 			# Splitting the config file in the number of jobs
-			iconfigname = self.createconfig(i,evttuple)
+			iconfignames = self.createconfig(i,evttuple)
 			# Creating the bash script to send the job
 			if self.precompile:
 				# Send the previous job to compile and update the code
 				# create job to compile
-				jobnames.append( self.createbash('datamanagercreator',iconfigname,i) )
+				jobnames.append( self.createbash('datamanagercreator',iconfignames,i) )
 				break
 			else:
-				jobnames.append( self.createbash('runanalysis',iconfigname,i) )
+				jobnames.append( self.createbash('runanalysis',iconfignames,i) )
 		# sending the jobs
 		jobsid = []
 		# Storing the cluster job id with the number of job (ID)
@@ -375,31 +388,36 @@ class clustermanager(object):
 	def createconfig(self,jobNumber,evtTuple):
 	        """From a reference cfgfile, constructs a new config file
 		with the tuple of events to be analysed.
-		Returns the new of the config (str)
+		Returns the config as a string of LEPTON:config,LEPTON2:config
 		"""
 		import sys
+		newcfgnames = ''
 		# Reading the config file
-		f = open(self.cfgfile)
-		lines  = f.readlines()
-		f.close()
-		newlines = []
-		nEvents = (evtTuple[1]-evtTuple[0])+1
-		for l in lines:
-			newlines.append( l )
-			if 'nEvents' in l:
-				newlines[-1] = "@var int  nEvents "+str(nEvents)+";\n"
-			if 'firstEvent' in l:
-				newlines[-1] = "@var int  firstEvent "+str(evtTuple[0])+";\n"
-		
-		newcfgnamePROV = os.path.basename(self.cfgfile)
-		newcfgname = newcfgnamePROV.replace( ".", "_"+str(jobNumber)+"." )
-		f = open( newcfgname, "w" )
-		f.writelines( newlines )
-		f.close()
+		for lepton,cfgfile in self.leptoncfgfilemap.iteritems():
+			f = open(cfgfile)
+			lines  = f.readlines()
+			f.close()
+			newlines = []
+			nEvents = (evtTuple[1]-evtTuple[0])+1
+			for l in lines:
+				newlines.append( l )
+				if 'nEvents' in l:
+					newlines[-1] = "@var int  nEvents "+str(nEvents)+";\n"
+				if 'firstEvent' in l:
+					newlines[-1] = "@var int  firstEvent "+str(evtTuple[0])+";\n"
+			
+			newcfgnamePROV = os.path.basename(cfgfile)
+			newcfgname = newcfgnamePROV.replace( ".", "_"+str(jobNumber)+"." )
+			f = open( newcfgname, "w" )
+			f.writelines( newlines )
+			f.close()
 
-		return newcfgname
+			newcfgnames += lepton+":"+newcfgname+","
+
+		newcfgnames = newcfgnames[:-1]
+		return newcfgnames
 	
-	def createbash(self,executable,cfgname,jobnumber):
+	def createbash(self,executable,cfgnames,jobnumber):
 		"""Create the bash scripts to be sended to the cluster
 		Return a list of (bash script names (str),jobnumber)
 		"""
@@ -414,7 +432,7 @@ class clustermanager(object):
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -c "+cfgname+" -d "+self.filedatanames+\
+		lines += executable+" "+self.dataname+" -c "+cfgnames+" -d "+self.filedatanames+\
 				" -l "+self.finalstate+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
@@ -471,12 +489,12 @@ if __name__ == '__main__':
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
 	#parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
 	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
-	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee")
+	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
 	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
 	parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
-	parser.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the config file (absolute path)' )
+	parser.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
 	parser.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
 			' (launching datamanager executable)' )
 	
@@ -495,15 +513,24 @@ if __name__ == '__main__':
 	
 	#if opt.action == 'submit':
 	if args[0] == 'submit':
+		leptoncfgmap = {}
 		if not opt.config:
 			message = "\033[31;1msendcluster: ERROR\033[0m the '-c' option is mandatory"
 			sys.exit( message )
 		else:
-			#Checking is a file and can be find it
-			if not os.path.exists(opt.config):
-				message = "\033[34;1msendcluster: ERROR\033[0m Not found '"+opt.config+"'"
-				sys.exit( message )
-			configabspath = os.path.abspath(opt.config)
+			#Extract type of lepton
+			leptoncfglist = opt.config.split(',')
+			# create dict with lepton: cfg
+			for i in leptoncfglist:
+				# FIXME: Check the error (try: except ValueError)
+				lepton = i.split(':')[0]
+				config = i.split(':')[1]
+				#Checking is a file and can be find it
+				if not os.path.exists(config):
+					message = "\033[34;1msendcluster: ERROR\033[0m Not found '"+config+"'"
+					sys.exit( message )
+				configabspath = os.path.abspath(config)
+				leptoncfgmap[lepton] = configabspath
 		# Dataname mandatory:
 		if not opt.dataname:
 			# Obtaining all the datanames from files in the current directory
@@ -529,7 +556,7 @@ if __name__ == '__main__':
 		manager = None
 		for dataname in datanameslist:
 			print "========= Dataname: %s" % dataname
-			manager = clustermanager('submit',dataname=dataname,cfgfile=configabspath,\
+			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
 					basedir=opt.basedir,finalstate=opt.finalstate)
 
