@@ -29,6 +29,8 @@ Nov. 16th 2011--  Tag release v2.0 : Deprecated selector dependence of each file
   do not break the workflow creating a selector for each file (or group of files), also portability
   between the different types of ntuples. It takes ~20m to process ~1.1M when the v01.00 took ~7m to
   process ~1.1M of events.
+Nov. 19th 2011-- Tag release v02.01: Included the mixing signatures
+  * Still missing deep checks, but shows reasonable results
 
 
 TODO:
