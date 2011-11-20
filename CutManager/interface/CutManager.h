@@ -79,6 +79,8 @@ class CutManager
 		//-- Getters
 		//! Get good leptons (passing the PV, Iso and ID cuts)
 		virtual std::vector<int> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
+		//! Get The lepton type for the i-esim good lepton 
+		virtual LeptonTypes GetLeptonType(const unsigned int & index) const = 0;
 
 		//-- Setters
 		//! Set the number of leptons considered in the analysis client

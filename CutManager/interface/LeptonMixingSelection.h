@@ -67,6 +67,9 @@ class LeptonMixingSelection : public CutManager
 		//! between leptons we can use whatever we want
 		virtual std::vector<std::string> GetCodenames() const;
 		//virtual std::vector<std::string> GetCodenames(const LeptonTypes & leptontype) const;
+		
+		//! Get The lepton type for the i-esim lepton // FIXME check if _lept.. != 0
+		virtual LeptonTypes GetLeptonType(const unsigned int & index) const; 
 
 	private:
 		//! Pt cuts for both muons and electrons
@@ -82,7 +85,7 @@ class LeptonMixingSelection : public CutManager
 		ElecSelection * fElecSelection;
 		
 		// The list of the selection chain codenames 
-		std::set<std::string> _codenames;
+		//std::set<std::string> _codenames;
 
 		//! Vector containing the type of lepton which
 		//! corresponds to the counterpart index vector (from

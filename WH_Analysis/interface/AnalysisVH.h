@@ -94,6 +94,8 @@ class AnalysisVH : public CMSAnalysisSelector
 		enum {  fHProcess,                //Process ID
 			fHGenFinalState, 	  //Final state from generation (incl. taus)
 			fHGenFinalStateNoTaus,    //Final state from generation (no taus)
+			fHNGenWElectrons,	  //Generated leptons coming from a W
+			fHNGenWMuons,		  //Generated leptons coming from a W
 			fHNGenWLeptons,		  //Generated leptons coming from a W
 			fHEventsPerCut,           //Events passing every cut
 			fHEventsPerCut3Lepton,    //Events passing every cut that are 3 lepton from gen
@@ -132,7 +134,9 @@ class AnalysisVH : public CMSAnalysisSelector
 
 
 	protected: // TO BE CHANGED --> PRIVATE
-		const TLorentzVector GetTLorentzVector( const int & index ) const;
+		//! Extract the 4-momenta of the good leptons. WARNING only can be used with
+		//! the good leptons
+		//const TLorentzVector GetTLorentzVector( const int & index ) const;
 		// Overloaded for other objects than leptons
 		const TLorentzVector GetTLorentzVector( const char * namep, 
 				const int & index ) const;
@@ -163,14 +167,15 @@ class AnalysisVH : public CMSAnalysisSelector
 
 		//! Type of leptons in the analysis
 		LeptonTypes fLeptonType;                
-		const char * fLeptonName;             // Name used in the TTree (Muon, Elec)
+		std::vector<std::string> fLeptonName;
 
 		// Leptons at generation
 		//----------------------------------------------------------------------------
 		unsigned int fNGenElectrons;           //Number of generated electrons from W or tau
 		unsigned int fNGenMuons;               //Number of generated muons from W or tau
-		unsigned int fNGenLeptons;        //A reference to the two Gen Lepton of the analysis (one of the two last data members)
+		unsigned int fNGenLeptons;             //A reference to the two Gen Lepton of the analysis (one of the two last data members)
 		std::vector<TLorentzVector> fGenLepton;//TLorentzVector with the 3 muons from W or tau
+		std::vector<std::string> fGenLeptonName;
 
 		// PU Weight utility
 		//----------------------------------------------------------------------------
