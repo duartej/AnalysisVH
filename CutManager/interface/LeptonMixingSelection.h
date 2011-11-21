@@ -73,7 +73,7 @@ class LeptonMixingSelection : public CutManager
 
 	private:
 		//! Pt cuts for both muons and electrons
-		bool IsPassPtCuts() const;
+		bool IsPassPtCuts(const int & nMuons, const int & nElecs) const;
 
 		//! Check if the 'index' is found in the vector 'leptonsvector'
 		bool isfoundindex(const std::vector<int> * const leptonsvector, 

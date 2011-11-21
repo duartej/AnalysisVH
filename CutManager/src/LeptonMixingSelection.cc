@@ -142,7 +142,26 @@ bool LeptonMixingSelection::IsPass(const std::string & codename, const std::vect
 	bool ispass = false;
 	if( codename == "PtMuonsCuts" )
 	{
-		ispass = this->IsPassPtCuts();
+		if( varAux == 0 )
+		{
+			std::cerr << "\033[1;31mLeptonMixingSelection::IsPass ERROR\033[1;m "
+				<< "Don't pass as second argument a vector<double> * "
+				<< "which contains the number of muons and number of "
+				<< "electrons must be selected."
+				<< std::endl;
+			exit(-1);
+		}
+		if( varAux->size() != 2 )
+		{
+			std::cerr << "\033[1;31mLeptonMixingSelection::IsPass ERROR\033[1;m "
+				<< "Need exactly two elements in the second argument"
+				<< " [vector<double> *] "
+				<< "which contains the number of muons and number of "
+				<< "electrons must be selected."
+				<< std::endl;
+			exit(-1);
+		}
+		ispass = this->IsPassPtCuts((int)(*varAux)[0],(int)(*varAux)[1]);
 	}
 	else if( codename == "DeltaRMuMuCut" )
 	{
@@ -245,7 +264,7 @@ bool MuonSelection::IsInsideZWindow( const double & invariantMass ) const
 }*/
 
 // Specific muon pt-cuts (for the good identified-isolated muons)
-bool LeptonMixingSelection::IsPassPtCuts() const
+bool LeptonMixingSelection::IsPassPtCuts(const int & nwantMuons, const int & nwantElecs) const
 {
 	// Extracting the cuts from the correspondent lepton
 	std::vector<double> vptcutMuon;
@@ -268,17 +287,21 @@ bool LeptonMixingSelection::IsPassPtCuts() const
 	// Found the real pt used giving the lepton type
 	std::vector<double> vptcut;
 	std::vector<std::string> leptonstr;
+	int nMuons = 0;
+	int nElectrons = 0;
 	for(unsigned int k = 0; k < _leptontypeGoodIdLeptons->size(); ++k)
 	{
 		if( (*_leptontypeGoodIdLeptons)[k] == MUON )
 		{
 			vptcut.push_back(vptcutMuon[k]);
 			leptonstr.push_back("T_Muon_Pt");
+			++nMuons;
 		}
 		else if( (*_leptontypeGoodIdLeptons)[k] == ELECTRON )
 		{
 			vptcut.push_back(vptcutElec[k]);
 			leptonstr.push_back("T_Elec_Pt");
+			++nElectrons;
 		}
 		else
 		{
@@ -307,6 +330,12 @@ bool LeptonMixingSelection::IsPassPtCuts() const
 		}
 		--k;
 	}
+	// Now check that we have the signature we want
+	if( nMuons != nwantMuons && nElectrons != nwantElecs)  
+	{
+		return false;
+	}
+
 	// allright, all leptons passed their cuts
 	return true;
 }

@@ -1,9 +1,7 @@
-// -*- C++ -*-
-//
-// Package:    ElecSelection
+// -*- CCutManagerPackage:    CutManager
 // Class:      ElecSelection
 // 
-/**\class  ElecSelection.h src/ElecSelection.cc
+/**\class  ElecSelection
 
  Description: Concrete class to select electrons
 
