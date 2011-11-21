@@ -153,7 +153,7 @@ class clustermanager(object):
 			self.retrieve()
 
 			foundoutfiles = []
-			print "====== Checking the job status ======"
+			print "====== Checking the job status for dataname:",self.dataname
 			print "Jobs in the cluster:",
 			for id,bashscript in self.jobsid:
 				foundoutfiles.append( self.checkjob(id) )
