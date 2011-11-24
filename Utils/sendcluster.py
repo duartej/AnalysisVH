@@ -187,6 +187,9 @@ class clustermanager(object):
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
 			print message
 			return 
+		# Adding up all the final results and show them
+		textresultfiles = glob.glob("./"+self.dataname+"_*.sh.o*")
+		showresults(textresultfiles)
 		# If everything was fine, deleting the files 
 		# and cleaning the directory
 		for f in self.outputfiles.itervalues():
@@ -223,7 +226,7 @@ class clustermanager(object):
 		if p[1] != "":
 			# Checking if the outputfiles are there
 			if not os.path.exists(self.outputfiles[self.jobsidID[id]]):
-				message = "\nclustermanager.checkjob: Something went wrong in the cluster:\n"
+				message = "\033[1;31mclustermanager.checkjob: Something went wrong in the cluster:\033[1;m"
 				message += "The job '"+id+"' is already finish but there is no output root file '"
 				message += self.outputfiles[self.jobsidID[id]]+"'\n"
 				message += "Check the cluster output file\n"
@@ -466,6 +469,48 @@ class clustermanager(object):
 			if i.isdigit():
 				id = i
 		return (id,bashscript)
+		
+	
+def showresults(textresultfiles):
+	"""
+	Getting a list of output files which contain 
+	the pattern:
+	
+	number [number%] selected events (cutname)
+
+	and add up all the results
+	"""
+	import re
+	totaldict = {}
+	cutorder = []
+	regexp = re.compile("(?P<total>\d+)\s*\[(?P<percent>\d*\W*\d*)\%\]\s*selected\sevents\s*\((?P<cutname>\w*)\)\s*")
+
+	for file in textresultfiles:
+		f = open(file)
+		lines = f.readlines()
+		for line in lines:
+			try:
+				total,percent,cutname = regexp.search(line).groups()
+			except AttributeError:
+				continue
+			try:
+				totaldict[cutname] += int(total)
+			except KeyError:
+				totaldict[cutname] = int(total)
+
+			if cutorder.count(cutname) == 0:
+				cutorder.append(cutname)
+
+	# Print 
+	print "Summary of cut selection of the total sample"
+	print ""
+	print "N. events selected at each stage:"
+	print "---------------------------------"
+	for cut in cutorder:
+		percent = float(totaldict[cut])/float(totaldict["AllEvents"])*100.0
+		print "%i [%.3f%s] selected events (%s)" % (totaldict[cut],percent,"%",cut)
+	print ""
+
 
 
 if __name__ == '__main__':
