@@ -37,8 +37,9 @@ TODO:
   1a.Change the data files to be used depending the lepton final state when use data 
   1. Incorporate the latino's trees ----> DONE
   2. Incorporate (create) an electron analysis ---> DONE
-  3. Incorporate (create) a lepton analysis  
+  3. Incorporate (create) a lepton analysis  ---> DONE
   5. Check with the *.sh.e* the good behaviour of the job
-  6. Resume the outputs of the jobs (mainly the final table)
+  6. Resume the outputs of the jobs (mainly the final table) --> DONE
+  7. Include a Jet plot (before the Jet Veto cut)
 
 
