@@ -36,6 +36,7 @@ class SignatureFS
 			_iFStte, // = 1020,   // 1 electron  2 taus
 			_iFSttm, // = 120,    // 1 muon      2 taus
 			_iFSemt, // = 1110,   // 1 electron  1 muon 1 tau
+			//_iFSlll,              // 3 leptons (whatever they are)
 			_iFSunknown, // = 0,  // Something went wrong
 			_iFStotal // = 11    // Remember to change everytime you add/remove on
 		};

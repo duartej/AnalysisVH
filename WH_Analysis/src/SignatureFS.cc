@@ -39,6 +39,10 @@ unsigned int SignatureFS::GetFSID(const char * fs)
 	{
 		finalstate = (int)_iFSeem;
 	}
+	/*else if(strcmp(fs,"3l") == 0 || strcmp(fs,"lll") == 0)
+	{
+		finalstate = (int)_iFSlll;
+	}*/
 	else
 	{
 		std::cerr << "SignatureFS::SignatureFS ERROR Not Implemented"
