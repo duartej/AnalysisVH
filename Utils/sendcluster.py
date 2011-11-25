@@ -20,7 +20,7 @@ class clustermanager(object):
 		import sys
 		
 		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile', 'pkgdir',\
-				'workingdir', 'basedir', 'finalstate' ]
+				'workingdir', 'basedir', 'finalstate', 'analysistype' ]
 		self.precompile = False
 		self.outputfiles= {}
 		self.leptoncfgfilemap = {}
@@ -92,6 +92,8 @@ class clustermanager(object):
 				self.cwd = os.path.abspath(value)
 			elif key == 'finalstate':
 				self.finalstate = value
+			elif key == 'analysistype':
+				self.analysistype = value
 		
 		# Checked if basedir and pkgpath are there
 		try:
@@ -435,7 +437,7 @@ class clustermanager(object):
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -c "+cfgnames+" -d "+self.filedatanames+\
+		lines += executable+" "+self.dataname+" -a"+self.analysistype+" -c "+cfgnames+" -d "+self.filedatanames+\
 				" -l "+self.finalstate+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
@@ -532,7 +534,7 @@ if __name__ == '__main__':
 	usage="usage: sendcluster <submit|harvest> [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(shouldCompile=False,jobsNumber=10)
-	#parser.add_option( '-a', '--action', action='store', type='string', dest='action', help="Action to proceed: submit, harvest" )
+	parser.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
 	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
@@ -597,13 +599,18 @@ if __name__ == '__main__':
 		if not opt.finalstate:
 			message = "\033[31;1msendcluster: ERROR\033[0m the '-f' option is mandatory"
 			sys.exit( message )
+		# Also analysis type:
+		if not opt.antype:
+			message = "\033[31;1msendcluster: ERROR\033[0m the '-a' option is mandatory"
+			sys.exit( message )
 		# Instantiate and submit
 		manager = None
 		for dataname in datanameslist:
 			print "========= Dataname: %s" % dataname
 			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
-					basedir=opt.basedir,finalstate=opt.finalstate)
+					basedir=opt.basedir,finalstate=opt.finalstate, \
+					analysistype=antype)
 
 	#elif opt.action == 'harvest':
 	elif args[0] == 'harvest':

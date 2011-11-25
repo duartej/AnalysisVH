@@ -28,7 +28,8 @@
 #include "LeptonTypes.h"
 
 #include "AnalysisBuilder.h"
-#include "AnalysisVH.h"
+//#include "AnalysisVH.h"
+#include "AnalysisBase.h"
 
 
 // ROOT
@@ -327,6 +328,7 @@ void display_usage()
 	std::cout << "\033[1;37musage:\033[1;m runanalysis dataname [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
+	std::cout << "    -a <WZ|WH>               Analysis to be done" << std::endl;
 	std::cout << "    -c LEPTON:config1[,LEPTON2:config1,...] " << std::endl;
 	std::cout << "                             configurations file " << std::endl;
 	std::cout << "    -d dataname.dn           filename containing the files for the 'dataname'" << std::endl;
@@ -350,6 +352,7 @@ int main(int argc, char *argv[])
 	const char * outputfilechar = 0;
 	const char * datanamefile   = 0;
 	const char * fsSignature    = "mmm";
+	const char * antype    = "WH";
 
 	bool getOF = false;
 
@@ -432,7 +435,21 @@ int main(int argc, char *argv[])
 						&& strcmp(fsSignature,"eem") != 0 )
 				{
 					std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m Not implemented '" << fsSignature
-						<< "' in '-l' option. Valid arguments are: mmm eee" << std::endl;
+						<< "' in '-l' option. Valid arguments are: mmm eee mme eem" << std::endl;
+					return -1;
+				}
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
+			}
+			if( strcmp(argv[i],"-a") == 0 )
+			{
+				antype = argv[i+1];
+				if( strcmp(antype,"WZ") != 0 
+						&& strcmp(antype,"WH") != 0 )
+				{
+					std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m Not implemented '" << antype
+						<< "' in '-a' option. Valid arguments are: WH WZ" << std::endl;
 					return -1;
 				}
 				usedargs.insert(i);
@@ -581,7 +598,8 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap ); 
+	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap ); 
+	AnalysisBase * analysis = AnalysisBuilder::Build( antype, dataType, fsSignature, ipmap ); 
 
 #ifdef TIMERS
 	//T4

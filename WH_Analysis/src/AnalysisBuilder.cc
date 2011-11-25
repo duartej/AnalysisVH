@@ -1,5 +1,6 @@
 
 #include "AnalysisBuilder.h"
+#include "AnalysisBase.h"
 #include "AnalysisVH.h"
 //#include "AnalysisWHmmm.h"
 //#include "AnalysisWHeee.h"
@@ -11,10 +12,15 @@
 
 #include<iostream>
 #include<stdlib.h>
+#include<string.h>
 
+
+// FIXME: TO BE DEPRECATED treeTypes
 // Or template --> Clase lista para construir diferentes analysis AnalysisVH <-- AnalysisWH (3leptones), <-- Analysis...
 // De momento es mas un builder del cut manager
-AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap )
+//AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap )
+AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thetype, 
+		const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap )
 {
 
 	CutManager * selectioncuts = 0;
@@ -45,6 +51,21 @@ AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateS
 		exit(-1);
 	}
 
-	return new AnalysisVH( data, ipmap, selectioncuts, finalstate);
+	// Analysis type
+	AnalysisBase * analysis = 0;
+	if( strcmp(analysistype,"WH") == 0 || strcmp(analysistype,"wh") == 0 )
+	{
+		analysis = new AnalysisVH(data,ipmap,selectioncuts,finalstate);
+	}
+	else if( strcmp(analysistype,"WZ") == 0 || strcmp(analysistype,"wz") == 0 )
+	{
+		analysis = 0;
+		std::cerr << "AnalysisBuilder::Build: '" << analysistype << "'"
+			<< " Not implemented yet. Exiting..."
+			<< std::endl;
+	}
+
+	return analysis;
+	//return new AnalysisVH( data, ipmap, selectioncuts, finalstate);
 }
 
