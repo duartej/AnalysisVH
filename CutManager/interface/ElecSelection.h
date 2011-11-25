@@ -32,7 +32,8 @@ class ElecSelection : public CutManager
 	public:
 
 		//! Constructor
-		ElecSelection( TreeManager * data, const int & nLeptons = 3 );
+		ElecSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt,
+				const int & nLeptons = 3 );
 		//! Destructor
 		virtual ~ElecSelection();
 

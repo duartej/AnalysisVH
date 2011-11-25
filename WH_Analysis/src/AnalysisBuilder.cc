@@ -2,6 +2,7 @@
 #include "AnalysisBuilder.h"
 #include "AnalysisBase.h"
 #include "AnalysisVH.h"
+#include "AnalysisWZ.h"
 //#include "AnalysisWHmmm.h"
 //#include "AnalysisWHeee.h"
 
@@ -9,6 +10,7 @@
 #include "MuonSelection.h"
 #include "ElecSelection.h"
 #include "SignatureFS.h"
+#include "WPElecID.h"
 
 #include<iostream>
 #include<stdlib.h>
@@ -28,6 +30,29 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	// Signature of the analysis:
 	unsigned int finalstate = SignatureFS::GetFSID(finalstateStr);
 	
+	// Check the working point for electrons to use
+	int WPlowPt = -1;
+	int WPhighPt = -1;
+	if( strcmp(analysistype,"WH") == 0 || strcmp(analysistype,"wh") == 0 )
+	{
+		WPlowPt = WPElecID::WP_70;
+		WPhighPt= WPElecID::WP_80;
+	}
+	else if( strcmp(analysistype,"WZ") == 0 || strcmp(analysistype,"wz") == 0 )
+	{
+		WPlowPt = WPElecID::WP_95;
+		WPhighPt= WPElecID::WP_95; 
+		// This has to be changed in the analysis code, when you
+		// are in the W stage you should to tight the cut (WP80)
+	}
+	else
+	{
+		std::cerr << "AnalysisBuilder::Build: '" << analysistype << "'"
+			<< " Not implemented yet. Exiting..."
+			<< std::endl;
+		exit(-1);
+	}
+	
 	TreeManager * data = new TreeManager();
 	if( finalstate == SignatureFS::_iFSmmm )
 	{
@@ -36,12 +61,12 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	}
 	else if( finalstate == SignatureFS::_iFSeee )
 	{
-		selectioncuts = new ElecSelection(data);
+		selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt);
 	}
 	else if( finalstate == SignatureFS::_iFSeem ||
 			finalstate == SignatureFS::_iFSmme )
 	{
-		selectioncuts = new LeptonMixingSelection(data);
+		selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt);
 	}
 	else
 	{
@@ -59,10 +84,7 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	}
 	else if( strcmp(analysistype,"WZ") == 0 || strcmp(analysistype,"wz") == 0 )
 	{
-		analysis = 0;
-		std::cerr << "AnalysisBuilder::Build: '" << analysistype << "'"
-			<< " Not implemented yet. Exiting..."
-			<< std::endl;
+		analysis = new AnalysisWZ(data,ipmap,selectioncuts,finalstate);
 	}
 
 	return analysis;

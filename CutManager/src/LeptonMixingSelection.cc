@@ -11,7 +11,8 @@
 
 
 //Constructor
-LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & nLeptons) : 
+LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, 
+		const int & WPlowpt, const int & WPhighpt, const int & nLeptons) : 
 	CutManager(data,nLeptons),
 	fMuonSelection(0),
 	fElecSelection(0),
@@ -21,7 +22,7 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & nL
 	_leptontypeGoodIdLeptons(0)
 { 
 	fMuonSelection = new MuonSelection(data,nLeptons);
-	fElecSelection = new ElecSelection(data,nLeptons);
+	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nLeptons);
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()

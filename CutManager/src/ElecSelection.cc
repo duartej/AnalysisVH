@@ -9,7 +9,8 @@ const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 
 //Constructor
-ElecSelection::ElecSelection( TreeManager * data, const int & nLeptons) : 
+ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
+		const int & WPhighpt, const int & nLeptons) : 
 	CutManager(data,nLeptons),
 	pWP_lowPt(0),   
 	pWP_highPt(0),    
@@ -44,8 +45,8 @@ ElecSelection::ElecSelection( TreeManager * data, const int & nLeptons) :
 
 	// Set the Id related cuts datamembers
 	// WARNING HARDCODED (if this ok?)
-	pWP_lowPt = new WPElecID( WPElecID::WP_70 );
-	pWP_highPt = new WPElecID( WPElecID::WP_80 );
+	pWP_lowPt = new WPElecID( WPlowpt );
+	pWP_highPt = new WPElecID( WPhighpt );
 }
 
 ElecSelection::~ElecSelection()
