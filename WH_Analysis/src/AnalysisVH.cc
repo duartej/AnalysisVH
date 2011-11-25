@@ -693,6 +693,10 @@ void AnalysisVH::InsideLoop()
 
 	// HLT: TBD...
 	//------------------------------------------------------------------
+	if( ! IspassHLT() )
+	{
+		return;
+	}
 	FillHistoPerCut(_iHLT, puw, fsNTau);
 
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
@@ -1024,6 +1028,48 @@ void AnalysisVH::Summary()
 // Other helper methods
 //---------------------------------------------------------------------
 //
+
+bool IspassHLT()
+{
+	//FIXME
+	return  true;
+	/*// Only data by the moment
+	if( ! fIsData )
+	{
+		return true;
+	}
+
+	bool passtrigger = false;
+	if( fFS == SignatureFS::_iFSmmm )
+	{
+		passtrigger = fData->Get<bool>("T_passTriggerDoubleMu");
+	}
+	else if( fFS == SignatureFS::_iFSeee )
+	{
+		passtrigger = fData->Get<bool>("T_passTriggerDoubleEl");
+	}
+	else if( fFS == SignatureFS::_iFSmme || fFS == SignatureFS::_iFSeem )
+	{
+		passtrigger = fData->Get<bool>("T_passTriggerElMu");
+	}
+	else if( fFS == SignatureFS::_iFSlll )
+	{
+		// Note that here we are going to mix DoubleElectron samples with 
+		// DoubleMuon Samples: so to avoid double counting:
+		// -- 
+		passtrigger = fData->Get<bool>("T_passTriggerElMu");
+		if( ! passtrigger )
+		{
+			passtrigger = pass->Get<bool>("T_passTriggerMu");
+		}
+		if( ! passtrigger )
+		{
+			passtrigger = pass->Get<bool>("T_passTriggerEl");
+		}
+	}
+
+	return passtrigger;*/
+}
 
 void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
 {
