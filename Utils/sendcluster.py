@@ -610,7 +610,7 @@ if __name__ == '__main__':
 			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
 					basedir=opt.basedir,finalstate=opt.finalstate, \
-					analysistype=antype)
+					analysistype=opt.antype)
 
 	#elif opt.action == 'harvest':
 	elif args[0] == 'harvest':
