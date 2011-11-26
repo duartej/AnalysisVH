@@ -372,37 +372,12 @@ void AnalysisWZ::InsideLoop()
 	
 	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
       
-	// The leading lepton has to have PT > fCutMinMuPt (20 most probably)
-	// Applying the pt-cuts
-	//-------------------------------------------------------------------
-	std::vector<double> * nLeptons= new std::vector<double>;
-	// Describe the number of leptons we want to cut in order: 
-	// --- nLeptons[0] = mmuons
-	// --- nLeptons[1] = electrons 
-	// Just needed for the mixing (and total?) case
-	// FIXME: I don't like this patch but... 
-	if( fFS == SignatureFS::_iFSmme )
-	{
-		nLeptons->push_back(2);
-		nLeptons->push_back(1);
-	}
-	else if( fFS == SignatureFS::_iFSeem )
-	{
-		nLeptons->push_back(1);
-		nLeptons->push_back(2);
-	}
-
-	if( ! fLeptonSelection->IsPass("PtMuonsCuts",nLeptons) )
-	{
-		return;
-	}
 	FillHistoPerCut(_iMuPTPattern, puw, fsNTau);
-	delete nLeptons;
-	nLeptons = 0;
+
 	
-	// Keep events with just 3 leptons and store momentum and charge
+	// Keep events at least 3 leptons and store momentum and charge
 	//---------------------------------------------------------------------------
-	if(nSelectedIsoGoodMuons != _nLeptons)
+	if(nSelectedIsoGoodMuons < _nLeptons)
 	{
 		return;
 	}
@@ -410,34 +385,13 @@ void AnalysisWZ::InsideLoop()
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
+	// + Store Momentum and charge for the muons
+	std::vector<TLorentzVector> lepton;
+	std::vector<int> leptonCharge;
+	std::vector<LeptonTypes> leptontypes;
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-		const char * name = "Elec";
-		if( fLeptonSelection->GetLeptonType(k) == MUON )
-		{
-			name = "Muon";
-		}
-		const TLorentzVector vL = this->GetTLorentzVector(name,i);
-		fHPtLepton[k]->Fill(vL.Pt(), puw);
-		fHEtaLepton[k]->Fill(vL.Eta(), puw);
-		if( fGenLepton.size() != 0 )
-		{
-			fHDeltaRGenRecoLepton[k]->Fill(vL.DeltaR(fGenLepton.at(k)), puw);
-		}
-		++k;
-	}
-	FillGenPlots(_iHasExactly3Leptons,puw);
-	
-	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
-	// + Store Momentum and charge for the muons : FIXME: This loop inside the
-	// last one
-	std::vector<TLorentzVector> lepton;
-	std::vector<int> leptonCharge;
-	k = 0;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
-	{
-		const unsigned int i = *it;
 		const char * name = 0;
 		LeptonTypes ileptontype = fLeptonSelection->GetLeptonType(k);
 		std::string chargedm;
@@ -451,91 +405,180 @@ void AnalysisWZ::InsideLoop()
 			name = "Elec";
 			chargedm = "T_Elec_Charge";
 		}
+		// Fill histos
+		const TLorentzVector vL = this->GetTLorentzVector(name,i);
+		fHPtLepton[k]->Fill(vL.Pt(), puw);
+		fHEtaLepton[k]->Fill(vL.Eta(), puw);
+		if( fGenLepton.size() != 0 )
+		{
+			fHDeltaRGenRecoLepton[k]->Fill(vL.DeltaR(fGenLepton.at(k)), puw);
+		}
+		// charge and leptons
 		lepton.push_back( this->GetTLorentzVector(name,i) );
-		// Change to: chargedm = "T_"+fLeptonSelector->GetLeptonTypeStr(i)+"charge"; 
 		leptonCharge.push_back( fData->Get<int>(chargedm.c_str(),i) );
+		leptontypes.push_back( ileptontype );
 		++k;
 	}
+	FillGenPlots(_iHasExactly3Leptons,puw);
 	
-	// Discard extra electrons and extra muons
-	// ------------------------------------------------------------------
-	// 
-	// Not yet implemented...
-  
-	// Discard 3 muons with the same charge
-	// ------------------------------------------------------------------
-	// 
-	// + Add up charges. If the abs value of the total number is equal to N then 
-	//   all have the same sign
+	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
+	
+	
+	// Storing the charge
 	int charge = 0;
-	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
+	for(unsigned int k = 0; k < leptonCharge.size(); ++k)
 	{
-		charge += *it;
+		charge += leptonCharge[k];
 	}
-	// Fill muon charge before rejecting or accepting  
+	// Fill charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
 	
-	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
-	{
-		return;
-	}
-	
-	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
-	
-	// Find muons with opposite charges and calculate DeltaR, invMass...
-	// Keep the pair with DeltaR minimum
+	// Build Z candidates: same flavour opposite charge
 	// ------------------------------------------------------------------
-	// 
-	// + Store the real vector index of the opposite charge muons in pairs
-	//   (for the lepton and leptonCharge vectors: 0,...,nLeptons)
+	LeptonTypes zcandflavour;
+	std::vector<double> ptcutv;
+	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
+	{
+		zcandflavour = MUON;
+		ptcutv.push_back(15.0);
+		ptcutv.push_back(15.0);
+	}
+	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
+	{
+		zcandflavour = ELECTRON;
+		ptcutv.push_back(20.0);
+		ptcutv.push_back(10.0);
+	}
+
+	// Find muons with opposite charges and the ptcuts fulfill
+	// Note that we are not using anymore the index of the Tree, instead
+	// are using the index of lepton, leptonCharge and leptontype vectors
 	std::vector<std::pair<int,int> > leptonPair;
 	for(unsigned int kbegin = 0; kbegin < leptonCharge.size(); ++kbegin)
 	{
 		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
 		{
-			if( leptonCharge[kbegin]*leptonCharge[kfromend] < 0 )
+			// Same flavour (and specifically the flavour of the channel
+			if( leptontypes[kbegin] != zcandflavour 
+				 || ( leptontypes[kbegin] != leptontypes[kfromend] ) )
 			{
-				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
+				continue;
 			}
+			// opposite charge
+			if( leptonCharge[kbegin]*leptonCharge[kfromend] >= 0 )
+			{
+				continue;
+			}
+			// Check pass the pt (recall PT[kbegin] > PT[kfromend])
+			if( ptcutv[0] > lepton[kbegin].Pt() || ptcutv[1] > lepton[kfromend].Pt() )
+			{
+				continue;
+			}
+			leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
 		}
 	}
-	// + Find Min/Max DeltaR and DeltaPhi
-	// Using ordering from maps (from lower to higher)
-	// Again uses the index of the lepton and leptonCharge vectors
-	std::map<double,std::pair<int,int> > deltaRMuMu;
-	std::map<double,std::pair<int,int> > deltaPhiMuMu;
+	// rejecting events with no Z candidates
+	if( leptonPair.size() == 0 )
+	{
+		return;
+	}	
+	// Accepted events with Z candidates
+	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
+	
+	// Calculate invMass...
+	// Keep the pair with Mass closer to Z nominal
+	// ------------------------------------------------------------------	
+	std::map<double,std::pair<int,int> > candidatesZMass;
 	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
 			it != leptonPair.end(); ++it)
 	{
 		unsigned int i1 = it->first;
 		unsigned int i2 = it->second;
-		const double deltaR = lepton[i1].DeltaR(lepton[i2]);
-		deltaRMuMu[deltaR] = *it;
-		const double deltaPhi = TMath::Abs(lepton[i1].DeltaPhi(lepton[i2]));
-		deltaPhiMuMu[deltaPhi] = *it;
+		const double invMass= (lepton[i1]+lepton[i2]).M();
+		if( invMass > 120.0 || invMass < 60.0 )
+		{
+			continue;
+		}
+		const double deltaZMass = fabs(kZMass-invMass);
+		candidatesZMass[deltaZMass] = std::pair<int,int>(i1,i2);
 	}
-	
-	double minDeltaRMuMu   = (deltaRMuMu.begin())->first;
-	double maxDeltaRMuMu   = (deltaRMuMu.rbegin())->first;
-	double minDeltaPhiMuMu = (deltaPhiMuMu.begin())->first;
-	double maxDeltaPhiMuMu = (deltaPhiMuMu.rbegin())->first;
+
+	if( candidatesZMass.size() == 0 )
+	{
+		return;
+	}
+
+	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
         
-        // + Calculate inv mass of closest pair in R plane
+	// + Getting the nearest pair to nominal ZMass
 	// Remember map<double,pair>  (second is the pair)
-	const unsigned int i1 = ((deltaRMuMu.begin())->second).first;
-	const unsigned int i2 = ((deltaRMuMu.begin())->second).second;
-	const double invMassMuMuH = (lepton[i1] + lepton[i2]).M();
+	const unsigned int i1Z = ((candidatesZMass.begin())->second).first;
+	const unsigned int i2Z = ((candidatesZMass.begin())->second).second;
+	// Also check that there are not another non-overlapping Z: ZZ rejection
+	if( candidatesZMass.size() > 1 )
+	{
+		for(std::map<double,std::pair<int,int> >::iterator it = ++candidatesZMass.begin(); 
+				it != candidatesZMass.end(); ++it)
+		{
+			const unsigned int index1 = (it->second).first;
+			const unsigned int index2 = (it->second).second;
+			if( index1 != i1Z && index1 != i2Z && index2 != i1Z && index2 != i2Z)
+			{
+				// Found another Z non-overlapping with the other already found
+				return;
+			}
+		}
+	}
+
+	const double invMassMuMuH = (lepton[i1Z] + lepton[i2Z]).M();
 
 	// + Fill histograms
-	//   - Smallest and Largest DeltaR between 2 opposite charged muons
-	_histos[fHMinDeltaRLp1Lp2]->Fill(minDeltaRMuMu,puw);
-	_histos[fHMaxDeltaRLp1Lp2]->Fill(maxDeltaRMuMu,puw);
-	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
-	_histos[fHMinDeltaPhiLp1Lp2]->Fill(minDeltaPhiMuMu,puw);
-	_histos[fHMaxDeltaPhiLp1Lp2]->Fill(maxDeltaPhiMuMu,puw);
-	//   - Invariant mass of leptons supposedly from H
+	//   - Invariant mass of leptons supposedly from Z
 	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
-  
+	
+	// W selection
+	//------------------------------------------------------------------
+	// Looking the not used leptons
+	LeptonTypes wcandflavour;
+	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSeem )
+	{
+		wcandflavour = MUON;
+	}
+	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSmme )
+	{
+		wcandflavour = ELECTRON;
+	}
+
+	std::map<double,int> wcandidate;
+	for(unsigned int i=0; i < lepton.size(); ++i) 
+	{
+		// lepton used in the Z candidate
+		if( i == i1Z || i == i2Z )
+		{
+			continue;
+		}
+		// Must be the correct flavour
+		if( leptontypes[i] != wcandflavour )
+		{
+			continue;
+		}
+		// Pt cut and isolation // FIXME just for electrons WP80
+		const double pt = lepton[i].Pt();
+		if( pt < 20.0 )
+		{
+			continue;
+		}
+		wcandidate[pt] = i;
+	}
+	// No W candidate
+	if( wcandidate.size() == 0 )
+	{
+		return;
+	}
+
+	// Get the high pt candidate 
+	const int wcandIndex = wcandidate.rbegin()->second;
+	const TLorentzVector wcandTLV( lepton[wcandIndex] );
 	
 	// Jet Veto:
 	//------------------------------------------------------------------
@@ -558,40 +601,29 @@ void AnalysisWZ::InsideLoop()
 	}
 	FillHistoPerCut(_iJetVeto, puw, fsNTau);
   	
-	// Cut in DeltaR
-	std::vector<double> * auxVar= new std::vector<double>;
-	auxVar->push_back(minDeltaRMuMu);
-	//------------------------------------------------------------------
-	if( ! fLeptonSelection->IsPass("DeltaRMuMuCut", auxVar) )
-	{
-		return;
-	}
-	
-	FillHistoPerCut(_iDeltaR, puw, fsNTau);
   	
-	// Check invariant mass of muons with opposite charge (outside Z)
-	//------------------------------------------------------------------
-	(*auxVar)[0] = invMassMuMuH;
-	// The cut is implemented checking if a pair is outside the zmass window
-	if( fLeptonSelection->IsPass("ZMassWindow", auxVar) )
-	{
-		return;
-	}
-	
-	_histos[fHZInvMass]->Fill(invMassMuMuH,puw);
-	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
 	
 	// MET
 	//------------------------------------------------------------------
 	const double met = fData->Get<float>("T_METPF_ET");
-	(*auxVar)[0] = met;
+	std::vector<double> * auxVar = new std::vector<double>;
+	auxVar->push_back( met );
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
 		return;
 	}
 	delete auxVar;
 	auxVar=0;
+
+	// Build the transvers mass for the Wcandidate
+	const double phi = fData->Get<float>("T_METPF_Phi");
+	const double px = met*cos(phi);
+	const double py = met*sin(phi);
+	TLorentzVector METV(px,py,0.0,met);
+
+	const double transversMassW = (METV+wcandTLV).Mt();
 	
+	_histos[fHZInvMass]->Fill(transversMassW,puw);
 	_histos[fHMET]->Fill(met,puw);
 	FillHistoPerCut(_iMET, puw, fsNTau);
 }
