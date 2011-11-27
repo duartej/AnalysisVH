@@ -130,8 +130,16 @@ class clustermanager(object):
 				sys.exit(message)
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
+			# We want some thing quick, the estimation is between 500-1000 e/sec,
+			# so we are trying to send 10minutes-jobs: ~450000 evt per job
+			if self.njobs == 0:
+				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of jobs "\
+						+"to send 10 minutes jobs. Found: "
+				self.njobs = self.nevents/450000
+				message += str(self.njobs)
+				print message
 			# Checking if has sense the njobs
-			if self.nevents < 10000:
+			if self.njobs < 1:
 				message = "\033[33;1mclustermanager: WARNING\033[0m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
@@ -533,7 +541,7 @@ if __name__ == '__main__':
 	#Opciones de entrada
 	usage="usage: sendcluster <submit|harvest> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(shouldCompile=False,jobsNumber=10)
+	parser.set_defaults(shouldCompile=False,jobsNumber=0)
 	parser.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
 	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
