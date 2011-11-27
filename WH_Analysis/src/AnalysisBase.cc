@@ -309,11 +309,11 @@ void AnalysisBase::Summary()
 	std::cout << std::endl << std::endl;
 	std::cout << "N. events selected at each stage:" << std::endl;
 	std::cout << "---------------------------------" << std::endl;
-	for(unsigned int i = 0; i < _iNCuts; i++)
+	for(unsigned int i = 0; i < fNCuts; i++)
 	{
 		std::cout << _histos[fHEventsPerCut]->GetBinContent(i+1) << " ["
 			<< 100.0*_histos[fHEventsPerCut]->GetBinContent(i+1)/_histos[fHEventsPerCut]->GetBinContent(1)
-			<< "%] selected events (" << kCutNames[i] << ")" << std::endl;
+			<< "%] selected events (" << fCutNames[i] << ")" << std::endl;
 	}
 	std::cout << std::endl << std::endl;
 }
@@ -368,7 +368,7 @@ bool AnalysisBase::IspassHLT() const
 	return passtrigger;*/
 }
 
-void AnalysisBase::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
+void AnalysisBase::FillHistoPerCut(const unsigned int & cut,const double & puw, const unsigned int & fs) 
 {
 	_histos[fHEventsPerCut]->Fill(cut, puw);
 	if(fs == fFS)
@@ -377,7 +377,7 @@ void AnalysisBase::FillHistoPerCut(const ECutLevel & cut,const double & puw, con
 	}
 }
 
-void AnalysisBase::FillGenPlots(ECutLevel cut, double puw) 
+void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw) 
 {
 	if(fIsWH && fNGenLeptons == _nLeptons) 
 	{

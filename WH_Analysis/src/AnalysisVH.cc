@@ -9,6 +9,7 @@
 #include "InputParameters.h"
 #include "CutManager.h"
 #include "PUWeight.h"
+#include "CutLevels.h"
 
 #include "TTree.h"
 #include "TH1D.h"
@@ -28,6 +29,12 @@ AnalysisVH::AnalysisVH(TreeManager * data, std::map<LeptonTypes,InputParameters*
 		CutManager * selectioncuts, const unsigned int & finalstate ) :
 	AnalysisBase(data,ipmap,selectioncuts,finalstate )
 {
+	// Number of cuts
+	fNCuts = _iNCuts;
+	for( unsigned int i = 0 ; i < fNCuts; ++i)
+	{
+		fCutNames.push_back(kCutNames[i]);
+	}
 }
 
 AnalysisVH::~AnalysisVH()

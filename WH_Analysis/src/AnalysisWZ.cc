@@ -7,6 +7,7 @@
 
 #include "AnalysisWZ.h"
 #include "InputParameters.h"
+#include "CutLevelsWZ.h"
 #include "CutManager.h"
 #include "PUWeight.h"
 
@@ -20,8 +21,147 @@ const double kZMass = 91.1876;
 const unsigned int kNMuons = 2; 
 const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParticle("W+")->PdgCode()
 const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()
+		
+
+AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
+				CutManager * selectorcuts, const unsigned int & finalstate ) :
+	AnalysisBase(data,ipmap,selectorcuts,finalstate ) 
+{ 
+	// Number of cuts
+	fNCuts = _iNCuts;
+	for(unsigned int i = 0; i < fNCuts; ++i)
+	{
+		fCutNames.push_back(kCutNames[i]);
+	}
+} 
 
 
+void AnalysisWZ::Initialise()
+{
+	// Selection cuts
+  	//----------------------------------------------------------------------------
+  
+	// Histograms
+	//----------------------------------------------------------------------------
+	// Process ID
+	_histos[fHProcess] = CreateH1D("fHProcess", "Proccess ID", _iNProcesses, 0, _iNProcesses);
+	for(unsigned int i = 0; i < _iNProcesses; i++)
+	{
+		_histos[fHProcess]->GetXaxis()->SetBinLabel(i+1,kProcesses[i]);
+	}
+	
+	// Final state from generation (incl. taus)
+	_histos[fHGenFinalState] = CreateH1D("fHGenFinalState", "Final State (incl. #tau)", 
+			SignatureFS::_iFStotal, 0, SignatureFS::_iFStotal);
+	for(unsigned int i = 0; i < SignatureFS::_iFStotal; i++)
+	{
+		_histos[fHGenFinalState]->GetXaxis()->SetBinLabel(i+1,SignatureFS::kFinalStates[i]);
+	}
+	_histos[fHGenFinalState]->Sumw2();
+
+	// Final state from generation (no taus)
+	_histos[fHGenFinalStateNoTaus] = CreateH1D("fHGenFinalStateNoTaus", "Final State (no #tau)", 
+			SignatureFS::_iFStotal, 0, SignatureFS::_iFStotal);
+	for(unsigned int i = 0; i < SignatureFS::_iFStotal; i++)
+	{
+		_histos[fHGenFinalStateNoTaus]->GetXaxis()->SetBinLabel(i+1,SignatureFS::kFinalStates[i]);
+	}
+	_histos[fHGenFinalStateNoTaus]->Sumw2();
+
+	// Generated electrons coming from a W
+	_histos[fHNGenWElectrons] = CreateH1D("fHNGenWElectrons", "N Gen e from W", 5, -0.5, 4.5);
+	// Generated muons coming from a W
+	_histos[fHNGenWMuons] = CreateH1D("fHNGenWMuonss", "N Gen #mu from W", 5, -0.5, 4.5);
+	// Generated leptons coming from a W
+	_histos[fHNGenWLeptons] = CreateH1D("fHNGenWLeptons", "N Gen leptons from W", 5, -0.5, 4.5);
+	
+	// PT and Eta of most energetic gen muon from W or tau
+	// Creating the maps
+	for(unsigned int i = 0; i < _nLeptons; i++) 
+	{
+		fHGenPtLepton[i].resize(_iNCuts);
+		fHGenEtaLepton[i].resize(_iNCuts);
+		for (unsigned int j = 0; j < _iNCuts; j++) 
+		{
+			TString ptname  = Form("fHGenPtLepton%i_%i", i+1,j);
+			TString pttitle = Form("P_{T} #mu_{gen}^{%i} from W (#tau)", i+1);
+			TString etaname  = Form("fHGenEtaLepton%i_%i", i+1,j);
+			TString etatitle = Form("#eta #mu_{gen}^{%i} from W (#tau)", i+1);
+			fHGenPtLepton[i][j]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+			fHGenEtaLepton[i][j] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		}
+	}
+
+
+	// Events passing every cut
+	_histos[fHEventsPerCut] = CreateH1D("fHEventsPerCut", "Events passing each cut", 
+			_iNCuts, 0, _iNCuts);
+	for (unsigned int i = 0; i < _iNCuts; i++)
+	{
+		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+	}
+  
+	// Events passing every cut that are 3 mu from gen
+	_histos[fHEventsPerCut3Lepton] = CreateH1D("fHEventsPerCut3Lepton", "Events passing each cut that are 3 mu from gen", 
+			_iNCuts, 0, _iNCuts);
+	for(unsigned int i = 0; i < _iNCuts; i++)
+	{
+		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+	}
+
+	// Reconstructed muons in the event
+	_histos[fHNRecoLeptons] = CreateH1D("fHNRecoLeptons", "Reconstructed #mu", 
+			10, -0.5, 9.5);
+	
+	// Muons passing the basic selection
+	_histos[fHNSelectedLeptons] = CreateH1D("fHNSelectedLeptons", "Selected #mu", 
+			       10, -0.5, 9.5);
+
+	// Selected Muons close to the PV
+	_histos[fHNSelectedPVLeptons] = CreateH1D("fHNSelectedPVLeptons", 
+			"Selected #mu close to PV", 10, -0.5, 9.5);
+	// Selected Isolated Muons
+	_histos[fHNSelectedIsoLeptons] = CreateH1D("fHNSelectedIsoLeptons", 
+			"Selected Isolated #mu", 10, -0.5, 9.5);
+	// Selected Isolated Good Muons
+	_histos[fHNSelectedIsoGoodLeptons] = CreateH1D("fHNSelectedIsoGoodLeptons", 
+			"Selected good Isolated #mu", 10, -0.5, 9.5);
+	
+	// Pt and eta of first/second/third good isolated muon
+	for(unsigned int i = 0; i < _nLeptons; i++) 
+	{
+		TString ptname  = Form("fHPtLepton%i", i+1);
+		TString pttitle = Form("P_{T}^{#mu_{%i}}", i+1);
+		TString etaname  = Form("fHEtaLepton%i", i+1);
+		TString etatitle = Form("#eta^{#mu_{%i}}", i+1);
+		TString drname  = Form("fHDeltaRGenRecoLepton%i", i+1);
+		TString drtitle = Form("#Delta R for #mu %i", i+1);
+		fHPtLepton[i]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
+		fHEtaLepton[i] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		fHDeltaRGenRecoLepton[i] = CreateH1D(drname, drtitle, 150, 0, 5);
+	}
+	
+	
+	// Selected Isolated Good Muons
+	_histos[fHLeptonCharge] = CreateH1D("fHLeptonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
+		
+	// Invariant mass of leptons in/out of Z peak after all cuts
+	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",120, 60, 120);
+	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#mu#mu}",120, 60, 120);
+	_histos[fHZInvMassAfterWCand] = CreateH1D("fHZInvMassAfterWCand", "M^{inv.}_{#mu#mu}",120, 60, 120);
+	
+	// Missing ET after inv mass cut
+	_histos[fHMET] = CreateH1D("fHMET", "MET",120, 0, 300);
+	_histos[fHMETAfterZCand] = CreateH1D("fHMETAfterZCand", "MET",120, 0, 300);
+	_histos[fHMETAfterWCand] = CreateH1D("fHMETAfterWCand", "MET",120, 0, 300);
+
+	// Number of Jets after all cuts
+	_histos[fHNJets] = CreateH1D("fHNJets", "NJets",21, 0, 20);
+	
+	// W candidate transvers mass
+	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
+	
+}
 
 //---------------------------------------------------------------------
 // InsideLoop
@@ -307,13 +447,6 @@ void AnalysisWZ::InsideLoop()
 	FillHistoPerCut(_iGoodVertex, puw, fsNTau);
 	
 
-	// First looking at events with 2 leptons
-	//const int kNMuons = 2; --> Defined in the preamble
-	// Muon selection
-	//------------------------------------------------------------------
-	//
-	//this->SetGoodVertexIndex(iGoodVertex);
-	
 	// Store the number of reconstructed leptons without any filter
 	int nLeptonsbfCuts = 0;
 	for(unsigned int i = 0; i < fLeptonName.size(); ++i)
@@ -371,9 +504,7 @@ void AnalysisWZ::InsideLoop()
 	}
 	
 	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
-      
-	FillHistoPerCut(_iMuPTPattern, puw, fsNTau);
-
+	//FillGenPlots(_iHas2IsoGoodLeptons,puw);
 	
 	// Keep events at least 3 leptons and store momentum and charge
 	//---------------------------------------------------------------------------
@@ -381,6 +512,9 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
+	FillHistoPerCut(_iHasAtLeast3Leptons, puw, fsNTau);
+	FillGenPlots(_iHasAtLeast3Leptons,puw);
+
 	// Indexs of good leptons
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	// + Fill histograms with Pt and Eta
@@ -419,9 +553,6 @@ void AnalysisWZ::InsideLoop()
 		leptontypes.push_back( ileptontype );
 		++k;
 	}
-	FillGenPlots(_iHasExactly3Leptons,puw);
-	
-	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
 	
 	
 	// Storing the charge
@@ -477,12 +608,12 @@ void AnalysisWZ::InsideLoop()
 			leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
 		}
 	}
-	// rejecting events with no Z candidates
+	// rejecting events with no opposite charge leptons
 	if( leptonPair.size() == 0 )
 	{
 		return;
 	}	
-	// Accepted events with Z candidates
+	// Accepted events with two opposite charge leptons
 	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
 	
 	// Calculate invMass...
@@ -503,12 +634,12 @@ void AnalysisWZ::InsideLoop()
 		candidatesZMass[deltaZMass] = std::pair<int,int>(i1,i2);
 	}
 
+
 	if( candidatesZMass.size() == 0 )
 	{
 		return;
 	}
-
-	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
+	FillHistoPerCut(_iHasZCandidate, puw, fsNTau);
         
 	// + Getting the nearest pair to nominal ZMass
 	// Remember map<double,pair>  (second is the pair)
@@ -530,11 +661,14 @@ void AnalysisWZ::InsideLoop()
 		}
 	}
 
-	const double invMassMuMuH = (lepton[i1Z] + lepton[i2Z]).M();
+	const double invMassLL = (lepton[i1Z] + lepton[i2Z]).M();
 
 	// + Fill histograms
 	//   - Invariant mass of leptons supposedly from Z
-	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
+	_histos[fHZInvMassAfterZCand]->Fill(invMassLL,puw);
+	// Extract MET to fill histograms
+	const double met = fData->Get<float>("T_METPF_ET");
+	_histos[fHMETAfterZCand]->Fill(met,puw);
 	
 	// W selection
 	//------------------------------------------------------------------
@@ -575,6 +709,11 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
+	FillHistoPerCut(_iHasWCandidate, puw, fsNTau);
+	// Fill histos
+	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
+	_histos[fHMETAfterWCand]->Fill(met,puw);
+
 
 	// Get the high pt candidate 
 	const int wcandIndex = wcandidate.rbegin()->second;
@@ -601,19 +740,21 @@ void AnalysisWZ::InsideLoop()
 	}
 	FillHistoPerCut(_iJetVeto, puw, fsNTau);
   	
-  	
 	
 	// MET
 	//------------------------------------------------------------------
-	const double met = fData->Get<float>("T_METPF_ET");
 	std::vector<double> * auxVar = new std::vector<double>;
 	auxVar->push_back( met );
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
 		return;
 	}
+	FillHistoPerCut(_iMET, puw, fsNTau);
+
 	delete auxVar;
 	auxVar=0;
+
+	// Filling histos -------------------------------------
 
 	// Build the transvers mass for the Wcandidate
 	const double phi = fData->Get<float>("T_METPF_Phi");
@@ -623,7 +764,9 @@ void AnalysisWZ::InsideLoop()
 
 	const double transversMassW = (METV+wcandTLV).Mt();
 	
-	_histos[fHZInvMass]->Fill(transversMassW,puw);
+	_histos[fHTransversMass]->Fill(transversMassW,puw);
+	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
-	FillHistoPerCut(_iMET, puw, fsNTau);
+	_histos[fHNJets]->Fill(nJets,puw);
+	
 }

@@ -9,7 +9,7 @@
 
 #include "CMSAnalysisSelector.h"
 #include "TreeManager.h"
-#include "CutLevels.h"
+//#include "CutLevels.h"
 #include "LeptonTypes.h"
 #include "SignatureFS.h"
 
@@ -131,9 +131,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		//unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
 		//		const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
-		virtual void FillHistoPerCut(const ECutLevel & cut,const double & puw, 
+		virtual void FillHistoPerCut(const unsigned int & cut,const double & puw, 
 				const unsigned int & fs); // = 0;  //FIXME de momento
-		virtual void FillGenPlots(ECutLevel cut, double puw); //= 0; //FIXME. de momento 
+		virtual void FillGenPlots(const unsigned int & cut, double puw); 
 
 		// Number of final state leptons
 		unsigned int _nLeptons;
@@ -151,6 +151,10 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! Signature of the analysis (giving by Signature::EFS enum)
 		unsigned int fFS;
+
+		//! Number of total cuts in the analysis
+		unsigned int fNCuts;
+		std::vector<TString> fCutNames;
 
 		//! Type of leptons in the analysis
 		LeptonTypes fLeptonType;                

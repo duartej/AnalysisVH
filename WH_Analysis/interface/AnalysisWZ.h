@@ -10,7 +10,6 @@
 //#include "CMSAnalysisSelector.h"
 #include "AnalysisBase.h"
 #include "TreeManager.h"
-#include "CutLevels.h"
 #include "LeptonTypes.h"
 #include "SignatureFS.h"
 
@@ -41,25 +40,25 @@ class AnalysisWZ : public AnalysisBase
 			fHNSelectedPVLeptons,     //Selected Leptons close to the PV
 			fHNSelectedIsoLeptons,    //Selected Isolated leptons
 			fHNSelectedIsoGoodLeptons,//Selected Isolated Good Leptons
-			fHMinDeltaRLp1Lp2,        //Smallest DeltaR between 2 opp. sign leptons
-			fHMaxDeltaRLp1Lp2,         //Largest DeltaR between 2 opp. sign leptons
-			fHMinDeltaPhiLp1Lp2,      //Smallest Delta phi between 2 opp. sign leptons
-			fHMaxDeltaPhiLp1Lp2,      //Largest Delta phi between 2 opp. sign leptons
 			fHLeptonCharge,           //Sum charges of leptons
-			fHHInvMass,               //Invariant mass of leptons supposedly from H
-			fHZInvMass,               //Invariant mass of leptons in/out of Z peak
-			fHMET                     //Missing ET after inv mass cut
+			fHZInvMass,               //Invariant mass of leptons in/out of Z peak after all cust
+			fHZInvMassAfterZCand,     //Invariant mass of leptons in/out of Z peak
+			fHZInvMassAfterWCand,     //Invariant mass of leptons in/out of Z peak
+			fHMET,                    //Missing ET after all cuts
+			fHMETAfterZCand,          // MET affer ZCandidate cut
+			fHMETAfterWCand,
+			fHNJets,                   // Number of jets after all cuts
+			fHTransversMass
 		};
 		
 		//! Constructor
 		AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
-				CutManager * selectorcuts, const unsigned int & finalstate ) :
-			AnalysisBase(data,ipmap,selectorcuts,finalstate ) { } 
+				CutManager * selectorcuts, const unsigned int & finalstate ) ;
 		//! Destructor
 		virtual ~AnalysisWZ() { }
 
 	protected:
-		virtual void Initialise() { }
+		virtual void Initialise();
 		virtual void InsideLoop();
 
 	private:
