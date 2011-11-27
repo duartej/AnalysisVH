@@ -125,7 +125,7 @@ class AnalysisBase : public CMSAnalysisSelector
 
 	protected:
 		virtual void InitialiseParameters();
-		virtual void Initialise();
+		virtual void Initialise() = 0;
 		virtual void InsideLoop() = 0;
 		virtual void Summary();
 
@@ -133,7 +133,7 @@ class AnalysisBase : public CMSAnalysisSelector
 		AnalysisBase();
 
 
-	protected: // TO BE CHANGED --> PRIVATEa---> YA NO
+	protected: 
 		bool IspassHLT() const;
 		//! Extract the 4-momenta of the good leptons. WARNING only can be used with
 		//! the good leptons
@@ -188,11 +188,14 @@ class AnalysisBase : public CMSAnalysisSelector
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }
 		//----------------------------------------------------------------------------
-		TH1D* fHGenPtLepton[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
-		TH1D* fHGenEtaLepton[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
-		TH1D* fHPtLepton[3];               //Pt of 1st/2nd/3rd good isolated muon
-		TH1D* fHEtaLepton[3];              //Eta of 1st/2nd/3rd good isolated muon
-		TH1D* fHDeltaRGenRecoLepton[3];    //DeltaR between reco and gen muons
+		//TH1D * fHGenPtLepton[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
+		//TH1D * fHGenEtaLepton[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
+		// PROVISONAL : FIXME
+		std::map<int,std::vector<TH1D*> > fHGenPtLepton;   //PT 1st/2nd/3rd energetic gen muon from W or tau
+		std::map<int,std::vector<TH1D*> > fHGenEtaLepton;  //Eta 1st/2nd/3rd energetic gen muons from W or tau
+		TH1D * fHPtLepton[3];               //Pt of 1st/2nd/3rd good isolated muon
+		TH1D * fHEtaLepton[3];              //Eta of 1st/2nd/3rd good isolated muon
+		TH1D * fHDeltaRGenRecoLepton[3];    //DeltaR between reco and gen muons
 
 		// -- Histograms
 		std::map<int,TH1D*> _histos;

@@ -126,7 +126,7 @@ class AnalysisVH : public AnalysisBase
 
 	protected:
 //		virtual void InitialiseParameters();
-//		virtual void Initialise();
+		virtual void Initialise();
 		virtual void InsideLoop(); // = 0;
 //		virtual void Summary();
 

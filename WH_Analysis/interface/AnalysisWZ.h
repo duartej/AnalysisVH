@@ -36,6 +36,7 @@ class AnalysisWZ : public AnalysisBase
 		virtual ~AnalysisWZ() { }
 
 	protected:
+		virtual void Initialise() { }
 		virtual void InsideLoop();
 
 	private:
