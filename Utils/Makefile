@@ -14,15 +14,19 @@ EXE        := $(patsubst %.cc,$(BINPATH)/%,$(SOURCES))
 PYSOURCES  := $(wildcard *.py)
 PYEXE      := $(patsubst %.py,$(BINPATH)/%,$(PYSOURCES))
 
+# executables which need some of our libraries
+CPPSOURCES := $(wildcard *.cpp)
+CPPEXE     := $(patsubst %.cpp,$(BINPATH)/%,$(CPPSOURCES))
+
+CPPINCDIR  := -I$(GENERALPATH)/InputParameters/interface
+CPPLIBDIR  := -L$(GENERALPATH)/libs
+CPPLIBS    := -lInputParameters
+
 ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)
 ROOTLIBS   ?= $(shell root-config --libs)
-# To include the package libraries
-ROOTLIBDIR += -L$(GENERALPATH)/libs   
 
-
-all: $(EXE) $(PYEXE)
-
+all: $(EXE) $(PYEXE) $(CPPEXE)
 
 $(EXE): $(SOURCES)
 	@echo "++++ Creating Executable ($@)"
@@ -34,4 +38,9 @@ $(PYEXE): $(PYSOURCES)
 	@cp $(patsubst $(BINPATH)/%,%.py,$@) $@
 	@chmod 755 $@
 
+$(CPPEXE): $(CPPSOURCES)
+	@echo "++++ Creating Executable ($@)"
+	@$(shell mkdir -p $(BINPATH))
+	@$(CXX) $(CXXFLAGS) $(ROOTINCDIR) $(ROOTLIBDIR) $(ROOTLIBS) $(CPPINCDIR) \
+		$(CPPLIBDIR) $(CPPLIBS) -o $@ $(patsubst $(BINPATH)/%,%.cpp,$@)
 
