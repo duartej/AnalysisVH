@@ -445,7 +445,7 @@ class clustermanager(object):
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -a"+self.analysistype+" -c "+cfgnames+" -d "+self.filedatanames+\
+		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+cfgnames+" -d "+self.filedatanames+\
 				" -l "+self.finalstate+" -o "+outputname+"\n"
 	
 		filename = self.dataname+"_"+str(jobnumber)+".sh"
@@ -491,6 +491,7 @@ def showresults(textresultfiles):
 	and add up all the results
 	"""
 	import re
+	from math import log10
 	totaldict = {}
 	cutorder = []
 	regexp = re.compile("(?P<total>\d+)\s*\[(?P<percent>\d*\W*\d*)\%\]\s*selected\sevents\s*\((?P<cutname>\w*)\)\s*")
@@ -504,9 +505,9 @@ def showresults(textresultfiles):
 			except AttributeError:
 				continue
 			try:
-				totaldict[cutname] += int(total)
+				totaldict[cutname] += float(total)
 			except KeyError:
-				totaldict[cutname] = int(total)
+				totaldict[cutname] = float(total)
 
 			if cutorder.count(cutname) == 0:
 				cutorder.append(cutname)
@@ -516,9 +517,10 @@ def showresults(textresultfiles):
 	print ""
 	print "N. events selected at each stage:"
 	print "---------------------------------"
+	maxlenght = int(log10(totaldict["AllEvents"]))
 	for cut in cutorder:
 		percent = float(totaldict[cut])/float(totaldict["AllEvents"])*100.0
-		print "%i [%.3f%s] selected events (%s)" % (totaldict[cut],percent,"%",cut)
+		print "%-11.1f [%.3f%s] selected events (%s)" % (totaldict[cut],percent,"%",cut)
 	print ""
 
 
