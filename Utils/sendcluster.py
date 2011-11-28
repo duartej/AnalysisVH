@@ -32,20 +32,20 @@ class clustermanager(object):
 			if not os.path.exists( os.path.join(self.basedir,"CutManager") ):
 				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' is not the base directory for the package 'VHAnalysis'\n"
-				sys.exit( message )
+				raise message 
 		# for the analysis specific package
 		if os.getenv("ANALYSISSYS"):
 			self.pkgpath = os.path.abspath(os.getenv("ANALYSISSYS"))
 			if not os.path.exists( os.path.join(self.pkgpath,"interface/AnalysisBuilder.h") ):
 				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' do not contain the header interface/AnalysisBuilder.h\n"
-				sys.exit( message )
+				raise message 
 
 		for key,value in keywords.iteritems():
 			if key not in validkeys:
 				message = "\nclustermanager: ERROR Not a valid argument '"+key+\
 						"' to instanciate the class\n"
-				sys.exit(message)
+				raise message
 			
 			if key == 'dataname':
 				self.dataname = value
@@ -57,13 +57,13 @@ class clustermanager(object):
 				for lepton,cfg in value.iteritems():
 					if not os.path.exists(cfg):
 						message = "\033[1;31mclustermanager: ERROR\033[1;m Not found '"+value+"'.\n"
-						sys.exit( message )
+						raise message
 					if lepton.lower() != "muon" and lepton.lower() != "mu" \
 							and lepton.lower() != "electron" and lepton.lower() != "elec":
 						message = "\033[1;31mclustermanager: ERROR\033[1;m Not valid lepton assignation"
 						message +=" to the config file '"+cfg+"'. Parsed:'"+lepton.lower()+"'."
 						message += " Valid keys are: muon mu electron ele"
-						sys.exit( message )
+						raise message 
 					self.leptoncfgfilemap[lepton] = os.path.abspath(cfg)
 			elif key == 'njobs':
 				self.njobs = int(value)
@@ -74,18 +74,18 @@ class clustermanager(object):
 					continue
 				# Check if exist the path and it is correct
 				if not os.path.exists( os.path.join(value,"interface/AnalysisBuilder.h") ):
-					message = "\nclustermanager: ERROR the path introduced '" \
-							+value+"' do not contain the header interface/AnalysisBuilder.h\n"
-					sys.exit( message )
+					message = "\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+							+value+"' do not contain the header interface/AnalysisBuilder.h"
+					raise message
 				self.pkgpath = os.path.abspath(value)
 			elif key == 'basedir':
 				if not value:
 					continue
 				# Check if exist the path and it is correct
 				if not os.path.exists( os.path.join(value,"CutManager") ):
-					message = "\nclustermanager: ERROR the path introduced '" \
-							+value+"' is not the base directory\n"
-					sys.exit( message )
+					message = "\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+							+value+"' is not the base directory"
+					raise message 
 				self.basedir = os.path.abspath(value)
 				self.libsdir = os.path.join(self.basedir,"libs")
 			elif key == 'workingdir':
@@ -101,13 +101,13 @@ class clustermanager(object):
 		except AttributeError:
 		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base directory for the package VHAnalysis"
 			message += "Or you can use an environment variable: 'export VHSYS=path'"
-			sys.exit(message)
+			raise message
 		try:
 			dummy = self.pkgpath
 		except AttributeError:
 		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base analysis directory"
 			message += "Or you can use an environment variable: 'export ANALYSISSYS=path'"
-			sys.exit(message)
+			raise message
 
 
 		self.status = status
@@ -127,13 +127,13 @@ class clustermanager(object):
 				message += " I need the list of file names, execute:"
 				message += "\n'datamanager "+self.originaldataname+" -c "+cfgstr+"'"
 				message += "\nAnd then launch again this script"
-				sys.exit(message)
+				raise message
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
 			# so we are trying to send 10minutes-jobs: ~450000 evt per job
 			if self.njobs == 0:
-				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of jobs "\
+				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
 				self.njobs = self.nevents/450000
 				message += str(self.njobs)
@@ -148,10 +148,13 @@ class clustermanager(object):
 			# Recall: the first event is 0, the last event: Entries-1
 			remainevt  = (self.nevents % self.njobs)-1 
 			self.jobidevt = []
+			self.tasksID  = []
 			for i in xrange(self.njobs-1):
-				self.jobidevt.append( (i,(i*evtperjob,(i+1)*evtperjob-1)) )
+				self.jobidevt.append( (i+1,(i*evtperjob,(i+1)*evtperjob-1)) )
+				self.tasksID.append( i+1 )
 			# And the last
-			self.jobidevt.append( (self.njobs-1,\
+			self.tasksID.append( self.njobs )
+			self.jobidevt.append( (self.njobs,\
 					((self.njobs-1)*evtperjob,self.njobs*evtperjob+remainevt ) ) )
 			# Submit the jobs
 			self.submit()
@@ -163,11 +166,11 @@ class clustermanager(object):
 			self.retrieve()
 
 			foundoutfiles = []
+			self.outputmessage = ''
 			print "====== Checking the job status for dataname:",self.dataname
-			print "Jobs in the cluster:",
-			for id,bashscript in self.jobsid:
-				foundoutfiles.append( self.checkjob(id) )
-			print ""
+			for taskid,dummy in self.jobidevt:
+				foundoutfiles.append( self.checkjob(taskid) )
+			print self.outputmessage
 			
 			# If we have all the outputfiles we can gathering
 			if foundoutfiles == self.outputfiles.values():
@@ -198,7 +201,7 @@ class clustermanager(object):
 			print message
 			return 
 		# Adding up all the final results and show them
-		textresultfiles = glob.glob("./"+self.dataname+"_*.sh.o*")
+		textresultfiles = glob.glob("./"+self.dataname+"*.sh.o*")
 		showresults(textresultfiles)
 		# If everything was fine, deleting the files 
 		# and cleaning the directory
@@ -224,33 +227,52 @@ class clustermanager(object):
 		print "========= Process Completed ========="
 
 
-	def checkjob(self, id):
+	def checkjob(self, taskid):
 		"""Check the status of a job
 		"""
 		from subprocess import Popen,PIPE
 		import os
 
-		command = [ 'qstat','-j',id ]
+		#command = [ 'qstat','-j',id ]
+		command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-		# The job is done and disappeared from the scheluder
-		if p[1] != "":
+		
+		isincluster = False
+		taskstatus = {}
+		for line in p[0].split("\n"):
+			if not str(self.jobsid) in line:
+				continue
+			parseline = line.split()
+			status= parseline[4]
+			try:
+				task  = int(parseline[9])
+			except IndexError:
+				# Implies it is still waiting
+				task  = int(parseline[8])
+			taskstatus[task] = status
+			isincluster = True
+
+		if not isincluster:
 			# Checking if the outputfiles are there
-			if not os.path.exists(self.outputfiles[self.jobsidID[id]]):
+			if not os.path.exists(self.outputfiles[taskid]):
 				message = "\033[1;31mclustermanager.checkjob: Something went wrong in the cluster:\033[1;m"
-				message += "The job '"+id+"' is already finish but there is no output root file '"
-				message += self.outputfiles[self.jobsidID[id]]+"'\n"
-				message += "Check the cluster output file\n"
-				sys.exit(message)
+				message += "The task '"+str(taskid)+"' of the job '"+str(self.jobsid)
+				message += "' is already finish but there is no output root file '"
+				message += self.outputfiles[taskid]+"'\n"
+				message += "Check the cluster outputs file"
+				raise message
 
 			# Gathering the file outputs in order to add
-			return self.outputfiles[self.jobsidID[id]]
-		else:
-			# Still in the cluster
-			print id,
-
+			return self.outputfiles[taskid]
+		
+		if isincluster:
+			self.outputmessage =  "Tasks in the cluster '[taskID: status]': "
+			for task,status in taskstatus.iteritems():
+				self.outputmessage += "["+str(task)+": "+status+"] "
+			self.outputmessage += '\n===== '+self.dataname+' still in the cluster ==='
 
 	def submit(self):
-		"""Submit the jobs
+		"""Submit the job
 		"""
 		import os
 		import sys
@@ -262,36 +284,33 @@ class clustermanager(object):
 			os.mkdir( self.cwd )
 		except OSError:
 			# FIXME
-			message  = "\nclustermanager: ERROR I cannot create the directory '"+self.cwd+"'"
+			message  = "\033[1;31mclustermanager: ERROR\033[1;m I cannot create the directory '"+self.cwd+"'"
 			message += "\nPossibly the job is currently in use. Remove the directory if you "
-			message += "want to send it again.\n"
+			message += "want to send it again."
 			# FIXME: Comprobar si hay jobs activos---> usa status method
-			sys.exit(message)
+			raise message
 		# Moving to that dir
 		os.chdir( self.cwd )
 		# Extract the number of events per job
-		jobnames = []
 		for i,evttuple in self.jobidevt:
 			# Splitting the config file in the number of jobs
-			iconfignames = self.createconfig(i,evttuple)
-			# Creating the bash script to send the job
-			if self.precompile:
-				# Send the previous job to compile and update the code
-				# create job to compile
-				jobnames.append( self.createbash('datamanagercreator',iconfignames,i) )
-				break
-			else:
-				jobnames.append( self.createbash('runanalysis',iconfignames,i) )
-		# sending the jobs
-		jobsid = []
-		# Storing the cluster job id with the number of job (ID)
-		jobsidID= {}
-		for bashname,job in jobnames:
-			jobsid.append( self.sendjob(bashname) )
-			jobsidID[jobsid[-1][0]] = job
-
-		self.jobsid = jobsid
-		self.jobsidID = jobsidID
+			iconfigname = self.createconfig(i,evttuple)
+			# And storing the name of the files
+			self.outputfiles[i] = os.path.join("Results",self.dataname+"_"+str(i)+".root")
+		# Preparing the name of the config files to be  sended as a tasks
+		# (Note that we can use whatever we want of iconfigname 'cause 
+		# all have the same output
+		self.cfgnames = iconfigname
+		# Creating the bash script to send the job 
+		if self.precompile:
+			# Send the previous job to compile and update the code
+			# create job to compile
+			bashscriptname = self.createbash('datamanagercreator')
+		else:
+			bashscriptname = self.createbash('runanalysis',iconfigname)
+		
+		# Sending the job and storing the cluster job id
+		self.jobsid = self.sendjob(bashscriptname)
 
 		#persistency
 		self.store()
@@ -322,9 +341,10 @@ class clustermanager(object):
 		# do it with the __dict__ and __setattr__ methods
 		self.dataname     = copyself.dataname
 		self.jobsid       = copyself.jobsid
+		self.jobidevt     = copyself.jobidevt
+		self.tasksID      = copyself.tasksID
 		self.outputfiles  = copyself.outputfiles
 		self.njobs        = copyself.njobs
-		self.jobsidID     = copyself.jobsidID
 		self.basedir      = copyself.basedir
 		self.pkgpath      = copyself.pkgpath
 		self.libsdir      = copyself.libsdir
@@ -392,19 +412,21 @@ class clustermanager(object):
 		if p[1] != "":
 			message = "\nclustermanager: ERROR from 'extractEvents':\n"
 			message = p[1]+"\n"
-			sys.exit(message)
+			raise message
 
 		totalevts = p[0]
 		# Just checking the exponential format
 		return int(totalevts)
 	
-	def createconfig(self,jobNumber,evtTuple):
+	def createconfig(self,taskNumber,evtTuple):
 	        """From a reference cfgfile, constructs a new config file
 		with the tuple of events to be analysed.
 		Returns the config as a string of LEPTON:config,LEPTON2:config
+		non task dependent name
 		"""
 		import sys
-		newcfgnames = ''
+		
+		cfgnontaskdep = ''
 		# Reading the config file
 		for lepton,cfgfile in self.leptoncfgfilemap.iteritems():
 			f = open(cfgfile)
@@ -420,41 +442,42 @@ class clustermanager(object):
 					newlines[-1] = "@var int  firstEvent "+str(evtTuple[0])+";\n"
 			
 			newcfgnamePROV = os.path.basename(cfgfile)
-			newcfgname = newcfgnamePROV.replace( ".", "_"+str(jobNumber)+"." )
+			newcfgname = newcfgnamePROV.replace( ".", "_"+str(taskNumber)+"." )
 			f = open( newcfgname, "w" )
 			f.writelines( newlines )
 			f.close()
+			# We want return the general name, using the environment variable
+			cfgnontaskdepPROV = newcfgnamePROV.replace( ".", "_${SGE_TASK_ID}." )
+			cfgnontaskdep     += lepton+":"+cfgnontaskdepPROV+","
 
-			newcfgnames += lepton+":"+newcfgname+","
-
-		newcfgnames = newcfgnames[:-1]
-		return newcfgnames
+		cfgnontaskdep = cfgnontaskdep[:-1]
+		return cfgnontaskdep
 	
-	def createbash(self,executable,cfgnames,jobnumber):
+	def createbash(self,executable,config):
 		"""Create the bash scripts to be sended to the cluster
-		Return a list of (bash script names (str),jobnumber)
+		Return the script filename
 		"""
 		import os
 		import stat
-		
-		outputname = os.path.join("Results",self.dataname+"_"+str(jobnumber)+".root")
-		self.outputfiles[jobnumber] = outputname
+
+		outputname = os.path.join("Results",self.dataname+"_${SGE_TASK_ID}.root")
+		#self.outputfiles[tasknumber] = outputname # ?
 
 		lines  = "#!/bin/bash\n"
 		lines += "\n# Script created automatically by sendcluster.py utility\n"
 		lines += "\nmkdir -p Results\n"
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
-		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+cfgnames+" -d "+self.filedatanames+\
-				" -l "+self.finalstate+" -o "+outputname+"\n"
+		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+self.cfgnames+\
+				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+"\n"
 	
-		filename = self.dataname+"_"+str(jobnumber)+".sh"
+		filename = self.dataname+".sh"
 		f = open(filename,"w")
 		f.writelines(lines)
 		f.close()
 		os.chmod(filename,stat.S_IRWXU+stat.S_IRGRP+stat.S_IXGRP+stat.S_IXOTH)
 		
-		return (filename,jobnumber)
+		return filename
 
 	def sendjob(self,bashscript):
 	   	"""Send to the cluster the bash script input
@@ -462,15 +485,19 @@ class clustermanager(object):
 		"""
 		from subprocess import Popen,PIPE
 		
+		# Recall map is ordered 
+		taskidinit = self.jobidevt[0][0]
+		taskidend  = self.jobidevt[-1][0]
 		# OJO NO HE PUESTO REQUERIMIENTOS DE MEMORIA, CPU...
 		print "Sending to cluster: "+bashscript
 		command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
+				'-t',str(taskidinit)+"-"+str(taskidend),\
 				'-P','l.gaes','-l', 'immediate', '-l','h_rt=02:00:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
-			message = "\nclustermanager: ERROR from 'qsub':\n"
+			message = "\033[1;31mclustermanager: ERROR\033[1;m from 'qsub':\n"
 			message += p[1]+"\n"
-			sys.exit(message)
+			raise message
 		
 		#Extract id
 		id = None
@@ -478,7 +505,9 @@ class clustermanager(object):
 		for i in outputline:
 			if i.isdigit():
 				id = i
-		return (id,bashscript)
+			if len(i.split(":")) == 2:
+				id = i.split(".")[0]
+		return id
 		
 	
 def showresults(textresultfiles):
@@ -494,7 +523,7 @@ def showresults(textresultfiles):
 	from math import log10
 	totaldict = {}
 	cutorder = []
-	regexp = re.compile("(?P<total>\d+)\s*\[(?P<percent>\d*\W*\d*)\%\]\s*selected\sevents\s*\((?P<cutname>\w*)\)\s*")
+	regexp = re.compile("(?P<total>\d+\.*\d*)\s*\[(?P<percent>\d*\W*\d*)\%\]\s*selected\sevents\s*\((?P<cutname>\w*)\)\s*")
 
 	for file in textresultfiles:
 		f = open(file)
@@ -517,11 +546,23 @@ def showresults(textresultfiles):
 	print ""
 	print "N. events selected at each stage:"
 	print "---------------------------------"
-	maxlenght = int(log10(totaldict["AllEvents"]))
+	maxlenght = int(log10(totaldict["AllEvents"]))+2
 	for cut in cutorder:
 		percent = float(totaldict[cut])/float(totaldict["AllEvents"])*100.0
-		print "%-11.1f [%.3f%s] selected events (%s)" % (totaldict[cut],percent,"%",cut)
-	print ""
+		if percent < 1:
+			format = "[%.2f%s]"
+		elif percent < 100:
+			format = "[%.1f%s]"
+		else:
+			format = "[%4i%s]"
+		
+		totalformat = str(maxlenght)+".1f"
+		if str(totaldict[cut]).split(".")[-1] == '0':
+			totalformat = str(maxlenght)+"i"
+		
+		formatstr = "%"+totalformat+" "+format+" selected events (%s)"
+
+		print formatstr % (totaldict[cut],percent,"%",cut)
 
 
 
@@ -632,7 +673,7 @@ if __name__ == '__main__':
 			message = "\033[31;1msendcluster: ERROR\033[0m the working path '"+opt.workingdir \
 					+"' does not exists"
 			sys.exit( message )
-
+		
 		manager = clustermanager("harvest",workingdir=opt.workingdir)
 	
 	else:
