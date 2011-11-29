@@ -42,5 +42,6 @@ TODO:
   5. Check with the *.sh.e* the good behaviour of the job
   7. Include a Jet plot (before the Jet Veto cut)
   8. Let decide sendcluster how many jobs shuould be sended depending the sample's length
+  9. Put in the configuration the Working Point to be used in the Electrons
 
 

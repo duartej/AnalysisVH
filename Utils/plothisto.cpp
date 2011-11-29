@@ -347,47 +347,27 @@ void PlotAll(const common & cd ,
 	//////
 	// Set colors and styles
 	std::vector<int> colors;
-	colors.push_back(kRed);
-	colors.push_back(kBlue);
-	colors.push_back(kGreen);
-	colors.push_back(kOrange);
-	colors.push_back(kCyan);
-	colors.push_back(kYellow);
+	colors.push_back(kRed+3);
+	colors.push_back(kOrange-6);
+	colors.push_back(kOrange+3);
+	colors.push_back(kRed+2); 
+	colors.push_back(kOrange+5);
+	colors.push_back(kCyan-2);
 
 	std::cout << ">> Setting colors and styles..." << std::endl;
 	hdata->SetMarkerStyle(20);
 	gStyle->SetOptStat(0);
-	if(plottype == 0 || plottype==1) 
+
+	hwh->SetFillColor(kOrange-2);
+	hwh->SetLineColor(kOrange-1);
+	if(plottype == 1)
 	{
-		hwh->SetFillColor(kBlack);
-		if(plottype == 1)
-		{
-			hwh->SetFillStyle(3254);
-		}
-		for(unsigned int i = 0 ; i < NBKG ; ++i)
-		{
-			hbkg[i]->SetFillColor(colors[i]);
-		}
-//		hbkg[0]->SetFillColor(kRed);
-//		hbkg[1]->SetFillColor(kBlue);
-//		hbkg[2]->SetFillColor(kGreen);
-//		hbkg[3]->SetFillColor(kOrange);
-//		hbkg[4]->SetFillColor(kCyan);
-//		hbkg[5]->SetFillColor(kYellow);
+		hwh->SetFillStyle(3254);
 	}
-	else if(plottype == 2) 
+	for(unsigned int i = 0 ; i < NBKG ; ++i)
 	{
-		hwh->SetLineColor(kBlack);
-		for(unsigned int i = 0 ; i < NBKG ; ++i)
-		{
-			hbkg[i]->SetLineColor(colors[i]);
-		}
-//		hbkg[0]->SetLineColor(kRed);
-//		hbkg[1]->SetLineColor(kBlue);
-//		hbkg[2]->SetLineColor(kGreen);
-//		hbkg[3]->SetLineColor(kOrange);
-//		hbkg[4]->SetLineColor(kCyan);
-//		hbkg[5]->SetLineColor(kYellow);
+		hbkg[i]->SetFillColor(colors[i]);
+		hbkg[i]->SetLineColor(colors[i]+1);
 	}
 
 	//////
