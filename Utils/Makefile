@@ -18,9 +18,9 @@ PYEXE      := $(patsubst %.py,$(BINPATH)/%,$(PYSOURCES))
 CPPSOURCES := $(wildcard *.cpp)
 CPPEXE     := $(patsubst %.cpp,$(BINPATH)/%,$(CPPSOURCES))
 
-CPPINCDIR  := -I$(GENERALPATH)/InputParameters/interface
+CPPINCDIR  := -I$(GENERALPATH)/InputParameters/interface -I$(GENERALPATH)
 CPPLIBDIR  := -L$(GENERALPATH)/libs
-CPPLIBS    := -lInputParameters
+CPPLIBS    := -lInputParameters -lTResultsTable
 
 ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)

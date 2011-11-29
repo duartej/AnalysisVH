@@ -734,6 +734,8 @@ void AnalysisWZ::InsideLoop()
 			nJets++;
 		}
 	}
+	// Storing before the veto
+	_histos[fHNJets]->Fill(nJets,puw);
 	if(nJets > 0)
 	{
 		return;
@@ -767,6 +769,5 @@ void AnalysisWZ::InsideLoop()
 	_histos[fHTransversMass]->Fill(transversMassW,puw);
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
-	_histos[fHNJets]->Fill(nJets,puw);
 	
 }
