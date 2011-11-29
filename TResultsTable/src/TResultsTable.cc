@@ -56,7 +56,13 @@ TResultsTable::TResultsTable(unsigned int nrows,
 
 TString TResultsTable::FixWidth(const TString& s, unsigned int width, bool prepend) const {
     TString val(s);
-    if (prepend)
+    // BUG FIXED
+    if( (int)(width - val.Length()) < 0 )
+    {
+	    return val;
+    } // END BUG FIXED
+
+    if(prepend)
       val.Prepend(' ', width - val.Length());
     else
       val.Append(' ', width - val.Length());
@@ -172,7 +178,6 @@ void TResultsTable::Print(ETResultsTableOutputFormat format, ostream& os) const 
 
   //Start table
   os << tablestart << std::endl;
-
 
   //Column titles
   os << rowstart << cellcoltitstart << FixWidth(fRowTitleHeader, firstcolw) << cellcoltitend;
