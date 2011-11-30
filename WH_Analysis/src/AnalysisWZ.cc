@@ -713,11 +713,16 @@ void AnalysisWZ::InsideLoop()
 	// Fill histos
 	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
 	_histos[fHMETAfterWCand]->Fill(met,puw);
+	
 
 
 	// Get the high pt candidate 
 	const int wcandIndex = wcandidate.rbegin()->second;
 	const TLorentzVector wcandTLV( lepton[wcandIndex] );
+	const double transversMassW = (METV+wcandTLV).Mt();
+	
+	// Fill before the jets and MET cut
+	_histos[fHTransversMass]->Fill(transversMassW,puw);
 	
 	// Jet Veto:
 	//------------------------------------------------------------------
@@ -764,9 +769,6 @@ void AnalysisWZ::InsideLoop()
 	const double py = met*sin(phi);
 	TLorentzVector METV(px,py,0.0,met);
 
-	const double transversMassW = (METV+wcandTLV).Mt();
-	
-	_histos[fHTransversMass]->Fill(transversMassW,puw);
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
 	
