@@ -7,7 +7,7 @@
 
 #include "AnalysisWZ.h"
 #include "InputParameters.h"
-#include "CutLevelsWZ.h"
+#include "CutLevels.h"
 #include "CutManager.h"
 #include "PUWeight.h"
 
@@ -28,10 +28,10 @@ AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters
 	AnalysisBase(data,ipmap,selectorcuts,finalstate ) 
 { 
 	// Number of cuts
-	fNCuts = _iNCuts;
+	fNCuts = WZCuts::_iNCuts;
 	for(unsigned int i = 0; i < fNCuts; ++i)
 	{
-		fCutNames.push_back(kCutNames[i]);
+		fCutNames.push_back(WZCuts::kCutNames[i]);
 	}
 } 
 
@@ -79,9 +79,9 @@ void AnalysisWZ::Initialise()
 	// Creating the maps
 	for(unsigned int i = 0; i < _nLeptons; i++) 
 	{
-		fHGenPtLepton[i].resize(_iNCuts);
-		fHGenEtaLepton[i].resize(_iNCuts);
-		for (unsigned int j = 0; j < _iNCuts; j++) 
+		fHGenPtLepton[i].resize(WZCuts::_iNCuts);
+		fHGenEtaLepton[i].resize(WZCuts::_iNCuts);
+		for (unsigned int j = 0; j < WZCuts::_iNCuts; j++) 
 		{
 			TString ptname  = Form("fHGenPtLepton%i_%i", i+1,j);
 			TString pttitle = Form("P_{T} #mu_{gen}^{%i} from W (#tau)", i+1);
@@ -95,18 +95,18 @@ void AnalysisWZ::Initialise()
 
 	// Events passing every cut
 	_histos[fHEventsPerCut] = CreateH1D("fHEventsPerCut", "Events passing each cut", 
-			_iNCuts, 0, _iNCuts);
-	for (unsigned int i = 0; i < _iNCuts; i++)
+			WZCuts::_iNCuts, 0, WZCuts::_iNCuts);
+	for (unsigned int i = 0; i < WZCuts::_iNCuts; i++)
 	{
-		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,WZCuts::kCutNames[i]);
 	}
   
 	// Events passing every cut that are 3 mu from gen
 	_histos[fHEventsPerCut3Lepton] = CreateH1D("fHEventsPerCut3Lepton", "Events passing each cut that are 3 mu from gen", 
-			_iNCuts, 0, _iNCuts);
-	for(unsigned int i = 0; i < _iNCuts; i++)
+			WZCuts::_iNCuts, 0, WZCuts::_iNCuts);
+	for(unsigned int i = 0; i < WZCuts::_iNCuts; i++)
 	{
-		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,WZCuts::kCutNames[i]);
 	}
 
 	// Reconstructed muons in the event
@@ -379,13 +379,13 @@ void AnalysisWZ::InsideLoop()
 					<< std::endl;
 			}      
 #endif
-			FillGenPlots(_iAllEvents,puw);
+			FillGenPlots(WZCuts::_iAllEvents,puw);
 		}
 	}
 	
 	// All events
 	//------------------------------------------------------------------
-	FillHistoPerCut(_iAllEvents, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iAllEvents, puw, fsNTau);
   
 	// Proccess ID
 	//------------------------------------------------------------------
@@ -426,7 +426,7 @@ void AnalysisWZ::InsideLoop()
 		return;
 	}*/
 	
-	FillHistoPerCut(_iIsWH, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iIsWH, puw, fsNTau);
 
 	// HLT: TBD...
 	//------------------------------------------------------------------
@@ -434,7 +434,7 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iHLT, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHLT, puw, fsNTau);
 
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
@@ -444,7 +444,7 @@ void AnalysisWZ::InsideLoop()
 	//{
 	//	return;
 	//}
-	FillHistoPerCut(_iGoodVertex, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iGoodVertex, puw, fsNTau);
 	
 
 	// Store the number of reconstructed leptons without any filter
@@ -466,7 +466,7 @@ void AnalysisWZ::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2Leptons, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHas2Leptons, puw, fsNTau);
 	
 	// (2) PV selection
 	//--------------------
@@ -478,7 +478,7 @@ void AnalysisWZ::InsideLoop()
 		return;
 	}
 
-	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHas2PVLeptons, puw, fsNTau);
 
 
 	// (3) Isolated muons
@@ -491,7 +491,7 @@ void AnalysisWZ::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2IsoLeptons, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHas2IsoLeptons, puw, fsNTau);
 	
 	// (4) Isolated good muons: Identification
 	//--------------------
@@ -503,7 +503,7 @@ void AnalysisWZ::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
+	FillHistoPerCut(WZCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
 	//FillGenPlots(_iHas2IsoGoodLeptons,puw);
 	
 	// Keep events at least 3 leptons and store momentum and charge
@@ -512,8 +512,8 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iHasAtLeast3Leptons, puw, fsNTau);
-	FillGenPlots(_iHasAtLeast3Leptons,puw);
+	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
+	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
 	// Indexs of good leptons
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
@@ -608,13 +608,14 @@ void AnalysisWZ::InsideLoop()
 			leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
 		}
 	}
-	// rejecting events with no opposite charge leptons
+	// rejecting events with no opposite charge leptons: Better put it before
+	// when already get the total charge of the selected leptons
 	if( leptonPair.size() == 0 )
 	{
 		return;
 	}	
 	// Accepted events with two opposite charge leptons
-	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iOppositeCharge, puw, fsNTau);
 	
 	// Calculate invMass...
 	// Keep the pair with Mass closer to Z nominal
@@ -639,7 +640,7 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iHasZCandidate, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHasZCandidate, puw, fsNTau);
         
 	// + Getting the nearest pair to nominal ZMass
 	// Remember map<double,pair>  (second is the pair)
@@ -709,7 +710,7 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iHasWCandidate, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iHasWCandidate, puw, fsNTau);
 	// Fill histos
 	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
 	_histos[fHMETAfterWCand]->Fill(met,puw);
@@ -719,6 +720,12 @@ void AnalysisWZ::InsideLoop()
 	// Get the high pt candidate 
 	const int wcandIndex = wcandidate.rbegin()->second;
 	const TLorentzVector wcandTLV( lepton[wcandIndex] );
+	// Build the transvers mass for the Wcandidate
+	const double phi = fData->Get<float>("T_METPF_Phi");
+	const double px = met*cos(phi);
+	const double py = met*sin(phi);
+	TLorentzVector METV(px,py,0.0,met);
+
 	const double transversMassW = (METV+wcandTLV).Mt();
 	
 	// Fill before the jets and MET cut
@@ -745,7 +752,7 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iJetVeto, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iJetVeto, puw, fsNTau);
   	
 	
 	// MET
@@ -756,19 +763,12 @@ void AnalysisWZ::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iMET, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iMET, puw, fsNTau);
 
 	delete auxVar;
 	auxVar=0;
 
 	// Filling histos -------------------------------------
-
-	// Build the transvers mass for the Wcandidate
-	const double phi = fData->Get<float>("T_METPF_Phi");
-	const double px = met*cos(phi);
-	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,met);
-
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
 	

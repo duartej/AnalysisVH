@@ -30,10 +30,10 @@ AnalysisVH::AnalysisVH(TreeManager * data, std::map<LeptonTypes,InputParameters*
 	AnalysisBase(data,ipmap,selectioncuts,finalstate )
 {
 	// Number of cuts
-	fNCuts = _iNCuts;
+	fNCuts = WHCuts::_iNCuts;
 	for( unsigned int i = 0 ; i < fNCuts; ++i)
 	{
-		fCutNames.push_back(kCutNames[i]);
+		fCutNames.push_back(WHCuts::kCutNames[i]);
 	}
 }
 
@@ -43,9 +43,6 @@ AnalysisVH::~AnalysisVH()
 
 void AnalysisVH::Initialise()
 {
-	// Selection cuts
-  	//----------------------------------------------------------------------------
-  
 	// Histograms
 	//----------------------------------------------------------------------------
 	// Process ID
@@ -80,13 +77,13 @@ void AnalysisVH::Initialise()
 	// Generated leptons coming from a W
 	_histos[fHNGenWLeptons] = CreateH1D("fHNGenWLeptons", "N Gen leptons from W", 5, -0.5, 4.5);
 	
-	// PT and Eta of most energetic gen muon from W or tau
+	// PT and Eta of most energetic gen lepton from W or tau
 	// Creating the maps
 	for(unsigned int i = 0; i < _nLeptons; i++) 
 	{
-		fHGenPtLepton[i].resize(_iNCuts);
-		fHGenEtaLepton[i].resize(_iNCuts);
-		for (unsigned int j = 0; j < _iNCuts; j++) 
+		fHGenPtLepton[i].resize(WHCuts::_iNCuts);
+		fHGenEtaLepton[i].resize(WHCuts::_iNCuts);
+		for (unsigned int j = 0; j < WHCuts::_iNCuts; j++) 
 		{
 			TString ptname  = Form("fHGenPtLepton%i_%i", i+1,j);
 			TString pttitle = Form("P_{T} #mu_{gen}^{%i} from W (#tau)", i+1);
@@ -100,18 +97,18 @@ void AnalysisVH::Initialise()
 
 	// Events passing every cut
 	_histos[fHEventsPerCut] = CreateH1D("fHEventsPerCut", "Events passing each cut", 
-			_iNCuts, 0, _iNCuts);
-	for (unsigned int i = 0; i < _iNCuts; i++)
+			WHCuts::_iNCuts, 0, WHCuts::_iNCuts);
+	for (unsigned int i = 0; i < WHCuts::_iNCuts; i++)
 	{
-		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut]->GetXaxis()->SetBinLabel(i+1,WHCuts::kCutNames[i]);
 	}
   
 	// Events passing every cut that are 3 mu from gen
 	_histos[fHEventsPerCut3Lepton] = CreateH1D("fHEventsPerCut3Lepton", "Events passing each cut that are 3 mu from gen", 
-			_iNCuts, 0, _iNCuts);
-	for(unsigned int i = 0; i < _iNCuts; i++)
+			WHCuts::_iNCuts, 0, WHCuts::_iNCuts);
+	for(unsigned int i = 0; i < WHCuts::_iNCuts; i++)
 	{
-		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,kCutNames[i]);
+		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,WHCuts::kCutNames[i]);
 	}
 
 	// Reconstructed muons in the event
@@ -172,6 +169,26 @@ void AnalysisVH::Initialise()
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",160, 0, 160);
 	
+	//
+	_histos[fHMETAfterZCand] = CreateH1D("fHMETAfterZCand", "MET",160, 0, 160);
+
+	// 
+	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#ell#ell}",150, 0, 150);
+	
+	//
+	_histos[fHHInvMassAfterZCand] = CreateH1D("fHHInvMassAfterZCand", "M^{inv.}_{#ell#ell}", 150, 0, 150);
+
+	//
+	_histos[fHNJets] = CreateH1D("fHNJets", "Number of Jets", 10, 0, 10);
+
+	//
+	_histos[fHTrileptonMass] = CreateH1D("fHTrileptonMass", "M_{#ell#ell#ell}",400, 0, 400);
+	
+	//
+	_histos[fHTrileptonMassAfterZCand] = CreateH1D("fHTrileptonMassAfterZCand", "M_{#ell#ell#ell}",400, 0, 400);
+	
+	//
+	//_histos[fHTransversMass] = CreateH1D("fHTransversMass", "M_{t}^{#ell#ell#ell}",400, 0, 400);
 }
 
 //---------------------------------------------------------------------
@@ -390,13 +407,13 @@ void AnalysisVH::InsideLoop()
 					<< std::endl;
 			}      
 #endif
-			FillGenPlots(_iAllEvents,puw);
+			FillGenPlots(WHCuts::_iAllEvents,puw);
 		}
 	}
 	
 	// All events
 	//------------------------------------------------------------------
-	FillHistoPerCut(_iAllEvents, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iAllEvents, puw, fsNTau);
   
 	// Proccess ID
 	//------------------------------------------------------------------
@@ -437,7 +454,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iIsWH, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iIsWH, puw, fsNTau);
 
 	// HLT: TBD...
 	//------------------------------------------------------------------
@@ -445,7 +462,7 @@ void AnalysisVH::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iHLT, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iHLT, puw, fsNTau);
 
 	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
 	//int iGoodVertex = GoodVertex();
@@ -455,7 +472,7 @@ void AnalysisVH::InsideLoop()
 	//{
 	//	return;
 	//}
-	FillHistoPerCut(_iGoodVertex, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iGoodVertex, puw, fsNTau);
 	
 
 	// First looking at events with 2 leptons
@@ -484,7 +501,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2Leptons, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iHas2Leptons, puw, fsNTau);
 	
 	// (2) PV selection
 	//--------------------
@@ -496,7 +513,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 
-	FillHistoPerCut(_iHas2PVLeptons, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iHas2PVLeptons, puw, fsNTau);
 
 
 	// (3) Isolated muons
@@ -509,7 +526,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2IsoLeptons, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iHas2IsoLeptons, puw, fsNTau);
 	
 	// (4) Isolated good muons: Identification
 	//--------------------
@@ -521,7 +538,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iHas2IsoGoodLeptons, puw, fsNTau);	
+	FillHistoPerCut(WHCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
       
 	// The leading lepton has to have PT > fCutMinMuPt (20 most probably)
 	// Applying the pt-cuts
@@ -547,7 +564,7 @@ void AnalysisVH::InsideLoop()
 	{
 		return;
 	}
-	FillHistoPerCut(_iMuPTPattern, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iMuPTPattern, puw, fsNTau);
 	delete nLeptons;
 	nLeptons = 0;
 	
@@ -561,34 +578,13 @@ void AnalysisVH::InsideLoop()
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
+	// + Store momentum and charge from the muons
+	std::vector<TLorentzVector> lepton;
+	std::vector<int> leptonCharge;
+	std::vector<LeptonTypes> leptontypes;
 	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
 		unsigned int i = *it;
-		const char * name = "Elec";
-		if( fLeptonSelection->GetLeptonType(k) == MUON )
-		{
-			name = "Muon";
-		}
-		const TLorentzVector vL = this->GetTLorentzVector(name,i);
-		fHPtLepton[k]->Fill(vL.Pt(), puw);
-		fHEtaLepton[k]->Fill(vL.Eta(), puw);
-		if( fGenLepton.size() != 0 )
-		{
-			fHDeltaRGenRecoLepton[k]->Fill(vL.DeltaR(fGenLepton.at(k)), puw);
-		}
-		++k;
-	}
-	FillGenPlots(_iHasExactly3Leptons,puw);
-	
-	FillHistoPerCut(_iHasExactly3Leptons, puw, fsNTau);
-	// + Store Momentum and charge for the muons : FIXME: This loop inside the
-	// last one
-	std::vector<TLorentzVector> lepton;
-	std::vector<int> leptonCharge;
-	k = 0;
-	for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
-	{
-		const unsigned int i = *it;
 		const char * name = 0;
 		LeptonTypes ileptontype = fLeptonSelection->GetLeptonType(k);
 		std::string chargedm;
@@ -602,16 +598,27 @@ void AnalysisVH::InsideLoop()
 			name = "Elec";
 			chargedm = "T_Elec_Charge";
 		}
+		const TLorentzVector vL = this->GetTLorentzVector(name,i);
+		fHPtLepton[k]->Fill(vL.Pt(), puw);
+		fHEtaLepton[k]->Fill(vL.Eta(), puw);
+		if( fGenLepton.size() != 0 )
+		{
+			fHDeltaRGenRecoLepton[k]->Fill(vL.DeltaR(fGenLepton.at(k)), puw);
+		}
+		// charge and leptons
 		lepton.push_back( this->GetTLorentzVector(name,i) );
-		// Change to: chargedm = "T_"+fLeptonSelector->GetLeptonTypeStr(i)+"charge"; 
 		leptonCharge.push_back( fData->Get<int>(chargedm.c_str(),i) );
+		leptontypes.push_back( ileptontype );
 		++k;
 	}
+	FillGenPlots(WHCuts::_iHasExactly3Leptons,puw);
 	
-	// Discard extra electrons and extra muons
-	// ------------------------------------------------------------------
-	// 
-	// Not yet implemented...
+	FillHistoPerCut(WHCuts::_iHasExactly3Leptons, puw, fsNTau);
+
+	// CAVEAT =================================================
+	// Note that from here on, the indices used are the ones of
+	// lepton, leptonCharge and leptontypes vectors
+	// ========================================================
   
 	// Discard 3 muons with the same charge
 	// ------------------------------------------------------------------
@@ -619,9 +626,9 @@ void AnalysisVH::InsideLoop()
 	// + Add up charges. If the abs value of the total number is equal to N then 
 	//   all have the same sign
 	int charge = 0;
-	for(std::vector<int>::iterator it = leptonCharge.begin(); it != leptonCharge.end(); ++it)
+	for(unsigned int k = 0; k < leptonCharge.size(); ++k)
 	{
-		charge += *it;
+		charge += leptonCharge[k];
 	}
 	// Fill muon charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
@@ -631,7 +638,7 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iOppositeCharge, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
 	
 	// Find muons with opposite charges and calculate DeltaR, invMass...
 	// Keep the pair with DeltaR minimum
@@ -644,6 +651,7 @@ void AnalysisVH::InsideLoop()
 	{
 		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
 		{
+			// Opposite charge
 			if( leptonCharge[kbegin]*leptonCharge[kfromend] < 0 )
 			{
 				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
@@ -676,6 +684,24 @@ void AnalysisVH::InsideLoop()
 	const unsigned int i1 = ((deltaRMuMu.begin())->second).first;
 	const unsigned int i2 = ((deltaRMuMu.begin())->second).second;
 	const double invMassMuMuH = (lepton[i1] + lepton[i2]).M();
+	
+	// + Extract the index of the not used lepton (from the W, then)
+	// We are in the exactly 3--> FIXME: it'd be possible to loose
+	// that requirement, say at least 3 leptons and then we can 
+	// choose if there are Z candidate, W candidates and so on?
+	unsigned int iWcand =-1;
+	for(unsigned int i = 0; i < lepton.size(); ++i)
+	{
+		if( i == i1 || i == i2 )
+		{
+			continue;
+		}
+		iWcand = i;
+	}
+	//+ Build the invariant mass of the 3leptons
+	const double invMass3leptons = (lepton[i1]+lepton[i2]+lepton[iWcand]).M();
+	// And fill the histo
+	_histos[fHTrileptonMass]->Fill(invMass3leptons,puw);
 
 	// + Fill histograms
 	//   - Smallest and Largest DeltaR between 2 opposite charged muons
@@ -703,11 +729,14 @@ void AnalysisVH::InsideLoop()
 			nJets++;
 		}
 	}
+	// - Number of Jets before the cut
+	_histos[fHNJets]->Fill(nJets,puw);
+
 	if(nJets > 0)
 	{
 		return;
 	}
-	FillHistoPerCut(_iJetVeto, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
   	
 	// Cut in DeltaR
 	std::vector<double> * auxVar= new std::vector<double>;
@@ -718,23 +747,50 @@ void AnalysisVH::InsideLoop()
 		return;
 	}
 	
-	FillHistoPerCut(_iDeltaR, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau);
   	
 	// Check invariant mass of muons with opposite charge (outside Z)
 	//------------------------------------------------------------------
 	(*auxVar)[0] = invMassMuMuH;
-	if( ! fLeptonSelection->IsPass("ZMassWindow", auxVar) )
+	if( (! fLeptonSelection->IsPass("ZMassWindow", auxVar)) )
 	{
 		return;
 	}
 	
-	_histos[fHZInvMass]->Fill(invMassMuMuH,puw);
-	FillHistoPerCut(_iZMuMuInvMass, puw, fsNTau);
+	// NEW ===================== FIXME
+	// Search for a pair with Mass closer to Z nominal
+	// ------------------------------------------------------------------	
+	std::map<double,std::pair<int,int> > candidatesZMass;
+	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
+			it != leptonPair.end(); ++it)
+	{
+		unsigned int i1Z = it->first;
+		unsigned int i2Z = it->second;
+		const double invMass= (lepton[i1Z]+lepton[i2Z]).M();
+		if( invMass > 120.0 || invMass < 60.0 )
+		{
+			continue;
+		}
+		const double deltaZMass = fabs(kZMass-invMass);
+		candidatesZMass[deltaZMass] = std::pair<int,int>(i1,i2);
+	}
+
+	if( candidatesZMass.size() > 0 )
+	{
+		return;
+	}
+	// END NEW ===================== FIXME 
+	
+	_histos[fHZInvMassAfterZCand]->Fill(invMassMuMuH,puw);
+	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
 	
 	// MET
 	//------------------------------------------------------------------
 	const double met = fData->Get<float>("T_METPF_ET");
 	(*auxVar)[0] = met;
+	// Fill histo before cut
+	_histos[fHMETAfterZCand]->Fill(met,puw);
+
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
 		return;
@@ -743,100 +799,7 @@ void AnalysisVH::InsideLoop()
 	auxVar=0;
 	
 	_histos[fHMET]->Fill(met,puw);
-	FillHistoPerCut(_iMET, puw, fsNTau);
+	_histos[fHTrileptonMassAfterZCand]->Fill(invMass3leptons,puw);
+	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
 }
-
-//void AnalysisVH::Summary()
-//{
-//	std::cout << std::endl << "[ AnalisysVH::Sumary ]" << std::endl << std::endl;
-//  
-//	std::cout << "N. events by process ID:" << std::endl;
-//	std::cout << "------------------------" << std::endl;
-//	for(unsigned int i = 0; i < _iNProcesses; i++)
-//	{
-//		std::cout << kProcesses[i] << ":\t" << _histos[fHProcess]->GetBinContent(i+1) << " events ("
-//			<< 100.0*_histos[fHProcess]->GetBinContent(i+1)/_histos[fHProcess]->GetEntries() << "%)" << std::endl;
-//	}
-//	std::cout << std::endl << std::endl;
-//	std::cout << "N. events selected at each stage:" << std::endl;
-//	std::cout << "---------------------------------" << std::endl;
-//	for(unsigned int i = 0; i < _iNCuts; i++)
-//	{
-//		std::cout << _histos[fHEventsPerCut]->GetBinContent(i+1) << " ["
-//			<< 100.0*_histos[fHEventsPerCut]->GetBinContent(i+1)/_histos[fHEventsPerCut]->GetBinContent(1)
-//			<< "%] selected events (" << kCutNames[i] << ")" << std::endl;
-//	}
-//	std::cout << std::endl << std::endl;
-//}
-//
-//
-//
-//
-////---------------------------------------------------------------------
-//// Other helper methods
-////---------------------------------------------------------------------
-////
-//
-//bool IspassHLT()
-//{
-//	//FIXME
-//	return  true;
-//	/*// Only data by the moment
-//	if( ! fIsData )
-//	{
-//		return true;
-//	}
-//
-//	bool passtrigger = false;
-//	if( fFS == SignatureFS::_iFSmmm )
-//	{
-//		passtrigger = fData->Get<bool>("T_passTriggerDoubleMu");
-//	}
-//	else if( fFS == SignatureFS::_iFSeee )
-//	{
-//		passtrigger = fData->Get<bool>("T_passTriggerDoubleEl");
-//	}
-//	else if( fFS == SignatureFS::_iFSmme || fFS == SignatureFS::_iFSeem )
-//	{
-//		passtrigger = fData->Get<bool>("T_passTriggerElMu");
-//	}
-//	else if( fFS == SignatureFS::_iFSlll )
-//	{
-//		// Note that here we are going to mix DoubleElectron samples with 
-//		// DoubleMuon Samples: so to avoid double counting:
-//		// -- 
-//		passtrigger = fData->Get<bool>("T_passTriggerElMu");
-//		if( ! passtrigger )
-//		{
-//			passtrigger = pass->Get<bool>("T_passTriggerMu");
-//		}
-//		if( ! passtrigger )
-//		{
-//			passtrigger = pass->Get<bool>("T_passTriggerEl");
-//		}
-//	}
-//
-//	return passtrigger;*/
-//}
-//
-//void AnalysisVH::FillHistoPerCut(const ECutLevel & cut,const double & puw, const unsigned int & fs) 
-//{
-//	_histos[fHEventsPerCut]->Fill(cut, puw);
-//	if(fs == fFS)
-//	{
-//		_histos[fHEventsPerCut3Lepton]->Fill(cut, puw);
-//	}
-//}
-//
-//void AnalysisVH::FillGenPlots(ECutLevel cut, double puw) 
-//{
-//	if (fIsWH && fNGenLeptons == _nLeptons) 
-//	{
-//		for(unsigned int i = 0; i < fNGenLeptons; i++) 
-//		{
-//			fHGenPtLepton[i][cut]->Fill(fGenLepton[i].Pt(), puw);
-//			fHGenEtaLepton[i][cut]->Fill(fGenLepton[i].Eta(), puw);
-//		}
-//	}
-//}
 

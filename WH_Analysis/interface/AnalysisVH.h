@@ -46,7 +46,15 @@ class AnalysisVH : public AnalysisBase
 			fHLeptonCharge,           //Sum charges of leptons
 			fHHInvMass,               //Invariant mass of leptons supposedly from H
 			fHZInvMass,               //Invariant mass of leptons in/out of Z peak
-			fHMET                     //Missing ET after inv mass cut
+			fHMET,                     //Missing ET after inv mass cut
+			fHZInvMassAfterZCand,
+			fHHInvMassAfterZCand,
+			fHMETAfterZCand,
+			fHNJets,
+			fHTransversMass,
+			fHTrileptonMass,
+			fHTrileptonMassAfterZCand
+
 		};
 
 		//! Constructor (TO BE DEPRECATED: tree)
