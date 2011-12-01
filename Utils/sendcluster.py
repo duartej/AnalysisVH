@@ -176,6 +176,34 @@ class clustermanager(object):
 			if foundoutfiles == self.outputfiles.values():
 				self.gatherfiles()
 
+		if self.status == "delete":
+			# Going to the working directory
+			os.chdir(self.cwd)
+			# And update with the last used datamembers
+			self.retrieve()
+			self.delete()
+
+	
+	def delete(self):
+		"""Delete the job"""
+		from subprocess import Popen,PIPE
+		import sys
+		import os
+		import shutil
+
+		print "\033[1;37mDeleting the '"+self.dataname+"' job:\033[1;m "+self.jobsid+" and data .",
+		sys.stdout.flush()
+		command = [ 'qdel',str(self.jobsid) ]
+		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+		print ".",
+		sys.stdout.flush()
+		os.chdir("..")
+		shutil.rmtree(self.cwd)
+		print ".",
+		sys.stdout.flush()
+		print " DONE!  "
+
+
 	def gatherfiles(self):
 		"""Gather all the outputfiles in one
 		"""
@@ -675,6 +703,18 @@ if __name__ == '__main__':
 			sys.exit( message )
 		
 		manager = clustermanager("harvest",workingdir=opt.workingdir)
+	
+	elif args[0] == 'delete':
+		if opt.workingdir is None:
+			message = "\033[31;1msendcluster: ERROR\033[0m the '--cw' option is mandatory"
+			sys.exit( message )
+		
+		if not os.path.exists(opt.workingdir):
+			message = "\033[31;1msendcluster: ERROR\033[0m the working path '"+opt.workingdir \
+					+"' does not exists"
+			sys.exit( message )
+		
+		manager = clustermanager("delete",workingdir=opt.workingdir)
 	
 	else:
 		message = "\033[31;1msendcluster: ERROR\033[0mNot recognized the action '"+args[0]+"'"
