@@ -598,7 +598,7 @@ if __name__ == '__main__':
 	import sys
 	import os
 	import glob
-	from optparse import OptionParser
+	from optparse import OptionParser,OptionGroup
 
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
@@ -608,21 +608,36 @@ if __name__ == '__main__':
 	elif vX < 2:
 		message = 'sendcluster: I need python version >= 2.4'
 		sys.exit( message )
-
 	#Opciones de entrada
-	usage="usage: sendcluster <submit|harvest> [options]"
+	usage="usage: sendcluster <submit|harvest|delete> [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(shouldCompile=False,jobsNumber=0)
-	parser.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
-	parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
-	parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
+	#parser.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
+	#parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
+	#parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
-	parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
-	parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
-	parser.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
-	parser.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
+	#parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
+	#parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
+	#parser.add_option('-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
+	#parser.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
+	#		' (launching datamanager executable)' )
+	
+	group = OptionGroup(parser, "submit options","")
+	group.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
+	group.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
+	group.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis -h). Also'
+			' not using this option, the script will use all the datafiles *_datanames.dn found in the working directory to launch process')
+	group.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs. Not using this option, the script'
+			' will trying to found how many jobs are needed to create a 10min job')
+	group.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
+	group.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
 			' (launching datamanager executable)' )
+	parser.add_option_group(group)
+
+	groupharvest = OptionGroup(parser,"harvest and delete options","")
+	groupharvest.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
+	parser.add_option_group(groupharvest)
 	
 	( opt, args ) = parser.parse_args()
 
