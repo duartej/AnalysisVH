@@ -16,7 +16,7 @@ INCDIR     += -I$(shell pwd)/interface
 INCDIR     += -I$(shell pwd)
 
 ### Dependencies
-DEPPKG     := TreeManager CutManager CMSAnalysisSelector InputParameters TCounterUI DatasetManager PUWeight
+DEPPKG     := TreeManager CutManager CMSAnalysisSelector InputParameters TCounterUI DatasetManager PUWeight CutLevels
 BASEDIR    := $(shell cd .. && pwd && cd ..)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 DEPSLIBS   := $(foreach DEPPKG,$(DEPPKG),-l$(DEPPKG))

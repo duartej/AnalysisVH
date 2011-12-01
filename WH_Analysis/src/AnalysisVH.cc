@@ -760,7 +760,7 @@ void AnalysisVH::InsideLoop()
 	// NEW ===================== FIXME
 	// Search for a pair with Mass closer to Z nominal
 	// ------------------------------------------------------------------	
-	std::map<double,std::pair<int,int> > candidatesZMass;
+	/*std::map<double,std::pair<int,int> > candidatesZMass;
 	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
 			it != leptonPair.end(); ++it)
 	{
@@ -779,7 +779,7 @@ void AnalysisVH::InsideLoop()
 	{
 		return;
 	}
-	// END NEW ===================== FIXME 
+	// END NEW =====================  */
 	
 	_histos[fHZInvMassAfterZCand]->Fill(invMassMuMuH,puw);
 	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);

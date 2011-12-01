@@ -1,13 +1,6 @@
 //  g++ -I`root-config --incdir` -I$VHSYS -L`root-config --libdir` -L$VHSYS/libs `root-config --libs` -lTResultsTable -lInputParameters -o printtable PrintTable.C
 
-//#define WZ
-#ifndef __CINT__
-
-//#ifdef WZ
-#include "WH_Analysis/interface/CutLevelsWZ.h"
-//#else
-//#include "WH_Analysis/interface/CutLevels.h"
-//#endif
+#include "CutLevels/interface/CutLevels.h"
 
 #include "TResultsTable/interface/TResultsTable.h"
 #include "InputParameters/interface/InputParameters.h"
@@ -22,12 +15,45 @@
 #include<sstream>
 #include<vector>
 #include<set>
-#endif
 
 using namespace std;
 
 //#define NBKG 13
 #define NSIG 9
+
+// Constant number of total cuts and string with names
+unsigned int _iNCuts = -1;
+TString * kCutNames = 0;
+
+//////////
+// Set the constant value to be shared with some functions
+void setcuts(const char * signal)
+{
+	if( strcmp(signal,"WH") >= 0 )
+	{
+		_iNCuts = WHCuts::_iNCuts;
+		kCutNames = new TString [_iNCuts+1];
+		for(unsigned int i = 0; i < _iNCuts; ++i)
+		{
+			kCutNames[i] = WHCuts::kCutNames[i];
+		}
+	}
+	else if( strcmp(signal,"WZ") >= 0 )
+	{
+		_iNCuts = WZCuts::_iNCuts;
+		kCutNames = new TString [_iNCuts+1];
+		for(unsigned int i = 0; i < _iNCuts; ++i)
+		{
+			kCutNames[i] = WZCuts::kCutNames[i];
+		}
+	}
+	else
+	{
+		std::cerr << "\033[1;31msetcuts ERROR\033[1;m Signal '" << signal
+			<< "' not implemented. Exiting..." << std::endl;
+		exit(-1);
+	}
+}
 
 TString GetFile(TString d) 
 {
@@ -365,7 +391,9 @@ int main(int argc, char *argv[])
 	double lumi = -1;
 	std::stringstream ss2(luminosity);
 	ss2 >> lumi;
-
+	
+	// Set the cuts
+	setcuts(signal);
 
 	PrintTable(signal,filename,lumi);	
 

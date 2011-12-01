@@ -159,7 +159,7 @@ void AnalysisWZ::Initialise()
 	_histos[fHNJets] = CreateH1D("fHNJets", "NJets",21, 0, 20);
 	
 	// W candidate transvers mass
-	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
+	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,50,150);
 	
 }
 
