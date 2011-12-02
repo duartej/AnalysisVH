@@ -353,6 +353,9 @@ void PlotAll(const common & cd ,
 	colors.push_back(kRed+2); 
 	colors.push_back(kOrange+5);
 	colors.push_back(kCyan-2);
+	colors.push_back(kRed);
+	colors.push_back(kGreen-3);
+	colors.push_back(kBlue+5);
 
 	std::cout << ">> Setting colors and styles..." << std::endl;
 	hdata->SetMarkerStyle(20);
