@@ -29,7 +29,7 @@ TString * kCutNames = 0;
 // Set the constant value to be shared with some functions
 void setcuts(const char * signal)
 {
-	if( strcmp(signal,"WH") >= 0 )
+	if( strncmp(signal,"WH",2) == 0 )
 	{
 		_iNCuts = WHCuts::_iNCuts;
 		kCutNames = new TString [_iNCuts+1];
@@ -38,7 +38,7 @@ void setcuts(const char * signal)
 			kCutNames[i] = WHCuts::kCutNames[i];
 		}
 	}
-	else if( strcmp(signal,"WZ") >= 0 )
+	else if( strcmp(signal,"WZ") == 0 )
 	{
 		_iNCuts = WZCuts::_iNCuts;
 		kCutNames = new TString [_iNCuts+1];
