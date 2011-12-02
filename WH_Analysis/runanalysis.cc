@@ -534,10 +534,8 @@ int main(int argc, char *argv[])
 				<< std::endl;
 			return -1;
 		}
-
 		ipmap[lepton] = setparameters(datafiles,TString(dataName),cfgfile->second.c_str());
 	}
-	
 	TChain * tchaindataset = 0;
 	// Data: FIXME: Extract this info from a centralized way (TreeManager?)
 	//              TreeTypes mejor
@@ -598,7 +596,7 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap ); 
+	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap );
 	AnalysisBase * analysis = AnalysisBuilder::Build( antype, dataType, fsSignature, ipmap ); 
 
 #ifdef TIMERS
