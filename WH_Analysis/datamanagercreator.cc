@@ -87,7 +87,7 @@ std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * r
 	}
 	else if( strcmp(runperiod,"2011B") == 0 )
 	{
-		runpath = "../"+production+"Data7TeVRun2011B";
+		runpath = "../"+production+"/Data7TeVRun2011B";
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
