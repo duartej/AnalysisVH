@@ -37,7 +37,7 @@ void AddDataFiles(const std::vector<TString> & files,
 	datafiles.insert( datafiles.end(), files.begin(), files.end() );
 }
 
-std::pair<std::string,std::vector<std::string> > getdatapathfile(const char * runperiod,const char * finalstate)
+std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * runperiod,const char * finalstate)
 {
 	if( finalstate == 0 )
 	{
@@ -46,7 +46,7 @@ std::pair<std::string,std::vector<std::string> > getdatapathfile(const char * ru
 			<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
 		exit(-1);
 	}
-	std::string production = "LatinosSkim";
+	std::string production = "LatinosSkims";
 	std::string runpath;
 	std::vector<std::string> filenames;
 
@@ -122,68 +122,55 @@ std::pair<std::string,std::vector<std::string> > getdatapathfile(const char * ru
 
 
 // Giving a dataset extract all the files
-const std::vector<TString> * extractdatafiles(TString dataName )
+const std::vector<TString> * extractdatafiles(TString dataName, const char * runperiod, 
+		const char * finalstate )
 {
 	double xsection = 0;
 	int    evtsample= 0;
 	bool storeXSE = false;
 
-	// Take the files which corresponds to each run period
-
-
 	///////////////////////////////
 	// INPUT DATA SAMPLE
 	// 
-	// 1) Load DatasetManager
-	DatasetManager* dm = 0;
 	
+
 	std::vector<TString> * datafiles = new std::vector<TString>;
-	// 2) Asign the files 
-	if(dataName.Contains("LocalWH")) 
+	if( dataName.Contains("Data") )
+	{
+		// 1) Take the files which corresponds to each run period
+		std::pair<std::string,std::vector<std::string> > pathfiles =
+			getdatapathfiles(runperiod,finalstate);
+		// 2) Asign the files 
+		for(unsigned int i = 0; i < pathfiles.second.size(); ++i)
+		{
+			const std::vector<TString> data = DatasetManager::GetRealDataFiles(
+					pathfiles.first.c_str(),pathfiles.second.at(i).c_str() );
+			AddDataFiles(data,*datafiles);
+		}
+	}
+	else if(dataName.Contains("LocalWH")) // TO BE DEPRECATED
 	{
 		datafiles->push_back( "/hadoop/PrivateProduction/WH_2l_42X/Tree_WH_2l_42X.root" );
 	}
-	else if(dataName.Contains("Data")) 
-	{
-		std::vector<TString> data1= 
-			DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-					"Tree_DoubleMuMay10_210.5");
-		AddDataFiles(data1,*datafiles);
-                
-		std::vector<TString> data2= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-             				       "Tree_DoubleMuV4_927.9");
-		AddDataFiles(data2,*datafiles);
-                
-		std::vector<TString> data3= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-             				  "Tree_DoubleMuAug5_334.4");
-		AddDataFiles(data3,*datafiles);
-             	
-		std::vector<TString> data4= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-				  "Tree_DoubleMuV6_662.9");
-		AddDataFiles(data4,*datafiles);
-	}
-	else 
+	else   // Monte Carlo samples
 	{
 		storeXSE = true;
 
-		//TString folder("Summer11");
-		//TString skim("Skim2LPt1010");
-		TString folder("Summer11 Latinos");
+
+		//TString folder("Summer11 Latinos");
+		TString folder("Fall11 Latinos");
 		TString skim("/");
 
 		if (dataName.Contains("WH")) 
 		{
-			//folder = "Summer11"; MINITREES
-			//skim = "HWW";        MINITREES
-			folder = "HWW Summer11 Latinos";
+			folder = "HWW Fall11 Latinos";
+			//folder = "HWW Summer11 Latinos";
 			skim = "/";
 			dataName.Replace(0,2, "WHToWW2L");
 		}
 		
-		//Use DatasetManager
+		// 1) Load DatasetManager
+		DatasetManager* dm = 0;
 		dm = new DatasetManager(folder, skim);
 		
 		dm->LoadDataset(dataName);  // Load information about a given dataset
@@ -191,6 +178,23 @@ const std::vector<TString> * extractdatafiles(TString dataName )
 		
 		xsection = dm->GetCrossSection();
 		evtsample= dm->GetEventsInTheSample();
+		if( evtsample == 0 )
+		{
+			std::cerr << "\033[1;33mextractdatafiles WARNING\033[1;m"
+				<< " Not found the dataset '" << dataName << "'. Skipping the"
+				<< " '" << dataName << "_datanames.dn' creation."
+				<< std::endl;
+			if( dm != 0)
+			{
+				delete dm;
+			}
+			if( datafiles != 0 )
+			{
+				delete datafiles;
+			}
+
+			return 0;
+		}
 		
 #ifdef DEBUG
 		std::cout << std::endl;
@@ -208,6 +212,7 @@ const std::vector<TString> * extractdatafiles(TString dataName )
 	
 	if(datafiles->size() == 0) 
 	{
+		delete datafiles;
 		return 0;
 	}
 
@@ -328,13 +333,20 @@ int main(int argc, char *argv[])
 	}
 	if( dataName == 0 )
 	{
-		std::cout << "\033[1,34mdatamanagercreator INFO\033[1;m All the known datasets" 
+		std::cout << "\033[1;34mdatamanagercreator INFO\033[1;m All the known datasets" 
 			<< " will be created" << std::endl;
 		//std::cout << "List of known datasets:"
 	}
 	if( runperiod == 0 )
 	{
 		std::cerr << "\033[1;31mdatamanagercreator ERROR:\033[1;m The '-r' argument is mandatory!"
+			<< std::endl;
+		display_usage();
+		return -1;
+	}
+	if( finalstate == 0 )
+	{
+		std::cerr << "\033[1;31mdatamanagercreator ERROR:\033[1;m The '-f' argument is mandatory!"
 			<< std::endl;
 		display_usage();
 		return -1;
@@ -353,33 +365,26 @@ int main(int argc, char *argv[])
         //knowndata.insert("WH200");
 	// Z+jets
 	knowndata.insert("ZJets_Madgraph");
-	knowndata.insert("DYee");
-	knowndata.insert("DYmumu");
-	knowndata.insert("DYtautau");
+	knowndata.insert("DYee_Powheg");
+	knowndata.insert("DYmumu_Powheg");
+	knowndata.insert("DYtautau_Powheg");
 	knowndata.insert("Zee_Powheg");
 	knowndata.insert("Zmumu_Powheg");
 	knowndata.insert("Ztautau_Powheg");
 	// Zbb+jets
 	knowndata.insert("Zbb");
 	// Other background
-	knowndata.insert("WZ");
+	knowndata.insert("WZ"); // WZTo3LNu ??? Mejor este
 	knowndata.insert("ZZ");
 	knowndata.insert("WW");
 	knowndata.insert("TTbar_Madgraph");
 	knowndata.insert("WJets_Madgraph");
-	knowndata.insert("TW");
-	knowndata.insert("TbarW");
+	knowndata.insert("TW_DR");
+	knowndata.insert("TbarW_DR");
 
 	//Data 
 	knowndata.insert("Data");
 
-	// Checking the validity of the input dataname
-	if( knowndata.find(std::string(dataName)) == knowndata.end() )
-	{
-		std::cerr << "datamanagercreator: ERROR dataname '" << dataName << "'"
-			<< " not implemented! Exiting..." << std::endl;
-		return -1;
-	}
 
 
 	//treeTypes dataType;
@@ -389,24 +394,31 @@ int main(int argc, char *argv[])
 	{
 		if( dataName != 0 )
 		{
+			// Checking the validity of the input dataname
+			if( knowndata.find(std::string(dataName)) == knowndata.end() )
+			{
+				std::cerr << "datamanagercreator: ERROR dataname '" << dataName << "'"
+					<< " not implemented! Exiting..." << std::endl;
+				return -1;
+			}
 			if( strcmp(dataName, (*it).c_str() ) != 0 )
 			{
 				continue;
 			}
 		}
-		const std::vector<TString> * dummy = extractdatafiles( TString(*it) );
+		const std::vector<TString> * dummy = extractdatafiles( TString(*it),runperiod,finalstate );
 		if( dummy != 0 )
 		{
 			delete dummy;
 			dummy = 0;
+			wasprocessed = true;
 		}
-		else
-		{
-			std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: Could not find dataset '" 
-				<< dataName << "' with DatasetManager!!! " << std::endl;
-			exit(-1);
-		}
-		wasprocessed = true;
+//		else
+//		{
+//			std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: Could not find dataset '" 
+//				<< *it << "'. Is it a valid name? " << std::endl;
+//			exit(-1);
+//		}
 	}
 
 	if( ! wasprocessed )
