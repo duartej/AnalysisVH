@@ -1,13 +1,16 @@
 ///////////////////////////////////////////////////////////////////////
 //
-//    FILE: PUWeight.h
+//    FILE: PUWeight.h  $CVS_TAG: V3_2_1
 //   CLASS: PUWeight
 // AUTHORS: I. Gonzalez Caballero
 //    DATE: 09/03/2011
 //
 // CONTENT: An utility class to weight the events according to the real
 //          data pile up with respect to the generated pileup.
+//          For more details see:
+// https://twiki.cern.ch/twiki/bin/viewauth/CMS/PileupMCReweightingUtilities
 //
+// Adapted to be used without PROOF (J. Duarte Campderros)
 ///////////////////////////////////////////////////////////////////////
 
 #ifndef PUWEIGHT_H
@@ -19,9 +22,20 @@
 
 enum EMCDistribution {
   Spring11,       /*Flat10+Tail*/ 
-  Summer11,       /*PU_S4 averaging the number of interactions in each beam crossing*/
+  Summer11,       /*PU_S4 averaging the number of interactions in each beam
+		   * crossing
+		   */
   Summer11InTime, /*PU_S4 obtained by only looking at the in-time crossing*/
-  Fall11          /*Fall11*/
+  Summer11ITSmear,/*PU_S4 obtained by only looking at the in-time crossing.
+		   *This is the "spike+smear" distribution. RECOMENDED!
+		   */
+  Summer11True,   /*PU_S4 obtained by averaging the number of interactions in
+		   * each beam crossing to estimate the true mean.
+		   */
+
+  Fall11,          /*Fall11*/
+
+  Fall11True	   /*Fall11 True from TTbar 2l2Nu Powheg sample by Matt*/
 };
 
 class PUWeight {
