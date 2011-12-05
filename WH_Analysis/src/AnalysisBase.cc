@@ -248,7 +248,8 @@ void AnalysisBase::InitialiseParameters()
 	
 	// PU Weight
 	//----------------------------------------------------------------------------
-	fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
+	//fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
+	fPUWeight = new PUWeight(fLuminosity, Fall11True, "2011"); // CHANGED TO Fall11
 }
 
 
