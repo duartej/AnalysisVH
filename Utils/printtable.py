@@ -334,18 +334,23 @@ if __name__ == '__main__':
 		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
 		sys.exit( message )
 	
-	parser = OptionParser()
+	usage="usage: printtable <WZ|WH> [options]"
+	parser = OptionParser(usage=usage)
 	parser.set_defaults(output="table.tex")
-	parser.add_option( '-s', '--signal',   action='store', type='string', dest='signal', help="Analysis to be processed WZ|WH" )
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format" )
 
 	( opt, args ) = parser.parse_args()
 
-	if not opt.signal:
-		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory option '-s'"
+	if len(args) == 0 :
+		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory argument signal, see usage."
+		sys.exit(message)
+	signal = args[0]
+	if signal != "WZ" and signal != "WH":
+		message = "\033[1;31mprinttable ERROR\033[1;m Signal '"+signal+"' not implemented, see usage."
 		sys.exit(message)
 
-	t = table(opt.signal)
+
+	t = table(signal)
 	t.saveas(opt.output)
 
 
