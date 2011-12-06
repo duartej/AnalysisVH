@@ -146,11 +146,6 @@ double * GetEvents(TString sample, const double & luminosity, bool showvalues=fa
 void PrintTableSignals(const double & lumi) 
 {
 	double luminosity = lumi;
-	// Luminosity
-	if( lumi > 0 )
-	{
-		luminosity = lumi;
-	}
 	std::cout << ">> Computing for " << luminosity << " pb-1 luminosity" << std::endl; 
 
 	std::cout << ">> Getting events..." << std::endl;
@@ -219,9 +214,9 @@ void PrintTableBackgrounds(const char * signal,const char * filename, const doub
 	bkg.push_back("TTbar_Madgraph");
 	//bkg.push_back("ZJets_Powheg");
 	bkg.push_back("WJets_Madgraph");
-	bkg.push_back("DYee");
-	bkg.push_back("DYmumu");
-	bkg.push_back("DYtautau"); 
+	bkg.push_back("DYee_Powheg");
+	bkg.push_back("DYmumu_Powheg");
+	bkg.push_back("DYtautau_Powheg"); 
 	bkg.push_back("Zee_Powheg");
 	bkg.push_back("Zmumu_Powheg");
 	bkg.push_back("Ztautau_Powheg");
@@ -243,9 +238,9 @@ void PrintTableBackgrounds(const char * signal,const char * filename, const doub
 	{
 		bkg.push_back("WZ");
 		blegend.push_back("WZ");
-		bkg.push_back("TW");
+		bkg.push_back("TW_DR");
 		blegend.push_back("tW");
-		bkg.push_back("TbarW");
+		bkg.push_back("TbarW_DR");
 		blegend.push_back("tbarW");
 	}
 
@@ -330,7 +325,7 @@ int main(int argc, char *argv[])
 {
 	const char * signal    = 0;
 	const char * filename  = "table.tex";
-	const char * luminosity= "2143.3";
+	const char * luminosity= 0; //"2143.3";
 
 	// Arguments used
 	std::set<int> usedargs;

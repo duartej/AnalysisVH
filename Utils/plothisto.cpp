@@ -639,9 +639,9 @@ int main(int argc, char *argv[])
 	bkg.push_back("WJets_Madgraph");
 
 	std::vector<TString> bkgzjets;
-	bkgzjets.push_back("DYee");
-	bkgzjets.push_back("DYmumu");
-	bkgzjets.push_back("DYtautau"); 
+	bkgzjets.push_back("DYee_Powheg");
+	bkgzjets.push_back("DYmumu_Powheg");
+	bkgzjets.push_back("DYtautau_Powheg"); 
 	bkgzjets.push_back("Zee_Powheg");
 	bkgzjets.push_back("Zmumu_Powheg");
 	bkgzjets.push_back("Ztautau_Powheg");
@@ -663,9 +663,9 @@ int main(int argc, char *argv[])
 	{
 		bkg.push_back("WZ");
 		blegend.push_back("WZ");
-		bkg.push_back("TW");
+		bkg.push_back("TW_DR");
 		blegend.push_back("tW");
-		bkg.push_back("TbarW");
+		bkg.push_back("TbarW_DR");
 		blegend.push_back("tbarW");
 		SIGNALFACTOR = 100;
 	}
