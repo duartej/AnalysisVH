@@ -17,6 +17,7 @@
 #include<string>
 #include<vector>
 #include<set>
+#include<map>
 
 #endif
 
@@ -37,7 +38,7 @@ void AddDataFiles(const std::vector<TString> & files,
 	datafiles.insert( datafiles.end(), files.begin(), files.end() );
 }
 
-std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * runperiod,const char * finalstate)
+std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * runperiod,const char * finalstate)
 {
 	if( finalstate == 0 )
 	{
@@ -49,6 +50,7 @@ std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * r
 	std::string production = "LatinosSkims";
 	std::string runpath;
 	std::vector<std::string> filenames;
+	std::map<std::string,std::vector<std::string> > mappathfiles;
 
 	if( strcmp(runperiod,"2011A") == 0 )
 	{
@@ -84,6 +86,7 @@ std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * r
 				<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
 			exit(-1);
 		}
+		mappathfiles[runpath] = filenames;
 	}
 	else if( strcmp(runperiod,"2011B") == 0 )
 	{
@@ -109,6 +112,24 @@ std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * r
 				<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
 			exit(-1);
 		}
+		mappathfiles[runpath] = filenames;
+	}
+	else if( strcmp(runperiod,"2011") == 0 )
+	{
+		std::map<std::string,std::vector<std::string> > map2011A = 
+			getdatapathfiles("2011A",finalstate);
+		std::map<std::string,std::vector<std::string> > map2011B = 
+			getdatapathfiles("2011B",finalstate);
+		// Just checking things are consistent
+		if( map2011A.size() != 1 and map2011B.size() != 1)
+		{
+			std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+				<< " this shows some inconsistency in the code. Contact the developer"
+				<< std::endl;
+			exit(-4);
+		}
+		mappathfiles[map2011A.begin()->first] = map2011A.begin()->second;
+		mappathfiles[map2011B.begin()->first] = map2011B.begin()->second;
 	}
 	else
 	{
@@ -117,7 +138,7 @@ std::pair<std::string,std::vector<std::string> > getdatapathfiles(const char * r
 		exit(-3);
 	}
 
-	return std::pair<std::string,std::vector<std::string> >(runpath,filenames);
+	return mappathfiles;
 }
 
 
@@ -138,14 +159,18 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 	if( dataName.Contains("Data") )
 	{
 		// 1) Take the files which corresponds to each run period
-		std::pair<std::string,std::vector<std::string> > pathfiles =
+		std::map<std::string,std::vector<std::string> > pathfiles =
 			getdatapathfiles(runperiod,finalstate);
 		// 2) Asign the files 
-		for(unsigned int i = 0; i < pathfiles.second.size(); ++i)
+		for(std::map<std::string,std::vector<std::string> >::iterator it=pathfiles.begin();
+				it != pathfiles.end(); ++it)
 		{
-			const std::vector<TString> data = DatasetManager::GetRealDataFiles(
-					pathfiles.first.c_str(),pathfiles.second.at(i).c_str() );
-			AddDataFiles(data,*datafiles);
+			for(unsigned int i = 0; i < it->second.size(); ++i)
+			{
+				const std::vector<TString> data = DatasetManager::GetRealDataFiles(
+						it->first.c_str(),it->second.at(i).c_str() );
+				AddDataFiles(data,*datafiles);
+			}
 		}
 	}
 	else if(dataName.Contains("LocalWH")) // TO BE DEPRECATED
@@ -256,17 +281,19 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 
 void display_usage()
 {
-	std::cout << "usage: datamanagercreator dataname [options]" << std::endl;
+	std::cout << "usage: datamanagercreator [dataname] [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
 	std::cout << "    -r <2011A|2011B|2011>       Run period to extract datafiles" << std::endl;
 	std::cout << "    -f <mmm|mme|eee|eem>        Final state to be used in the data case" << std::endl;
 	std::cout << "    -h                          Displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
+	std::cout << "The 'dataname' must be one of the shown below. If 'dataname' is not used, all the dataname"
+		<< " in the list will be extracted" << std::endl;
 	std::cout << "List of known dataname:" << std::endl;
 	std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
-	std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
+	std::cout << "    Z + Jets Powheg:   DYee_Powheg DYmumu_Powheg Dytautau_Powheg Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
 	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW" << std::endl;
 }
@@ -385,9 +412,6 @@ int main(int argc, char *argv[])
 	//Data 
 	knowndata.insert("Data");
 
-
-
-	//treeTypes dataType;
 	// Creating the .dn
 	bool wasprocessed = false;
 	for(std::set<std::string>::iterator it = knowndata.begin(); it != knowndata.end(); ++it)
