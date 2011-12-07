@@ -140,7 +140,8 @@ TH1F* PUWeight::LoadDataHistogram(float luminosity, const char* year) {
   }
 
   if (!fdt) {
-    dtfile="http://www.hep.uniovi.es/jfernan/PUhistos/Data2011A/PUdata.root";
+    dtfile.Form("http://www.hep.uniovi.es/jfernan/PUhistos/Data%s/PUdata.root",
+		    year);
 
 #if (DEBUGPUWEIGHT > 1)
     cout << "   + Opening " << dtfile << endl;
