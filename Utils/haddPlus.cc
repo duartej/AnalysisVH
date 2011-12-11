@@ -197,16 +197,9 @@ int main( int argc, char **argv )
    //must delete Target to avoid a problem with dictionaries in~ TROOT
    delete Target;
 
-   // Post-processing: Assuming always we have cycles 1, except with the
-   // InputParameters object giving the same number of cycles as files
-   // used to construct the target file
+   // Post-processing: Keep only the highest cycle number for each key (J. Duarte Campderros)
    Target = new TFile(targetoutputfilename,"UPDATE");
-   for(int i = 2; i <= nInputFiles; ++i)
-   {
-	   std::stringstream aux;
-	   aux << "*;" << i;
-	   Target->Delete(aux.str().c_str());
-   }
+   Target->Purge();
    delete Target;
 
    if (status) {
