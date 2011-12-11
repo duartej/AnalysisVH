@@ -131,11 +131,11 @@ class clustermanager(object):
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
-			# so we are trying to send 10minutes-jobs: ~450000 evt per job
+			# so we are trying to send 10minutes-jobs: ~450000 evt per job (350000 changed)
 			if self.njobs == 0:
 				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
-				self.njobs = self.nevents/450000
+				self.njobs = self.nevents/350000 #450000 --> FIXED Changed
 				message += str(self.njobs)
 				print message
 			# Checking if has sense the njobs
@@ -167,7 +167,7 @@ class clustermanager(object):
 
 			foundoutfiles = []
 			self.outputmessage = ''
-			print "====== Checking the job status for dataname:",self.dataname
+			print "clustermanager: Checking the job status for dataname '"+self.dataname+"'"
 			for taskid,dummy in self.jobidevt:
 				foundoutfiles.append( self.checkjob(taskid) )
 			print self.outputmessage
@@ -292,12 +292,28 @@ class clustermanager(object):
 
 			# Gathering the file outputs in order to add
 			return self.outputfiles[taskid]
-		
-		if isincluster:
-			self.outputmessage =  "Tasks in the cluster '[taskID: status]': "
-			for task,status in taskstatus.iteritems():
-				self.outputmessage += "["+str(task)+": "+status+"] "
-			self.outputmessage += '\n===== '+self.dataname+' still in the cluster ==='
+
+		# Still in cluster
+		statustaskdict = dict( [ (status,[]) for status in taskstatus.values() ] )
+		for task,status in taskstatus.iteritems():
+			if status == "r" or status == "t":
+				statustaskdict["r"].append(task)
+			elif status == "qw":
+				statustaskdict["qw"].append(task)
+			else:
+				statustaskdict[status].append(task)
+		getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
+		textstatusdict = { "r": getcolor("Running",32), "t": getcolor("Running",32),\
+				"qw": getcolor("Queued",30) }
+		self.outputmessage = ""
+		for status,tasklist in statustaskdict.iteritems():
+			try:
+				self.outputmessage += "   "+textstatusdict[status]+": ["
+			except KeyError:
+				self.outputmessage += "   "+getcolor("Undefined ["+status+"]",35)+": ["
+			for task in set(tasklist):
+				self.outputmessage += str(task)+","
+			self.outputmessage = self.outputmessage[:-1]+"]"
 
 	def submit(self):
 		"""Submit the job
