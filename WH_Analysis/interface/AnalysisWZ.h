@@ -59,7 +59,7 @@ class AnalysisWZ : public AnalysisBase
 
 	protected:
 		virtual void Initialise();
-		virtual void InsideLoop();
+		virtual unsigned int InsideLoop();
 
 	private:
 		AnalysisWZ();

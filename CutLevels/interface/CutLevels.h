@@ -48,6 +48,7 @@ struct WZCuts
 		_iHasAtLeast3Leptons, //  8 At least 3 leptons
 		_iOppositeCharge,     //  9 At least a pair of opposite sign
 		_iHasZCandidate,      // 10 Has a Z candidate
+		_iHasZOverlapping,    // 11 Has another Z candidate (ZZ)
 		_iHasWCandidate,      // 11 Has a W candidate
 		_iJetVeto,            // 12 Reject events with a jet
 		_iMET,                // 15 Missing ET cut

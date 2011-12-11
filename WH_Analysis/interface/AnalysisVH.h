@@ -66,7 +66,7 @@ class AnalysisVH : public AnalysisBase
 
 	protected:
 		virtual void Initialise();
-		virtual void InsideLoop(); // = 0;
+		virtual unsigned int InsideLoop(); // = 0;
 
 	private:
 		AnalysisVH();

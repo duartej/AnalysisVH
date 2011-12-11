@@ -40,8 +40,8 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	}
 	else if( strcmp(analysistype,"WZ") == 0 || strcmp(analysistype,"wz") == 0 )
 	{
-		WPlowPt = WPElecID::WP_95;
-		WPhighPt= WPElecID::WP_95; 
+		WPlowPt = WPElecID::WP_80;//WP_95;
+		WPhighPt= WPElecID::WP_80;//WP_95; 
 		// This has to be changed in the analysis code, when you
 		// are in the W stage you should to tight the cut (WP80)
 	}

@@ -194,7 +194,7 @@ void AnalysisVH::Initialise()
 //---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
-void AnalysisVH::InsideLoop()
+unsigned int AnalysisVH::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
@@ -451,7 +451,7 @@ void AnalysisVH::InsideLoop()
 
 	if(fIsWH && (procn != _iWH || fsNTau != fFS))
 	{
-		return;
+		return WHCuts::_iIsWH;
 	}
 	
 	FillHistoPerCut(WHCuts::_iIsWH, puw, fsNTau);
@@ -460,7 +460,7 @@ void AnalysisVH::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! IspassHLT() )
 	{
-		return;
+		return WHCuts::_iHLT;
 	}
 	FillHistoPerCut(WHCuts::_iHLT, puw, fsNTau);
 
@@ -470,7 +470,7 @@ void AnalysisVH::InsideLoop()
 	//fLeptonSelection->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
-	//	return;
+	//	return WHCuts::_iGoodVertex;
 	//}
 	FillHistoPerCut(WHCuts::_iGoodVertex, puw, fsNTau);
 	
@@ -498,7 +498,7 @@ void AnalysisVH::InsideLoop()
 
 	if(nSelectedMuons < kNMuons)
 	{
-		return;
+		return WHCuts::_iHas2Leptons;
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2Leptons, puw, fsNTau);
@@ -510,7 +510,7 @@ void AnalysisVH::InsideLoop()
 	
 	if(nSelectedPVMuons < kNMuons)
 	{
-		return;
+		return WHCuts::_iHas2PVLeptons;
 	}
 
 	FillHistoPerCut(WHCuts::_iHas2PVLeptons, puw, fsNTau);
@@ -523,7 +523,7 @@ void AnalysisVH::InsideLoop()
 	
 	if(nSelectedIsoMuons < kNMuons)
 	{
-		return;
+		return WHCuts::_iHas2IsoLeptons;
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2IsoLeptons, puw, fsNTau);
@@ -535,7 +535,7 @@ void AnalysisVH::InsideLoop()
 	
 	if(nSelectedIsoGoodMuons < kNMuons)
 	{
-		return;
+		return WHCuts::_iHas2IsoGoodLeptons;
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
@@ -562,7 +562,7 @@ void AnalysisVH::InsideLoop()
 
 	if( ! fLeptonSelection->IsPass("PtMuonsCuts",nLeptons) )
 	{
-		return;
+		return WHCuts::_iMuPTPattern;
 	}
 	FillHistoPerCut(WHCuts::_iMuPTPattern, puw, fsNTau);
 	delete nLeptons;
@@ -572,7 +572,7 @@ void AnalysisVH::InsideLoop()
 	//---------------------------------------------------------------------------
 	if(nSelectedIsoGoodMuons != _nLeptons)
 	{
-		return;
+		return WHCuts::_iHasExactly3Leptons;
 	}
 	// Indexs of good leptons
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
@@ -635,7 +635,7 @@ void AnalysisVH::InsideLoop()
 	
 	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
 	{
-		return;
+		return WHCuts::_iOppositeCharge;
 	}
 	
 	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
@@ -734,7 +734,7 @@ void AnalysisVH::InsideLoop()
 
 	if(nJets > 0)
 	{
-		return;
+		return WHCuts::_iJetVeto;
 	}
 	FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
   	
@@ -744,7 +744,7 @@ void AnalysisVH::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! fLeptonSelection->IsPass("DeltaRMuMuCut", auxVar) )
 	{
-		return;
+		return WHCuts::_iDeltaR;
 	}
 	
 	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau);
@@ -754,7 +754,7 @@ void AnalysisVH::InsideLoop()
 	(*auxVar)[0] = invMassMuMuH;
 	if( (! fLeptonSelection->IsPass("ZMassWindow", auxVar)) )
 	{
-		return;
+		return WHCuts::_iZMuMuInvMass;
 	}
 	
 	// NEW ===================== FIXME
@@ -777,7 +777,7 @@ void AnalysisVH::InsideLoop()
 
 	if( candidatesZMass.size() > 0 )
 	{
-		return;
+		return WHCuts::_iZMuMuInvMass;
 	}
 	// END NEW =====================  */
 	
@@ -786,14 +786,15 @@ void AnalysisVH::InsideLoop()
 	
 	// MET
 	//------------------------------------------------------------------
-	const double met = fData->Get<float>("T_METPF_ET");
+	const double met = TMath::Min( fData->Get<float>("T_METPF_ET"), 
+			fData->Get<float>("T_METtc_ET") );  // NISHU WAY : FIXME CHANGED
 	(*auxVar)[0] = met;
 	// Fill histo before cut
 	_histos[fHMETAfterZCand]->Fill(met,puw);
 
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
-		return;
+		return WHCuts::_iMET;
 	}
 	delete auxVar;
 	auxVar=0;
@@ -801,5 +802,7 @@ void AnalysisVH::InsideLoop()
 	_histos[fHMET]->Fill(met,puw);
 	_histos[fHTrileptonMassAfterZCand]->Fill(invMass3leptons,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
+
+	return WHCuts::_iNCuts;
 }
 

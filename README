@@ -38,10 +38,13 @@ Nov. 25th 2011-- Tag release v03.00: Included the AnalysisBase class
 
 
 TODO:
+  A. Tree at the level of pre-selection--> URGENT
   1a.Change the data files to be used depending the lepton final state when use data 
   5. Check with the *.sh.e* the good behaviour of the job
-  7. Include a Jet plot (before the Jet Veto cut)
-  8. Let decide sendcluster how many jobs shuould be sended depending the sample's length
+  7. Include a Jet plot (before the Jet Veto cut) --> DONE
+  8. Let decide sendcluster how many jobs shuould be sended depending the sample's length-->DONE
   9. Put in the configuration the Working Point to be used in the Electrons
+  10.Join all the histos and tables in one (lepton state)
+  11.Improve the output of sendcluster when searching for output status: Running jobs [list], Queue jobs...
 
 

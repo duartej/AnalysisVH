@@ -37,6 +37,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fNGenMuons(0),
 	fNGenLeptons(0),
 	fPUWeight(0),
+	_cuttree(0),
+	_cutvalue(-1),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -128,6 +130,10 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// else if fFS == SignatrueFS::iFSmee --> fGenLeptonIndex = vector(MUON ELECTRON ELECTRON)
 	// else ???? Ya deberia estar controlado antes
 	// anyway FIXME: meter aqui un exit--->>
+
+	// The tree for cuts
+	_cuttree = new TTree("cuts","Last cut used");
+	_cuttree->Branch("cuts",&_cutvalue);
 }
 
 AnalysisBase::~AnalysisBase()
@@ -146,10 +152,17 @@ AnalysisBase::~AnalysisBase()
 	if( fInputParameters != 0)
 	{
 		delete fInputParameters; 
+		fInputParameters=0;
 	}
 	if( fInput != 0 )
 	{
 		delete fInput;  // new TList deleted
+		fInput = 0;
+	}
+	if( _cuttree != 0)
+	{
+		delete _cuttree;
+		_cuttree = 0;
 	}
 
 }
@@ -209,6 +222,9 @@ void AnalysisBase::SaveOutput( const char * outputname )
 		lo = this->GetOutputList();
 		li->Write();
 		lo->Write();
+		// And the tree for cuts
+		_cuttree->Write();
+
 		histoAnalysis.Close();
 	}
 
@@ -249,7 +265,8 @@ void AnalysisBase::InitialiseParameters()
 	// PU Weight
 	//----------------------------------------------------------------------------
 	//fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
-	fPUWeight = new PUWeight(fLuminosity, Fall11True, "2011"); // CHANGED TO Fall11
+	// --> FIXME: PONER EN el Input parameters una nueva variable str con el anyo??
+	fPUWeight = new PUWeight(fLuminosity, Fall11True, "2011");
 }
 
 
@@ -257,7 +274,6 @@ void AnalysisBase::InitialiseParameters()
 {
 	std::string name;
 	// FIXME: WARNING, Not implemented
-std::cout << "HOLA CARACOLA";
 	if( fLeptonSelection->GetLeptonType(index) == MUON )
 	{
 		name = "Muon";
@@ -298,7 +314,7 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 
 void AnalysisBase::Summary()
 {
-	std::cout << std::endl << "[ AnalisysVH::Sumary ]" << std::endl << std::endl;
+	std::cout << std::endl << "[ Analisys::Sumary ]" << std::endl << std::endl;
   
 	std::cout << "N. events by process ID:" << std::endl;
 	std::cout << "------------------------" << std::endl;
@@ -368,6 +384,15 @@ bool AnalysisBase::IspassHLT() const
 
 	return passtrigger;*/
 }
+
+
+void AnalysisBase::StoresCut(const unsigned int & cut)
+{
+	_cutvalue = cut;
+	_cuttree->Fill();
+	_cutvalue = -1;
+}
+
 
 void AnalysisBase::FillHistoPerCut(const unsigned int & cut,const double & puw, const unsigned int & fs) 
 {

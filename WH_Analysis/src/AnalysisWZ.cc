@@ -159,14 +159,14 @@ void AnalysisWZ::Initialise()
 	_histos[fHNJets] = CreateH1D("fHNJets", "NJets",21, 0, 20);
 	
 	// W candidate transvers mass
-	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,50,150);
+	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
 	
 }
 
 //---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
-void AnalysisWZ::InsideLoop()
+unsigned int AnalysisWZ::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
@@ -423,7 +423,7 @@ void AnalysisWZ::InsideLoop()
 
 	/*if(fIsWH && (procn != _iWH || fsNTau != fFS))
 	{
-		return;
+		return WZCuts::_iIsWH;
 	}*/
 	
 	FillHistoPerCut(WZCuts::_iIsWH, puw, fsNTau);
@@ -432,7 +432,7 @@ void AnalysisWZ::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! IspassHLT() )
 	{
-		return;
+		return WZCuts::_iHLT;
 	}
 	FillHistoPerCut(WZCuts::_iHLT, puw, fsNTau);
 
@@ -442,7 +442,7 @@ void AnalysisWZ::InsideLoop()
 	//fLeptonSelection->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
-	//	return;
+	//	return WZCuts::_iGoodVertex;
 	//}
 	FillHistoPerCut(WZCuts::_iGoodVertex, puw, fsNTau);
 	
@@ -463,7 +463,7 @@ void AnalysisWZ::InsideLoop()
 
 	if(nSelectedMuons < kNMuons)
 	{
-		return;
+		return WZCuts::_iHas2Leptons;
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2Leptons, puw, fsNTau);
@@ -475,7 +475,7 @@ void AnalysisWZ::InsideLoop()
 	
 	if(nSelectedPVMuons < kNMuons)
 	{
-		return;
+		return WZCuts::_iHas2PVLeptons;
 	}
 
 	FillHistoPerCut(WZCuts::_iHas2PVLeptons, puw, fsNTau);
@@ -488,7 +488,7 @@ void AnalysisWZ::InsideLoop()
 	
 	if(nSelectedIsoMuons < kNMuons)
 	{
-		return;
+		return WZCuts::_iHas2IsoLeptons;
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoLeptons, puw, fsNTau);
@@ -500,7 +500,7 @@ void AnalysisWZ::InsideLoop()
 	
 	if(nSelectedIsoGoodMuons < kNMuons)
 	{
-		return;
+		return WZCuts::_iHas2IsoGoodLeptons;
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
@@ -508,9 +508,17 @@ void AnalysisWZ::InsideLoop()
 	
 	// Keep events at least 3 leptons and store momentum and charge
 	//---------------------------------------------------------------------------
+	//bool fullfillFS = true;
+	//if( fFS == SignatureFS::_iFSeem || fFS == SignatureFS::_iFSmme )
+	//{
+		// Check we have the correct signature
+		// FIXME: To be done a function to extract the signature of final
+		// state (in Cutmanager)
+	//}
+
 	if(nSelectedIsoGoodMuons < _nLeptons)
 	{
-		return;
+		return WZCuts::_iHasAtLeast3Leptons;
 	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
@@ -571,12 +579,16 @@ void AnalysisWZ::InsideLoop()
 	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
 	{
 		zcandflavour = MUON;
-		ptcutv.push_back(15.0);
-		ptcutv.push_back(15.0);
+		//ptcutv.push_back(15.0);
+		//ptcutv.push_back(15.0);
+		ptcutv.push_back(20.0);
+		ptcutv.push_back(10.0);
 	}
 	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
 	{
 		zcandflavour = ELECTRON;
+		//ptcutv.push_back(20.0);
+		//ptcutv.push_back(10.0);
 		ptcutv.push_back(20.0);
 		ptcutv.push_back(10.0);
 	}
@@ -612,7 +624,7 @@ void AnalysisWZ::InsideLoop()
 	// when already get the total charge of the selected leptons
 	if( leptonPair.size() == 0 )
 	{
-		return;
+		return WZCuts::_iOppositeCharge;
 	}	
 	// Accepted events with two opposite charge leptons
 	FillHistoPerCut(WZCuts::_iOppositeCharge, puw, fsNTau);
@@ -638,7 +650,7 @@ void AnalysisWZ::InsideLoop()
 
 	if( candidatesZMass.size() == 0 )
 	{
-		return;
+		return WZCuts::_iHasZCandidate;
 	}
 	FillHistoPerCut(WZCuts::_iHasZCandidate, puw, fsNTau);
         
@@ -657,7 +669,7 @@ void AnalysisWZ::InsideLoop()
 			if( index1 != i1Z && index1 != i2Z && index2 != i1Z && index2 != i2Z)
 			{
 				// Found another Z non-overlapping with the other already found
-				return;
+				return WZCuts::_iHasZOverlapping;
 			}
 		}
 	}
@@ -700,6 +712,7 @@ void AnalysisWZ::InsideLoop()
 		// Pt cut and isolation // FIXME just for electrons WP80
 		const double pt = lepton[i].Pt();
 		if( pt < 20.0 )
+		//if( pt < 25.0 )
 		{
 			continue;
 		}
@@ -708,7 +721,7 @@ void AnalysisWZ::InsideLoop()
 	// No W candidate
 	if( wcandidate.size() == 0 )
 	{
-		return;
+		return WZCuts::_iHasWCandidate; 
 	}
 	FillHistoPerCut(WZCuts::_iHasWCandidate, puw, fsNTau);
 	// Fill histos
@@ -724,7 +737,7 @@ void AnalysisWZ::InsideLoop()
 	const double phi = fData->Get<float>("T_METPF_Phi");
 	const double px = met*cos(phi);
 	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,met);
+	TLorentzVector METV(px,py,0.0,0.0); // FIXED BUG!!
 
 	const double transversMassW = (METV+wcandTLV).Mt();
 	
@@ -750,7 +763,7 @@ void AnalysisWZ::InsideLoop()
 	_histos[fHNJets]->Fill(nJets,puw);
 	//if(nJets > 0)   ---> TESTING WITH NO JET VETO
 	//{
-	//	return;
+	//	return WZCuts::_iJetVeto;
 	//}
 	FillHistoPerCut(WZCuts::_iJetVeto, puw, fsNTau);
   	
@@ -761,7 +774,7 @@ void AnalysisWZ::InsideLoop()
 	auxVar->push_back( met );
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
-		return;
+		return WZCuts::_iMET;
 	}
 	FillHistoPerCut(WZCuts::_iMET, puw, fsNTau);
 
@@ -771,5 +784,7 @@ void AnalysisWZ::InsideLoop()
 	// Filling histos -------------------------------------
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
+
+	return WZCuts::_iNCuts;
 	
 }

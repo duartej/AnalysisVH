@@ -22,7 +22,7 @@ TString WHCuts::kCutNames[] =
 	"NCuts"
 };
 
-// Initializing the static for WH
+// Initializing the static for WZ
 TString WZCuts::kCutNames[] = 
 { 
 	"AllEvents",
@@ -36,6 +36,7 @@ TString WZCuts::kCutNames[] =
 	"AtLeast3Leptons",
 	"OppositeCharge",
 	"HasZCandidate",
+	"HasZOverlapping",
 	"HasWCandidate",
 	"JetVeto",
 	"MET",

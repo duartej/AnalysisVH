@@ -122,7 +122,10 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
 
 
    // Run the user function
-   InsideLoop();
+   const unsigned int cut = this->InsideLoop();
+   
+   // Stores the cut used to reject/accept the event
+   this->StoresCut(cut);
 
    // Resetting the used vectors
    fLeptonSelection->Reset();

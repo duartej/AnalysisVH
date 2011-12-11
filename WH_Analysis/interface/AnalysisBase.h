@@ -112,7 +112,11 @@ class AnalysisBase : public CMSAnalysisSelector
 	protected:
 		virtual void InitialiseParameters();
 		virtual void Initialise() = 0;
-		virtual void InsideLoop() = 0;
+		virtual unsigned int InsideLoop() = 0;
+		//! Method to fill the tree which contain the cut number used per event
+		//! (to be fill with the return value of InsideLoop method and inside the
+		//! parent method Process)
+		virtual void StoresCut(const unsigned int & cut);
 		virtual void Summary();
 
 	private:
@@ -134,6 +138,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		virtual void FillHistoPerCut(const unsigned int & cut,const double & puw, 
 				const unsigned int & fs); // = 0;  //FIXME de momento
 		virtual void FillGenPlots(const unsigned int & cut, double puw); 
+
+
+
 
 		// Number of final state leptons
 		unsigned int _nLeptons;
@@ -172,8 +179,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		PUWeight* fPUWeight;		
 
-		// FIXME: NECESARIO???
-	//	TTree * _tree;
+		// Tree containing the last cut used in a given event
+		TTree * _cuttree;
+		// Value of the cut
+		unsigned int _cutvalue;
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }
