@@ -131,11 +131,11 @@ class clustermanager(object):
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
-			# so we are trying to send 10minutes-jobs: ~450000 evt per job (350000 changed)
+			# so we are trying to send 10minutes-jobs: ~450000 evt per job 
 			if self.njobs == 0:
 				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
-				self.njobs = self.nevents/350000 #450000 --> FIXED Changed
+				self.njobs = self.nevents/450000 
 				message += str(self.njobs)
 				print message
 			# Checking if has sense the njobs
@@ -313,7 +313,8 @@ class clustermanager(object):
 				self.outputmessage += "   "+getcolor("Undefined ["+status+"]",35)+": ["
 			for task in set(tasklist):
 				self.outputmessage += str(task)+","
-			self.outputmessage = self.outputmessage[:-1]+"]"
+			self.outputmessage = self.outputmessage[:-1]+"]\n"
+		self.outputmessage = self.outputmessage[:-1]
 
 	def submit(self):
 		"""Submit the job
