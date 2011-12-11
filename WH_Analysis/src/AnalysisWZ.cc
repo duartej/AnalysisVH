@@ -673,6 +673,7 @@ unsigned int AnalysisWZ::InsideLoop()
 			}
 		}
 	}
+	FillHistoPerCut(WZCuts::_iHasZOverlapping, puw, fsNTau);
 
 	const double invMassLL = (lepton[i1Z] + lepton[i2Z]).M();
 
@@ -696,6 +697,13 @@ unsigned int AnalysisWZ::InsideLoop()
 		wcandflavour = ELECTRON;
 	}
 
+	// Some MET stuff we're going to need
+	const double phi = fData->Get<float>("T_METPF_Phi");
+	const double px = met*cos(phi);
+	const double py = met*sin(phi);
+	TLorentzVector METV(px,py,0.0,0.0); 
+
+	std::map<int,double> transverseMassW;
 	std::map<double,int> wcandidate;
 	for(unsigned int i=0; i < lepton.size(); ++i) 
 	{
@@ -712,11 +720,18 @@ unsigned int AnalysisWZ::InsideLoop()
 		// Pt cut and isolation // FIXME just for electrons WP80
 		const double pt = lepton[i].Pt();
 		if( pt < 20.0 )
-		//if( pt < 25.0 )
+		{
+			continue;
+		}
+		// Finally transverse mass (W cand., MET) > 50 
+		const double lWEt = lepton[i].Et();
+		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(lepton[i].DeltaPhi(METV)));
+		if( tMassW < 50.0 )
 		{
 			continue;
 		}
 		wcandidate[pt] = i;
+		transverseMassW[i] = tMassW;
 	}
 	// No W candidate
 	if( wcandidate.size() == 0 )
@@ -727,22 +742,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Fill histos
 	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
 	_histos[fHMETAfterWCand]->Fill(met,puw);
-	
-
-
-	// Get the high pt candidate 
-	const int wcandIndex = wcandidate.rbegin()->second;
-	const TLorentzVector wcandTLV( lepton[wcandIndex] );
-	// Build the transvers mass for the Wcandidate
-	const double phi = fData->Get<float>("T_METPF_Phi");
-	const double px = met*cos(phi);
-	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,0.0); // FIXED BUG!!
-
-	const double transversMassW = (METV+wcandTLV).Mt();
-	
-	// Fill before the jets and MET cut
-	_histos[fHTransversMass]->Fill(transversMassW,puw);
+	// Getting the greastest pt lepton to W-candidate (if there are more than one)
+	const int iWcand = wcandidate.rbegin()->second;
+	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
 	
 	// Jet Veto:
 	//------------------------------------------------------------------
