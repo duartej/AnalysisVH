@@ -170,6 +170,7 @@ class clustermanager(object):
 			print "clustermanager: Checking the job status for dataname '"+self.dataname+"'"
 			for taskid,dummy in self.jobidevt:
 				foundoutfiles.append( self.checkjob(taskid) )
+			self.outputmessage = self.outputmessage[:-1]
 			print self.outputmessage
 			
 			# If we have all the outputfiles we can gathering
@@ -305,7 +306,7 @@ class clustermanager(object):
 		getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
 		textstatusdict = { "r": getcolor("Running",32), "t": getcolor("Running",32),\
 				"qw": getcolor("Queued",30) }
-		self.outputmessage = ""
+		#self.outputmessage = ""
 		for status,tasklist in statustaskdict.iteritems():
 			try:
 				self.outputmessage += "   "+textstatusdict[status]+": ["
@@ -314,7 +315,7 @@ class clustermanager(object):
 			for task in set(tasklist):
 				self.outputmessage += str(task)+","
 			self.outputmessage = self.outputmessage[:-1]+"]\n"
-		self.outputmessage = self.outputmessage[:-1]
+		#self.outputmessage = self.outputmessage[:-1]
 
 	def submit(self):
 		"""Submit the job
