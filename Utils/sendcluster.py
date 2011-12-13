@@ -166,12 +166,28 @@ class clustermanager(object):
 			self.retrieve()
 
 			foundoutfiles = []
-			self.outputmessage = ''
 			print "clustermanager: Checking the job status for dataname '"+self.dataname+"'"
+			
+			self.taskstatus = { 'r': [], 'qw': [], 'Undefined': [] }
 			for taskid,dummy in self.jobidevt:
 				foundoutfiles.append( self.checkjob(taskid) )
-			self.outputmessage = self.outputmessage[:-1]
-			print self.outputmessage
+			# Print status 
+			havetoprint = False
+			for l in self.taskstatus.itervalues():
+				if len(l) != 0:
+					havetoprint = True
+					break
+			if havetoprint:
+				getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
+				outputmessage = ''
+				textstatusdict = { "r": getcolor("Running",32), "qw": getcolor("Queued",30), \
+						"Undefined": getcolor("Undefined",35) }
+				for status,tasklist in self.taskstatus.iteritems():
+					outputmessage += "   "+textstatusdict[status]+": ["
+					for task in set(tasklist):
+						outputmessage += str(task)+","
+					outputmessage = outputmessage[:-1]+"]\n"
+				print outputmessage
 			
 			# If we have all the outputfiles we can gathering
 			if foundoutfiles == self.outputfiles.values():
@@ -265,7 +281,7 @@ class clustermanager(object):
 		#command = [ 'qstat','-j',id ]
 		command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-		
+
 		isincluster = False
 		taskstatus = {}
 		for line in p[0].split("\n"):
@@ -295,27 +311,14 @@ class clustermanager(object):
 			return self.outputfiles[taskid]
 
 		# Still in cluster
-		statustaskdict = dict( [ (status,[]) for status in taskstatus.values() ] )
+		#statustaskdict = dict( [ (status,[]) for status in taskstatus.values() ] )
 		for task,status in taskstatus.iteritems():
 			if status == "r" or status == "t":
-				statustaskdict["r"].append(task)
+				self.taskstatus["r"].append(task)
 			elif status == "qw":
-				statustaskdict["qw"].append(task)
+				self.taskstatus["qw"].append(task)
 			else:
-				statustaskdict[status].append(task)
-		getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
-		textstatusdict = { "r": getcolor("Running",32), "t": getcolor("Running",32),\
-				"qw": getcolor("Queued",30) }
-		#self.outputmessage = ""
-		for status,tasklist in statustaskdict.iteritems():
-			try:
-				self.outputmessage += "   "+textstatusdict[status]+": ["
-			except KeyError:
-				self.outputmessage += "   "+getcolor("Undefined ["+status+"]",35)+": ["
-			for task in set(tasklist):
-				self.outputmessage += str(task)+","
-			self.outputmessage = self.outputmessage[:-1]+"]\n"
-		#self.outputmessage = self.outputmessage[:-1]
+				self.taskstatus["Undefined"].append(task)
 
 	def submit(self):
 		"""Submit the job
