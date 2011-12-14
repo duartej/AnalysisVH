@@ -160,7 +160,6 @@ void AnalysisWZ::Initialise()
 	
 	// W candidate transvers mass
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
-	
 }
 
 //---------------------------------------------------------------------
@@ -349,7 +348,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		fGenLepton.clear();
 		fGenLeptonName.clear();
 		//   Sort by energy (? or by pt?)
-		if(fNGenLeptons == 3)  // FIXME:: PORQUE SOLO 3?? --> cAMBIAR POR nLeptons
+		if(fNGenLeptons == _nLeptons)  
 		{
 			std::map<double,std::pair<TLorentzVector,std::string> > vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
@@ -723,13 +722,16 @@ unsigned int AnalysisWZ::InsideLoop()
 		{
 			continue;
 		}
-		// Finally transverse mass (W cand., MET) > 50 
-		const double lWEt = lepton[i].Et();
-		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(lepton[i].DeltaPhi(METV)));
-		if( tMassW < 50.0 )
+		// NEW (and important for 2mu1e channel): Rejecting the fake electron aligned with 
+		// the muon due to internal bremsstrahlung in W an Z decays
+		if( lepton[i].DeltaPhi( lepton[i1Z] ) < 0.1 ||
+				lepton[i].DeltaPhi( lepton[i2Z] ) < 0.1 )
 		{
 			continue;
 		}
+		// Stores transverse mass (W cand., MET)
+		const double lWEt = lepton[i].Et();
+		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(lepton[i].DeltaPhi(METV)));
 		wcandidate[pt] = i;
 		transverseMassW[i] = tMassW;
 	}
@@ -742,8 +744,8 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Fill histos
 	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
 	_histos[fHMETAfterWCand]->Fill(met,puw);
-	// Getting the greastest pt lepton to W-candidate (if there are more than one)
-	const int iWcand = wcandidate.rbegin()->second;
+	// Getting the highest pt lepton to W-candidate (if there are more than one)
+	const int iWcand = wcandidate.rbegin()->second;	
 	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
 	
 	// Jet Veto:
