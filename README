@@ -38,7 +38,9 @@ Nov. 25th 2011-- Tag release v03.00: Included the AnalysisBase class
 
 
 TODO:
-  A. Tree at the level of pre-selection--> URGENT
+  A. Tree at the level of pre-selection--> URGENT --> DONE
+  B. Include the Z+Jets madgraph (including also the needed modifications in the code
+     to avoid doble counting, see Ana's email)
   1a.Change the data files to be used depending the lepton final state when use data 
   5. Check with the *.sh.e* the good behaviour of the job
   9. Put in the configuration the Working Point to be used in the Electrons

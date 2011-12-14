@@ -22,7 +22,6 @@
 #endif
 
 #include "DatasetManager.h"
-//#include "TreeManagerCreator.h"
 #include "TreeTypes.h"
 
 
@@ -71,13 +70,39 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			filenames.push_back("Tree_DoubleElectronAug5_334.4"); 
 			filenames.push_back("Tree_DoubleElectronV6_662.9");
 		}
-		else if( strcmp(finalstate,"mme") == 0  ||
-			strcmp(finalstate,"eem") == 0 )
+		else if( strcmp(finalstate,"mme") == 0  ) 
 		{
-			filenames.push_back("Tree_MuEGMay10_210.5");
+			std::map<std::string,std::vector<std::string> > mapmuons = 
+				getdatapathfiles("2011A","mmm");
+			// Just checking things are consistent
+			if( mapmuons.size() != 1)
+			{
+				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
+			/*filenames.push_back("Tree_MuEGMay10_210.5");
 			filenames.push_back("Tree_MuEGV4_927.9"); // OJO hay dos, lo hara el DM
 			filenames.push_back("Tree_MuEGAug5_334.4"); 
-			filenames.push_back("Tree_MuEGV6_662.9");
+			filenames.push_back("Tree_MuEGV6_662.9");*/
+		}
+		else if( strcmp(finalstate,"eem") == 0  ) 
+		{
+			std::map<std::string,std::vector<std::string> > mapelec = 
+				getdatapathfiles("2011A","eee");
+			// Just checking things are consistent
+			if( mapelec.size() != 1)
+			{
+				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapelec.begin()->second.begin(),mapelec.begin()->second.end() );
 		}
 		else
 		{
@@ -100,10 +125,36 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		{
 			filenames.push_back("Tree_DoubleElectronV1_Latinos_2509");
 		}
-		else if( strcmp(finalstate,"mme") == 0  ||
-			strcmp(finalstate,"eem") == 0 )
+		else if( strcmp(finalstate,"mme") == 0  )
 		{
-			filenames.push_back("Tree_MuEGV1_Latinos_2509");
+			std::map<std::string,std::vector<std::string> > mapmuons = 
+				getdatapathfiles("2011B","mmm");
+			// Just checking things are consistent
+			if( mapmuons.size() != 1)
+			{
+				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
+			//filenames.push_back("Tree_MuEGV1_Latinos_2509");
+		}
+		else if( strcmp(finalstate,"eem") == 0  )
+		{
+			std::map<std::string,std::vector<std::string> > mapelec = 
+				getdatapathfiles("2011B","eee");
+			// Just checking things are consistent
+			if( mapelec.size() != 1)
+			{
+				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapelec.begin()->second.begin(),mapelec.begin()->second.end() );
 		}
 		else
 		{
@@ -262,6 +313,9 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 	}
 
 	of << treeType << std::endl;
+
+	// Run period
+	of << "RUNPERIOD:" << runperiod << std::endl;
 	
 	// CrossSection and number of events if proceed
 	if( storeXSE )

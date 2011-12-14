@@ -41,8 +41,9 @@
 
 
 // Global variables
-double xsection = 0;
-int    evtsample= 0;
+double      xsection = 0;
+int         evtsample= 0;
+std::string RUNPERIOD;
 
 // Storing the datafiles
 void AddDataFiles(const std::vector<TString> & files, 
@@ -61,8 +62,9 @@ void PrintDataFiles(const std::vector<TString> & dataFiles)
 }
 
 // Giving a dataset extract all the files and stores them in a file
-const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
+/*const std::vector<TString> extractdatafiles(TString dataName = "HW160" ) // TO BE DEPRECATED
 {
+
 	bool storeXSE = false;
 
 	// 1) Load the files
@@ -192,7 +194,7 @@ const std::vector<TString> extractdatafiles(TString dataName = "HW160" )
 	of.close();
 
 	return datafiles;	
-}
+}*/
 
 // Overloaded function to extract the file names from a previous stored file
 // It will catch the files inside a subset: if datanamefile != is the name
@@ -217,8 +219,10 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 	std::ifstream inputf( filename );
 	if( ! inputf.is_open() )
 	{
-		// Call the extractdatafiles overloaded to create the filename
-		return extractdatafiles(dataName);
+		// Call the extractdatafiles overloaded to create the filename// DEPRECATED
+		std::cout << "\033[1;31mextractdatafiles DEPRECATED\033[1;m function. Launch "
+			<< "'datamanagercreator' instead. Exiting" << std::endl;
+		//return extractdatafiles(dataName);
 	}
 	
 	// TreeType
@@ -247,6 +251,12 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 			std::stringstream sNE(line.substr(8));
 			sNE >> evtsample;
 		}
+		else if(line.find("RUNPERIOD:") != line.npos )
+		{
+			std::stringstream sRP(line.substr(10));
+			sRP >> RUNPERIOD;
+		}
+				
 		else if( line != "" )
 		{
 			datafiles.push_back( TString(line) );
@@ -271,7 +281,7 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	// Parsing the config file
 	InputParameters * ip = InputParameters::parser(cfgfile,nameIPinstance);
 
-	TString MySelector = ip->TheNamedString("MySelector");
+	//TString MySelector = ip->TheNamedString("MySelector");  // TO BE DEPRECATED
 
 	///////////////////////////////
 	// OUTPUT FILE NAME
@@ -279,7 +289,7 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	TString outputFile;
 	// Mkdir Results if necessary
 	system("mkdir -p Results");
-	outputFile.Form("Results/%s_%s.root", MySelector.Data(), dataName.Data()); 
+	outputFile.Form("Results/%s.root", dataName.Data()); 
 	
 	TString myTreeName = ip->TheNamedString("NameTree");
  	//
@@ -297,6 +307,9 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 		ip->SetNamedDouble("CrossSection", xsection);
 		ip->SetNamedInt("NEventsSample", evtsample);
 	}
+	
+	// + Run period
+	ip->SetNamedString("RunPeriod",RUNPERIOD);
 
 	// + Data Name
 	ip->SetNamedString("DataName", dataName.Data());
@@ -306,9 +319,9 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	// If 0 the default name schema will be used, i.e. depending on the value
 	// of gPAFOptions->treeType: MyAnalysisTESCO or MyAnalsyisMiniTrees
 	//
-	TString myAnalysis = MySelector.Data();
+	//TString myAnalysis = MySelector.Data();
 
-	ip->SetNamedString(std::string("MyAnalysis"),std::string(myAnalysis));
+	//ip->SetNamedString(std::string("MyAnalysis"),std::string(myAnalysis));  // TO BE DEPRECATED
 
 	// All the datafiles
 	for(unsigned int i = 0; i < datafiles.size(); ++i)
@@ -596,7 +609,6 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	//AnalysisVH * analysis = AnalysisBuilder::Build( dataType, fsSignature, ipmap );
 	AnalysisBase * analysis = AnalysisBuilder::Build( antype, dataType, fsSignature, ipmap ); 
 
 #ifdef TIMERS
@@ -604,7 +616,7 @@ int main(int argc, char *argv[])
 	t4 = timer.RealTime();
 	timer.Start();
 #endif
-	//std::cout << tchaindataset->GetEntries() << std::endl;
+	// The mother of everything...
 	tchaindataset->Process(analysis,0,nEvents,firstEvent);
 	
 #ifdef TIMERS

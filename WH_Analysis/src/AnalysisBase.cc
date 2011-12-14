@@ -197,8 +197,9 @@ void AnalysisBase::SaveOutput( const char * outputname )
 		}
 		std::string finalname = almostfinalname.substr(prefix);;
 
-		outputfile = "Results/"+std::string(fInputParameters->TheNamedString("MyAnalysis"))+"_"
-			+finalname+".root";
+		outputfile = "Results/"+std::string(//fInputParameters->TheNamedString("MyAnalysis"))+"_"
+			//+
+			finalname+".root");
 	}
 	else
 	{
@@ -268,7 +269,8 @@ void AnalysisBase::InitialiseParameters()
 	//----------------------------------------------------------------------------
 	//fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
 	// --> FIXME: PONER EN el Input parameters una nueva variable str con el anyo??
-	fPUWeight = new PUWeight(fLuminosity, Fall11True, "2011");
+	std::string year = ip->TheNamedString("RunPeriod"); //FIXME, Check it is there
+	fPUWeight = new PUWeight(fLuminosity, Fall11True, year.c_str());
 }
 
 
