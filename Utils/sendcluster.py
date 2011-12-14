@@ -131,11 +131,11 @@ class clustermanager(object):
 			# Extract the total number of events and split 
 			self.nevents = self.getevents(self.filedatanames)
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
-			# so we are trying to send 10minutes-jobs: ~450000 evt per job 
+			# so we are trying to send 10minutes-jobs: ~450000 evt per job  (changed to 300000-> New calculations)
 			if self.njobs == 0:
 				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
-				self.njobs = self.nevents/450000 
+				self.njobs = self.nevents/300000   #450000 
 				message += str(self.njobs)
 				print message
 			# Checking if has sense the njobs
@@ -168,7 +168,7 @@ class clustermanager(object):
 			foundoutfiles = []
 			print "clustermanager: Checking the job status for dataname '"+self.dataname+"'"
 			
-			self.taskstatus = { 'r': [], 'qw': [], 'Undefined': [] }
+			self.taskstatus = { 'r': [], 'qw': [], 'Undefined': [], 'Done': []}
 			for taskid,dummy in self.jobidevt:
 				foundoutfiles.append( self.checkjob(taskid) )
 			# Print status 
@@ -181,8 +181,10 @@ class clustermanager(object):
 				getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
 				outputmessage = ''
 				textstatusdict = { "r": getcolor("Running",32), "qw": getcolor("Queued",30), \
-						"Undefined": getcolor("Undefined",35) }
+						"Undefined": getcolor("Undefined",35), "Done": getcolor("Done",34) }
 				for status,tasklist in self.taskstatus.iteritems():
+					if len(tasklist) == 0:
+						continue
 					outputmessage += "   "+textstatusdict[status]+": ["
 					for task in set(tasklist):
 						outputmessage += str(task)+","
@@ -308,6 +310,7 @@ class clustermanager(object):
 				raise message
 
 			# Gathering the file outputs in order to add
+			self.taskstatus["Done"].append(taskid)
 			return self.outputfiles[taskid]
 
 		# Still in cluster
@@ -399,6 +402,11 @@ class clustermanager(object):
 		self.libsdir      = copyself.libsdir
 		self.filedatanames= copyself.filedatanames
 		self.nevents      = copyself.nevents
+		try:
+			self.taskstatus   = copyself.taskstatus
+		except AttributeError:
+			# It means we have not yet done a previous harvest
+			pass
 		
 		d.close()
 

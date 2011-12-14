@@ -41,10 +41,12 @@ TODO:
   A. Tree at the level of pre-selection--> URGENT
   1a.Change the data files to be used depending the lepton final state when use data 
   5. Check with the *.sh.e* the good behaviour of the job
-  7. Include a Jet plot (before the Jet Veto cut) --> DONE
-  8. Let decide sendcluster how many jobs shuould be sended depending the sample's length-->DONE
   9. Put in the configuration the Working Point to be used in the Electrons
-  10.Join all the histos and tables in one (lepton state)
-  11.Improve the output of sendcluster when searching for output status: Running jobs [list], Queue jobs...
+  10.Join all the histos and tables in one (lepton state) --> DONE
+  11.Improve the output of sendcluster when searching for output status: Running jobs [list], Queue jobs... -->DONE
+  12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
+     runanalysis job
+  13.Improve the cosmethics of plothisto (legends and statistics)
+  14.Include a 'resubmit' argument to sendcluster
 
 
