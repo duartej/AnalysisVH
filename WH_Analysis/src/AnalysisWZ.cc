@@ -162,9 +162,9 @@ void AnalysisWZ::Initialise()
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
 	
 	// dR between leading lepton for the Z candidate and the W candidate lepton
-	_histos[fHdRl1Wcand] = CreateH1D("fHdRl1Wcand","m_{T}",100,0,10);
+	_histos[fHdRl1Wcand] = CreateH1D("fHdRl1Wcand","dR Z-cand. lepton leading w.r.t. W-cand. lepton",100,0,10);
 	// dR between leading lepton for the Z candidate and the W candidate lepton
-	_histos[fHdRl2Wcand] = CreateH1D("fHdRl2Wcand","m_{T}",100,0,10);
+	_histos[fHdRl2Wcand] = CreateH1D("fHdRl2Wcand","dR Z-cand. lepton trailing w.r.t. W-cand. lepton",100,0,10);
 }
 
 //---------------------------------------------------------------------
