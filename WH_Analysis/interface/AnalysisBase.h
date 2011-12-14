@@ -184,6 +184,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		// Value of the cut
 		unsigned int _cutvalue;
 
+		int _eventnumber;
+
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }
 		//----------------------------------------------------------------------------

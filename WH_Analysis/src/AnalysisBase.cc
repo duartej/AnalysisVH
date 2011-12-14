@@ -39,6 +39,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fPUWeight(0),
 	_cuttree(0),
 	_cutvalue(-1),
+	_eventnumber(-1),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -134,6 +135,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// The tree for cuts
 	_cuttree = new TTree("cuts","Last cut used");
 	_cuttree->Branch("cuts",&_cutvalue);
+	_cuttree->Branch("EventNumber",&_eventnumber);
 }
 
 AnalysisBase::~AnalysisBase()
@@ -389,6 +391,7 @@ bool AnalysisBase::IspassHLT() const
 void AnalysisBase::StoresCut(const unsigned int & cut)
 {
 	_cutvalue = cut;
+	_eventnumber = fData->Get<int>("T_Event_EventNumber");
 	_cuttree->Fill();
 	_cutvalue = -1;
 }
