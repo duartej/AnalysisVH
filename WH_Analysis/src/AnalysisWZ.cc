@@ -160,6 +160,11 @@ void AnalysisWZ::Initialise()
 	
 	// W candidate transvers mass
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
+	
+	// dR between leading lepton for the Z candidate and the W candidate lepton
+	_histos[fHdRl1Wcand] = CreateH1D("fHdRl1Wcand","m_{T}",100,0,10);
+	// dR between leading lepton for the Z candidate and the W candidate lepton
+	_histos[fHdRl2Wcand] = CreateH1D("fHdRl2Wcand","m_{T}",100,0,10);
 }
 
 //---------------------------------------------------------------------
@@ -724,8 +729,11 @@ unsigned int AnalysisWZ::InsideLoop()
 		}
 		// NEW (and important for 2mu1e channel): Rejecting the fake electron aligned with 
 		// the muon due to internal bremsstrahlung in W an Z decays
-		if( lepton[i].DeltaPhi( lepton[i1Z] ) < 0.1 ||
-				lepton[i].DeltaPhi( lepton[i2Z] ) < 0.1 )
+		const double dRl1 = lepton[i].DeltaR( lepton[i1Z] );
+		const double dRl2 = lepton[i].DeltaR( lepton[i2Z] );
+		_histos[fHdRl1Wcand]->Fill( dRl1 );
+		_histos[fHdRl2Wcand]->Fill( dRl2 );
+		if( dRl1 < 0.1 || dRl2 < 0.1 )
 		{
 			continue;
 		}

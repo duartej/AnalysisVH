@@ -48,7 +48,9 @@ class AnalysisWZ : public AnalysisBase
 			fHMETAfterZCand,          // MET affer ZCandidate cut
 			fHMETAfterWCand,
 			fHNJets,                   // Number of jets after all cuts
-			fHTransversMass
+			fHTransversMass,
+			fHdRl1Wcand,
+			fHdRl2Wcand
 		};
 		
 		//! Constructor
