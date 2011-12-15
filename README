@@ -50,5 +50,7 @@ TODO:
      runanalysis job
   13.Improve the cosmethics of plothisto (legends and statistics)
   14.Include a 'resubmit' argument to sendcluster
+  15.Promote to 'Utils' the plotall.sh collectall.sh and sendall.sh scripts (just is needed an argument defining the 
+     king of signal used)
 
 

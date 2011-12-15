@@ -786,8 +786,8 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	// MET
 	//------------------------------------------------------------------
-	const double met = TMath::Min( fData->Get<float>("T_METPF_ET"), 
-			fData->Get<float>("T_METtc_ET") );  // NISHU WAY : FIXME CHANGED
+	const double met = fData->Get<float>("T_METPF_ET");
+	//TMath::Min( fData->Get<float>("T_METPF_ET"), fData->Get<float>("T_METtc_ET") );  // NISHU WAY : FIXME CHANGED
 	(*auxVar)[0] = met;
 	// Fill histo before cut
 	_histos[fHMETAfterZCand]->Fill(met,puw);
