@@ -2,7 +2,6 @@ SHELL = /bin/sh
 
 PACKAGE   := $(shell basename `pwd`)
 
-
 ### Dependencies
 DEPPKG     := VectorUtils TResultsTable TCounterUI PUWeight \
 	DatasetManager InputParameters TreeManager CutManager \
@@ -47,6 +46,7 @@ setup.sh: cleansetup
 	@echo "======= $(PACKAGE): Creating setup script ======"
 	@for line in $(SETUPFILE) ; do echo $$line >> setup.sh.tmp; done
 	@mv setup.sh.tmp setup.sh
+	@chmod 755 setup.sh
 
 
 cleanall: 
