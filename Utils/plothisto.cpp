@@ -111,10 +111,10 @@ double GetWeight(TFile* f, double luminosity)
 	ip->TheNamedInt("NEventsSample", neventssample);
 	ip->TheNamedInt("NEventsTotal", neventsskim);
 	double weight = xs * luminosity / neventssample;
-	std::cout << " XS=" << xs 
-		<< " NEv. Sample=" << neventssample 
-		<< " NEv. Skim=" << neventsskim
-		<< " Weight = " << weight << std::endl;
+//	std::cout << " XS=" << xs 
+//		<< " NEv. Sample=" << neventssample 
+//		<< " NEv. Skim=" << neventsskim
+//		<< " Weight = " << weight << std::endl;
 	return weight;
 }
 
@@ -144,21 +144,23 @@ void PlotAll(const common & cd ,
 
 	gROOT->SetBatch(1);
 	
+	std::cout << "\033[1;34mPlotAll INFO\033[1;m Plotting '" << histoname
+		<< "' histogram for all the signal and background" << std::endl;
 	//////
 	//Open the files
-	std::cout << ">> Opening files..." << std::endl;
+//	std::cout << ">> Opening files..." << std::endl;
 	// + Data
-	std::cout << "   + Data: " << data << std::endl;
+//	std::cout << "   + Data: " << data << std::endl;
 	TFile* fdata = OpenFile(data);
 	// + Signal
-	std::cout << "   + Signal: " << sig << std::endl;
+//	std::cout << "   + Signal: " << sig << std::endl;
 	TFile* fwh = OpenFile(sig);
 	// + Backgrounds
 	TFile* fbkg[NBKG];
 	TFile* fbkgzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG ; i++) 
 	{
-		std::cout << "   + Background: " << bkg[i] << std::endl;
+//		std::cout << "   + Background: " << bkg[i] << std::endl;
 		if(bkg[i] != "ZJets_Powheg") 
 		{
 			fbkg[i] = OpenFile(bkg[i]);
@@ -168,7 +170,7 @@ void PlotAll(const common & cd ,
 			fbkg[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-				std::cout << "     - " << bkgzjets[j] << std::endl;
+//				std::cout << "     - " << bkgzjets[j] << std::endl;
 				fbkgzjets[j] = OpenFile(bkgzjets[j]);
 			}
 		}
@@ -176,19 +178,19 @@ void PlotAll(const common & cd ,
 
 	//////
 	// Get the Histograms
-	std::cout << ">> Getting histograms..." << std::endl;
+//	std::cout << ">> Getting histograms..." << std::endl;
 	// + Data
-	std::cout << "   + Data: " << data << std::endl;
+//	std::cout << "   + Data: " << data << std::endl;
 	TH1D * hdata = GetHistogram(histoname, fdata, "Data");
 	// + Signal
-	std::cout << "   + Signal: " << sig << std::endl;
+//	std::cout << "   + Signal: " << sig << std::endl;
 	TH1D* hwh = GetHistogram(histoname, fwh, sig);
 	// + Backgrounds
 	TH1D* hbkg[NBKG];
 	TH1D* hbkgzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-		std::cout << "   + Background: " << bkg[i] << std::endl;
+//		std::cout << "   + Background: " << bkg[i] << std::endl;
 		if(fbkg[i])
 		{
 			hbkg[i] = GetHistogram(histoname, fbkg[i], bkg[i]);
@@ -199,7 +201,7 @@ void PlotAll(const common & cd ,
 			hbkg[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-				std::cout << "     - " << bkgzjets[j] << std::endl;
+//				std::cout << "     - " << bkgzjets[j] << std::endl;
 				hbkgzjets[j] = GetHistogram(histoname, fbkgzjets[j], bkgzjets[j]);
 			}
 		}
@@ -207,11 +209,11 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Get the input parameters that we need: cross sections, n. events...
-	std::cout << ">> Getting Input Parameters..." << std::endl;
+//	std::cout << ">> Getting Input Parameters..." << std::endl;
 	gSystem->Load("libInputParameters.so");
 	
 	// + Signal
-	std::cout << "   + Signal: " << sig << " -" << std::flush;
+//	std::cout << "   + Signal: " << sig << " -" << std::flush;
 	double weightwh = GetWeight(fwh, luminosity);
 	
 	// + Background
@@ -219,7 +221,7 @@ void PlotAll(const common & cd ,
 	double weightzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
+//		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
 		if(fbkg[i])
 		{
 			weight[i] = GetWeight(fbkg[i], luminosity);
@@ -230,7 +232,7 @@ void PlotAll(const common & cd ,
 			weight[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
+//				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
 				weightzjets[j] = GetWeight(fbkgzjets[j], luminosity);
 			}
 		}
@@ -238,33 +240,33 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Get the input parameters that we need: cross sections, n. events...
-	std::cout << ">> Counting events..." << std::endl;
+//	std::cout << ">> Counting events..." << std::endl;
 	// + Data
-	std::cout << "   + Data: " << data << std::endl;
+//	std::cout << "   + Data: " << data << std::endl;
 	double nevdat = hdata->GetEntries();
 	// + Signal
-	std::cout << "   + Signal: " << sig << " -" << std::flush;
+//	std::cout << "   + Signal: " << sig << " -" << std::flush;
 	double nevwh  = GetNormEntries(hwh, weightwh);
 	// + Background
 	double nevbkg = 0;
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
+//		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
 		if(fbkg[i]) 
 		{
 			nevbkg += GetNormEntries(hbkg[i], weight[i]); 
-			std::cout << " - Total: " << nevbkg << std::endl;
+//			std::cout << " - Total: " << nevbkg << std::endl;
 		}
 		else
 		{
 			double nevzjets = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
+//				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
 				nevzjets += GetNormEntries(hbkgzjets[j], weightzjets[j]); 
-				std::cout << " - Total: " << nevzjets << std::endl;
+//				std::cout << " - Total: " << nevzjets << std::endl;
 			}
-			std::cout << "     - Total: " << nevzjets << std::endl;
+//			std::cout << "     - Total: " << nevzjets << std::endl;
 			nevbkg += nevzjets;
 		}
 	}
@@ -272,16 +274,16 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Scale histograms to luminosity and cross section
-	std::cout << ">> Scaling histograms..." << std::endl;
+//	std::cout << ">> Scaling histograms..." << std::endl;
 	int izjets = -1;
 	if(plottype==0 || plottype==1) 
 	{
-		std::cout << "   + Signal: " << sig << " - " << std::flush;
-		std::cout << weightwh << std::endl;
+//		std::cout << "   + Signal: " << sig << " - " << std::flush;
+//		std::cout << weightwh << std::endl;
 		hwh->Scale(weightwh*SIGNALFACTOR);
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
-			std::cout << "   + Background: " << bkg[i] << " - " << weight[i] << std::endl;
+//			std::cout << "   + Background: " << bkg[i] << " - " << weight[i] << std::endl;
 			if(fbkg[i])
 			{
 				hbkg[i]->Scale(weight[i]);
@@ -291,7 +293,7 @@ void PlotAll(const common & cd ,
 				izjets = i;
 				for(unsigned int j = 0; j < NBKGZJETS; j++) 
 				{
-					std::cout << "     - " << bkgzjets[j] << std::endl;
+//					std::cout << "     - " << bkgzjets[j] << std::endl;
 					hbkgzjets[j]->Scale(weightzjets[j]);
 				}
 			}
@@ -299,11 +301,11 @@ void PlotAll(const common & cd ,
 	}
 	else if(plottype==2) 
 	{
-		std::cout << "   + Signal: " << sig << std::endl;
+//		std::cout << "   + Signal: " << sig << std::endl;
 		hwh->Scale(1./hwh->Integral());
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
-			std::cout << "   + Background: " << bkg[i]<< std::endl;
+//			std::cout << "   + Background: " << bkg[i]<< std::endl;
 			if(fbkg[i])
 			{
 				hbkg[i]->Scale(1./hbkg[i]->Integral());
@@ -313,7 +315,7 @@ void PlotAll(const common & cd ,
 				izjets = i;
 				for(unsigned int j = 0; j < NBKGZJETS; j++) 
 				{
-					std::cout << "     - " << bkgzjets[j] << std::endl;
+//					std::cout << "     - " << bkgzjets[j] << std::endl;
 					hbkgzjets[i]->Scale(1./hbkgzjets[j]->Integral());
 				}
 			}
@@ -322,13 +324,13 @@ void PlotAll(const common & cd ,
 
 	if(izjets != -1) 
 	{
-		std::cout << "   + Adding Z+Jets histograms" << std::endl;
-		std::cout << "     - " << bkgzjets[0] << std::endl;
+//		std::cout << "   + Adding Z+Jets histograms" << std::endl;
+//		std::cout << "     - " << bkgzjets[0] << std::endl;
 		hbkg[izjets] = (TH1D*) hbkgzjets[0]->Clone("ZJets");
 		hbkg[izjets]->SetDirectory(0);
 		for(unsigned int j = 1; j < NBKGZJETS; j++) 
 		{
-			std::cout << "     - " << bkgzjets[j] << std::endl;
+//			std::cout << "     - " << bkgzjets[j] << std::endl;
 			hbkg[izjets]->Add(hbkgzjets[j]);
 		}
 	}
@@ -336,7 +338,7 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Rebin histograms
-	std::cout << ">> Rebinning histograms by a factor " << rebin << "..." << std::endl;
+//	std::cout << ">> Rebinning histograms by a factor " << rebin << "..." << std::endl;
 	hdata->Rebin(rebin);
 	hwh->Rebin(rebin);
 	for(unsigned int i = 0; i < NBKG; i++)
@@ -357,9 +359,11 @@ void PlotAll(const common & cd ,
 	colors.push_back(kGreen-3);
 	colors.push_back(kBlue+5);
 
-	std::cout << ">> Setting colors and styles..." << std::endl;
+//	std::cout << ">> Setting colors and styles..." << std::endl;
 	hdata->SetMarkerStyle(20);
+	hdata->SetLineColor(hdata->GetMarkerColor());
 	gStyle->SetOptStat(0);
+	gStyle->SetLegendBorderSize(0);
 
 	hwh->SetFillColor(kOrange-2);
 	hwh->SetLineColor(kOrange-1);
@@ -376,64 +380,85 @@ void PlotAll(const common & cd ,
 	//////
 	//Drawing
 	TCanvas* canvas = new TCanvas(sig, sig);
+	//-- Ration histogram for log plots
+	TH1 * ratio = new TH1F("ratio","",hdata->GetNbinsX(),
+			hdata->GetXaxis()->GetXmin(),hdata->GetXaxis()->GetXmax());
+	ratio->SetMarkerStyle(20);
+	ratio->SetLineColor(hdata->GetMarkerColor());
 	if(plottype == 0) 
 	{
 		// 1.- Stack
-		std::cout << ">> Stacking..." << std::endl;
+//		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
 		for(unsigned int i = 0; i < NBKG; i++)
 		{
+			// stack
 			hs->Add(hbkg[i]);
+			// ratio histo
+			ratio->Add(hbkg[i]); 
 		}
 		hs->Add(hwh);
+		ratio->Add(hwh);
 		
 		//2.- Draw data
-		std::cout << ">> Drawing..." << std::endl;
+//		std::cout << ">> Drawing..." << std::endl;
 		double hsmax = 1.1 * hs->GetMaximum();
 		double hdmax = 1.1 * hdata->GetMaximum();
 		hs->SetMaximum(TMath::Max(hsmax, hdmax));
 		//   Create canvas
-		std::cout << "   + Stack" << std::endl;
+//		std::cout << "   + Stack" << std::endl;
 		hs->Draw();
-		std::cout << "   + Data" << std::endl;
+//		std::cout << "   + Data" << std::endl;
 		hdata->Draw("E SAME");
-		
+
 		//3.- Set titles and axis
 		hs->SetTitle(hdata->GetTitle());
 		hs->GetXaxis()->SetTitle(hdata->GetTitle());
+		hs->GetYaxis()->SetTitle("Events");///"+
+//				TString(hs->GetXaxis()->GetBinWidth(1)));
+		
+		//4.- ratio plot
+		ratio->Divide(hdata);
+		
 	}
 	else if(plottype == 1) 
 	{
 		// 1.- Stack
-		std::cout << ">> Stacking..." << std::endl;
+//		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
 		for(unsigned int i = 0; i < NBKG; i++)
 		{
 			hs->Add(hbkg[i]);
+			ratio->Add(hbkg[i]); 
 		}
 		
 		//2.- Draw signal and data
-		std::cout << ">> Drawing..." << std::endl;
+//		std::cout << ">> Drawing..." << std::endl;
 		double hmax = 1.1 * hs->GetMaximum();
 		hmax = TMath::Max(hmax, 1.1 * hdata->GetMaximum());
 		hmax = TMath::Max(hmax, 1.1 * hwh->GetMaximum());
 		hs->SetMaximum(hmax);
 		//   Create canvas
 	//	TCanvas* canvas = new TCanvas(sig, sig);
-		std::cout << "   + Stack" << std::endl;
+//		std::cout << "   + Stack" << std::endl;
 		hs->Draw();
-		std::cout << "   + Signal" << std::endl;
+//		std::cout << "   + Signal" << std::endl;
 		hwh->Draw("SAME");
-		std::cout << "   + Data" << std::endl;
+//		std::cout << "   + Data" << std::endl;
 		hdata->Draw("E SAME");
 
 		//3.- Set titles and axis
 		hs->SetTitle(hdata->GetTitle());
 		hs->GetXaxis()->SetTitle(hdata->GetTitle());
+		hs->GetYaxis()->SetTitle("Events");///"+
+//				TString(hs->GetXaxis()->GetBinWidth(1)));
+	
+		//4.- ratio plot
+		ratio->Divide(hdata);
 	}
 	else if(plottype == 2) 
 	{
-		std::cout << ">> Drawing..." << std::endl;
+//		std::cout << ">> Drawing..." << std::endl;
 		double max=1.1*hwh->GetMaximum();
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
@@ -453,7 +478,7 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Setting the "stats"
-	std::cout << ">> Printing stats..." << std::endl;
+//	std::cout << ">> Printing stats..." << std::endl;
 	TString datstats = Form("Data: %.0f", nevdat);
 	int ndec = 0;
 	if(nevbkg < 1000)
@@ -467,16 +492,19 @@ void PlotAll(const common & cd ,
 	TString lumstats = Form("Lumi: %.1f fb^{-1}",luminosity/1000);
 	TString bkgstats = Form("Bkg.: %.*f",ndec, nevbkg);
 	TString sigstats = Form("Sig.: %.4f", nevwh);
-	TPaveText* stats = new TPaveText(0.78,0.78,0.98,0.98, "NDC");
+	//TPaveText* stats = new TPaveText(0.78,0.78,0.98,0.98, "NDC");
+	TPaveText* stats = new TPaveText(0.72,0.78,0.92,0.98, "NDC");
 	stats->SetTextAlign(12);
 	stats->AddText(lumstats);
 	stats->AddText(datstats);
 	stats->AddText(bkgstats);
 	stats->AddText(sigstats);
+	stats->SetFillColor(10);
+	stats->SetBorderSize(0);
 	stats->Draw();
 	//////
 	// Setting the legend
-	std::cout << ">> Legend..." << std::endl;
+//	std::cout << ">> Legend..." << std::endl;
 	TString format;
 	if(plottype == 0 || plottype == 1)
 	{
@@ -487,7 +515,9 @@ void PlotAll(const common & cd ,
 		format="l";
 	}
 	
-	TLegend *legend = new TLegend(0.78,0.50,0.98,0.75);
+	//TLegend *legend = new TLegend(0.78,0.50,0.98,0.75);
+	TLegend *legend = new TLegend(0.72,0.65,0.98,0.775);
+	legend->SetNColumns(2);
 	legend->AddEntry(hdata, dlegend, "p");
 	TString llegend;
 	llegend += SIGNALFACTOR;
@@ -497,24 +527,90 @@ void PlotAll(const common & cd ,
 	{
 		legend->AddEntry(hbkg[i],blegend[i],format);
 	}
+	legend->SetFillColor(10);
 	legend->Draw();
 	
 	gSystem->MakeDirectory("Plots");
 	canvas->SaveAs("Plots/"+histoname+".eps");
-	canvas->SetLogy();
+	//canvas->SetLogy();
+	if( plottype != 2 )
+	{
+		//=====  Ratio plot
+		// Recovering the content of the canvas
+		TH1D * _hdata = new TH1D();
+		THStack * _hstack = new THStack();
+		TIter next(canvas->GetListOfPrimitives());
+		TObject * obj = 0;
+		while( (obj = next()) )
+		{
+			if( obj->InheritsFrom(TH1D::Class()) )
+			{
+				_hdata = (TH1D*)obj;
+			}
+			else if( obj->InheritsFrom(THStack::Class()) )
+			{
+				_hstack = (THStack*)obj;
+			}
+		}
+		if( _hdata == 0 || _hstack == 0 )
+		{
+			std::cerr << "\033[1;31mPlotAll ERROR\033[1;m Some inconsistency"
+				<< " found. Trying to generate the ratio MC-data plot it"
+				<< " is not instantiate the data and MC histograms. Exiting"
+				<< std::endl;
+			exit(-1);
+		}
+
+		//----- Up pad where the log plot goes in
+		TPad * pad1 = new TPad("pad1_"+histoname,"pad1",0,0.3,1,1);
+		//pad1->SetBottomMargin(-0.5);
+		pad1->SetBottomMargin(0);
+		pad1->SetLogy();
+		pad1->Draw();
+		pad1->cd();
+		_hstack->Draw();
+		_hdata->Draw("E SAME");
+		
+		canvas->cd();
+		//---- Down pad where the ratio plot goes in
+		TPad * pad2 = new TPad("pad2_"+histoname,"pad2",0,0,1,0.3);
+		pad2->SetTopMargin(0);
+		pad2->SetBottomMargin(0.3);
+		pad2->Draw();
+		pad2->cd();
+		//---- Ratio histogram
+		ratio->SetXTitle(_hdata->GetTitle());
+		ratio->GetXaxis()->SetTitleSize(0.08);
+		ratio->GetXaxis()->SetLabelSize(0.08);
+		ratio->GetYaxis()->SetNdivisions(205);
+		ratio->GetYaxis()->SetTitle("N_{MC}/N_{data}");
+		ratio->GetYaxis()->SetTitleSize(0.08);
+		ratio->GetYaxis()->SetTitleOffset(0.4);
+		ratio->GetYaxis()->SetLabelSize(0.08);
+		ratio->Draw("E");
+		TLine * line =  new TLine(0,1,ratio->GetXaxis()->GetXmax(),1);
+		line->SetLineColor(46);
+		line->SetLineStyle(8);
+		line->Draw("SAME");
+
+		canvas->cd();
+		legend->SetY1(legend->GetY1()+0.2);
+		legend->SetY2(legend->GetY2()+0.2);
+		legend->Draw();
+		stats->SetY1(stats->GetY1()+0.2);
+		stats->SetY2(stats->GetY2()+0.2);
+		stats->Draw();
+	}
+
 	canvas->SaveAs("Plots/"+histoname+"_log.eps");
 	canvas->SetLogy(0);
 	
 	//////
 	// Close files
-	std::cout << ">> Closing files..." << std::endl;
-	std::cout << "   + Data: " << data << std::endl;
 	fdata->Close();
-	std::cout << "   + Signal: " << sig << std::endl;
 	fwh->Close();
 	for(unsigned int i = 0; i < NBKG ; i++) 
 	{
-		std::cout << "   + Background: " << bkg[i] << std::endl;
 		if(fbkg[i])
 		{
 			fbkg[i]->Close();
@@ -524,7 +620,6 @@ void PlotAll(const common & cd ,
 			//ZJets
 			for (unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-				std::cout << "     - " << bkgzjets[j] << std::endl;
 				fbkgzjets[j]->Close();
 			}
 		}
