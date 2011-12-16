@@ -384,7 +384,7 @@ void PlotAll(const common & cd ,
 	//Drawing
 	TCanvas* canvas = new TCanvas(sig, sig);
 	//-- Ration histogram for log plots
-	TH1 * ratio = new TH1F("ratio","",hdata->GetNbinsX(),
+	TH1F * ratio = new TH1F("ratio","",hdata->GetNbinsX(),
 			hdata->GetXaxis()->GetXmin(),hdata->GetXaxis()->GetXmax());
 	ratio->SetMarkerStyle(20);
 	ratio->SetLineColor(hdata->GetMarkerColor());
@@ -393,15 +393,16 @@ void PlotAll(const common & cd ,
 		// 1.- Stack
 //		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
+		TH1F * mcratio = (TH1F*)ratio->Clone("mcratio");
 		for(unsigned int i = 0; i < NBKG; i++)
 		{
 			// stack
 			hs->Add(hbkg[i]);
 			// ratio histo
-			ratio->Add(hbkg[i]); 
+			mcratio->Add(hbkg[i]); 
 		}
 		hs->Add(hwh);
-		ratio->Add(hwh);
+		mcratio->Add(hwh);
 		
 		//2.- Draw data
 //		std::cout << ">> Drawing..." << std::endl;
@@ -421,7 +422,7 @@ void PlotAll(const common & cd ,
 //				TString(hs->GetXaxis()->GetBinWidth(1)));
 		
 		//4.- ratio plot
-		ratio->Divide(hdata);
+		ratio->Divide(hdata,mcratio);
 		
 	}
 	else if(plottype == 1) 
@@ -429,10 +430,11 @@ void PlotAll(const common & cd ,
 		// 1.- Stack
 //		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
+		TH1F * mcratio = (TH1F*)ratio->Clone("mcratio");
 		for(unsigned int i = 0; i < NBKG; i++)
 		{
 			hs->Add(hbkg[i]);
-			ratio->Add(hbkg[i]); 
+			mcratio->Add(hbkg[i]); 
 		}
 		
 		//2.- Draw signal and data
@@ -457,7 +459,7 @@ void PlotAll(const common & cd ,
 //				TString(hs->GetXaxis()->GetBinWidth(1)));
 	
 		//4.- ratio plot
-		ratio->Divide(hdata);
+		ratio->Divide(hdata,mcratio);
 	}
 	else if(plottype == 2) 
 	{
@@ -586,7 +588,7 @@ void PlotAll(const common & cd ,
 		ratio->GetXaxis()->SetTitleSize(0.08);
 		ratio->GetXaxis()->SetLabelSize(0.08);
 		ratio->GetYaxis()->SetNdivisions(205);
-		ratio->GetYaxis()->SetTitle("N_{MC}/N_{data}");
+		ratio->GetYaxis()->SetTitle("N_{data}/N_{MC}");
 		ratio->GetYaxis()->SetTitleSize(0.08);
 		ratio->GetYaxis()->SetTitleOffset(0.4);
 		ratio->GetYaxis()->SetLabelSize(0.08);

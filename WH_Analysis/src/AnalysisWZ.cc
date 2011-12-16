@@ -440,17 +440,6 @@ unsigned int AnalysisWZ::InsideLoop()
 	}
 	FillHistoPerCut(WZCuts::_iHLT, puw, fsNTau);
 
-	// Vertex cut (Event stuff)-- OBSOLETE (implemented per default) SURE?
-	//int iGoodVertex = GoodVertex();
-	//int iGoodVertex = 0; // First one
-	//fLeptonSelection->PassEventsCuts();
-	//if( iGoodVertex < 0)
-	//{
-	//	return WZCuts::_iGoodVertex;
-	//}
-	FillHistoPerCut(WZCuts::_iGoodVertex, puw, fsNTau);
-	
-
 	// Store the number of reconstructed leptons without any filter
 	int nLeptonsbfCuts = 0;
 	for(unsigned int i = 0; i < fLeptonName.size(); ++i)
@@ -763,21 +752,29 @@ unsigned int AnalysisWZ::InsideLoop()
 	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
 	{
 		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
-		//FIXME: Add the cuts to the config file
-		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
-				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
-				fabs(Jet.DeltaR(lepton[2])) > 0.3) 
+		//FIXME: Add the pt,eta and deltaR cuts in the config file
+		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
 		{
-			nJets++;
+			continue;
 		}
+		// Leptons not inside the Jets
+		bool leptoninsideJet = false;
+		for(unsigned int j = 0; j < lepton.size(); ++j)
+		{
+			if( fabs(Jet.DeltaR(lepton[j])) > 0.3 )
+			{
+				leptoninsideJet = true;
+				break;
+			}
+		}
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		nJets++;
 	}
 	// Storing before the veto
 	_histos[fHNJets]->Fill(nJets,puw);
-	//if(nJets > 0)   ---> TESTING WITH NO JET VETO
-	//{
-	//	return WZCuts::_iJetVeto;
-	//}
-	FillHistoPerCut(WZCuts::_iJetVeto, puw, fsNTau);
   	
 	
 	// MET
