@@ -142,10 +142,13 @@ void PlotAll(const common & cd ,
 	const unsigned int NBKG = bkg.size();
 	const unsigned int NBKGZJETS = bkgzjets.size();
 
+
 	gROOT->SetBatch(1);
 	
 	std::cout << "\033[1;34mPlotAll INFO\033[1;m Plotting '" << histoname
 		<< "' histogram for all the signal and background" << std::endl;
+	
+	//gSystem->RedirectOutput("log_kkita.txt","a");
 	//////
 	//Open the files
 //	std::cout << ">> Opening files..." << std::endl;

@@ -87,6 +87,13 @@ class table(object):
 
 		# available filenames
 		self.filenames = glob.glob("cluster_*/Results/*.root")
+		if signal.find("WH") == 0:
+			#Extract the other WH signals
+			potentialSfiles = filter(lambda x : x.find("WH") == 0,self.filenames)
+			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
+			# Removing
+			for f in nonsignalfiles:
+				self.filenames.remove(f)
 		# samples names
 		self.samples = map(lambda x: os.path.basename(x).split(".")[0], self.filenames )
 		self.filesamplemap = dict(map(lambda x: (x,os.path.basename(x).split(".")[0]), self.filenames ))
@@ -246,7 +253,7 @@ class table(object):
 						# - keeping the integer part
 						valstr = '%i' % val
 						decpart= val-int(valstr)
-						decpartstrformat = "%."+exponent+"f" 
+						decpartstrformat = "%."+str(exponent)+"f" 
 						decpartstrPRE = decpartstrformat % decpart
 						decpartstr = decpartstrPRE.split(".")[-1]
 						if numbuilt[0] == "1":
@@ -334,7 +341,7 @@ if __name__ == '__main__':
 		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
 		sys.exit( message )
 	
-	usage="usage: printtable <WZ|WH> [options]"
+	usage="usage: printtable <WZ|WHnnn> [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(output="table.tex")
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format" )
@@ -345,13 +352,19 @@ if __name__ == '__main__':
 		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory argument signal, see usage."
 		sys.exit(message)
 	signal = args[0]
-	if signal != "WZ" and signal != "WH":
+	if signal != "WZ" and signal.find("WH") != 0:
 		message = "\033[1;31mprinttable ERROR\033[1;m Signal '"+signal+"' not implemented, see usage."
 		sys.exit(message)
 
+	if signal.find("WH") == 0:
+		signal = signal.replace("WH","WHToWW2L")
 
+
+	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
+	sys.stdout.flush()
 	t = table(signal)
 	t.saveas(opt.output)
+	print "("+opt.output+")"
 
 
 
