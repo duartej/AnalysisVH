@@ -40,7 +40,7 @@ struct WZCuts
 		_iAllEvents,          //  0
 		_iIsWH,               //  1 For WH samples get the number of WH events
 		_iHLT,                //  2
-		_iGoodVertex,         //  3
+		//_iGoodVertex,         //  3 : DEPRECATED --> In Latinos tree always true
 		_iHas2Leptons,        //  4
 		_iHas2PVLeptons,      //  5
 		_iHas2IsoLeptons,     //  6
@@ -50,7 +50,7 @@ struct WZCuts
 		_iHasZCandidate,      // 10 Has a Z candidate
 		_iHasZOverlapping,    // 11 Has another Z candidate (ZZ)
 		_iHasWCandidate,      // 11 Has a W candidate
-		_iJetVeto,            // 12 Reject events with a jet
+		//_iJetVeto,            // 12 Reject events with a jet: DEPRECATED
 		_iMET,                // 15 Missing ET cut
 		_iNCuts               //  N
 	};
