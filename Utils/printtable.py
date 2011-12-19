@@ -296,7 +296,6 @@ class table(object):
 					self.format.exponentstart+str(exponent)+self.format.exponentend
 		else:
 			totalvalstr = valstr+self.format.plusminus+errstr
-		print totalvalstr,val,err
 		return totalvalstr
 
 
