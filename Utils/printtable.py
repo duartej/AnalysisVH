@@ -89,7 +89,7 @@ class table(object):
 		self.filenames = glob.glob("cluster_*/Results/*.root")
 		if signal.find("WH") == 0:
 			#Extract the other WH signals
-			potentialSfiles = filter(lambda x : x.find("WH") == 0,self.filenames)
+			potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
 			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
 			# Removing
 			for f in nonsignalfiles:
