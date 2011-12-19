@@ -35,20 +35,30 @@ Nov. 25th 2011-- Tag release v03.00: Included the AnalysisBase class
   * Each concrete analysis inherits from AnalysisBase which take account the interaction with the data
   * It is needed to virtualize some methods in AnalysisBase in order to let choose the concrete analysis
   what wants to store
+Dec. 19th 2011-- Tag release v04.00: WZ analysis stable
+  * Deep cleaning of WZ analysis and incorporation of new cuts (dR internal bremsstralung). Results show
+  good agreement data-MC (see WZ2011_MCFall11 dir)
+  * CutLevels is promoted to a package (out of WH_Analysis), the class keeps the cuts order of every 
+  analysis.
+  * Deprecated TResultsTable package in favor of printtable.py script
+  * Analysis workflow up to now:
+     1. Call 'datamanagercreator -r <2011|2011A|2011B> -f <mmm|mme|eem|eee>' to create the 
+     datafiles containing the path to the root files (Name_datanames.dn)
+     2. Create a directory for each final state
+     3. Launch 'sendall.sh' script (not yet in this repository, to be incorporated soon)
+     4. Collect all outputs with 'collectall.sh' script (not yet in this repo)
+     5. Merge all final states into the one (lepton final state) using 'merge3leptonsfs -d dirch1,dirch2,...'
+     6. Do the plots using 'plotall.sh' (not yet in this repo)
+   You can see what are the actual process call in each script
 
 
 TODO:
-  A. Tree at the level of pre-selection--> URGENT --> DONE
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email)
-  1a.Change the data files to be used depending the lepton final state when use data  --> DONE
   5. Check with the *.sh.e* the good behaviour of the job
   9. Put in the configuration the Working Point to be used in the Electrons
-  10.Join all the histos and tables in one (lepton state) --> DONE
-  11.Improve the output of sendcluster when searching for output status: Running jobs [list], Queue jobs... -->DONE
   12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
      runanalysis job
-  13.Improve the cosmethics of plothisto (legends and statistics)
   14.Include a 'resubmit' argument to sendcluster
   15.Promote to 'Utils' the plotall.sh collectall.sh and sendall.sh scripts (just is needed an argument defining the 
      king of signal used)
