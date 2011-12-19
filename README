@@ -61,6 +61,6 @@ TODO:
      runanalysis job
   14.Include a 'resubmit' argument to sendcluster
   15.Promote to 'Utils' the plotall.sh collectall.sh and sendall.sh scripts (just is needed an argument defining the 
-     king of signal used)
+     kind of signal used)
 
 

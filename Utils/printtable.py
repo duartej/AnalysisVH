@@ -262,18 +262,18 @@ class table(object):
 						decpart= val-int(valstr)
 						if valstr == '0':
 							valstr = ''
-						if exponent != nafterpoint:						
-							decpartstrformat = "%."+str(exponent+1)+"f" 
+						if exponent != nafterpoint:
+							missing = nafterpoint-exponent
+							decpartstrformat = "%."+str(exponent+missing)+"f" 
 						else:
 							decpartstrformat = "%."+str(exponent)+"f" 
 						# To rounding properly
 						decpartstrPRE = decpartstrformat % decpart
 						# get only the decimal part
 						decpartstrONLY = decpartstrPRE.split(".")[-1]
-						#decpartstr = decpartstrPRE.split(".")[-1]
 						# Moving down the decimal point
 						decpartstr = ''
-						for i in xrange(nafterpoint):
+						for i in xrange(exponent):
 							decpartstr += decpartstrONLY[i]
 						decpartstr = str(int(decpartstr))
 
@@ -296,7 +296,7 @@ class table(object):
 					self.format.exponentstart+str(exponent)+self.format.exponentend
 		else:
 			totalvalstr = valstr+self.format.plusminus+errstr
-		
+		print totalvalstr,val,err
 		return totalvalstr
 
 
