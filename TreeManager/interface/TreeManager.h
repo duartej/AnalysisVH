@@ -3,7 +3,7 @@
 // Package:    TreeManager
 // Class:      TreeManager
 // 
-/**\class  TreeManager.h
+/**\class  TreeManager
 
  Description: This class manage the output format of the root files.
               This is an abstract class and the concrete classes

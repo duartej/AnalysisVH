@@ -3,7 +3,7 @@
 // Package:    CutManager
 // Class:      CutManager
 // 
-/**\class  CutManager.h src/CutManager.h
+/**\class  CutManager
 
  Description: Abstract class in charge of apply cuts
 

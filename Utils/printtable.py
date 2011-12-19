@@ -38,8 +38,11 @@ class format(object):
 			self.cellrowitstart = ' {\\bf '
 			self.cellrowitend = ' } '
 			self.plusminus = ' $\\pm$ '
+			self.exponentstart = '$^{'
+			self.exponentend   = '}$'
+			self.cdot = "$\\cdot$"
 		elif format.lower() == 'html':
-			self.tablestart = '<table border="1px" cellpadding="4px" cellspacing="0">'
+			self.tablestart = '<table border="0px" cellpadding="4px" cellspacing="0">'
 	        	self.tableend   = '</table>'
 	        	self.rowstart   = '<tr>'
 	        	self.rowend     = '</tr>'
@@ -50,6 +53,9 @@ class format(object):
 	        	self.cellrowitstart = '<th align="right" bgcolor="lightblue">'
 	        	self.cellrowitend = '</th>'
 	        	self.plusminus = '&plusmn;'
+			self.exponentstart  = '<sup>'
+			self.exponentend    = '</sup>'
+			self.cdot = '&middot;'
 		else:
 			raise "\033[1;31mformat ERROR\033[1;m Format "+format+\
 					" not implemented"
@@ -250,12 +256,27 @@ class table(object):
 						errstr = nsignumberformat % err
 						exponent= int(errstr.split("e-")[-1])
 						errstr = errstr.split("e-")[0]
-						# - keeping the integer part
+						# - keeping the integer part 
+						#   FIXME: assume at least 10^-3...
 						valstr = '%i' % val
 						decpart= val-int(valstr)
-						decpartstrformat = "%."+str(exponent)+"f" 
+						if valstr == '0':
+							valstr = ''
+						if exponent != nafterpoint:						
+							decpartstrformat = "%."+str(exponent+1)+"f" 
+						else:
+							decpartstrformat = "%."+str(exponent)+"f" 
+						# To rounding properly
 						decpartstrPRE = decpartstrformat % decpart
-						decpartstr = decpartstrPRE.split(".")[-1]
+						# get only the decimal part
+						decpartstrONLY = decpartstrPRE.split(".")[-1]
+						#decpartstr = decpartstrPRE.split(".")[-1]
+						# Moving down the decimal point
+						decpartstr = ''
+						for i in xrange(nafterpoint):
+							decpartstr += decpartstrONLY[i]
+						decpartstr = str(int(decpartstr))
+
 						if numbuilt[0] == "1":
 							valstr += decpartstr[:-1]+"."+decpartstr[-1]
 						else:
@@ -271,10 +292,11 @@ class table(object):
 					break
 	
 		if nafterpoint > 3:
-			totalvalstr = "("+valstr+self.format.plusminus+errstr+")E-"+str(exponent)
+			totalvalstr = "("+valstr+self.format.plusminus+errstr+")"+self.format.cdot+"10"+\
+					self.format.exponentstart+str(exponent)+self.format.exponentend
 		else:
 			totalvalstr = valstr+self.format.plusminus+errstr
-
+		
 		return totalvalstr
 
 
@@ -282,7 +304,7 @@ class table(object):
 	def printstr(self,format=''):
 		"""
 		"""
-		if not self.format.format:
+		if format != '':
 			self.setformat(format)
 
 		lines = self.format.tablestart+"\n"
@@ -344,7 +366,8 @@ if __name__ == '__main__':
 	usage="usage: printtable <WZ|WHnnn> [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(output="table.tex")
-	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format" )
+	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format," \
+			" can be more than one comma separated" )
 
 	( opt, args ) = parser.parse_args()
 
@@ -363,8 +386,13 @@ if __name__ == '__main__':
 	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()
 	t = table(signal)
-	t.saveas(opt.output)
-	print "("+opt.output+")"
+	print "( ",
+	sys.stdout.flush()
+	for fileoutput in opt.output.split(","):
+		t.saveas(fileoutput)
+		print fileoutput+" ",
+		sys.stdout.flush()
+	print ")"
 
 
 
