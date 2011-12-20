@@ -13,6 +13,8 @@ SOURCES    := $(wildcard *.cc)
 EXE        := $(patsubst %.cc,$(BINPATH)/%,$(SOURCES))
 PYSOURCES  := $(wildcard *.py)
 PYEXE      := $(patsubst %.py,$(BINPATH)/%,$(PYSOURCES))
+SHSOURCES  := $(wildcard *.sh)
+SHEXE      := $(patsubst %.sh,$(BINPATH)/%,$(SHSOURCES))
 
 # executables which need some of our libraries
 CPPSOURCES := $(wildcard *.cpp)
@@ -26,7 +28,12 @@ ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)
 ROOTLIBS   ?= $(shell root-config --libs)
 
-all: $(EXE) $(PYEXE) $(CPPEXE)
+all: $(EXE) $(PYEXE) $(CPPEXE) $(SHEXE) 
+
+$(SHEXE): $(SHSOURCES)
+	@echo "++++ Copying bash scripts ($@)"
+	@cp $(patsubst $(BINPATH)/%,%.sh,$@) $@
+	@chmod 755 $@
 
 $(EXE): $(SOURCES)
 	@echo "++++ Creating Executable ($@)"
