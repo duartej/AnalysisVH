@@ -157,38 +157,32 @@ void AnalysisVH::Initialise()
 	_histos[fHMaxDeltaPhiLp1Lp2] = CreateH1D("fHMaxDeltaPhiLp1Lp2", "Largest #Delta #phi_{#mu#mu}",
 			120, 0, TMath::Pi());
 	
-	// Selected Isolated Good Muons
+	// Sum of charge of selected Isolated Good Leptons after opp. sign cut
 	_histos[fHLeptonCharge] = CreateH1D("fHLeptonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
 		
-	// Invariant mass of leptons supposedly from H  
+	// Invariant mass of leptons supposedly from H  after all cuts
 	_histos[fHHInvMass] = CreateH1D("fHHInvMass", "M^{inv.}_{#mu#mu}", 150, 0, 150);
-	
-	// Invariant mass of leptons in/out of Z peak
-	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",150, 0, 150);
+	// Invariant mass of leptons supposedly from H  after Jet Veto
+	_histos[fHHInvMassAfterJetVeto] = CreateH1D("fHHInvMassAfterJetVeto", "M^{inv.}_{#mu#mu}", 150, 0, 150);
 	
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",160, 0, 160);
-	
-	//
-	_histos[fHMETAfterZCand] = CreateH1D("fHMETAfterZCand", "MET",160, 0, 160);
+	// Missing ET after inv mass cut
+	_histos[fHMETAfterJetVeto] = CreateH1D("fHMETAfterJetVeto", "MET",160, 0, 160);
 
-	// 
-	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#ell#ell}",150, 0, 150);
-	
-	//
-	_histos[fHHInvMassAfterZCand] = CreateH1D("fHHInvMassAfterZCand", "M^{inv.}_{#ell#ell}", 150, 0, 150);
-
-	//
+	// Number of jets before jet veto cut
 	_histos[fHNJets] = CreateH1D("fHNJets", "Number of Jets", 10, 0, 10);
 
-	//
+	// Transverse Mass of all leptons and MET after all cuts
+	_histos[fHTransversMass] = CreateH1D("fHTransversMass", "M_{t}^{#ell#ell#ell}",400, 0, 400);
+	// Transverse Mass of all leptons and MET after het veto cut
+	_histos[fHTransversMassAfterJetVeto] = CreateH1D("fHTransversMassAfterJetVeto", "M_{t}^{#ell#ell#ell}",400, 0, 400);
+
+	// Invariant Mass of the 3 leptons after all cuts
 	_histos[fHTrileptonMass] = CreateH1D("fHTrileptonMass", "M_{#ell#ell#ell}",400, 0, 400);
+	// Invariant Mass of the 3 leptons after Jet veto cut
+	_histos[fHTrileptonMassAfterJetVeto] = CreateH1D("fHTrileptonMassAfterJetVeto", "M_{#ell#ell#ell}",400, 0, 400);
 	
-	//
-	_histos[fHTrileptonMassAfterZCand] = CreateH1D("fHTrileptonMassAfterZCand", "M_{#ell#ell#ell}",400, 0, 400);
-	
-	//
-	//_histos[fHTransversMass] = CreateH1D("fHTransversMass", "M_{t}^{#ell#ell#ell}",400, 0, 400);
 }
 
 //---------------------------------------------------------------------
@@ -620,7 +614,7 @@ unsigned int AnalysisVH::InsideLoop()
 	// lepton, leptonCharge and leptontypes vectors
 	// ========================================================
   
-	// Discard 3 muons with the same charge
+	// Discard 3 leptons with the same charge
 	// ------------------------------------------------------------------
 	// 
 	// + Add up charges. If the abs value of the total number is equal to N then 
@@ -639,6 +633,45 @@ unsigned int AnalysisVH::InsideLoop()
 	}
 	
 	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
+	
+	// Jet Veto:
+	//------------------------------------------------------------------
+	unsigned int nJets = 0;
+	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
+	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+	{
+		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+		//FIXME: Add the cuts to the config file
+		// Kinematics
+		if(Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5)
+		{
+			continue;
+		}
+		// Leptons not inside the Jets
+		bool leptoninsideJet = false;
+		for(unsigned int j = 0; j < lepton.size(); ++j)
+		{
+			if( Jet.DeltaR(lepton[j]) <= 0.3 )
+			{
+				leptoninsideJet = true;
+				break;
+			}
+		}
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		nJets++;
+	}
+	// - Number of Jets before the cut
+	_histos[fHNJets]->Fill(nJets,puw);
+
+	//if(nJets > 0)
+	//{
+	//	return WHCuts::_iJetVeto;
+	//}
+	FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
+
 	
 	// Find muons with opposite charges and calculate DeltaR, invMass...
 	// Keep the pair with DeltaR minimum
@@ -678,12 +711,24 @@ unsigned int AnalysisVH::InsideLoop()
 	double maxDeltaRMuMu   = (deltaRMuMu.rbegin())->first;
 	double minDeltaPhiMuMu = (deltaPhiMuMu.begin())->first;
 	double maxDeltaPhiMuMu = (deltaPhiMuMu.rbegin())->first;
+	
+	// + Fill histograms
+	//   - Smallest and Largest DeltaR between 2 opposite charged muons
+	_histos[fHMinDeltaRLp1Lp2]->Fill(minDeltaRMuMu,puw);
+	_histos[fHMaxDeltaRLp1Lp2]->Fill(maxDeltaRMuMu,puw);
+	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
+	_histos[fHMinDeltaPhiLp1Lp2]->Fill(minDeltaPhiMuMu,puw);
+	_histos[fHMaxDeltaPhiLp1Lp2]->Fill(maxDeltaPhiMuMu,puw); 
         
-        // + Calculate inv mass of closest pair in R plane
+        
+	// + Calculate inv mass of closest pair in R plane
 	// Remember map<double,pair>  (second is the pair)
 	const unsigned int i1 = ((deltaRMuMu.begin())->second).first;
 	const unsigned int i2 = ((deltaRMuMu.begin())->second).second;
 	const double invMassMuMuH = (lepton[i1] + lepton[i2]).M();
+	
+	//   - Invariant mass of leptons supposedly from H
+	_histos[fHHInvMassAfterJetVeto]->Fill(invMassMuMuH,puw);
 	
 	// + Extract the index of the not used lepton (from the W, then)
 	// We are in the exactly 3--> FIXME: it'd be possible to loose
@@ -698,45 +743,25 @@ unsigned int AnalysisVH::InsideLoop()
 		}
 		iWcand = i;
 	}
+	// FIXME: Quizas construir diferentes candidatos a Z y comprobarlos
+
+	//+ Transverse mass
+	const double met = fData->Get<float>("T_METPF_ET");
+	const double phiMET = fData->Get<float>("T_METPF_Phi");
+	const double pxMET = met*cos(phiMET);
+	const double pyMET = met*sin(phiMET);
+	TLorentzVector METV(pxMET,pyMET,0.0,met);
+	TLorentzVector allleptons = (lepton[i1]+lepton[i2]+lepton[iWcand]);
+	const double lEt = allleptons.Et();
+	const double tMass = sqrt( lEt*lEt + met*met - 2.0*lEt*met*cos(allleptons.DeltaPhi(METV)));
 	//+ Build the invariant mass of the 3leptons
-	const double invMass3leptons = (lepton[i1]+lepton[i2]+lepton[iWcand]).M();
-	// And fill the histo
-	_histos[fHTrileptonMass]->Fill(invMass3leptons,puw);
+	const double invMass3leptons = allleptons.M();
 
-	// + Fill histograms
-	//   - Smallest and Largest DeltaR between 2 opposite charged muons
-	_histos[fHMinDeltaRLp1Lp2]->Fill(minDeltaRMuMu,puw);
-	_histos[fHMaxDeltaRLp1Lp2]->Fill(maxDeltaRMuMu,puw);
-	//   - Smallest and Largest Delta Phi between 2 opposite charged muons
-	_histos[fHMinDeltaPhiLp1Lp2]->Fill(minDeltaPhiMuMu,puw);
-	_histos[fHMaxDeltaPhiLp1Lp2]->Fill(maxDeltaPhiMuMu,puw);
-	//   - Invariant mass of leptons supposedly from H
-	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
-  
-	
-	// Jet Veto:
-	//------------------------------------------------------------------
-	unsigned int nJets = 0;
-	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
-	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
-	{
-		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
-		//FIXME: Add the cuts to the config file
-		if(Jet.Pt() > 30 && fabs(Jet.Eta()) < 5  && fabs(Jet.DeltaR(lepton[0])) > 0.3 
-				&& fabs(Jet.DeltaR(lepton[1])) > 0.3 && 
-				fabs(Jet.DeltaR(lepton[2])) > 0.3) 
-		{
-			nJets++;
-		}
-	}
-	// - Number of Jets before the cut
-	_histos[fHNJets]->Fill(nJets,puw);
+	// + And fill the histo all histos after jet veto cut
+	_histos[fHTrileptonMassAfterJetVeto]->Fill(invMass3leptons,puw);
+	_histos[fHTransversMassAfterJetVeto]->Fill(tMass,puw);
+	_histos[fHMETAfterJetVeto]->Fill(met,puw);
 
-	if(nJets > 0)
-	{
-		return WHCuts::_iJetVeto;
-	}
-	FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
   	
 	// Cut in DeltaR
 	std::vector<double> * auxVar= new std::vector<double>;
@@ -757,7 +782,7 @@ unsigned int AnalysisVH::InsideLoop()
 		return WHCuts::_iZMuMuInvMass;
 	}
 	
-	// NEW ===================== FIXME
+	// NEW ===================== FIXME-- > Este quizas mas el W candidate?
 	// Search for a pair with Mass closer to Z nominal
 	// ------------------------------------------------------------------	
 	/*std::map<double,std::pair<int,int> > candidatesZMass;
@@ -781,16 +806,12 @@ unsigned int AnalysisVH::InsideLoop()
 	}
 	// END NEW =====================  */
 	
-	_histos[fHZInvMassAfterZCand]->Fill(invMassMuMuH,puw);
 	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
 	
 	// MET
 	//------------------------------------------------------------------
-	const double met = fData->Get<float>("T_METPF_ET");
 	//TMath::Min( fData->Get<float>("T_METPF_ET"), fData->Get<float>("T_METtc_ET") );  // NISHU WAY : FIXME CHANGED
 	(*auxVar)[0] = met;
-	// Fill histo before cut
-	_histos[fHMETAfterZCand]->Fill(met,puw);
 
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
@@ -799,8 +820,11 @@ unsigned int AnalysisVH::InsideLoop()
 	delete auxVar;
 	auxVar=0;
 	
+	// + Fill histos after all cuts
 	_histos[fHMET]->Fill(met,puw);
-	_histos[fHTrileptonMassAfterZCand]->Fill(invMass3leptons,puw);
+	_histos[fHTrileptonMass]->Fill(invMass3leptons,puw);
+	_histos[fHTransversMass]->Fill(tMass,puw);
+	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
 
 	return WHCuts::_iNCuts;
