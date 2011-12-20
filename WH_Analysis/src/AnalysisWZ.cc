@@ -761,7 +761,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		bool leptoninsideJet = false;
 		for(unsigned int j = 0; j < lepton.size(); ++j)
 		{
-			if( fabs(Jet.DeltaR(lepton[j])) > 0.3 )
+			if( fabs(Jet.DeltaR(lepton[j])) <= 0.3 )
 			{
 				leptoninsideJet = true;
 				break;
