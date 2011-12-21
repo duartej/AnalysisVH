@@ -542,22 +542,24 @@ void PlotAll(const common & cd ,
 	{
 		//=====  Ratio plot
 		// Recovering the content of the canvas
-		TH1D * _hdata = new TH1D();
+		// just the THStack created inside the if
+		//TH1D * _hdata = new TH1D();
 		THStack * _hstack = new THStack();
 		TIter next(canvas->GetListOfPrimitives());
 		TObject * obj = 0;
 		while( (obj = next()) )
 		{
-			if( obj->InheritsFrom(TH1D::Class()) )
-			{
-				_hdata = (TH1D*)obj;
-			}
-			else if( obj->InheritsFrom(THStack::Class()) )
+			//if( obj->InheritsFrom(TH1D::Class()) )
+			//{
+			//	_hdata = (TH1D*)obj;
+			//}
+			//else if( obj->InheritsFrom(THStack::Class()) )
+			if( obj->InheritsFrom(THStack::Class()) )
 			{
 				_hstack = (THStack*)obj;
 			}
 		}
-		if( _hdata == 0 || _hstack == 0 )
+		if( _hstack == 0 )
 		{
 			std::cerr << "\033[1;31mPlotAll ERROR\033[1;m Some inconsistency"
 				<< " found. Trying to generate the ratio MC-data plot it"
@@ -574,7 +576,11 @@ void PlotAll(const common & cd ,
 		pad1->Draw();
 		pad1->cd();
 		_hstack->Draw();
-		_hdata->Draw("E SAME");
+		if( plottype == 1 )
+		{
+			hwh->Draw("SAME");
+		}
+		hdata->Draw("E SAME");
 		
 		canvas->cd();
 		//---- Down pad where the ratio plot goes in
@@ -584,7 +590,7 @@ void PlotAll(const common & cd ,
 		pad2->Draw();
 		pad2->cd();
 		//---- Ratio histogram
-		ratio->SetXTitle(_hdata->GetTitle());
+		ratio->SetXTitle(hdata->GetTitle());
 		ratio->GetXaxis()->SetTitleSize(0.08);
 		ratio->GetXaxis()->SetLabelSize(0.08);
 		ratio->GetYaxis()->SetNdivisions(205);
