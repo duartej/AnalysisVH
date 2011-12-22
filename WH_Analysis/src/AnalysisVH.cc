@@ -168,7 +168,7 @@ void AnalysisVH::Initialise()
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",160, 0, 160);
 	// Missing ET after inv mass cut
-	_histos[fHMETAfterJetVeto] = CreateH1D("fHMETAfterJetVeto", "MET",160, 0, 160);
+	_histos[fHMETAfterWCand] = CreateH1D("fHMETAfterWCand", "MET",160, 0, 160);
 
 	// Number of jets before jet veto cut
 	_histos[fHNJets] = CreateH1D("fHNJets", "Number of Jets", 10, 0, 10);
@@ -176,17 +176,17 @@ void AnalysisVH::Initialise()
 	// Transverse Mass of all leptons and MET after all cuts
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass", "M_{t}^{#ell#ell#ell}",400, 0, 400);
 	// Transverse Mass of all leptons and MET after het veto cut
-	_histos[fHTransversMassAfterJetVeto] = CreateH1D("fHTransversMassAfterJetVeto", "M_{t}^{#ell#ell#ell}",400, 0, 400);
+	_histos[fHTransversMassAfterWCand] = CreateH1D("fHTransversMassAfterWCand", "M_{t}^{#ell#ell#ell}",400, 0, 400);
 
 	// Invariant Mass of the 3 leptons after all cuts
 	_histos[fHTrileptonMass] = CreateH1D("fHTrileptonMass", "M_{#ell#ell#ell}",400, 0, 400);
 	// Invariant Mass of the 3 leptons after Jet veto cut
-	_histos[fHTrileptonMassAfterJetVeto] = CreateH1D("fHTrileptonMassAfterJetVeto", "M_{#ell#ell#ell}",400, 0, 400);
+	_histos[fHTrileptonMassAfterWCand] = CreateH1D("fHTrileptonMassAfterWCand", "M_{#ell#ell#ell}",400, 0, 400);
 	
 	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after all cuts
 	_histos[fHHT] = CreateH1D("fHHT", "H_{T}",400, 0, 400);
 	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after Jet Veto cut
-	_histos[fHHTAfterJetVeto] = CreateH1D("fHHTAfterJetVeto", "H_{T}",400, 0, 400);
+	_histos[fHHTAfterWCand] = CreateH1D("fHHTAfterWCand", "H_{T}",400, 0, 400);
 	
 }
 
@@ -471,7 +471,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//{
 	//	return WHCuts::_iGoodVertex;
 	//}
-	FillHistoPerCut(WHCuts::_iGoodVertex, puw, fsNTau);
+	//FillHistoPerCut(WHCuts::_iGoodVertex, puw, fsNTau);
 	
 
 	// First looking at events with 2 leptons
@@ -677,7 +677,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//{
 	//	return WHCuts::_iJetVeto;
 	//}
-	FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
+	//FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
 
 	
 	// Find muons with opposite charges and calculate DeltaR, invMass...
@@ -762,42 +762,6 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	//   - Invariant mass of leptons supposedly from H
 	_histos[fHHInvMassAfterJetVeto]->Fill(invMassMuMuH,puw);
-		
-	
-	// + Extract the index of the not used lepton (from the W, then)
-	// We are in the exactly 3--> FIXME: it'd be possible to loose
-	// that requirement, say at least 3 leptons and then we can 
-	// choose if there are Z candidate, W candidates and so on?
-	unsigned int iWcand =-1;
-	for(unsigned int i = 0; i < lepton.size(); ++i)
-	{
-		if( i == i1 || i == i2 )
-		{
-			continue;
-		}
-		iWcand = i;
-	}
-
-	//+ Transverse mass all leptons: FIXME: has no sense: must include Jets!!
-	const double met = fData->Get<float>("T_METPF_ET");
-	const double phiMET = fData->Get<float>("T_METPF_Phi");
-	const double pxMET = met*cos(phiMET);
-	const double pyMET = met*sin(phiMET);
-	TLorentzVector METV(pxMET,pyMET,0.0,met);
-	TLorentzVector allleptons = (lepton[i1]+lepton[i2]+lepton[iWcand]);
-	const double lEt = allleptons.Et();
-	const double tMass = sqrt( lEt*lEt + met*met - 2.0*lEt*met*cos(allleptons.DeltaPhi(METV)));
-	//+ Build the invariant mass of the 3leptons
-	const double invMass3leptons = allleptons.M();
-
-	//+ Ht: Sum of transverse energy of all the 3 leptons, Jets and MET
-	const double Ht = lEt + met + sumEtJets;
-
-	// + And fill the histo all histos after jet veto cut
-	_histos[fHTrileptonMassAfterJetVeto]->Fill(invMass3leptons,puw);
-	_histos[fHTransversMassAfterJetVeto]->Fill(tMass,puw);
-	_histos[fHMETAfterJetVeto]->Fill(met,puw);
-	_histos[fHHTAfterJetVeto]->Fill(Ht,puw);
 	
 	// Z Veto
 	//-----------------------------------------------------------------
@@ -821,6 +785,59 @@ unsigned int AnalysisVH::InsideLoop()
 		}
 	}
 	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
+		
+	
+	// A W candidate not coming from the Higgs
+	//-----------------------------------------------------------
+	// + Extract the index of the not used lepton (a W, then)
+	// We are in the exactly 3--> FIXME: it'd be possible to loose
+	// that requirement, say at least 3 leptons and then we can 
+	// choose if there are Z candidate, W candidates and so on?
+	int iWcand = -1;
+	for(unsigned int i = 0; i < lepton.size(); ++i)
+	{
+		if( i == i1 || i == i2 )
+		{
+			continue;
+		}
+		// NEW: Rejecting the fake electron aligned with 
+		// the muon due to internal bremsstrahlung in W an Z decays
+		const double dRl1 = lepton[i].DeltaR( lepton[i1] );
+		const double dRl2 = lepton[i].DeltaR( lepton[i2] );
+		if( dRl1 < 0.1 || dRl2 < 0.1 )
+		{
+			continue;
+		}
+		iWcand = i;
+	}
+
+	if( iWcand < 0 )
+	{
+		return WHCuts::_iWCandidate;
+	}
+	FillHistoPerCut(WHCuts::_iWCandidate, puw, fsNTau);
+
+	//+ Transverse mass all leptons: FIXME: has no sense: must include Jets!!
+	const double met = fData->Get<float>("T_METPF_ET");
+	const double phiMET = fData->Get<float>("T_METPF_Phi");
+	const double pxMET = met*cos(phiMET);
+	const double pyMET = met*sin(phiMET);
+	TLorentzVector METV(pxMET,pyMET,0.0,met);
+	TLorentzVector allleptons = (lepton[i1]+lepton[i2]+lepton[iWcand]);
+	const double lEt = allleptons.Et();
+	const double tMass = sqrt( lEt*lEt + met*met - 2.0*lEt*met*cos(allleptons.DeltaPhi(METV)));
+	//+ Build the invariant mass of the 3leptons
+	const double invMass3leptons = allleptons.M();
+
+	//+ Ht: Sum of transverse energy of all the 3 leptons, Jets and MET
+	const double Ht = lEt + met + sumEtJets;
+
+	// + And fill the histo all histos after jet veto cut
+	_histos[fHTrileptonMassAfterWCand]->Fill(invMass3leptons,puw);
+	_histos[fHTransversMassAfterWCand]->Fill(tMass,puw);
+	_histos[fHMETAfterWCand]->Fill(met,puw);
+	_histos[fHHTAfterWCand]->Fill(Ht,puw);
+	
 
   	
 	// Cut in DeltaR

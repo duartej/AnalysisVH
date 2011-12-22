@@ -74,7 +74,7 @@ then
 fi;
 
 # Analysis config
-if[ "$1" == "WZ" ];
+if [ "$1" == "WZ" ];
 then
 	cfgeee="analisiswz_eee.ip";
 	cfgmmm="analisiswz_mmm.ip";

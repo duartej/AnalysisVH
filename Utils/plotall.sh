@@ -80,14 +80,14 @@ fHGenPtLepton_1_0 fHGenPtLepton_2_0 fHGenPtLepton_3_0"
 HISTOSLEP="fHNRecoLeptons fHNSelectedLeptons"
 
 HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets"
-HISTOS4B="fHMET fHTransversMass fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3"
+HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3"
 if [ "$1" == "WZ" ];
 then
 	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHDRl2Wcand"
 	HISTOS8B=""
 else
-	HISTOS4B="$HISTOS4B fHMinDeltaRLp1Lp2 fHMaxDeltaRLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMETAfterJetVeto fHTransversMassAfterJetVeto" 
-	HISTOS8B="fHTrileptonMass fHTrileptonMassAfterJetVeto" 
+	HISTOS4B="$HISTOS4B fHMinDeltaRLp1Lp2 fHMaxDeltaRLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMETAfterWCand fHTransversMassAfterWCand fHHInvMass fHHInvMassAfterJetVeto" 
+	HISTOS8B="fHTrileptonMass fHTrileptonMassAfterWCand fHHT fHHTAfterWCand" 
 fi;
 
 fsdirectories=`ls |grep ${signal:0:2}`
