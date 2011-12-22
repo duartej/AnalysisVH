@@ -21,8 +21,8 @@ struct WHCuts
 		_iHasExactly3Leptons, //  9 Exactly 3 leptons
 		_iOppositeCharge,     // 10 At least a pair of opposite charge muons
 		_iJetVeto,            // 11 Reject events with a jet
-		_iDeltaR,             // 12 Check on DeltaR between closest muons
 		_iZMuMuInvMass,       // 13 A pair of mu with inv mass compatible with Z
+		_iDeltaR,             // 12 Check on DeltaR between closest muons
 		_iMET,                // 14 Missing ET cut
 		_iNCuts               //  N
 	};

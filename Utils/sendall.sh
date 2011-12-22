@@ -21,6 +21,11 @@ SYNTAX:
 
    Note that the signal is a mandatory argument. 
 
+   Note: in the launching directory must exist the
+   configuration files for electrons and muons:
+    * analisiswh_mmm.ip and analisiswh_eee.ip for WH
+    * analisiswz_mmm.ip and analisiswz_eee.ip for WZ
+
 OPTIONS:
 
    [-r]: Set the Run period: 2011, 2011A, 2011B. Default: 2011
@@ -68,6 +73,23 @@ then
 	exit -1;
 fi;
 
+# Analysis config
+if[ "$1" == "WZ" ];
+then
+	cfgeee="analisiswz_eee.ip";
+	cfgmmm="analisiswz_mmm.ip";
+else
+	cfgeee="analisiswh_eee.ip";
+	cfgmmm="analisiswh_mmm.ip";
+fi;
+
+# Checking the config are there
+if [ ! -f $cfgeee -o ! -f $cfgmmm ];
+then
+	echo "ERROR: The '$cfgeee' and '$cfgmmm' must exist in this directory!"
+	exit -1;
+fi;
+
 # Go to the working directory
 cd $PWD
 
@@ -85,7 +107,7 @@ do
 	cp ../*.dn .
 	datamanagercreator Data -r $runperiod -f $finalstate;
 	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../analisiswh_mmm.ip,ELECTRON:../analisiswh_eee.ip;
+	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee;
 	cd ../; 
 done
 rm *.dn

@@ -52,7 +52,9 @@ class AnalysisVH : public AnalysisBase
 			fHTransversMass,            // Transverse mass between all leptons and MET after all cuts
 			fHTransversMassAfterJetVeto,// Transverse mass between all leptons and MET after jet veto cut
 			fHTrileptonMass,            //Invariant mass of the 3 leptons after all cuts
-			fHTrileptonMassAfterJetVeto //Invariant mass of the 3 leptons after jet veto
+			fHTrileptonMassAfterJetVeto,//Invariant mass of the 3 leptons after jet veto
+			fHHT,                        //HT = sum of all transverse energy in the event
+			fHHTAfterJetVeto            //HT after jet veto
 		};
 
 		//! Constructor (TO BE DEPRECATED: tree)

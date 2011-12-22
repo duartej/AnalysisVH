@@ -16,8 +16,8 @@ TString WHCuts::kCutNames[] =
 	"Exactly3Leptons",
 	"OppositeCharge",
 	"JetVeto",
-	"DeltaR",
 	"ZMuMuInvMass",
+	"DeltaR",
 	"MET",
 	"NCuts"
 };
@@ -28,7 +28,7 @@ TString WZCuts::kCutNames[] =
 	"AllEvents",
 	"IsWH",
 	"HLT",
-	"GoodVertex",
+	//"GoodVertex",
 	"Has2Leptons",
 	"Has2PVLeptons",
 	"Has2IsoLeptons",
@@ -38,7 +38,7 @@ TString WZCuts::kCutNames[] =
 	"HasZCandidate",
 	"HasZOverlapping",
 	"HasWCandidate",
-	"JetVeto",
+	//"JetVeto",
 	"MET",
 	"NCuts"
 };

@@ -183,6 +183,11 @@ void AnalysisVH::Initialise()
 	// Invariant Mass of the 3 leptons after Jet veto cut
 	_histos[fHTrileptonMassAfterJetVeto] = CreateH1D("fHTrileptonMassAfterJetVeto", "M_{#ell#ell#ell}",400, 0, 400);
 	
+	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after all cuts
+	_histos[fHHT] = CreateH1D("fHHT", "H_{T}",400, 0, 400);
+	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after Jet Veto cut
+	_histos[fHHTAfterJetVeto] = CreateH1D("fHHTAfterJetVeto", "H_{T}",400, 0, 400);
+	
 }
 
 //---------------------------------------------------------------------
@@ -637,6 +642,7 @@ unsigned int AnalysisVH::InsideLoop()
 	// Jet Veto:
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
+	double sumEtJets = 0;
 	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
 	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
 	{
@@ -662,6 +668,7 @@ unsigned int AnalysisVH::InsideLoop()
 			continue;
 		}
 		nJets++;
+		sumEtJets += Jet.Et();
 	}
 	// - Number of Jets before the cut
 	_histos[fHNJets]->Fill(nJets,puw);
@@ -680,6 +687,21 @@ unsigned int AnalysisVH::InsideLoop()
 	// + Store the real vector index of the opposite charge muons in pairs
 	//   (for the lepton and leptonCharge vectors: 0,...,nLeptons)
 	std::vector<std::pair<int,int> > leptonPair;
+	// + Also storing the potential Z candidates: opp. sign and same flavour
+	LeptonTypes zcandflavour;
+	std::vector<int> zcandindxpair;  // Index of the leptonPair vector candidate
+	                                 // with lepton Z candidate
+	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
+	{
+		zcandflavour = MUON;
+	}
+	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
+	{
+		zcandflavour = ELECTRON;
+	}
+
+	int indexPair = -1;  
+	bool wasstoredpair = false;
 	for(unsigned int kbegin = 0; kbegin < leptonCharge.size(); ++kbegin)
 	{
 		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
@@ -688,6 +710,17 @@ unsigned int AnalysisVH::InsideLoop()
 			if( leptonCharge[kbegin]*leptonCharge[kfromend] < 0 )
 			{
 				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
+				++indexPair;
+				wasstoredpair = true;
+			}
+			// Checking if the pair stored could be a Z candidate
+			if( wasstoredpair && 
+					leptontypes[kbegin] == zcandflavour &&
+					( leptontypes[kbegin] == leptontypes[kfromend] ) )
+			{
+				zcandindxpair.push_back(indexPair);
+				// Resetting
+				wasstoredpair = false;
 			}
 		}
 	}
@@ -729,6 +762,7 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	//   - Invariant mass of leptons supposedly from H
 	_histos[fHHInvMassAfterJetVeto]->Fill(invMassMuMuH,puw);
+		
 	
 	// + Extract the index of the not used lepton (from the W, then)
 	// We are in the exactly 3--> FIXME: it'd be possible to loose
@@ -743,9 +777,8 @@ unsigned int AnalysisVH::InsideLoop()
 		}
 		iWcand = i;
 	}
-	// FIXME: Quizas construir diferentes candidatos a Z y comprobarlos
 
-	//+ Transverse mass
+	//+ Transverse mass all leptons: FIXME: has no sense: must include Jets!!
 	const double met = fData->Get<float>("T_METPF_ET");
 	const double phiMET = fData->Get<float>("T_METPF_Phi");
 	const double pxMET = met*cos(phiMET);
@@ -757,15 +790,41 @@ unsigned int AnalysisVH::InsideLoop()
 	//+ Build the invariant mass of the 3leptons
 	const double invMass3leptons = allleptons.M();
 
+	//+ Ht: Sum of transverse energy of all the 3 leptons, Jets and MET
+	const double Ht = lEt + met + sumEtJets;
+
 	// + And fill the histo all histos after jet veto cut
 	_histos[fHTrileptonMassAfterJetVeto]->Fill(invMass3leptons,puw);
 	_histos[fHTransversMassAfterJetVeto]->Fill(tMass,puw);
 	_histos[fHMETAfterJetVeto]->Fill(met,puw);
+	_histos[fHHTAfterJetVeto]->Fill(Ht,puw);
+	
+	// Z Veto
+	//-----------------------------------------------------------------
+	// + Evaluate if there are some Z candidate within the mass window
+	//   In that case applies the Z mass veto (NEW: now not only with
+	//   the H candidate)
+	std::vector<double> * auxVar= new std::vector<double>;  // Auxiliar variable to be 
+	                                                        // used in the cuts
+	auxVar->push_back(0.0);
+	for(unsigned int i = 0; i < zcandindxpair.size(); ++i)
+	{
+		const unsigned iZ1 = leptonPair[zcandindxpair[i]].first;
+		const unsigned iZ2 = leptonPair[zcandindxpair[i]].second;
+		const double invMass = (lepton[iZ1] + lepton[iZ2]).M();
+		// Check invariant mass of muons with opposite charge (outside Z)
+		//------------------------------------------------------------------
+		(*auxVar)[0] = invMass;
+		if( (! fLeptonSelection->IsPass("ZMassWindow", auxVar)) )
+		{
+			return WHCuts::_iZMuMuInvMass;
+		}
+	}
+	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
 
   	
 	// Cut in DeltaR
-	std::vector<double> * auxVar= new std::vector<double>;
-	auxVar->push_back(minDeltaRMuMu);
+	(*auxVar)[0] = minDeltaRMuMu;
 	//------------------------------------------------------------------
 	if( ! fLeptonSelection->IsPass("DeltaRMuMuCut", auxVar) )
 	{
@@ -773,40 +832,7 @@ unsigned int AnalysisVH::InsideLoop()
 	}
 	
 	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau);
-  	
-	// Check invariant mass of muons with opposite charge (outside Z)
-	//------------------------------------------------------------------
-	(*auxVar)[0] = invMassMuMuH;
-	if( (! fLeptonSelection->IsPass("ZMassWindow", auxVar)) )
-	{
-		return WHCuts::_iZMuMuInvMass;
-	}
 	
-	// NEW ===================== FIXME-- > Este quizas mas el W candidate?
-	// Search for a pair with Mass closer to Z nominal
-	// ------------------------------------------------------------------	
-	/*std::map<double,std::pair<int,int> > candidatesZMass;
-	for(std::vector<std::pair<int,int> >::iterator it = leptonPair.begin(); 
-			it != leptonPair.end(); ++it)
-	{
-		unsigned int i1Z = it->first;
-		unsigned int i2Z = it->second;
-		const double invMass= (lepton[i1Z]+lepton[i2Z]).M();
-		if( invMass > 120.0 || invMass < 60.0 )
-		{
-			continue;
-		}
-		const double deltaZMass = fabs(kZMass-invMass);
-		candidatesZMass[deltaZMass] = std::pair<int,int>(i1,i2);
-	}
-
-	if( candidatesZMass.size() > 0 )
-	{
-		return WHCuts::_iZMuMuInvMass;
-	}
-	// END NEW =====================  */
-	
-	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
 	
 	// MET
 	//------------------------------------------------------------------
@@ -825,6 +851,7 @@ unsigned int AnalysisVH::InsideLoop()
 	_histos[fHTrileptonMass]->Fill(invMass3leptons,puw);
 	_histos[fHTransversMass]->Fill(tMass,puw);
 	_histos[fHHInvMass]->Fill(invMassMuMuH,puw);
+	_histos[fHHT]->Fill(Ht,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
 
 	return WHCuts::_iNCuts;
