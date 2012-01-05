@@ -124,7 +124,7 @@ double GetWeight(TFile* f, double luminosity)
 //
 void PlotAll(const common & cd ,
 		TString histoname="fHMET",
-		int rebin = 1,
+		int rebin = 0,
 		int plottype = 0, 
 		double luminosity=2143.3) 
 {
@@ -342,6 +342,27 @@ void PlotAll(const common & cd ,
 	//////
 	// Rebin histograms
 //	std::cout << ">> Rebinning histograms by a factor " << rebin << "..." << std::endl;
+	if( rebin == 0 )
+	{
+		// Automatic rebinning Rule: sqrt(n)+1
+		const int ndata = (int)hdata->GetEntries();
+		const int nbins = hdata->GetNbinsX();
+		// Number of bins following the rule 
+		int ksqrt = (int)(sqrt(ndata)+1);
+		// Compensating the int casting
+		if( (sqrt(ndata)+1.0)/(double)ksqrt >= 0.5 )
+		{
+			++ksqrt;
+		}
+		// Fraction to obtain the number of bins desired
+		const int frebin= nbins/ksqrt;
+		std::cout << "nbins=" << nbins << " ksqrt=" << ksqrt << " frebin=" << frebin 
+			<< " Entries:" << ndata << "(" << hdata->GetEntries() << ")" << std::endl;
+		if( frebin > 0 )
+		{
+			rebin = frebin;
+		}
+	}
 	hdata->Rebin(rebin);
 	hwh->Rebin(rebin);
 	for(unsigned int i = 0; i < NBKG; i++)
@@ -657,7 +678,7 @@ void display_usage()
 int main(int argc, char *argv[])
 {
 	const char * signal    = "WHToWW2L120";
-	const char * rebin     = "1";
+	const char * rebin     = "0";
 	const char * plottype  = "0";
 	const char * luminosity= "2143.3";
 	const char * histoname = 0;
