@@ -634,10 +634,10 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
 	{
-		return WHCuts::_iOppositeCharge;
+		return WHCuts::_iNotSameSign;
 	}
 	
-	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iNotSameSign, puw, fsNTau);
 	
 	// Jet Veto:
 	//------------------------------------------------------------------
@@ -724,6 +724,16 @@ unsigned int AnalysisVH::InsideLoop()
 			}
 		}
 	}
+
+	// At least a pair with opposite charge (Note: this cut is almost superfluous, it
+	// is defined for the same sign control region... For the other regions there will
+	// be no difference w.r.t. the last cut)
+	if( leptonPair.size() < 1 )
+	{
+		return WHCuts::_iOppositeCharge;
+	}	
+	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
+
 	// + Find Min/Max DeltaR and DeltaPhi
 	// Using ordering from maps (from lower to higher)
 	// Again uses the index of the lepton and leptonCharge vectors
