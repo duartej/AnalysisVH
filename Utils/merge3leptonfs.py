@@ -104,7 +104,8 @@ if __name__ == '__main__':
 	# Checking everything is fine
 	dntobecompared = datanamesPRE[0]
 	for dlist in datanamesPRE:
-		if dlist != dntobecompared:
+		# FIXED: using 'set' to avoid the different order
+		if set(dlist)!= set(dntobecompared):
 			message = "\033[1;31mmerge3leptonfs ERROR\033[1;m Unexpected error: not found"+\
 					" the same datanames in each directory"
 			sys.exit( message )
