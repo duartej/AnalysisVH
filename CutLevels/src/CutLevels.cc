@@ -14,6 +14,7 @@ TString WHCuts::kCutNames[] =
 	"Has2IsoGoodLeptons",
 	"MuPtPattern(20,20,10)",
 	"Exactly3Leptons",
+	"NotSameSign",
 	"OppositeCharge",
 	//"JetVeto",
 	"ZMuMuInvMass",

@@ -19,12 +19,13 @@ struct WHCuts
 		_iHas2IsoGoodLeptons, //  7
 		_iMuPTPattern,        //  8 Ask for Pt(H->WW->mumu)> 20,10 Pt(W->mu) > 20
 		_iHasExactly3Leptons, //  9 Exactly 3 leptons
-		_iOppositeCharge,     // 10 At least a pair of opposite charge muons
+		_iNotSameSign,        // 10  
+		_iOppositeCharge,     // 11 At least a pair of opposite charge muons
 		//_iJetVeto,            // 11 Reject events with a jet
-		_iZMuMuInvMass,       // 13 A pair of mu with inv mass compatible with Z
-		_iWCandidate,         // .. A W lepton candidate (just dR bremsstrahlung cut)
-		_iDeltaR,             // 12 Check on DeltaR between closest muons
-		_iMET,                // 14 Missing ET cut
+		_iZMuMuInvMass,       // 12 A pair of mu with inv mass compatible with Z
+		_iWCandidate,         // 13 A W lepton candidate (just dR bremsstrahlung cut)
+		_iDeltaR,             // 14 Check on DeltaR between closest muons
+		_iMET,                // 15 Missing ET cut
 		_iNCuts               //  N
 	};
 
