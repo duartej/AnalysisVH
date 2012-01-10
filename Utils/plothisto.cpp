@@ -358,9 +358,14 @@ void PlotAll(const common & cd ,
 		const int frebin= nbins/ksqrt;
 		std::cout << "nbins=" << nbins << " ksqrt=" << ksqrt << " frebin=" << frebin 
 			<< " Entries:" << ndata << "(" << hdata->GetEntries() << ")" << std::endl;
-		if( frebin > 0 )
+		if( frebin > 10 )
 		{
 			rebin = frebin;
+		}
+		else
+		{
+			// Minimum
+			rebin = 10;
 		}
 	}
 	hdata->Rebin(rebin);

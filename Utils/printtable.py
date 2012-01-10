@@ -293,7 +293,7 @@ class table(object):
 	
 		if nafterpoint > 3:
 			totalvalstr = "("+valstr+self.format.plusminus+errstr+")"+self.format.cdot+"10"+\
-					self.format.exponentstart+str(exponent)+self.format.exponentend
+					self.format.exponentstart+"-"+str(exponent)+self.format.exponentend
 		else:
 			totalvalstr = valstr+self.format.plusminus+errstr
 		return totalvalstr

@@ -280,9 +280,13 @@ class clustermanager(object):
 		from subprocess import Popen,PIPE
 		import os
 
-		#command = [ 'qstat','-j',id ]
-		command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
-		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+		try:
+			p = self.qstatoutput
+		except:
+			#command = [ 'qstat','-j',id ]
+			command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
+			p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+			self.qstatoutput = p
 
 		isincluster = False
 		taskstatus = {}
