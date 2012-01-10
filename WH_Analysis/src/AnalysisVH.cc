@@ -731,7 +731,7 @@ unsigned int AnalysisVH::InsideLoop()
 	if( leptonPair.size() < 1 )
 	{
 		return WHCuts::_iOppositeCharge;
-	}	
+	}
 	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
 
 	// + Find Min/Max DeltaR and DeltaPhi
@@ -795,6 +795,7 @@ unsigned int AnalysisVH::InsideLoop()
 		}
 	}
 	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);
+
 		
 	
 	// A W candidate not coming from the Higgs
@@ -857,8 +858,7 @@ unsigned int AnalysisVH::InsideLoop()
 	{
 		return WHCuts::_iDeltaR;
 	}
-	
-	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau); 
 	
 	
 	// MET
