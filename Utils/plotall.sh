@@ -15,7 +15,7 @@ Generate the plots and tables of each final state
 
 SYNTAX:
 
-   $0 [-l luminosity]  <WZ|WHnnn> 
+   $0 [-l luminosity] [-a] <WZ|WHnnn> 
 
 
    Note that the signal is a mandatory argument. WHnnn must be
@@ -25,6 +25,7 @@ SYNTAX:
 OPTIONS:
 
    [-l]: Set the luminosity. Default: 4664.7 (full 2011 period)
+   [-a]: Activate the autobinning
 
 EOF
 }
@@ -50,12 +51,17 @@ if [ -z $1 ]; then
     exit;
 fi
 
+autobin=false
+
 while getopts l:h o
 	do
 		case "$o" in
 			l)	luminosity=$OPTARG; 
 			 	shift;
 				shift;;
+			a)	autobin=true; 
+			        shift;
+			        shift;;
 			h)	help;
 				exit 1;;
 		esac
@@ -96,6 +102,13 @@ echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`
 merge3leptonfs -d $dircommasep;
 
+rbinoption4=""
+rbinoption8=""
+if [ ! $autobin ]; then
+	rbinoption4="-r 4"
+	rbinoption8="-r 8"
+fi
+
 for j in $fsdirectories leptonchannel;
 do
 	cd $j;
@@ -106,12 +119,12 @@ do
 	
 	for i in $HISTOS4B;
 	do
-		plothisto $i -r 4 -s $signal -p 1 -l $luminosity
+		plothisto $i $rbinoption4 -s $signal -p 1 -l $luminosity
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		plothisto $i -r 8 -s $signal -p 1 -l $luminosity
+		plothisto $i $rbinoption8 -s $signal -p 1 -l $luminosity
 	done;
 	printtable $signal -f table_$(basename `pwd`).html;
 	printtable $signal -f table_$(basename `pwd`).tex;
