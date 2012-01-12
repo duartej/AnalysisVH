@@ -356,16 +356,14 @@ void PlotAll(const common & cd ,
 		}
 		// Fraction to obtain the number of bins desired
 		const int frebin= nbins/ksqrt;
-		std::cout << "nbins=" << nbins << " ksqrt=" << ksqrt << " frebin=" << frebin 
-			<< " Entries:" << ndata << "(" << hdata->GetEntries() << ")" << std::endl;
-		if( frebin > 10 )
+		if( ksqrt > 10 )
 		{
 			rebin = frebin;
 		}
 		else
 		{
-			// Minimum
-			rebin = 10;
+			// Minimum: 10 bins
+			rebin = nbins/10;
 		}
 	}
 	hdata->Rebin(rebin);
