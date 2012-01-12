@@ -234,9 +234,15 @@ class clustermanager(object):
 		print "=== ",self.dataname,": Joining all the files in one"
 		# FIXME: Only there are 1 file, not needed the hadd
 		finalfile = os.path.join("Results",self.dataname+".root")
-		command = [ 'haddPlus', finalfile ]
-		for f in self.outputfiles.itervalues():
-			command.append( f )
+		# FIXED BUG: just cp when there is only one file, otherwise
+		#            there are problems with the TTree
+		if len(self.outputfiles) == 1:
+			# Note that when there is only 1 file, always its #task=1
+			command = [ 'cp', self.outputfiles[1], finalfile ]
+		else:
+			command = [ 'haddPlus', finalfile ]
+			for f in self.outputfiles.itervalues():
+				command.append( f )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		# Checking if everything was allright
 		totalevts = self.getevents(finalfile,True)
