@@ -126,8 +126,8 @@ do
 	do
 		plothisto $i $rbinoption8 -s $signal -p 1 -l $luminosity
 	done;
-	printtable $signal -f table_$(basename `pwd`).html;
-	printtable $signal -f table_$(basename `pwd`).tex;
+	printtable $signal -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
+	#printtable $signal -f table_$(basename `pwd`).tex;
 	
 	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`).tex
 	cd ..;
