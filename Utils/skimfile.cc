@@ -42,7 +42,34 @@ void CopyFiles(const char *inputName, const char *outputName, const char * treen
 		const char * cutfile, const int & cutThreshold, const std::pair<int,int> & events) 
 {
       	TChain * t = new TChain(treename);
-      	const int nfiles = t->Add(inputName);
+	// Extracting the list of files (in the case is a list)
+	// must be comma separated
+	std::string iN = inputName;
+	char *pch;
+	char *temp = new char[iN.size()];
+	temp = const_cast<char*>(iN.c_str());
+	pch = strtok(temp," ,");
+	std::vector<const char*> fileNames;
+	while(pch != 0)
+	{
+		fileNames.push_back(pch);
+		pch = strtok(0," ,");
+	}
+	// Populating the TChain, using different arguments depending if is a 
+	// list of files or not
+	int nfiles = 0;
+	if(fileNames.size() == 0)
+	{
+		nfiles = t->Add(inputName);
+	}
+	else
+	{
+		for(unsigned int j = 0; j < fileNames.size(); ++j)
+		{
+			nfiles += t->Add(fileNames[j]);
+		}
+	}
+
 	if( nfiles <= 0 )
 	{
 		std::cerr << "\033[1;31m skimfile ERROR\033[1;mNot found files: '" << inputName << std::endl;
