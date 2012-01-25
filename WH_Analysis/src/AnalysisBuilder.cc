@@ -43,7 +43,7 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 		WPlowPt = WPElecID::WP_80;//WP_95;
 		WPhighPt= WPElecID::WP_80;//WP_95; 
 		// This has to be changed in the analysis code, when you
-		// are in the W stage you should to tight the cut (WP80)
+		// are in the W stage you should tight the cut (WP80)
 	}
 	else
 	{

@@ -562,7 +562,7 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		std::cerr << " ERROR: ROOT tree file contains an unrecongnized Tree" << std::endl;
+		std::cerr << " ERROR: ROOT tree file contains an unrecognized Tree" << std::endl;
 		// Freeing memory as the future owner of InputParameters it is not initialized even
 		for(std::map<LeptonTypes,InputParameters*>::iterator ip = ipmap.begin(); ip != ipmap.end(); 
 				++ip)

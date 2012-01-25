@@ -32,6 +32,16 @@
 class CutManager
 {
 	public:
+		//! Enumerator for the selection MODES
+		enum
+		{
+			TTT,           // Tight Tight Tight (usual mode)
+			TTN,           // Tight Tight noTight
+			TNN,           // Tight noTight noTight
+			NNN            // noTight noTight noTight (almos never uses it)
+		};
+
+	public:
 		//! Constructor
 		CutManager(TreeManager * data, const int & nLeptons = 3); 
 		//! Destructor
