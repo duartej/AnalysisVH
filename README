@@ -45,22 +45,28 @@ Dec. 19th 2011-- Tag release v04.00: WZ analysis stable
      1. Call 'datamanagercreator -r <2011|2011A|2011B> -f <mmm|mme|eem|eee>' to create the 
      datafiles containing the path to the root files (Name_datanames.dn)
      2. Create a directory for each final state
-     3. Launch 'sendall.sh' script (not yet in this repository, to be incorporated soon)
-     4. Collect all outputs with 'collectall.sh' script (not yet in this repo)
+     3. Launch 'sendall SIGNAL', where SIGNAL=WZ or WH
+     4. Collect all outputs with 'collectall SIGNAL'
      5. Merge all final states into the one (lepton final state) using 'merge3leptonsfs -d dirch1,dirch2,...'
-     6. Do the plots using 'plotall.sh' (not yet in this repo)
-   You can see what are the actual process call in each script
+     6. Do the plots and merge all final states using 'plotall SIGNAL' where SIGNAL can be WHnnn or WZ.
+        nnn is the mass hypothesis
+   You can see what are the actual process calling in each script
 
 
 TODO:
+  0. Find a way to deal with the control region analysis: now I have to recompile and change the code if
+     I want to send a control region.
+  A. Include in the 'cuts' TTree the 'RunNumber' also
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email)
   5. Check with the *.sh.e* the good behaviour of the job
   9. Put in the configuration the Working Point to be used in the Electrons
   12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
-     runanalysis job
+     runanalysis job (see skimfiles.py script to identify what functions could be used as general funtions
+     of an abstract class (clustermanager, for instance) and what ones must be implemented in each concrete
+     class. So the germinal idea seems to be: clustermanager is an abstract class to deal with the cluster
+     but each user who wants to send her/his code must to implement some concrete class which implement
+     some user specific methods, the createbash method for instance.
   14.Include a 'resubmit' argument to sendcluster
-  15.Promote to 'Utils' the plotall.sh collectall.sh and sendall.sh scripts (just is needed an argument defining the 
-     kind of signal used) --> DONE
 
 
