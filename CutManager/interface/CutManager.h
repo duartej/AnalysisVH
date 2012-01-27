@@ -10,10 +10,10 @@
  Implementation: Abstract class us
 */
 //
-// Original Author: Jordi Duarte Campderros  
+// @author Original Author: Jordi Duarte Campderros  
 //         Created:  Sun Oct  30 12:20:31 CET 2011
 // 
-// jordi.duarte.campderros@cern.ch
+// @author jordi.duarte.campderros@cern.ch
 //
 //
 #ifndef CUTMANAGER_H
@@ -32,18 +32,18 @@
 class CutManager
 {
 	public:
-		//! Enumerator for the selection MODES
+		//! Enumerator for the selection MODES (see CutManager::_modes)
 		enum
 		{
-			TTT,           // Tight Tight Tight (usual mode)
-			TTN,           // Tight Tight noTight
-			TNN,           // Tight noTight noTight
-			NNN            // noTight noTight noTight (almos never uses it)
+			NORMALSAMPLE,           // 
+			FAKEABLESAMPLE          // _selectedbasicLeptons are loose leptons
 		};
 
 	public:
-		//! Constructor
+		//! Constructor (mode NORMALSAMPLE)
 		CutManager(TreeManager * data, const int & nLeptons = 3); 
+		//! Constructor 
+		CutManager(TreeManager * data, const int & mode, const int & nLeptons); 
 		//! Destructor
 		virtual ~CutManager();
 
@@ -85,6 +85,10 @@ class CutManager
 		virtual unsigned int SelectIsoLeptons() = 0;
 		//! Select good Identified leptons 
 		virtual unsigned int SelectGoodIdLeptons() = 0;
+		//! Loose leptons: to study fakes background, the iso and id cuts are 
+		//! loose generating a fakeable objects sample. Only activated when
+		//! mode == CutManager::FAKEABLESAMPLE
+		virtual unsigned int SelectLooseLeptons() = 0; 
 
 		//-- Getters
 		//! Get good leptons (passing the PV, Iso and ID cuts)
@@ -93,6 +97,8 @@ class CutManager
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const = 0;
 
 		//-- Setters
+		//! Set the operational MODE
+		inline virtual void SetMode( const unsigned int & mode ) { _mode = mode; }
 		//! Set the number of leptons considered in the analysis client
 		inline virtual void SetNLeptons( const unsigned int & nLeptons ) { _nLeptons = nLeptons; }
 		//! Set a cut named 'cutname'
@@ -106,6 +112,10 @@ class CutManager
 
 		//! Mapping name of the cut with its value (must be a double)
 		std::map<std::string,double> * _cuts;
+
+		//! Operational Mode: valid values are integers below than CutManager::__N
+		//! FIXME: HERE Explanation of the modes
+		unsigned int _mode;
 
 		//! Number of leptons to be considered in the analysis
 		unsigned int _nLeptons;
@@ -128,7 +138,9 @@ class CutManager
 //! Print method
 inline std::ostream & operator<<(std::ostream & out, const CutManager & cutmanager)
 {
-	out << "============ Selection Cuts: " << std::endl;
+	out << "|========== CutManager Print ============|" << std::endl;
+	out << "| Operational mode:" << cutmanager._mode << std::endl;
+	out << "|============ Selection Cuts: " << std::endl;
 	if( cutmanager._cuts != 0 )
 	{
 		for(std::map<std::string,double>::iterator it = cutmanager._cuts->begin();

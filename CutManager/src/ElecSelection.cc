@@ -237,7 +237,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux == 0 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the DeltaR between the muons. Exiting!!"
 				<< std::endl;
 			exit(-1);
@@ -246,7 +246,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux->size() != 1 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the DeltaR between the muons. Exiting!!"
 				<< std::endl;
 			exit(-1);
@@ -260,7 +260,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux == 0 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the invariant mass of the muon system."
 			        << " Exiting!!"
 				<< std::endl;
@@ -269,7 +269,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux->size() != 1 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the invariant mass of the muon system."
 			        << " Exiting!!"
 				<< std::endl;
@@ -283,7 +283,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux == 0 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the MET. Exiting!!"
 				<< std::endl;
 			exit(-1);
@@ -292,7 +292,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 		if( varAux->size() != 1 )
 		{
 			std::cerr << "ElecSelection::IsPass ERROR: "
-				<< "Don't pass as second argument a vector<double> "
+				<< "Waiting for a second argument a vector<double> "
 				<< "which contains the MET. Exiting!!"
 				<< std::endl;
 			exit(-1);
@@ -708,3 +708,65 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 
 
 
+//
+// Select the fakeable objects. The _selectedbasicLeptons
+// are substituted by this loose objects. At this level 
+// a loose ISO and ID cuts are applied (@fakeablevar), so
+// the sample produced are smaller than the basicLeptons
+// This function is only activated when the CutManager was
+// called in mode  CutManager::FAKEABLE
+//
+unsigned int ElecSelection::SelectLooseLeptons() 
+{
+	// First check is already was run over selected muons
+	// if not do it
+	if( _selectedbasicLeptons == 0)
+	{
+		this->SelectBasicLeptons();
+	}
+
+	std::vector<int> tokeep;
+
+	//Loop over selected muons
+	for(std::vector<int>::iterator it = _selectedbasicLeptons->begin();
+			it != _selectedbasicLeptons->end(); ++it)
+	{
+		unsigned int i = *it;
+
+		//Build 4 vector for muon (por que no utilizar directamente Pt
+		double ptMu = TLorentzVector(_data->Get<float>("T_Elec_Px",i), 
+				_data->Get<float>("T_Elec_Py",i), 
+				_data->Get<float>("T_Elec_Pz",i), 
+				_data->Get<float>("T_Elec_Energy",i)).Pt();
+
+		//[ID d0 Cut] 
+		double deltaZMu = 0;
+		double IPMu = 0;
+		deltaZMu = _data->Get<float>("T_Elec_dzPVBiasedPV",i);
+		IPMu     = _data->Get<float>("T_Elec_IP2DBiasedPV",i);
+		// Apply cut on d0
+		if(fabs(IPMu) > 0.2)//kLoosed0 ) FIXME HARDCODED
+		{
+			continue;
+		}
+
+		//[ISO cut]
+		double isolation =(_data->Get<float>("T_Elec_eleSmurfPF",i) )/ptMu;
+
+		if( isolation > 0.4 ) //kLooseIso
+		{
+			continue;
+		}
+		// If we got here it means the muon is loose
+		tokeep.push_back(i);
+	}
+
+	// rebuilding the selected leptons, now are loose too
+	_selectedbasicLeptons->clear();
+	for(unsigned int k = 0; k < tokeep.size(); ++k)
+	{
+		_selectedbasicLeptons->push_back( tokeep[k] );
+	}
+
+	return _selectedbasicLeptons->size();
+}

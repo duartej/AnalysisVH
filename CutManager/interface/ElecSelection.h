@@ -65,6 +65,8 @@ class ElecSelection : public CutManager
 		//! Select Good Identified Leptons: 
 		//! - Depends on ...
 		virtual unsigned int SelectGoodIdLeptons();
+		// Loose leptons 
+		virtual unsigned int SelectLooseLeptons();
 
 		//! Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;

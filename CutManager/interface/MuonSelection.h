@@ -67,7 +67,10 @@ class MuonSelection : public CutManager
 		// Select Good Identified Leptons: 
 		// - Depends on 
 		virtual unsigned int SelectGoodIdLeptons();
-		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }
+		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }	
+		// Loose leptons 
+		virtual unsigned int SelectLooseLeptons();
+
 
 		// Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;

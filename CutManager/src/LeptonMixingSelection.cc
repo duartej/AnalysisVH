@@ -601,4 +601,67 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 }
 
 
+//
+// Select the fakeable objects. The _selectedbasicLeptons
+// are substituted by this loose objects. At this level 
+// a loose ISO and ID cuts are applied (@fakeablevar), so
+// the sample produced are smaller than the basicLeptons
+// This function is only activated when the CutManager was
+// called in mode  CutManager::FAKEABLE
+//
+unsigned int LeptonMixingSelection::SelectLooseLeptons() 
+{
+	// First check is already was run over selected muons
+	// if not do it
+	if( _selectedbasicLeptons == 0)
+	{
+		this->SelectBasicLeptons();
+	}
+
+	// To keep track of the lepton type
+	std::vector<int> selectedleptons    = *_selectedbasicLeptons;
+	std::vector<LeptonTypes> leptontype = *_leptontypebasicLeptons;
+	
+	// Muons
+	fMuonSelection->SelectLooseLeptons();
+	// Electrons
+	fElecSelection->SelectLooseLeptons();
+
+	std::vector<int> tokeepIndex;
+	std::vector<LeptonTypes> tokeepLeptonType;
+
+	// What muons/electrons were lost?
+	for(unsigned int k = 0; k < leptontype.size(); ++k)
+	{
+		unsigned int i = selectedleptons[k];
+		LeptonTypes lepton = leptontype[k];
+		if( lepton == MUON )
+		{
+			if( ! isfoundindex(fMuonSelection->_selectedbasicLeptons,i) )
+			{
+				continue;
+			}
+		}
+		else if( lepton == ELECTRON )
+		{
+			if( ! isfoundindex(fElecSelection->_selectedbasicLeptons,i) )
+			{
+				continue;
+			}
+		}
+		tokeepIndex.push_back(i);
+		tokeepLeptonType.push_back(lepton);
+	}
+
+	// rebuilding the selected leptons, now are loose too
+	_selectedbasicLeptons->clear();
+	_leptontypebasicLeptons->clear();
+	for(unsigned int k = 0; k < tokeepIndex.size(); ++k)
+	{
+		_selectedbasicLeptons->push_back( tokeepIndex[k] );
+		_leptontypebasicLeptons->push_back( tokeepLeptonType[k] );
+	}
+
+	return _selectedbasicLeptons->size();
+}
 
