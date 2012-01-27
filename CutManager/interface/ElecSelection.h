@@ -31,9 +31,13 @@ class ElecSelection : public CutManager
 
 	public:
 
+		// TO BE DEPRECATED: just to keep compatibility with old versions
 		//! Constructor
 		ElecSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt,
 				const int & nLeptons = 3 );
+		//! Constructor
+		ElecSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt,
+				const int & opmode, const int & nLeptons);
 		//! Destructor
 		virtual ~ElecSelection();
 

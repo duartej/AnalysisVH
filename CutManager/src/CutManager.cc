@@ -7,7 +7,8 @@
 CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_data(data), 
 	_cuts(0),
-	_mode(CutManager::NORMALSAMPLE),
+	_samplemode(CutManager::NORMALSAMPLE),
+	_opmode(CutManager::TTT),
 	_nLeptons(nLeptons),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
@@ -18,10 +19,11 @@ CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_cuts = new std::map<std::string,double>;
 }
 
-CutManager::CutManager( TreeManager * data, const int & mode, const int & nLeptons  ) :
+CutManager::CutManager( TreeManager * data, const int & opmode, const int & nLeptons  ) :
 	_data(data), 
 	_cuts(0),
-	_mode(mode),
+	_samplemode(CutManager::FAKEABLESAMPLE),
+	_opmode(opmode),
 	_nLeptons(nLeptons),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
@@ -151,9 +153,9 @@ unsigned int CutManager::GetNBasicLeptons()
 		size = _selectedbasicLeptons->size();
 	}
 
-	// Loose mode: the _selectedbasicLeptons now
+	// fake mode: the _selectedbasicLeptons now
 	// are loose leptons
-	if( _mode == CutManager::FAKEABLESAMPLE )
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		size = this->SelectLooseLeptons();
 	}

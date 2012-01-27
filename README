@@ -68,5 +68,8 @@ TODO:
      but each user who wants to send her/his code must to implement some concrete class which implement
      some user specific methods, the createbash method for instance.
   14.Include a 'resubmit' argument to sendcluster
+  15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
+     should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
+     interface methods to use not the SelectWhateverLeptons ... 
 
 

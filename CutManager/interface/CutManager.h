@@ -32,18 +32,29 @@
 class CutManager
 {
 	public:
-		//! Enumerator for the selection MODES (see CutManager::_modes)
+		//! Enumerator for the sample MODE (see CutManager::_samplemode)
 		enum
 		{
-			NORMALSAMPLE,           // 
-			FAKEABLESAMPLE          // _selectedbasicLeptons are loose leptons
+			NORMALSAMPLE,    // 
+			FAKEABLESAMPLE,  // _selectedbasicLeptons are loose leptons
+			_SM              // NOT USE
+		};
+		
+		//! Operational mode: 
+		enum   
+		{
+			TTT,  // Tight Tight Tight ( normal mode)
+			TTN,  // Tight Tight NoTight
+			TNN,  // ...
+			NNN,  // ...
+			_OM   // Just to control
 		};
 
 	public:
 		//! Constructor (mode NORMALSAMPLE)
 		CutManager(TreeManager * data, const int & nLeptons = 3); 
-		//! Constructor 
-		CutManager(TreeManager * data, const int & mode, const int & nLeptons); 
+		//! Constructor (mode fake)
+		CutManager(TreeManager * data, const int & opmode, const int & nLeptons); 
 		//! Destructor
 		virtual ~CutManager();
 
@@ -98,7 +109,7 @@ class CutManager
 
 		//-- Setters
 		//! Set the operational MODE
-		inline virtual void SetMode( const unsigned int & mode ) { _mode = mode; }
+		inline virtual void SetMode( const unsigned int & mode ) { _samplemode = mode; }
 		//! Set the number of leptons considered in the analysis client
 		inline virtual void SetNLeptons( const unsigned int & nLeptons ) { _nLeptons = nLeptons; }
 		//! Set a cut named 'cutname'
@@ -113,9 +124,10 @@ class CutManager
 		//! Mapping name of the cut with its value (must be a double)
 		std::map<std::string,double> * _cuts;
 
+		//! Sample mode
+		unsigned int _samplemode;
 		//! Operational Mode: valid values are integers below than CutManager::__N
-		//! FIXME: HERE Explanation of the modes
-		unsigned int _mode;
+		unsigned int _opmode;
 
 		//! Number of leptons to be considered in the analysis
 		unsigned int _nLeptons;
@@ -139,7 +151,7 @@ class CutManager
 inline std::ostream & operator<<(std::ostream & out, const CutManager & cutmanager)
 {
 	out << "|========== CutManager Print ============|" << std::endl;
-	out << "| Operational mode:" << cutmanager._mode << std::endl;
+	out << "| Operational mode:" << cutmanager._samplemode << std::endl;
 	out << "|============ Selection Cuts: " << std::endl;
 	if( cutmanager._cuts != 0 )
 	{

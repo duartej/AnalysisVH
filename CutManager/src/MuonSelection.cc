@@ -8,7 +8,7 @@
 const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 
-//Constructor
+//Constructor: TO BE DEPRECATED
 MuonSelection::MuonSelection( TreeManager * data, const int & nLeptons) : 
 	CutManager(data,nLeptons),
 	kMinMuPt1(-1),
@@ -41,6 +41,38 @@ MuonSelection::MuonSelection( TreeManager * data, const int & nLeptons) :
 	_codenames.insert("MinMET");
 }
 
+// Constructor
+MuonSelection::MuonSelection( TreeManager * data, const int & opmode, const int & nLeptons) : 
+	CutManager(data,opmode,nLeptons),
+	kMinMuPt1(-1),
+	kMinMuPt2(-1),      
+	kMinMuPt3(-1),          
+	kMaxAbsEta(-1),         		
+	kMaxMuIP2DInTrackR1(-1),
+	kMaxMuIP2DInTrackR2(-1), 		
+	kMaxDeltaZMu(-1), 
+	kMaxDeltaRMuMu(-1),
+	kMinMET(-1),
+	kDeltaZMass(-1),
+	kMaxZMass(-1),
+	kMinZMass(-1),
+	kMaxPTIsolationR1(-1),
+	kMaxPTIsolationR2(-1),
+	kMaxPTIsolationR3(-1),
+	kMaxPTIsolationR4(-1),
+	kMinNValidHitsSATrk(-1),
+	kMaxNormChi2GTrk(-1),
+	kMinNumOfMatches(-1),
+	kMinNValidPixelHitsInTrk(-1),
+	kMinNValidHitsInTrk(-1),
+	kMaxDeltaPtMuOverPtMu(-1)  
+{ 
+	// Initialize the selection codenames
+	_codenames.insert("PtMuonsCuts");
+	_codenames.insert("DeltaRMuMuCut");
+	_codenames.insert("ZMassWindow");
+	_codenames.insert("MinMET");
+}
 
 void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipmap,
 		const std::vector<std::string> & cuts)

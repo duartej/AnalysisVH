@@ -8,7 +8,7 @@
 const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 
-//Constructor
+//Constructor: TO BE DEPRECATED
 ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
 		const int & WPhighpt, const int & nLeptons) : 
 	CutManager(data,nLeptons),
@@ -48,6 +48,48 @@ ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
 	pWP_lowPt = new WPElecID( WPlowpt );
 	pWP_highPt = new WPElecID( WPhighpt );
 }
+
+// CONSTRUCTOR
+ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
+		const int & WPhighpt, const int & opmode, const int & nLeptons) : 
+	CutManager(data,opmode,nLeptons),
+	pWP_lowPt(0),   
+	pWP_highPt(0),    
+	kMinMuPt1(-1),
+	kMinMuPt2(-1),      
+	kMinMuPt3(-1),          
+	kMaxAbsEta(-1),         		
+	kMaxMuIP2DInTrackR1(-1),
+	kMaxMuIP2DInTrackR2(-1), 		
+	kMaxDeltaZMu(-1), 
+	kMaxDeltaRMuMu(-1),
+	kMinMET(-1),
+	kDeltaZMass(-1),
+	kMaxZMass(-1),
+	kMinZMass(-1),
+	kMaxPTIsolationR1(-1),
+	kMaxPTIsolationR2(-1),
+	kMaxPTIsolationR3(-1),
+	kMaxPTIsolationR4(-1),
+	kMinNValidHitsSATrk(-1),
+	kMaxNormChi2GTrk(-1),
+	kMinNumOfMatches(-1),
+	kMinNValidPixelHitsInTrk(-1),
+	kMinNValidHitsInTrk(-1),
+	kMaxDeltaPtMuOverPtMu(-1)  
+{ 
+	// Initialize the selection codenames
+	_codenames.insert("PtMuonsCuts");
+	_codenames.insert("DeltaRMuMuCut");
+	_codenames.insert("ZMassWindow");
+	_codenames.insert("MinMET");
+
+	// Set the Id related cuts datamembers
+	// WARNING HARDCODED (if this ok?)
+	pWP_lowPt = new WPElecID( WPlowpt );
+	pWP_highPt = new WPElecID( WPhighpt );
+}
+
 
 ElecSelection::~ElecSelection()
 {

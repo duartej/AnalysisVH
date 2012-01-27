@@ -36,7 +36,11 @@ class MuonSelection : public CutManager
 	friend class LeptonMixingSelection;
 
 	public:
+		//! Constructor
+		//! TO BE DEPRECATED: just to keep compatibility with old versions
 		MuonSelection( TreeManager * data, const int & nLeptons = 3 );
+		//! Constructor
+		MuonSelection( TreeManager * data, const int & opmode, const int & nLeptons);
 		virtual ~MuonSelection() { }
 
 		// Initialization of datamembers
