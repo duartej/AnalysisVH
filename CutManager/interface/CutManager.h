@@ -23,6 +23,7 @@
 #include<map>
 #include<iostream>
 #include<string>
+#include<bitset>
 
 #include"TreeManager.h"
 #include "LeptonTypes.h"
@@ -33,6 +34,11 @@ class CutManager
 {
 	public:
 		//! Enumerator for the sample MODE (see CutManager::_samplemode)
+		//! This code is ready to be used to estimate the fake background,
+		//! It is accomplished using the CutManager::FAKEABLESAMPLE mode where
+		//! the sample is selected with the definition of fakeable object (see 
+		//! @fakeable cuts in configuration files). In this mode is necessary also
+		//! to define the number of tight leptons info
 		enum
 		{
 			NORMALSAMPLE,    // 
@@ -40,21 +46,11 @@ class CutManager
 			_SM              // NOT USE
 		};
 		
-		//! Operational mode: 
-		enum   
-		{
-			TTT,  // Tight Tight Tight ( normal mode)
-			TTN,  // Tight Tight NoTight
-			TNN,  // ...
-			NNN,  // ...
-			_OM   // Just to control
-		};
-
 	public:
 		//! Constructor (mode NORMALSAMPLE)
 		CutManager(TreeManager * data, const int & nLeptons = 3); 
 		//! Constructor (mode fake)
-		CutManager(TreeManager * data, const int & opmode, const int & nLeptons); 
+		CutManager(TreeManager * data, const int & nTights, const int & nLeptons); 
 		//! Destructor
 		virtual ~CutManager();
 
@@ -86,6 +82,24 @@ class CutManager
 		unsigned int GetNIsoLeptons();
 		//! Number of Good Identified leptons 
 		unsigned int GetNGoodIdLeptons();
+		//! Number of no Tight Leptons NECESARIO??
+		unsigned int GetNnoTightLeptons();
+
+		//! Auxiliary methods to deal with fakeables sample
+
+		//! Return true if exactly have _nLeptons (or _nTight tight leptons
+		//! and _nFails no tight leptons in the FAKEABLESAMPLE case), after
+		//! all cuts (_selectedGoodIdLeptons must be already fill in)
+		bool IspassExactlyN();
+		//! Return true if at least have _nLeptons (or _nTight tight leptons
+		//! and _nFails no tight leptons in the FAKEABLESAMPLE case), after
+		//! all cuts (_selectedGoodIdLeptons must be already fill in)
+		bool IspassAtLeastN();
+		//! Overloaded method to allow any combination of tights and no tights,
+		//! the first argument is the number of leptons we want to be passed, 
+		//! the second argument is the number of tight leptons we have (so
+		//! the function will add the number of no tight leptons if proceed)
+		bool IspassAtLeastN(const unsigned int & nLeptons, const unsigned int & nTight);
 
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts
@@ -123,15 +137,19 @@ class CutManager
 
 		//! Mapping name of the cut with its value (must be a double)
 		std::map<std::string,double> * _cuts;
+		
+		//! Number of leptons to be considered in the analysis
+		unsigned int _nLeptons;
 
 		//! Sample mode
 		unsigned int _samplemode;
-		//! Operational Mode: valid values are integers below than CutManager::__N
-		unsigned int _opmode;
 
-		//! Number of leptons to be considered in the analysis
-		unsigned int _nLeptons;
-		
+		//! Number of Tight leptons, If sample mode is in FAKEABLE: 
+		unsigned int _nTights;
+		//! Number of no Tight leptons, If sample mode is in FAKEABLE,
+		//! note that _nLeptons = _nTights + _nFails
+		unsigned int _nFails;
+
 		//! Selection datamembers
 		//! Vector of index of leptons which pass the basic selection
 		std::vector<int> * _selectedbasicLeptons;
@@ -141,8 +159,11 @@ class CutManager
 		std::vector<int> * _selectedIsoLeptons;
 		//! Vector of index of good identified leptons 
 		std::vector<int> * _selectedGoodIdLeptons;
-		//! Vector of leptons indices which have been pass all the cuts--> Anteriores
-		std::vector<int> * _idxLeptons;
+		//! Vector of leptons indices which have been passed all the cuts--> Anteriores
+		std::vector<int> * _idxLeptons; // TO BE REMOVED-->  DEPRECATED
+
+		//! Vector of leptons indices which have not passed the tight cuts
+		std::vector<int> * _notightLeptons;
 
 	ClassDef(CutManager,0);
 };
@@ -152,6 +173,19 @@ inline std::ostream & operator<<(std::ostream & out, const CutManager & cutmanag
 {
 	out << "|========== CutManager Print ============|" << std::endl;
 	out << "| Operational mode:" << cutmanager._samplemode << std::endl;
+	if( cutmanager._samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		out << "| ++ Sample: ";
+		for(unsigned int j = 0; j < cutmanager._nTights; ++j)
+		{
+			out << "Tight ";
+		}
+		for(unsigned int j = 0; j < cutmanager._nFails; ++j)
+		{
+			out << "No-Tight ";
+		}
+		out << std::endl;
+	}
 	out << "|============ Selection Cuts: " << std::endl;
 	if( cutmanager._cuts != 0 )
 	{

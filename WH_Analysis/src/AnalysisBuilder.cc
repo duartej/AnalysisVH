@@ -57,7 +57,7 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	if( finalstate == SignatureFS::_iFSmmm )
 	{
 		// The selector
-		selectioncuts = new MuonSelection(data);
+		selectioncuts = new MuonSelection(data,0,3);
 	}
 	else if( finalstate == SignatureFS::_iFSeee )
 	{

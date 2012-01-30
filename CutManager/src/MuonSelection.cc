@@ -382,6 +382,14 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	// Empty the selected muons vector --> Redundant to be removed
 	_selectedbasicLeptons->clear();
 	
+	
+	// Be ready the notightLeptons if proceed
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		_notightLeptons = new std::vector<int>;
+	}
+
+	
 	// Loop over muons
 	for(unsigned int i=0; i < _data->GetSize<float>("T_Muon_Px"); ++i) 
 	{
@@ -487,15 +495,27 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		// + R2: PT <  20
 		if(ptMu >= 20.0 && fabs(IPMu) > kMaxMuIP2DInTrackR1 ) 
 		{
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				_notightLeptons->push_back(i);
+			}
 			continue;
 		}
 		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
 		{
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				_notightLeptons->push_back(i);
+			}
 			continue;
 		}
 		
 		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				_notightLeptons->push_back(i);
+			}
 			continue;
 		}
 		
@@ -603,6 +623,10 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		
 		if( !isolatedMuon )
 		{
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				_notightLeptons->push_back(i);
+			}
 			continue;
 		}
 		

@@ -454,7 +454,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	unsigned int nSelectedMuons = fLeptonSelection->GetNBasicLeptons();
 	_histos[fHNSelectedLeptons]->Fill(nSelectedMuons,puw);
 
-	if(nSelectedMuons < kNMuons)
+	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedMuons) )
 	{
 		return WZCuts::_iHas2Leptons;
 	}
@@ -466,7 +466,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	unsigned int nSelectedPVMuons = fLeptonSelection->GetNLeptonsCloseToPV();
 	_histos[fHNSelectedPVLeptons]->Fill(nSelectedPVMuons,puw); 
 	
-	if(nSelectedPVMuons < kNMuons)
+	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedPVMuons) )
 	{
 		return WZCuts::_iHas2PVLeptons;
 	}
@@ -479,7 +479,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	unsigned int nSelectedIsoMuons = fLeptonSelection->GetNIsoLeptons();
 	_histos[fHNSelectedIsoLeptons]->Fill(nSelectedIsoMuons,puw);  
 	
-	if(nSelectedIsoMuons < kNMuons)
+	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedIsoMuons) )
 	{
 		return WZCuts::_iHas2IsoLeptons;
 	}
@@ -491,7 +491,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
 	_histos[fHNSelectedIsoGoodLeptons]->Fill(nSelectedIsoGoodMuons,puw);
 	
-	if(nSelectedIsoGoodMuons < kNMuons)
+	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedIsoGoodMuons) )
 	{
 		return WZCuts::_iHas2IsoGoodLeptons;
 	}
@@ -509,7 +509,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		// state (in Cutmanager)
 	//}
 
-	if(nSelectedIsoGoodMuons < _nLeptons)
+	if( ! fLeptonSelection->IspassAtLeastN() )
 	{
 		return WZCuts::_iHasAtLeast3Leptons;
 	}

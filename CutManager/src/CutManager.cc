@@ -1,4 +1,4 @@
-
+#include<assert.h>
 #include<stdlib.h>
 
 #include "CutManager.h"
@@ -7,31 +7,38 @@
 CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_data(data), 
 	_cuts(0),
-	_samplemode(CutManager::NORMALSAMPLE),
-	_opmode(CutManager::TTT),
 	_nLeptons(nLeptons),
+	_samplemode(CutManager::NORMALSAMPLE),
+	_nTights(-1),
+	_nFails(-1),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
 	_selectedGoodIdLeptons(0),
-	_idxLeptons(0)
+	_idxLeptons(0),
+	_notightLeptons(0)
 {
 	_cuts = new std::map<std::string,double>;
 }
 
-CutManager::CutManager( TreeManager * data, const int & opmode, const int & nLeptons  ) :
+CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons  ) :
 	_data(data), 
 	_cuts(0),
-	_samplemode(CutManager::FAKEABLESAMPLE),
-	_opmode(opmode),
 	_nLeptons(nLeptons),
+	_samplemode(CutManager::FAKEABLESAMPLE),
+	_nTights(nTights),
+	_nFails(_nLeptons-_nTights),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
 	_selectedGoodIdLeptons(0),
-	_idxLeptons(0)
+	_idxLeptons(0),
+	_notightLeptons(0)
 {
 	_cuts = new std::map<std::string,double>;
+	// Coherent check
+	assert( (_nTights <= _nLeptons) && "\033[1;31mThe number of tights leptons MUST BE lesser"
+			" or equal than the number of total leptons\033[1;m" );
 }
 
 CutManager::~CutManager()
@@ -47,6 +54,12 @@ CutManager::~CutManager()
 	{
 		delete _idxLeptons;
 		_idxLeptons = 0;
+	}
+	
+	if( _notightLeptons != 0 )
+	{
+		delete _notightLeptons;
+		_notightLeptons = 0;
 	}
 
 	if( _selectedbasicLeptons != 0)
@@ -116,6 +129,12 @@ void CutManager::Reset()
 	{
 		delete _idxLeptons;
 		_idxLeptons = 0;
+	}
+
+	if( _notightLeptons != 0 )
+	{
+		delete _notightLeptons;
+		_notightLeptons = 0;
 	}
 
 	if( _selectedbasicLeptons != 0)
@@ -216,3 +235,56 @@ void CutManager::SetCut(const std::string & cutname, const double & value)
 }
 
 
+// 
+bool CutManager::IspassExactlyN()
+{
+	// Note that must be at the stage of Good ID
+	assert( (_selectedGoodIdLeptons != 0) && "\033[1;31mThe CutManager::IspassExactlyN method"
+			" must be called AFTER CutManager::GetNGoodIdLeptons" );
+
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		return ( (_selectedGoodIdLeptons->size() == _nTights) &&
+			(_notightLeptons->size() == _nFails) );		
+	}
+	else
+	{
+		return (_selectedGoodIdLeptons->size() == _nLeptons);
+	}
+
+}
+
+
+//
+bool CutManager::IspassAtLeastN()
+{
+	// Note that must be at the stage of Good ID
+	assert( (_selectedGoodIdLeptons != 0) && 
+			"The CutManager::IspassAtLeastN method must be called AFTER CutManager::GetNGoodIdLeptons" );
+
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		return ( (_selectedGoodIdLeptons->size() >= _nTights) &&
+			(_notightLeptons->size() >= _nFails) );		
+	}
+	else
+	{
+		return (_selectedGoodIdLeptons->size() >= _nLeptons);
+	}
+
+}
+
+//Overloaded method: it is allowed any combination of Tight, Loose
+bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int & nTights)
+{
+	unsigned int size = nTights;
+
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		assert( (_notightLeptons != 0) &&
+				"CutManager::IspassAtLeastN called and it doesn't make sense to called it at this stage" );
+		size += _notightLeptons->size();
+	}
+
+	return size >= nLeptons;
+}
