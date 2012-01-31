@@ -12,6 +12,7 @@
 #include "TreeTypes.h"
 #include "LeptonTypes.h"
 
+#include<vector>
 #include<map>
 
 //class AnalysisVH;
@@ -23,7 +24,8 @@ class AnalysisBuilder
 	public:
 		//static AnalysisVH * Build( treeTypes thetype, const char * finalstate, std::map<LeptonTypes,InputParameters *> ip);
 		static AnalysisBase * Build( const char * analysistype, treeTypes thetype,
-				const char * finalstate, std::map<LeptonTypes,InputParameters *> ip);
+				const char * finalstate, std::map<LeptonTypes,InputParameters *> ip,
+				const std::vector<int> * fakeablenumber);
 };
 
 #endif

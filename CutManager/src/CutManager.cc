@@ -4,7 +4,7 @@
 #include "CutManager.h"
 #include "TreeManager.h"
 
-CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
+CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons  ) :
 	_data(data), 
 	_cuts(0),
 	_nLeptons(nLeptons),
@@ -15,30 +15,20 @@ CutManager::CutManager( TreeManager * data, const int & nLeptons  ) :
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
 	_selectedGoodIdLeptons(0),
-	_idxLeptons(0),
 	_notightLeptons(0)
 {
 	_cuts = new std::map<std::string,double>;
-}
-
-CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons  ) :
-	_data(data), 
-	_cuts(0),
-	_nLeptons(nLeptons),
-	_samplemode(CutManager::FAKEABLESAMPLE),
-	_nTights(nTights),
-	_nFails(_nLeptons-_nTights),
-	_selectedbasicLeptons(0),
-	_closeToPVLeptons(0),
-	_selectedIsoLeptons(0),
-	_selectedGoodIdLeptons(0),
-	_idxLeptons(0),
-	_notightLeptons(0)
-{
-	_cuts = new std::map<std::string,double>;
-	// Coherent check
-	assert( (_nTights <= _nLeptons) && "\033[1;31mThe number of tights leptons MUST BE lesser"
-			" or equal than the number of total leptons\033[1;m" );
+	
+	// Fakeable mode
+	if( nTights >= 0 )
+	{
+		_samplemode = CutManager::FAKEABLESAMPLE;
+		_nTights = nTights;
+		_nFails = _nLeptons - _nTights;
+		// Coherent check
+		assert( (_nTights <= _nLeptons) && "The number of tights leptons MUST BE lesser"
+				" or equal than the number of total leptons" );
+	}
 }
 
 CutManager::~CutManager()
@@ -50,12 +40,6 @@ CutManager::~CutManager()
 		_cuts = 0;
 	}
 
-	if( _idxLeptons != 0 )
-	{
-		delete _idxLeptons;
-		_idxLeptons = 0;
-	}
-	
 	if( _notightLeptons != 0 )
 	{
 		delete _notightLeptons;
@@ -125,12 +109,6 @@ void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & i
 // Method to be called each time finalize a entry
 void CutManager::Reset()
 {
-	if( _idxLeptons != 0 )
-	{
-		delete _idxLeptons;
-		_idxLeptons = 0;
-	}
-
 	if( _notightLeptons != 0 )
 	{
 		delete _notightLeptons;

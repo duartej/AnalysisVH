@@ -61,140 +61,6 @@ void PrintDataFiles(const std::vector<TString> & dataFiles)
 	}
 }
 
-// Giving a dataset extract all the files and stores them in a file
-/*const std::vector<TString> extractdatafiles(TString dataName = "HW160" ) // TO BE DEPRECATED
-{
-
-	bool storeXSE = false;
-
-	// 1) Load the files
-	DatasetManager * dm = 0;
-
-	std::vector<TString> datafiles;
-	// 2) Asign the files 
-	if(dataName.Contains("LocalWH")) 
-	{
-		datafiles.push_back( "/hadoop/PrivateProduction/WH_2l_42X/Tree_WH_2l_42X.root" );
-	}
-	else if(dataName.Contains("Data")) 
-	{
-		std::vector<TString> data1= 
-			DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-					"Tree_DoubleMuMay10_210.5");
-		AddDataFiles(data1,datafiles);
-                
-		std::vector<TString> data2= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-             				       "Tree_DoubleMuV4_927.9");
-		AddDataFiles(data2,datafiles);
-                
-		std::vector<TString> data3= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-             				  "Tree_DoubleMuAug5_334.4");
-		AddDataFiles(data3,datafiles);
-             	
-		std::vector<TString> data4= 
-             		  DatasetManager::GetRealDataFiles("../LatinosSkims/Data7TeVRun2011A_newJEC_Reload", 
-				  "Tree_DoubleMuV6_662.9");
-		AddDataFiles(data4,datafiles);
-		
-		if(datafiles.size() == 0) 
-		{
-			std::cerr << "ERROR: Could not find dataset " 
-				<< dataName << " with DatasetManager!!!" << std::endl;
-			std::cerr << "       Exiting!" << std::endl;      
-			exit(-1);
-		}
-		
-		PrintDataFiles(datafiles);
-	}
-	else 
-	{
-		storeXSE=true;
-
-		//TString folder("Summer11");
-		//TString skim("Skim2LPt1010");
-		TString folder("Summer11 Latinos");
-		TString skim("/");
-
-		if (dataName.Contains("WH")) 
-		{
-			//folder = "Summer11"; MINITREES
-			//skim = "HWW";        MINITREES
-			folder = "HWW Summer11 Latinos";
-			skim = "/";
-			dataName.Replace(0,2, "WHToWW2L");
-		}
-		
-		//Use DatasetManager
-		dm = new DatasetManager(folder, skim);
-		
-		dm->LoadDataset(dataName);  // Load information about a given dataset
-		AddDataFiles(dm->GetFiles(),datafiles); //Find files
-
-		xsection = dm->GetCrossSection();
-		evtsample= dm->GetEventsInTheSample();
-		
-#ifdef DEBUG
-		std::cout << std::endl;
-		std::cout << "      x-section = " << dm->GetCrossSection()      << std::endl;
-		//std::cout << "     luminosity = " << G_Event_Lumi               << std::endl; --> NO DEFINIDA
-		std::cout << "        nevents = " << dm->GetEventsInTheSample() << std::endl;
-		std::cout << " base file name = " << dm->GetBaseFileName()      << std::endl;
-		std::cout << std::endl;
-		dm->Dump();
-#endif
-		
-		if(datafiles.size() == 0) 
-		{
-			std::cerr << "ERROR: Could not find dataset " 
-				<< dataName << " with DatasetManager for folder " 
-				<< folder << "!!!" << std::endl;
-			std::cerr << "       Exiting!" << std::endl;      
-			exit(-1);
-		}
-
-		// Freeing memory
-		delete dm; 
-		dm = 0;
-	}
-
-	// Persistency
-	std::string filename( dataName+"_datanames.dn" );
-	std::ofstream of( filename.c_str() );
-	if( ! of.is_open() )
-	{
-		std::cerr << "ERROR: Imposible to open the file '" << filename 
-			<< "' to store file names information" << std::endl;
-		exit(-1);
-	}
-	// TreeType
-	treeTypes treeType;
-	if( datafiles[0].Contains("TESCO") )
-	{
-		treeType = TESCO;
-	}
-	else 
-	{
-		treeType = MiniTrees;
-	}
-
-	of << treeType << std::endl;
-	// CrossSection and number of events if proceed
-	if( storeXSE )
-	{
-		of << "XS:" << xsection << std::endl;
-		of << "NEvents:" << evtsample << std::endl;
-	}
-
-	for(std::vector<TString>::iterator it = datafiles.begin(); it != datafiles.end(); ++it)
-	{
-		of << it->Data() << std::endl;
-	}
-	of.close();
-
-	return datafiles;	
-}*/
 
 // Overloaded function to extract the file names from a previous stored file
 // It will catch the files inside a subset: if datanamefile != is the name
@@ -346,6 +212,8 @@ void display_usage()
 	std::cout << "                             configurations file " << std::endl;
 	std::cout << "    -d dataname.dn           filename containing the files for the 'dataname'" << std::endl;
 	std::cout << "    -l <mmm|eee|mme|eem>     Final state signature (mmm per default)" << std::endl;
+	std::cout << "    -F N,T                   Fake mode activated, N=number of leptons," << 
+		"T=number of tight leptons" << std::endl;
 	std::cout << "    -o output.root           output root file " << std::endl;
 	std::cout << "    -h                       displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
@@ -366,6 +234,7 @@ int main(int argc, char *argv[])
 	const char * datanamefile   = 0;
 	const char * fsSignature    = "mmm";
 	const char * antype    = "WH";
+	std::vector<int> * fakeable = 0;
 
 	bool getOF = false;
 
@@ -451,6 +320,50 @@ int main(int argc, char *argv[])
 						<< "' in '-l' option. Valid arguments are: mmm eee mme eem" << std::endl;
 					return -1;
 				}
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
+			}
+			if( strcmp(argv[i],"-F") == 0 )
+			{
+				// Extracting the number of leptons 
+				std::string rawconfigs = argv[i+1];
+				char * pch;
+				// Note that strtok changes the original
+				// string, so I must de-const..
+				char *temp = new char[rawconfigs.size()];
+				temp = const_cast<char*>(rawconfigs.c_str());
+				pch = strtok(temp," ,");
+				fakeable = new std::vector<int>;
+				while( pch != 0)
+				{
+					std::stringstream insidecomma(pch);
+					int iProv;
+					insidecomma >> iProv;
+					fakeable->push_back(iProv);
+					pch = strtok(0, " ,");
+				}
+				// Checks
+				if( fakeable->size() != 2 )
+				{
+					std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+						<< " Not able to parse '-F' option, recall the" 
+						<< " syntaxis: '-F N,T' where N=number of total" 
+						<< " leptons and T=number of tight leptons" 
+						<< std::endl;
+					return -1;
+				}
+				// Ntotal must be >= Ntight
+				if( fakeable->at(0) < fakeable->at(1) )
+				{
+					std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+						<< " Inconsistency in '-F' option. Recall " 
+						<< " syntaxis: '-F N,T' where N=number of total" 
+						<< " leptons and T=number of tight leptons" 
+						<< std::endl;
+					return -1;
+				}
+				// Extract the null
 				usedargs.insert(i);
 				usedargs.insert(i+1);
 				i++;
@@ -609,7 +522,15 @@ int main(int argc, char *argv[])
 	timer.Start();
 #endif
 	// Creating Analysis
-	AnalysisBase * analysis = AnalysisBuilder::Build( antype, dataType, fsSignature, ipmap ); 
+	AnalysisBase * analysis = AnalysisBuilder::Build( antype, dataType, fsSignature,
+			ipmap, fakeable ); 
+
+	// 
+	if( fakeable != 0 )
+	{
+		delete fakeable;
+		fakeable = 0;
+	}
 
 #ifdef TIMERS
 	//T4

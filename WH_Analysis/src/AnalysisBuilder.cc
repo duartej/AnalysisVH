@@ -22,7 +22,8 @@
 // De momento es mas un builder del cut manager
 //AnalysisVH * AnalysisBuilder::Build( treeTypes thetype, const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap )
 AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thetype, 
-		const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap )
+		const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap,
+		const std::vector<int> * fakeablenumbers )
 {
 
 	CutManager * selectioncuts = 0;
@@ -52,21 +53,36 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 			<< std::endl;
 		exit(-1);
 	}
+
+	// Check if we are in fakeable mode
+	int nTights = -1;
+	int nLeptons= 3;	
+	if( fakeablenumbers != 0)
+	{
+		nTights = fakeablenumbers->at(1);
+		nLeptons = fakeablenumbers->at(0);
+		if( nLeptons != 3 )
+		{
+			std::cerr << "\033[1;31mAnalysisBuilder::Build NOT IMPLEMENTED YET\033[1;m"
+				<< " the analysis with more than 3 leptons" << std::endl;
+			exit(-2);
+		}
+	}
 	
 	TreeManager * data = new TreeManager();
 	if( finalstate == SignatureFS::_iFSmmm )
 	{
 		// The selector
-		selectioncuts = new MuonSelection(data);
+		selectioncuts = new MuonSelection(data,nTights,nLeptons);
 	}
 	else if( finalstate == SignatureFS::_iFSeee )
 	{
-		selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt);
+		selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
 	}
 	else if( finalstate == SignatureFS::_iFSeem ||
 			finalstate == SignatureFS::_iFSmme )
 	{
-		selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt);
+		selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
 	}
 	else
 	{

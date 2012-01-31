@@ -41,15 +41,13 @@ class CutManager
 		//! to define the number of tight leptons info
 		enum
 		{
-			NORMALSAMPLE,    // 
-			FAKEABLESAMPLE,  // _selectedbasicLeptons are loose leptons
-			_SM              // NOT USE
+			NORMALSAMPLE,   // 
+			FAKEABLESAMPLE  // _selectedbasicLeptons are loose leptons
 		};
 		
 	public:
-		//! Constructor (mode NORMALSAMPLE)
-		CutManager(TreeManager * data, const int & nLeptons = 3); 
-		//! Constructor (mode fake)
+		//! Constructor: nTights = -1 to enter in NORMALSAMPLE mode
+		//!              nTights >= 0 to enter in FAKEABLESAMPLE mode
 		CutManager(TreeManager * data, const int & nTights, const int & nLeptons); 
 		//! Destructor
 		virtual ~CutManager();
@@ -83,7 +81,7 @@ class CutManager
 		//! Number of Good Identified leptons 
 		unsigned int GetNGoodIdLeptons();
 		//! Number of no Tight Leptons NECESARIO??
-		unsigned int GetNnoTightLeptons();
+		//unsigned int GetNnoTightLeptons();
 
 		//! Auxiliary methods to deal with fakeables sample
 
@@ -159,8 +157,6 @@ class CutManager
 		std::vector<int> * _selectedIsoLeptons;
 		//! Vector of index of good identified leptons 
 		std::vector<int> * _selectedGoodIdLeptons;
-		//! Vector of leptons indices which have been passed all the cuts--> Anteriores
-		std::vector<int> * _idxLeptons; // TO BE REMOVED-->  DEPRECATED
 
 		//! Vector of leptons indices which have not passed the tight cuts
 		std::vector<int> * _notightLeptons;

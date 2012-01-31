@@ -9,26 +9,10 @@
 #include<map>
 #include<algorithm>
 
-
-//Constructor: TO BE DEPRECATED
-LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, 
-		const int & WPlowpt, const int & WPhighpt, const int & nLeptons) : 
-	CutManager(data,nLeptons),
-	fMuonSelection(0),
-	fElecSelection(0),
-	_leptontypebasicLeptons(0),
-	_leptontypecloseToPVLeptons(0),
-	_leptontypeIsoLeptons(0),
-	_leptontypeGoodIdLeptons(0)
-{ 
-	fMuonSelection = new MuonSelection(data,nLeptons);
-	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nLeptons);
-}
-
 //Constructor: 
 LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WPlowpt,
-		const int & WPhighpt, const int & opmode, const int & nLeptons) : 
-	CutManager(data,opmode,nLeptons),
+		const int & WPhighpt, const int & nTights, const int & nLeptons) : 
+	CutManager(data,nTights,nLeptons),
 	fMuonSelection(0),
 	fElecSelection(0),
 	_leptontypebasicLeptons(0),
@@ -36,8 +20,8 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 	_leptontypeIsoLeptons(0),
 	_leptontypeGoodIdLeptons(0)
 { 
-	fMuonSelection = new MuonSelection(data,opmode,nLeptons);
-	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,opmode,nLeptons);
+	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
+	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons);
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()

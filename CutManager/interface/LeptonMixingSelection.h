@@ -33,12 +33,9 @@ class LeptonMixingSelection : public CutManager
 {
 	public:
 		//! Constructor
-		// TO BE DEPRECATED: just to keep compatibility with old versions
-		LeptonMixingSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt, 
-				const int & nLeptons = 3 );
-		//! Constructor
-		LeptonMixingSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt, 
-				const int & opmode, const int & nLeptons);
+		LeptonMixingSelection( TreeManager * data, const int & WPlowpt, 
+				const int & WPhighpt, 
+				const int & nTights, const int & nLeptons);
 		//! Destructor
 		virtual ~LeptonMixingSelection();
 		

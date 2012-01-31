@@ -513,6 +513,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	{
 		return WZCuts::_iHasAtLeast3Leptons;
 	}
+	//---> A PARTIR DE AQUI	 TENGO EN CUENTA LOS PESOS DE LOS FAKES
+	//     SI ESTOY EN MODO FAKES!!! puw = puw*f/(1-f) siendo f(pt,eta) del
+	//     loose
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
