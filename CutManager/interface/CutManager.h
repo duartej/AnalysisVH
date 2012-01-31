@@ -99,6 +99,9 @@ class CutManager
 		//! the function will add the number of no tight leptons if proceed)
 		bool IspassAtLeastN(const unsigned int & nLeptons, const unsigned int & nTight);
 
+		//! Return true if we are in FAKEABLESAMPLE mode
+		inline bool IsInFakeableMode() const { return _samplemode == CutManager::FAKEABLESAMPLE ; }
+
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts
 		virtual unsigned int SelectBasicLeptons() = 0; 
@@ -118,6 +121,11 @@ class CutManager
 		virtual std::vector<int> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
 		//! Get The lepton type for the i-esim good lepton 
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const = 0;
+
+		//! Get the i-essim index of the NoTight lepton
+		const unsigned int GetNoTightIndex(const unsigned int & i) const;
+		//! Get The lepton type for the i-esim no Tight lepton 
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const = 0;
 
 		//-- Setters
 		//! Set the operational MODE

@@ -74,6 +74,8 @@ class LeptonMixingSelection : public CutManager
 		
 		//! Get The lepton type for the i-esim lepton // FIXME check if _lept.. != 0
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const; 
+		//! Get The lepton type for the i-esim no tight lepton // FIXME check if _lept.. != 0
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const; 
 
 	private:
 		//! Pt cuts for both muons and electrons

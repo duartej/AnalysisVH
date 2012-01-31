@@ -72,6 +72,8 @@ class ElecSelection : public CutManager
 		
 		//! Get the lepton type of the i-esim good lepton
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//! Get the lepton type of the i-esim no tight lepton
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return ELECTRON; }
 
 	private:
 		//-- The effective cuts whose would be called by IsPass

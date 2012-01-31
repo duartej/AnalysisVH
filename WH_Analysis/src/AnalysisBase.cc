@@ -9,6 +9,7 @@
 #include "InputParameters.h"
 #include "CutManager.h"
 #include "PUWeight.h"
+#include "FOManager.h"
 
 #include "TTree.h"
 #include "TH1D.h"
@@ -37,6 +38,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fNGenMuons(0),
 	fNGenLeptons(0),
 	fPUWeight(0),
+	fFO(0),
 	_cuttree(0),
 	_cutvalue(-1),
 	_eventnumber(-1),
@@ -46,6 +48,15 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fLeptonSelection = selectioncuts;
 	// Initialize the cuts for the cut manager
 	fLeptonSelection->InitialiseCuts(ipmap);
+
+	// Are in fake sample mode?
+	if( fLeptonSelection->IsInFakeableMode() )
+	{
+		fFO = new FOManager;
+		// Initialize
+		// fFO->SetFR(blblab)
+	}
+
 	
 	// Just to use the general values fLuminosity, cross section and so on....
 	// it doesn't matters which one pick up
@@ -165,6 +176,12 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete _cuttree;
 		_cuttree = 0;
+	}
+
+	if( fFO != 0 )
+	{
+		delete fFO;
+		fFO = 0;
 	}
 
 }

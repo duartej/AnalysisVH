@@ -69,6 +69,8 @@ class MuonSelection : public CutManager
 		// - Depends on 
 		virtual unsigned int SelectGoodIdLeptons();
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }	
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const 
+		{ return MUON; }	
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 

@@ -107,6 +107,41 @@ LeptonTypes LeptonMixingSelection::GetLeptonType(const unsigned int & index) con
 	return _leptontypeGoodIdLeptons->at(index);
 }
 
+// No tight leptons
+LeptonTypes LeptonMixingSelection::GetNoTightLeptonType(const unsigned int & index) const
+{
+	if( _samplemode != CutManager::FAKEABLESAMPLE )
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetNoTightLeptonType ERROR\033[1;m "
+			<< " Incoherent use of"
+			<< " this function because it cannot be called in NORMALSAMPLE mode."
+			<< " Check the client of this function why has been made this call"
+			<< std::endl;
+		exit(-1);
+	}
+
+	if( _notightLeptonTypes == 0 )  // Not needed
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetNoTightLeptonType ERROR\033[1;m"
+			<< " This function can not be used before calling the"
+			<< " LeptonMixingSelection::SelectGoodIdLeptons, call it first!"
+			<< std::endl;
+		exit(-1);
+	}
+	if( index >= _notightLeptonTypes->size() )
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetNoTightLeptonType ERROR\033[1;m"
+			<< " The argument of this function must be the REAL VECTOR INDEX"
+			<< " of the selectedGoodIdLeptons not the index of the original TBranch"
+			<< " object. Correct that in the code and launch it again."
+			<< std::endl;
+		exit(-1);
+	}
+
+	// Recall index is the vector index
+	return _notightLeptonTypes->at(index);
+}
+
 // Wrapper function to evaluate cuts called directly from the client (Analysis class)
 bool LeptonMixingSelection::IsPass(const std::string & codename, const std::vector<double> * varAux ) const
 {

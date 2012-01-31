@@ -3,7 +3,7 @@ SHELL     = /bin/sh
 PACKAGE   := $(shell basename `pwd`)
 
 CXX       = g++
-CXXFLAGS  = -Wall #-DDEBUGANALYSIS
+CXXFLAGS  = -Wall
 
 LDFLAGS   = -shared -fPIC
 
@@ -16,7 +16,7 @@ INCDIR     += -I$(shell pwd)/interface
 INCDIR     += -I$(shell pwd)
 
 ### Dependencies
-DEPPKG     := TreeManager CutManager CMSAnalysisSelector InputParameters TCounterUI DatasetManager PUWeight CutLevels FOManager
+DEPPKG     := CutManager
 BASEDIR    := $(shell cd .. && pwd && cd ..)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 DEPSLIBS   := $(foreach DEPPKG,$(DEPPKG),-l$(DEPPKG))
@@ -45,8 +45,11 @@ DICTSRC          := $(patsubst interface/%.h,src/%.cxx,$(DICTHEADER))
 DICTHEADERNAME   := $(patsubst interface/%.h,%.h,$(DICTHEADER))
 #- Useful to link the header with the dict.cc
 PAIRDICTHEADER := $(foreach VAR,$(TARGETDICTHEADER), $(VAR):$(call getdictname,$(VAR)))
+##### Variables to generate the dictionaries
+#DICTSRC    := $(shell echo $(SOURCES)| cut -d. -f1 | tr A-Z a-z )dict.cxx
+#DICTHEADER := $(patsubst src/%.cxx,interface/%.h,$(DICTSRC))
+#DICTHEADERNAME := $(patsubst interface/%.h,%.h,$(DICTHEADER))
 
-###### Objects
 OBJDIR     := build
 OBJECTS    := $(patsubst src/%.cc,$(OBJDIR)/%.o,$(wildcard src/*.cc))
 ###### Dictionary object
@@ -56,31 +59,15 @@ DICTOBJECT := $(patsubst src/%.cxx,$(OBJDIR)/%.o,$(DICTSRC))
 HEADERS := $(filter-out $(DICTHEADER), $(HEADERS))
 
 ### Macro to extract the path to the dependency libraries
-getpkgbasedir  = $(foreach var,$(1),$(filter %/$(var),$(DEPSDIR))) 
+getpkgbasedir  = $(foreach var,$(1), $(filter %/$(var),$(DEPSDIR))) 
 
 ### Macro to extract the header counterpart to a dictionary source name
 getheaderdict = $(patsubst %:$(1),%,$(filter %:$(1), $(PAIRDICTHEADER)))
 
-
 all: lib/lib$(PACKAGE).so
 
-bin/datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
-	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
-	@$(shell mkdir -p bin)
-	@$(CXX) $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
-		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -L./lib $< -o $@  
-	@echo "... Done $@"
-
-bin/runanalysis: runanalysis.cc $(DEPSLIBS) 
-	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
-	@$(shell mkdir -p bin)
-	@$(CXX) -DTIMERS $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
-		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -l$(PACKAGE) -L./lib $< -o $@  
-	@echo "... Done $@"
-
-
 ### Creating the dictionaries
-$(DICTSRC): $(TARGETDICTHEADER)
+$(DICTSRC): $(TARGETDICTHEADERS)
 	@echo "=== $(PACKAGE): ++++++ Creating dictionary ($@)"
 	@rm -f $@ $(patsubst src/%.cxx,interface/%.h,$@)
 	@$(ROOTCINT) $@ -c $(DEPSINC) $(call getheaderdict,$(patsubst src/%,%,$@))
@@ -90,7 +77,6 @@ $(DICTSRC): $(TARGETDICTHEADER)
 	        echo "ERROR: Not generated the dictionary!" \
 		exit -2; \
 	fi
-
 
 $(DICTOBJECT): $(DICTSRC)
 	@echo "=== $(PACKAGE): +++++ Creating dictionary objects ($@)"
@@ -108,7 +94,8 @@ $(OBJECTS): $(SOURCES) $(HEADERS)
 		$(patsubst $(OBJDIR)/%.o,src/%.cc,$@)
 
 
-lib/lib$(PACKAGE).so: $(DICTOBJECT) $(OBJECTS) 
+lib/lib$(PACKAGE).so: $(OBJECTS)
+#$(DICTOBJECT) $(OBJECTS) 
 	@echo "=== $(PACKAGE): +++ Linking"
 	@$(shell mkdir -p lib)
 	@$(CXX) $(LDFLAGS) $(CXXFLAGS) $(DEPSLIBDIR) $(ROOTLIBDIR) $(ROOTLIBS) $^ -o $@  

@@ -12,6 +12,7 @@
 //#include "CutLevels.h"
 #include "LeptonTypes.h"
 #include "SignatureFS.h"
+#include "FOManager.h"
 
 #include "TString.h"
 #include "TLorentzVector.h"
@@ -22,6 +23,7 @@ class PUWeight;
 class TTree;
 class CutManager;
 class TH1D;
+class FOManager;
 
 
 
@@ -179,6 +181,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		//----------------------------------------------------------------------------
 		PUWeight* fPUWeight;		
 
+		// Fakeable object manager, if it is needed...
+		FOManager * fFO;
+
 		// Tree containing the last cut used in a given event
 		TTree * _cuttree;
 		// Value of the cut
@@ -189,8 +194,6 @@ class AnalysisBase : public CMSAnalysisSelector
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }
 		//----------------------------------------------------------------------------
-		//TH1D * fHGenPtLepton[3][_iNCuts];   //PT 1st/2nd/3rd energetic gen muon from W or tau
-		//TH1D * fHGenEtaLepton[3][_iNCuts];  //Eta 1st/2nd/3rd energetic gen muons from W or tau
 		// PROVISONAL : FIXME
 		std::map<int,std::vector<TH1D*> > fHGenPtLepton;   //PT 1st/2nd/3rd energetic gen muon from W or tau
 		std::map<int,std::vector<TH1D*> > fHGenEtaLepton;  //Eta 1st/2nd/3rd energetic gen muons from W or tau
@@ -200,9 +203,7 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		// -- Histograms
 		std::map<int,TH1D*> _histos;
-		//std::map<int,std::map<int,TH1D*> > _histos3Leptons; / { nombre_enum: { #lepton: TH1D* , .. } ..
-		//std::map<int,std::map<int, std::map<int,TH1D*> > > _histos3LeptonsPerCut; / { nombre_enum: { #lepton: { # corte: TH1D* ,  .. } .. } 
-
+		
 		// -- It is was stored the ouput
 		bool fWasStored;
 

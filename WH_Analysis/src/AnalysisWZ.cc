@@ -513,9 +513,27 @@ unsigned int AnalysisWZ::InsideLoop()
 	{
 		return WZCuts::_iHasAtLeast3Leptons;
 	}
-	//---> A PARTIR DE AQUI	 TENGO EN CUENTA LOS PESOS DE LOS FAKES
-	//     SI ESTOY EN MODO FAKES!!! puw = puw*f/(1-f) siendo f(pt,eta) del
-	//     loose
+	// Using the fake rate if we are in fake mode
+	if( fFO != 0 )
+	{
+		//FIXME: Note that by the moment we are assuming that the only fakeable sample
+		// available is TTnT, so there are just 1 no tight lepton (and must be at least 1)
+		const unsigned int i = fLeptonSelection->GetNoTightIndex(0);
+		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(0);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		puw *= fFO->GetWeight(ileptontype,pt,eta);
+	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
