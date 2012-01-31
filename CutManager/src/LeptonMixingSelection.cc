@@ -74,6 +74,12 @@ LeptonMixingSelection::~LeptonMixingSelection()
 		delete _leptontypeGoodIdLeptons;
 		_leptontypeGoodIdLeptons = 0;
 	}
+
+	if( _notightLeptonTypes != 0)
+	{
+		delete _notightLeptonTypes;
+		_notightLeptonTypes = 0;
+	}
 }
 
 
@@ -116,22 +122,6 @@ LeptonTypes LeptonMixingSelection::GetLeptonType(const unsigned int & index) con
 	// Recall index is the vector index
 	return _leptontypeGoodIdLeptons->at(index);
 }
-// 
-/*std::vector<std::string> LeptonMixingSelection::GetCodenames(const LeptonTypes & leptontype) const
-{
-	if( leptontype == MUON )
-	{
-		return fMuonSelection->GetCodenames();
-	}
-	else if( leptontype == ELECTRON )
-	{
-		return fElecSelection->GetCodenames();
-	}
-	else
-	{
-		return;
-	}
-}*/
 
 // Wrapper function to evaluate cuts called directly from the client (Analysis class)
 bool LeptonMixingSelection::IsPass(const std::string & codename, const std::vector<double> * varAux ) const
@@ -260,24 +250,6 @@ bool LeptonMixingSelection::IsPass(const std::string & codename, const std::vect
 	return ispass;
 }
 
-// Note as the cuts are independent of the lepton used, we can
-// indistinguishly used the Elec o Muon selection manager, ...
-/* 
-bool LeptonMixingSelection::IsPassMETCut(const double & MET) const
-{	
-	return ( MET > kMinMET );
-}
-
-bool MuonSelection::IsPassDeltaRCut( const double & minDeltaRMuMu ) const
-{
-	return ( minDeltaRMuMu <= kMaxDeltaRMuMu );
-} 
-
-// Return true if it is inside the Z window
-bool MuonSelection::IsInsideZWindow( const double & invariantMass ) const
-{
-	return ( kMaxZMass > invariantMass && invariantMass > kMinZMass);
-}*/
 
 // Specific muon pt-cuts (for the good identified-isolated muons)
 bool LeptonMixingSelection::IsPassPtCuts(const int & nwantMuons, const int & nwantElecs) const
@@ -395,6 +367,13 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	// Extract muons
 	const int nselectedMuons = fMuonSelection->SelectBasicLeptons();
 	const int nselectedElecs = fElecSelection->SelectBasicLeptons();
+	
+	// Be ready the notightLeptons if proceed
+	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	{
+		_notightLeptons = new std::vector<int>;
+		_notightLeptonTypes = new std::vector<LeptonTypes>;
+	}
 
 	// ordering by Pt
 	// -- Muons
@@ -478,6 +457,11 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		{
 			if( ! isfoundindex(fMuonSelection->_closeToPVLeptons,i) )
 			{
+				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				{
+					_notightLeptons->push_back(i);
+					_notightLeptonTypes->push_back(lepton);
+				}
 				continue;
 			}
 		}
@@ -485,6 +469,11 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		{
 			if( ! isfoundindex(fElecSelection->_closeToPVLeptons,i) )
 			{
+				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				{
+					_notightLeptons->push_back(i);
+					_notightLeptonTypes->push_back(lepton);
+				}
 				continue;
 			}
 		}
@@ -537,6 +526,11 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 		{
 			if( ! isfoundindex(fMuonSelection->_selectedIsoLeptons, i) )
 			{
+				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				{
+					_notightLeptons->push_back(i);
+					_notightLeptonTypes->push_back(lepton);
+				}
 				continue;
 			}
 		}
@@ -544,6 +538,11 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 		{
 			if( ! isfoundindex(fElecSelection->_selectedIsoLeptons, i) )
 			{
+				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				{
+					_notightLeptons->push_back(i);
+					_notightLeptonTypes->push_back(lepton);
+				}
 				continue;
 			}
 		}

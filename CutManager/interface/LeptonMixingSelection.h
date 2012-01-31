@@ -102,6 +102,10 @@ class LeptonMixingSelection : public CutManager
 		std::vector<LeptonTypes> * _leptontypecloseToPVLeptons;
 		std::vector<LeptonTypes> * _leptontypeIsoLeptons;
 		std::vector<LeptonTypes> * _leptontypeGoodIdLeptons;
+
+		//! Vector containing the type of lepton which corresponds to the 
+		//! index vector of the _notightLeptons
+		std::vector<LeptonTypes> * _notightLeptonTypes;
 };
 
 #endif
