@@ -20,10 +20,12 @@ class clustermanager(object):
 		import sys
 		
 		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile', 'pkgdir',\
-				'workingdir', 'basedir', 'finalstate', 'analysistype' ]
+				'workingdir', 'basedir', 'finalstate', 'analysistype',
+				'fakeable' ]
 		self.precompile = False
 		self.outputfiles= {}
 		self.leptoncfgfilemap = {}
+		self.fakeable = False
 		# Trying to extract the env variables to define 
 		# the path of the General package
 		if os.getenv("VHSYS"):
@@ -94,6 +96,15 @@ class clustermanager(object):
 				self.finalstate = value
 			elif key == 'analysistype':
 				self.analysistype = value
+			elif key == 'fakeable':
+				try:
+					leptons = value.split(",")
+					self.nLeptons = leptons[0]
+					self.nTights  = leptons[1]
+					self.fakeable = True
+				except TypeError:
+					self.nLeptons = None
+					self.nTights = None
 		
 		# Checked if basedir and pkgpath are there
 		try:
@@ -537,6 +548,8 @@ class clustermanager(object):
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
 		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+self.cfgnames+\
 				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+"\n"
+		if self.fakeable:
+			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights
 	
 		filename = self.dataname+".sh"
 		f = open(filename,"w")
@@ -665,6 +678,7 @@ if __name__ == '__main__':
 	group = OptionGroup(parser, "submit options","")
 	group.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
 	group.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
+	group.add_option( '-F', '--fakeable', action='store', dest='fakeable', metavar="N,T", help="Fakeable mode, so N,T (where N=Leptons and T=Tight leptons")
 	group.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis -h). Also'
 			' not using this option, the script will use all the datafiles *_datanames.dn found in the working directory to launch process')
 	group.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs. Not using this option, the script'
@@ -736,6 +750,9 @@ if __name__ == '__main__':
 		if not opt.antype:
 			message = "\033[31;1msendcluster: ERROR\033[0m the '-a' option is mandatory"
 			sys.exit( message )
+		# Also fakeable or not:
+		if not opt.fakeable:
+			opt.fakeable=False
 		# Instantiate and submit
 		manager = None
 		for dataname in datanameslist:
@@ -743,7 +760,7 @@ if __name__ == '__main__':
 			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
 					basedir=opt.basedir,finalstate=opt.finalstate, \
-					analysistype=opt.antype)
+					analysistype=opt.antype,fakeable=opt.fakeable)
 
 	#elif opt.action == 'harvest':
 	elif args[0] == 'harvest':
