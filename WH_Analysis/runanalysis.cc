@@ -222,7 +222,7 @@ void display_usage()
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee DYmumu Dytautau Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb (NOT IMPLEMENTED)" << std::endl;
-	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW" << std::endl;
+	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJetas_Madgraph TW TbarW Fakes" << std::endl;
 }
 
 
@@ -399,6 +399,29 @@ int main(int argc, char *argv[])
 			<< std::endl;
 		display_usage();
 		return -1;
+	}
+
+	// Case FAKE: some checks
+	if( strcmp(dataName,"Fakes") == 0 )
+	{
+		// The -F option must be active
+		if( fakeable == 0 )
+		{
+			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+				<< " Inconsistency in the executable options: the 'Fakes' dataname" 
+				<< " needs the '-F' option" << std::endl;
+			return -1;
+		}
+	}
+	else{
+		if( fakeable != 0)
+		{
+			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+				<< " Inconsistency in the executable options: the '-F' option is" 
+				<< " used only by the 'Fakes' dataName. Can not be used with'"
+				<< dataName << "'" << std::endl;
+			return -1;
+		}
 	}
 
 
