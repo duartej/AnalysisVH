@@ -102,7 +102,7 @@ class clustermanager(object):
 					self.nLeptons = leptons[0]
 					self.nTights  = leptons[1]
 					self.fakeable = True
-				except TypeError:
+				except AttributeError:
 					self.nLeptons = None
 					self.nTights = None
 		
@@ -753,24 +753,26 @@ if __name__ == '__main__':
 		# Also fakeable or not:
 		if not opt.fakeable:
 			opt.fakeable=False
-			# Checks
-			if dataname == "Fakes":
-				message = "\033[31;1msendcluster: ERROR\033[0m It is mandatory the '-F' option"+\
-						" with the 'Fakes' dataname"
-				sys.exit( message )
-		else:
-			if dataname != "Fakes":
-				message = "\033[31;1msendcluster: ERROR\033[0m The '-F' option can only be used"+\
-						" with the 'Fakes' dataname"
-				sys.exit( message )
 		# Instantiate and submit
 		manager = None
 		for dataname in datanameslist:
 			print "========= Dataname: %s" % dataname
+			# Checks and some changes
+			fakeable = opt.fakeable
+			if not opt.fakeable:
+				if dataname == "Fakes":
+					message = "\033[31;1msendcluster: ERROR\033[0m It is mandatory the '-F' option"+\
+							" with the 'Fakes' dataname"
+					sys.exit( message )			
+			else:
+				if dataname != "Fakes":
+					# not sending to the instance
+					fakeable = False
+
 			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber, pkgdir=opt.pkgdir,\
 					basedir=opt.basedir,finalstate=opt.finalstate, \
-					analysistype=opt.antype,fakeable=opt.fakeable)
+					analysistype=opt.antype,fakeable=fakeable)
 
 	#elif opt.action == 'harvest':
 	elif args[0] == 'harvest':

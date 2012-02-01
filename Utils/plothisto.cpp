@@ -77,7 +77,6 @@ double GetRealEntries(TH1* h)
 double GetNormEntries(TH1* h, double w) 
 {
 	double n = (GetRealEntries(h) * w);
-//	std::cout << n << std::flush;
 	return n;
 }
 
@@ -111,10 +110,11 @@ double GetWeight(TFile* f, double luminosity)
 	ip->TheNamedInt("NEventsSample", neventssample);
 	ip->TheNamedInt("NEventsTotal", neventsskim);
 	double weight = xs * luminosity / neventssample;
-//	std::cout << " XS=" << xs 
-//		<< " NEv. Sample=" << neventssample 
-//		<< " NEv. Skim=" << neventsskim
-//		<< " Weight = " << weight << std::endl;
+	// Checking the fakes casea
+	if( xs == 0 )
+	{
+		weight = 1.0;
+	}
 	return weight;
 }
 
@@ -142,6 +142,12 @@ void PlotAll(const common & cd ,
 	const unsigned int NBKG = bkg.size();
 	const unsigned int NBKGZJETS = bkgzjets.size();
 
+	// If is in fake mode --> fkgzjets == 0
+	bool infakemode = false;
+	if( bkgzjets.size() == 0 )
+	{
+		infakemode = true;
+	}
 
 	gROOT->SetBatch(1);
 	
@@ -151,19 +157,15 @@ void PlotAll(const common & cd ,
 	//gSystem->RedirectOutput("log_kkita.txt","a");
 	//////
 	//Open the files
-//	std::cout << ">> Opening files..." << std::endl;
 	// + Data
-//	std::cout << "   + Data: " << data << std::endl;
 	TFile* fdata = OpenFile(data);
 	// + Signal
-//	std::cout << "   + Signal: " << sig << std::endl;
 	TFile* fwh = OpenFile(sig);
 	// + Backgrounds
 	TFile* fbkg[NBKG];
 	TFile* fbkgzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG ; i++) 
 	{
-//		std::cout << "   + Background: " << bkg[i] << std::endl;
 		if(bkg[i] != "ZJets_Powheg") 
 		{
 			fbkg[i] = OpenFile(bkg[i]);
@@ -173,7 +175,6 @@ void PlotAll(const common & cd ,
 			fbkg[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-//				std::cout << "     - " << bkgzjets[j] << std::endl;
 				fbkgzjets[j] = OpenFile(bkgzjets[j]);
 			}
 		}
@@ -181,19 +182,15 @@ void PlotAll(const common & cd ,
 
 	//////
 	// Get the Histograms
-//	std::cout << ">> Getting histograms..." << std::endl;
 	// + Data
-//	std::cout << "   + Data: " << data << std::endl;
 	TH1D * hdata = GetHistogram(histoname, fdata, "Data");
 	// + Signal
-//	std::cout << "   + Signal: " << sig << std::endl;
 	TH1D* hwh = GetHistogram(histoname, fwh, sig);
 	// + Backgrounds
 	TH1D* hbkg[NBKG];
 	TH1D* hbkgzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-//		std::cout << "   + Background: " << bkg[i] << std::endl;
 		if(fbkg[i])
 		{
 			hbkg[i] = GetHistogram(histoname, fbkg[i], bkg[i]);
@@ -204,7 +201,6 @@ void PlotAll(const common & cd ,
 			hbkg[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-//				std::cout << "     - " << bkgzjets[j] << std::endl;
 				hbkgzjets[j] = GetHistogram(histoname, fbkgzjets[j], bkgzjets[j]);
 			}
 		}
@@ -212,11 +208,9 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Get the input parameters that we need: cross sections, n. events...
-//	std::cout << ">> Getting Input Parameters..." << std::endl;
 	gSystem->Load("libInputParameters.so");
 	
 	// + Signal
-//	std::cout << "   + Signal: " << sig << " -" << std::flush;
 	double weightwh = GetWeight(fwh, luminosity);
 	
 	// + Background
@@ -224,7 +218,6 @@ void PlotAll(const common & cd ,
 	double weightzjets[NBKGZJETS];
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-//		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
 		if(fbkg[i])
 		{
 			weight[i] = GetWeight(fbkg[i], luminosity);
@@ -235,7 +228,6 @@ void PlotAll(const common & cd ,
 			weight[i] = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-//				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
 				weightzjets[j] = GetWeight(fbkgzjets[j], luminosity);
 			}
 		}
@@ -243,33 +235,25 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Get the input parameters that we need: cross sections, n. events...
-//	std::cout << ">> Counting events..." << std::endl;
 	// + Data
-//	std::cout << "   + Data: " << data << std::endl;
 	double nevdat = hdata->GetEntries();
 	// + Signal
-//	std::cout << "   + Signal: " << sig << " -" << std::flush;
 	double nevwh  = GetNormEntries(hwh, weightwh);
 	// + Background
 	double nevbkg = 0;
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
-//		std::cout << "   + Background: " << bkg[i]<< " -" << std::flush;
 		if(fbkg[i]) 
 		{
 			nevbkg += GetNormEntries(hbkg[i], weight[i]); 
-//			std::cout << " - Total: " << nevbkg << std::endl;
 		}
 		else
 		{
 			double nevzjets = 0;
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
-//				std::cout << "     - " << bkgzjets[j] << " -" << std::flush;
 				nevzjets += GetNormEntries(hbkgzjets[j], weightzjets[j]); 
-//				std::cout << " - Total: " << nevzjets << std::endl;
 			}
-//			std::cout << "     - Total: " << nevzjets << std::endl;
 			nevbkg += nevzjets;
 		}
 	}
@@ -277,16 +261,12 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Scale histograms to luminosity and cross section
-//	std::cout << ">> Scaling histograms..." << std::endl;
 	int izjets = -1;
 	if(plottype==0 || plottype==1) 
 	{
-//		std::cout << "   + Signal: " << sig << " - " << std::flush;
-//		std::cout << weightwh << std::endl;
 		hwh->Scale(weightwh*SIGNALFACTOR);
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
-//			std::cout << "   + Background: " << bkg[i] << " - " << weight[i] << std::endl;
 			if(fbkg[i])
 			{
 				hbkg[i]->Scale(weight[i]);
@@ -296,7 +276,6 @@ void PlotAll(const common & cd ,
 				izjets = i;
 				for(unsigned int j = 0; j < NBKGZJETS; j++) 
 				{
-//					std::cout << "     - " << bkgzjets[j] << std::endl;
 					hbkgzjets[j]->Scale(weightzjets[j]);
 				}
 			}
@@ -304,11 +283,9 @@ void PlotAll(const common & cd ,
 	}
 	else if(plottype==2) 
 	{
-//		std::cout << "   + Signal: " << sig << std::endl;
 		hwh->Scale(1./hwh->Integral());
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
-//			std::cout << "   + Background: " << bkg[i]<< std::endl;
 			if(fbkg[i])
 			{
 				hbkg[i]->Scale(1./hbkg[i]->Integral());
@@ -318,7 +295,6 @@ void PlotAll(const common & cd ,
 				izjets = i;
 				for(unsigned int j = 0; j < NBKGZJETS; j++) 
 				{
-//					std::cout << "     - " << bkgzjets[j] << std::endl;
 					hbkgzjets[i]->Scale(1./hbkgzjets[j]->Integral());
 				}
 			}
@@ -327,13 +303,10 @@ void PlotAll(const common & cd ,
 
 	if(izjets != -1) 
 	{
-//		std::cout << "   + Adding Z+Jets histograms" << std::endl;
-//		std::cout << "     - " << bkgzjets[0] << std::endl;
 		hbkg[izjets] = (TH1D*) hbkgzjets[0]->Clone("ZJets");
 		hbkg[izjets]->SetDirectory(0);
 		for(unsigned int j = 1; j < NBKGZJETS; j++) 
 		{
-//			std::cout << "     - " << bkgzjets[j] << std::endl;
 			hbkg[izjets]->Add(hbkgzjets[j]);
 		}
 	}
@@ -341,7 +314,6 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Rebin histograms
-//	std::cout << ">> Rebinning histograms by a factor " << rebin << "..." << std::endl;
 	if( rebin == 0 )
 	{
 		// Automatic rebinning Rule: sqrt(n)+1
@@ -385,8 +357,9 @@ void PlotAll(const common & cd ,
 	colors.push_back(kRed);
 	colors.push_back(kGreen-3);
 	colors.push_back(kBlue+5);
+	colors.push_back(kGreen+5);
+	colors.push_back(kBlue-3);
 
-//	std::cout << ">> Setting colors and styles..." << std::endl;
 	hdata->SetMarkerStyle(20);
 	hdata->SetLineColor(hdata->GetMarkerColor());
 	gStyle->SetOptStat(0);
@@ -415,7 +388,6 @@ void PlotAll(const common & cd ,
 	if(plottype == 0) 
 	{
 		// 1.- Stack
-//		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
 		TH1F * mcratio = (TH1F*)ratio->Clone("mcratio");
 		for(unsigned int i = 0; i < NBKG; i++)
@@ -429,14 +401,11 @@ void PlotAll(const common & cd ,
 		mcratio->Add(hwh);
 		
 		//2.- Draw data
-//		std::cout << ">> Drawing..." << std::endl;
 		double hsmax = 1.1 * hs->GetMaximum();
 		double hdmax = 1.1 * hdata->GetMaximum();
 		hs->SetMaximum(TMath::Max(hsmax, hdmax));
 		//   Create canvas
-//		std::cout << "   + Stack" << std::endl;
 		hs->Draw();
-//		std::cout << "   + Data" << std::endl;
 		hdata->Draw("E SAME");
 
 		//3.- Set titles and axis
@@ -452,7 +421,6 @@ void PlotAll(const common & cd ,
 	else if(plottype == 1) 
 	{
 		// 1.- Stack
-//		std::cout << ">> Stacking..." << std::endl;
 		THStack* hs = new THStack("hs", histoname);
 		TH1F * mcratio = (TH1F*)ratio->Clone("mcratio");
 		for(unsigned int i = 0; i < NBKG; i++)
@@ -462,18 +430,13 @@ void PlotAll(const common & cd ,
 		}
 		
 		//2.- Draw signal and data
-//		std::cout << ">> Drawing..." << std::endl;
 		double hmax = 1.1 * hs->GetMaximum();
 		hmax = TMath::Max(hmax, 1.1 * hdata->GetMaximum());
 		hmax = TMath::Max(hmax, 1.1 * hwh->GetMaximum());
 		hs->SetMaximum(hmax);
 		//   Create canvas
-	//	TCanvas* canvas = new TCanvas(sig, sig);
-//		std::cout << "   + Stack" << std::endl;
 		hs->Draw();
-//		std::cout << "   + Signal" << std::endl;
 		hwh->Draw("SAME");
-//		std::cout << "   + Data" << std::endl;
 		hdata->Draw("E SAME");
 
 		//3.- Set titles and axis
@@ -487,7 +450,6 @@ void PlotAll(const common & cd ,
 	}
 	else if(plottype == 2) 
 	{
-//		std::cout << ">> Drawing..." << std::endl;
 		double max=1.1*hwh->GetMaximum();
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
@@ -507,7 +469,6 @@ void PlotAll(const common & cd ,
 	
 	//////
 	// Setting the "stats"
-//	std::cout << ">> Printing stats..." << std::endl;
 	TString datstats = Form("Data: %.0f", nevdat);
 	int ndec = 0;
 	if(nevbkg < 1000)
@@ -533,7 +494,6 @@ void PlotAll(const common & cd ,
 	stats->Draw();
 	//////
 	// Setting the legend
-//	std::cout << ">> Legend..." << std::endl;
 	TString format;
 	if(plottype == 0 || plottype == 1)
 	{
@@ -567,17 +527,11 @@ void PlotAll(const common & cd ,
 		//=====  Ratio plot
 		// Recovering the content of the canvas
 		// just the THStack created inside the if
-		//TH1D * _hdata = new TH1D();
 		THStack * _hstack = new THStack();
 		TIter next(canvas->GetListOfPrimitives());
 		TObject * obj = 0;
 		while( (obj = next()) )
 		{
-			//if( obj->InheritsFrom(TH1D::Class()) )
-			//{
-			//	_hdata = (TH1D*)obj;
-			//}
-			//else if( obj->InheritsFrom(THStack::Class()) )
 			if( obj->InheritsFrom(THStack::Class()) )
 			{
 				_hstack = (THStack*)obj;
@@ -673,6 +627,7 @@ void display_usage()
 	std::cout << "                      - 1: All backgrounds stacked, signal alone [default]" << std::endl;
 	std::cout << "                      - 2: No stacking at all" << std::endl;
 	std::cout << "    -l L              Luminosity in pb^-1 [default: 2143.3 pb^-1]" << std::endl;
+	std::cout << "    -F                Mode Fakes (deactivating DrellYan and Z+Jets MC samples)" << std::endl;
 	std::cout << "    -h                displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
 }
@@ -685,6 +640,7 @@ int main(int argc, char *argv[])
 	const char * plottype  = "0";
 	const char * luminosity= "2143.3";
 	const char * histoname = 0;
+	const char * ismodefake= 0;
 
 	// Arguments used
 	std::set<int> usedargs;
@@ -734,6 +690,12 @@ int main(int argc, char *argv[])
 				usedargs.insert(i+1);
 				i++;
 			}
+			if( strcmp(argv[i],"-F") == 0 )
+			{
+				ismodefake = "1";
+				usedargs.insert(i);
+				i++;
+			}
 		}
 	}
 	// Extracting the signal name
@@ -753,6 +715,13 @@ int main(int argc, char *argv[])
 		display_usage();
 		return -1;
 	}
+
+	// Mode fake
+	bool infakemode = false;
+	if( ismodefake != 0 )
+	{
+		infakemode = true;
+	}
 	
 	// Some constants
 	//
@@ -761,31 +730,44 @@ int main(int argc, char *argv[])
 	const TString data      = "Data";
 	const TString sig       = signal;
 	std::vector<TString> bkg;
-	//bkg.push_back("WZ");
 	bkg.push_back("ZZ");
 	bkg.push_back("WW");
-	bkg.push_back("TTbar_Madgraph");
-	bkg.push_back("ZJets_Powheg");
 	bkg.push_back("WJets_Madgraph");
+	bkg.push_back("TTbar_Madgraph");
+	if( ! infakemode )
+	{
+		bkg.push_back("ZJets_Powheg");
+	}
+	else
+	{
+		bkg.push_back("Fakes");
+	}
 
 	std::vector<TString> bkgzjets;
-	bkgzjets.push_back("DYee_Powheg");
-	bkgzjets.push_back("DYmumu_Powheg");
-	bkgzjets.push_back("DYtautau_Powheg"); 
-	bkgzjets.push_back("Zee_Powheg");
-	bkgzjets.push_back("Zmumu_Powheg");
-	bkgzjets.push_back("Ztautau_Powheg");
-	
+	if( ! infakemode )
+	{
+		bkgzjets.push_back("DYee_Powheg");
+		bkgzjets.push_back("DYmumu_Powheg");
+		bkgzjets.push_back("DYtautau_Powheg"); 
+		bkgzjets.push_back("Zee_Powheg");
+		bkgzjets.push_back("Zmumu_Powheg");
+		bkgzjets.push_back("Ztautau_Powheg");
+	}
 	const TString dlegend   = "Data";
-	const TString slegend   = signal;//"WH @ 120";
+	const TString slegend   = signal;
 	std::vector<TString> blegend; 
-	//blegend.push_back("WZ");
 	blegend.push_back("ZZ");
 	blegend.push_back("WW");
-	blegend.push_back("t#bar{t} (MG)");
-	blegend.push_back("Z+Jets (incl. Zbb)");
 	blegend.push_back("W+Jets (MG)");
-	
+	blegend.push_back("t#bar{t} (MG)");
+	if( ! infakemode )
+	{
+		blegend.push_back("Z+Jets (incl. Zbb)");
+	}
+	else
+	{
+		blegend.push_back("Fakes (PPF)");
+	}	
 	// + Value to scale the signal
 	int SIGNALFACTOR=1;
 	
@@ -799,10 +781,6 @@ int main(int argc, char *argv[])
 		blegend.push_back("tbarW");
 		SIGNALFACTOR = 100;
 	}
-
-	// + Number of backgrounds
-	//const unsigned int NBKG=bkg.size();
-	//const unsigned int NBKGZJETS=bkgzjets.size();
 
 	common cd;
 	cd.SIGNALFACTOR = SIGNALFACTOR;

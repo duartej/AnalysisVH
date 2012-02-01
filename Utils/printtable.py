@@ -81,10 +81,11 @@ class table(object):
 
 		# Reduced table or not
 		self.reduced = False
+		self.fakemode= False
 
 		formatprov = None
 
-		validkeywords = [ "format", "isreduced" ]
+		validkeywords = [ "format", "isreduced", "fakemode" ]
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
 				message  = "\033[1;31mtable ERROR\033 Incorrect instantiation of 'table'"
@@ -95,6 +96,8 @@ class table(object):
 				formatprov = value
 			elif key == 'isreduced':
 				self.reduced = value
+			elif key == "fakemode":
+				self.fakemode = value
 
 		# available filenames
 		self.filenames = glob.glob("cluster_*/Results/*.root")
@@ -172,6 +175,8 @@ class table(object):
 				self.samples.append( sample )
 				if sample == self.signal or sample == self.data:
 					continue
+				if self.fakemode and (sample == "DY" or sample == "Z+Jets"):
+					continue
 				self.columntitles.append(sample)
 			self.columntitles.append( "TotBkg" )
 			self.columntitles.append( self.data )
@@ -191,7 +196,10 @@ class table(object):
 		f = TFile.Open(filename)
 		if "Data.root" in filename:
 			weight = 1.0
+		elif "Fakes.root" in filename:
+			weight = 1.0
 		else:
+			weight = 1.0
 			xs = array('d',[0.0])
 			luminosity = array('d',[0.0])
 			neventsample = array('i',[0])
@@ -256,7 +264,7 @@ class table(object):
 		elif totalsample == "Z+Jets":
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
 		elif totalsample == "Other":
-			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
+			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph", "Fakes" ]
 		else:
 			message  = "\033[1;31mgetsamplecomponents ERROR\033 '"+totalsample+"'" 
 			message += " not recognized. Valid samples are: DY Z+Jets Other"
@@ -452,9 +460,11 @@ if __name__ == '__main__':
 	
 	usage="usage: printtable <WZ|WHnnn> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(output="table.tex",isreduced=False)
+	parser.set_defaults(output="table.tex",isreduced=False,fakemode=False)
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format," \
 			" can be more than one comma separated" )
+	parser.add_option( '-F', action='store_true', dest='fakemode', help="Activate the fake mode where the Z+Jets, DY and ttbar are estimated with" \
+			" the fakeable object method" )
 	parser.add_option( '-r', action='store_true', dest='isreduced', help="More printable version of the table, where several samples have been merged" \
 			" into one" )
 
@@ -474,7 +484,7 @@ if __name__ == '__main__':
 
 	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()
-	t = table(signal,isreduced=opt.isreduced)
+	t = table(signal,isreduced=opt.isreduced,fakemode=opt.fakemode)
 	print "( ",
 	sys.stdout.flush()
 	for fileoutput in opt.output.split(","):

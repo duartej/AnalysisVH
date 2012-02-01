@@ -106,8 +106,9 @@ do
 	cd $i;
 	cp ../*.dn .
 	datamanagercreator Data -r $runperiod -f $finalstate;
+	datamanagercreator Fakes -r $runperiod -f $finalstate;
 	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee;
+	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee -F 3,2;
 	cd ../; 
 done
 rm *.dn
