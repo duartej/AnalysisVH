@@ -71,6 +71,9 @@ class ElecSelection : public CutManager
 		bool IsPassMETCut(const double & MET) const;
 		bool IsPassWP( const unsigned int & index ) const;
 		
+		//! Syncronize lepton type with indices vector when fake mode active
+		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
+		
 		//! Select basic muons: 
 		//! - with pt > MinPt and fabs(eta) < eta 
 		virtual unsigned int SelectBasicLeptons();

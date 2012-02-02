@@ -148,8 +148,9 @@ class CutManager
 		//! loose generating a fakeable objects sample. Only activated when
 		//! mode == CutManager::FAKEABLESAMPLE
 		virtual unsigned int SelectLooseLeptons() = 0; 
-
-		void KeepLeptonType() { /* Just for the mixing case */ }
+		
+		//! Syncronize lepton type with indices vector when fake mode active
+		virtual void SyncronizeLeptonType() = 0;
 
 		//! Container of the data:  FIXME: IT is needed?
 		TreeManager * _data;

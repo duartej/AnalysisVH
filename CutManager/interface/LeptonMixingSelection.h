@@ -91,7 +91,8 @@ class LeptonMixingSelection : public CutManager
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 
-		void KeepLeptonType();
+		//! Syncronize lepton type with indices vector when fake mode active
+		virtual void SyncronizeLeptonType();
 		
 
 		//! The muon cut manager

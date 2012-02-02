@@ -18,7 +18,9 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 	_leptontypebasicLeptons(0),
 	_leptontypecloseToPVLeptons(0),
 	_leptontypeIsoLeptons(0),
-	_leptontypeGoodIdLeptons(0)
+	_leptontypeGoodIdLeptons(0),
+	_tightLeptonTypes(0),
+	_notightLeptonTypes(0)
 { 
 	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
 	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons);
@@ -106,7 +108,6 @@ void LeptonMixingSelection::Reset()
 		delete _notightLeptonTypes;
 		_notightLeptonTypes = 0;
 	}
-
 	CutManager::Reset();
 }
 
@@ -777,7 +778,7 @@ unsigned int LeptonMixingSelection::SelectLooseLeptons()
 
 
 // The type; 
-void LeptonMixingSelection::KeepLeptonType()
+void LeptonMixingSelection::SyncronizeLeptonType()
 {
 	//Loop over no tight muons
 	for(unsigned int k = 0 ; k < _notightLeptons->size(); ++k)

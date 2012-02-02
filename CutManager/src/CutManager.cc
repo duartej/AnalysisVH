@@ -232,7 +232,7 @@ unsigned int CutManager::GetNGoodIdLeptons()
 			_selectedGoodIdLeptons->push_back( _notightLeptons->at(i) );
 		}
 		// Keep track of the lepton type if proceed (mixing classes)
-		this->KeepLeptonType();
+		this->SyncronizeLeptonType();
 		// the total size is
 		size += notightsize;		
 	}

@@ -76,6 +76,9 @@ class MuonSelection : public CutManager
 		bool IsInsideZWindow(const double & invariantMass) const; 
 		bool IsPassMETCut(const double & MET) const;
 		
+		//! Syncronize lepton type with indices vector when fake mode active
+		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
+
 		// Select basic muons: 
 		// - with pt > MinPt and fabs(eta) < eta 
 		//   (see IsPassAcceptanceCuts function)
