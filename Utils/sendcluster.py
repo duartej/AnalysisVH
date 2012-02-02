@@ -128,15 +128,15 @@ class clustermanager(object):
 			# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo !!??
 			self.filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
 			if not os.path.exists(self.filedatanames):
-				cfglist = [ lepton+":"+cfg for lepton,cfg in self.leptoncfgfilemap.iteritems() ]
-				cfgstr = ''
-				for i in cfglist:
-					cfgstr += i+','
-				cfstr = cfgstr[:-1]
+				if "dataname" in self.originaldataname:
+					message  = "\033[31;1mclustermanager: ERROR\033[0m"
+					message += " Syntax mistake in '-d dataname' option. The argument 'dataname' must be just"
+					message += " the name, without '_dataname.dn'. So '"+self.originaldataname+"' is not valid"
+					raise message
 				# if not created previously
 				message  = "\033[31;1mclustermanager: ERROR\033[0m"
 				message += " I need the list of file names, execute:"
-				message += "\n'datamanager "+self.originaldataname+" -c "+cfgstr+"'"
+				message += "\n'datamanager "+self.originaldataname+" -f "+self.finalstate+"'"
 				message += "\nAnd then launch again this script"
 				raise message
 			# Extract the total number of events and split 
