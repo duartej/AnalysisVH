@@ -59,6 +59,12 @@ LeptonMixingSelection::~LeptonMixingSelection()
 		_leptontypeGoodIdLeptons = 0;
 	}
 
+	if( _tightLeptonTypes != 0)
+	{
+		delete _tightLeptonTypes;
+		_tightLeptonTypes = 0;
+	}
+
 	if( _notightLeptonTypes != 0)
 	{
 		delete _notightLeptonTypes;
@@ -66,6 +72,43 @@ LeptonMixingSelection::~LeptonMixingSelection()
 	}
 }
 
+void LeptonMixingSelection::Reset()
+{
+	if( _leptontypebasicLeptons != 0)
+	{
+		delete _leptontypebasicLeptons;
+		_leptontypebasicLeptons = 0;
+	}
+	if( _leptontypecloseToPVLeptons != 0)
+	{
+		delete _leptontypecloseToPVLeptons;
+		_leptontypecloseToPVLeptons = 0;
+	}
+	if( _leptontypeIsoLeptons != 0)
+	{
+		delete _leptontypeIsoLeptons;
+		_leptontypeIsoLeptons = 0;
+	}
+	if( _leptontypeGoodIdLeptons != 0)
+	{
+		delete _leptontypeGoodIdLeptons;
+		_leptontypeGoodIdLeptons = 0;
+	}
+
+	if( _tightLeptonTypes != 0)
+	{
+		delete _tightLeptonTypes;
+		_tightLeptonTypes = 0;
+	}
+
+	if( _notightLeptonTypes != 0)
+	{
+		delete _notightLeptonTypes;
+		_notightLeptonTypes = 0;
+	}
+
+	CutManager::Reset();
+}
 
 void LeptonMixingSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipmap,
 		const std::vector<std::string> & cuts)
@@ -107,6 +150,40 @@ LeptonTypes LeptonMixingSelection::GetLeptonType(const unsigned int & index) con
 	return _leptontypeGoodIdLeptons->at(index);
 }
 
+// Tight leptons
+LeptonTypes LeptonMixingSelection::GetTightLeptonType(const unsigned int & index) const
+{
+	if( _samplemode != CutManager::FAKEABLESAMPLE )
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetTightLeptonType ERROR\033[1;m "
+			<< " Incoherent use of"
+			<< " this function because it cannot be called in NORMALSAMPLE mode."
+			<< " Check the client of this function why has been made this call"
+			<< std::endl;
+		exit(-1);
+	}
+
+	if( _tightLeptonTypes == 0 )  // Not needed
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetTightLeptonType ERROR\033[1;m"
+			<< " This function can not be used before calling the"
+			<< " LeptonMixingSelection::GetNGoodIdLeptons, call it first!"
+			<< std::endl;
+		exit(-1);
+	}
+	if( index >= _tightLeptonTypes->size() )
+	{
+		std::cerr << "\033[1;31mLeptonMixingSelection::GetTightLeptonType ERROR\033[1;m"
+			<< " The argument of this function must be the REAL VECTOR INDEX"
+			<< " of the _tightLeptons not the index of the original TBranch"
+			<< " object. Correct that in the code and launch it again."
+			<< std::endl;
+		exit(-1);
+	}
+
+	// Recall index is the vector index
+	return _tightLeptonTypes->at(index);
+}
 // No tight leptons
 LeptonTypes LeptonMixingSelection::GetNoTightLeptonType(const unsigned int & index) const
 {
@@ -124,7 +201,7 @@ LeptonTypes LeptonMixingSelection::GetNoTightLeptonType(const unsigned int & ind
 	{
 		std::cerr << "\033[1;31mLeptonMixingSelection::GetNoTightLeptonType ERROR\033[1;m"
 			<< " This function can not be used before calling the"
-			<< " LeptonMixingSelection::SelectGoodIdLeptons, call it first!"
+			<< " LeptonMixingSelection::GetNGoodIdLeptons, call it first!"
 			<< std::endl;
 		exit(-1);
 	}
@@ -132,7 +209,7 @@ LeptonTypes LeptonMixingSelection::GetNoTightLeptonType(const unsigned int & ind
 	{
 		std::cerr << "\033[1;31mLeptonMixingSelection::GetNoTightLeptonType ERROR\033[1;m"
 			<< " The argument of this function must be the REAL VECTOR INDEX"
-			<< " of the selectedGoodIdLeptons not the index of the original TBranch"
+			<< " of the _notightLeptons not the index of the original TBranch"
 			<< " object. Correct that in the code and launch it again."
 			<< std::endl;
 		exit(-1);
@@ -698,3 +775,15 @@ unsigned int LeptonMixingSelection::SelectLooseLeptons()
 	return _selectedbasicLeptons->size();
 }
 
+
+// The type; 
+void LeptonMixingSelection::KeepLeptonType()
+{
+	//Loop over no tight muons
+	for(unsigned int k = 0 ; k < _notightLeptons->size(); ++k)
+	{
+		LeptonTypes lepton = (*_notightLeptonTypes)[k];
+		_leptontypeGoodIdLeptons->push_back(lepton);
+	}
+	// Already Updated the lepton type
+}

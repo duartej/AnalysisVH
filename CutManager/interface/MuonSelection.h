@@ -55,22 +55,12 @@ class MuonSelection : public CutManager
 
 		//-- Selection
 		//---------------------------------------------
-		// Select basic muons: 
-		// - with pt > MinPt and fabs(eta) < eta 
-		//   (see IsPassAcceptanceCuts function)
-		virtual unsigned int SelectBasicLeptons();
-		// Select close to PV muons: 
-		// - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu
-		virtual unsigned int SelectLeptonsCloseToPV();
-		// Select Iso Leptons: 
-		// - Depends on MaxPTIsolationR# dependent of the region
-		virtual unsigned int SelectIsoLeptons();
-		// Select Good Identified Leptons: 
-		// - Depends on 
-		virtual unsigned int SelectGoodIdLeptons();
+		//! Get The lepton type for the i-esim good lepton  (tight+notight)
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }	
-		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const 
-		{ return MUON; }	
+		//! Get The lepton type for the i-esim Tight lepton 
+		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return MUON;}
+		//! Get The lepton type for the i-esim Tight lepton 
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return MUON; }	
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 
@@ -85,6 +75,20 @@ class MuonSelection : public CutManager
 		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
 		bool IsInsideZWindow(const double & invariantMass) const; 
 		bool IsPassMETCut(const double & MET) const;
+		
+		// Select basic muons: 
+		// - with pt > MinPt and fabs(eta) < eta 
+		//   (see IsPassAcceptanceCuts function)
+		virtual unsigned int SelectBasicLeptons();
+		// Select close to PV muons: 
+		// - Depends on kMaxMuIP2DInTrack and kMaxDeltaZMu
+		virtual unsigned int SelectLeptonsCloseToPV();
+		// Select Iso Leptons: 
+		// - Depends on MaxPTIsolationR# dependent of the region
+		virtual unsigned int SelectIsoLeptons();
+		// Select Good Identified Leptons: 
+		// - Depends on 
+		virtual unsigned int SelectGoodIdLeptons();
 
 		// The list of the selection chain codenames 
 		std::set<std::string> _codenames;

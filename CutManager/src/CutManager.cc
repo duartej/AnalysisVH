@@ -15,7 +15,8 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
 	_selectedGoodIdLeptons(0),
-	_notightLeptons(0)
+	_notightLeptons(0),
+	_tightLeptons(0)
 {
 	_cuts = new std::map<std::string,double>;
 	
@@ -44,6 +45,12 @@ CutManager::~CutManager()
 	{
 		delete _notightLeptons;
 		_notightLeptons = 0;
+	}
+	
+	if( _tightLeptons != 0 )
+	{
+		delete _tightLeptons;
+		_tightLeptons = 0;
 	}
 
 	if( _selectedbasicLeptons != 0)
@@ -113,6 +120,12 @@ void CutManager::Reset()
 	{
 		delete _notightLeptons;
 		_notightLeptons = 0;
+	}
+	
+	if( _tightLeptons != 0 )
+	{
+		delete _tightLeptons;
+		_tightLeptons = 0;
 	}
 
 	if( _selectedbasicLeptons != 0)
@@ -192,7 +205,7 @@ unsigned int CutManager::GetNIsoLeptons()
 
 unsigned int CutManager::GetNGoodIdLeptons()
 {
-	int size = 0;
+	unsigned int size = 0;
 	if( _selectedGoodIdLeptons == 0)
 	{
 		size = this->SelectGoodIdLeptons();
@@ -200,6 +213,28 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	else
 	{
 		size = _selectedGoodIdLeptons->size();
+	}
+	// If we are at fake mode, at this stage it is need
+	// to separate the tight and no tight leptons but
+	// the _selectedGoodIdLeptons have tight+notights
+	if( this->IsInFakeableMode() )
+	{
+		// Build the tight
+		_tightLeptons = new std::vector<int>;
+		for(unsigned int i = 0; i < size; ++i)
+		{
+			_tightLeptons->push_back( _selectedGoodIdLeptons->at(i) );
+		}
+		// Plus the notight
+		const unsigned int notightsize = _notightLeptons->size();
+		for(unsigned int i = 0; i < notightsize; ++i)
+		{
+			_selectedGoodIdLeptons->push_back( _notightLeptons->at(i) );
+		}
+		// Keep track of the lepton type if proceed (mixing classes)
+		this->KeepLeptonType();
+		// the total size is
+		size += notightsize;		
 	}
 
 	return size;
@@ -220,9 +255,9 @@ bool CutManager::IspassExactlyN()
 	assert( (_selectedGoodIdLeptons != 0) && "\033[1;31mThe CutManager::IspassExactlyN method"
 			" must be called AFTER CutManager::GetNGoodIdLeptons" );
 
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	if( this->IsInFakeableMode() )
 	{
-		return ( (_selectedGoodIdLeptons->size() == _nTights) &&
+		return ( (_tightLeptons->size() == _nTights) &&
 			(_notightLeptons->size() == _nFails) );		
 	}
 	else
@@ -239,17 +274,15 @@ bool CutManager::IspassAtLeastN()
 	// Note that must be at the stage of Good ID
 	assert( (_selectedGoodIdLeptons != 0) && 
 			"The CutManager::IspassAtLeastN method must be called AFTER CutManager::GetNGoodIdLeptons" );
-
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	if( this->IsInFakeableMode() )
 	{
-		return ( (_selectedGoodIdLeptons->size() >= _nTights) &&
+		return ( (_tightLeptons->size() >= _nTights) &&
 			(_notightLeptons->size() >= _nFails) );		
 	}
 	else
 	{
 		return (_selectedGoodIdLeptons->size() >= _nLeptons);
 	}
-
 }
 
 //Overloaded method: it is allowed any combination of Tight, Loose

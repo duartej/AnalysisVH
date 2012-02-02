@@ -71,20 +71,22 @@ class CutManager
 		virtual std::vector<std::string> GetCodenames() const = 0;
 
 		
-		//! Selection stuff
-		//! Number of leptons which pass the basic selection. FIXME: Description
+		//! Selection stuff (in parenthesis the meaning when fake mode active)
+		//! Number of leptons which pass the basic selection (Loose)
 		unsigned int GetNBasicLeptons(); 
-		//! Number of leptons closest to PV
+		//! Number of leptons closest to PV (tight)
 		unsigned int GetNLeptonsCloseToPV();
-		//! Number of Isolated leptons 
+		//! Number of Isolated leptons (tight)
 		unsigned int GetNIsoLeptons();
-		//! Number of Good Identified leptons 
+		//! Number of Good Identified leptons (tight + no tight)
 		unsigned int GetNGoodIdLeptons();
-		//! Number of no Tight Leptons NECESARIO??
-		//unsigned int GetNnoTightLeptons();
+		//! Number of Tight Leptons 
+		unsigned int GetNTightLeptons();
+		//! Number of no Tight Leptons 
+		unsigned int GetNnoTightLeptons();
 
 		//! Auxiliary methods to deal with fakeables sample
-
+		//! ---------------------------------------------------------------
 		//! Return true if exactly have _nLeptons (or _nTight tight leptons
 		//! and _nFails no tight leptons in the FAKEABLESAMPLE case), after
 		//! all cuts (_selectedGoodIdLeptons must be already fill in)
@@ -101,31 +103,24 @@ class CutManager
 
 		//! Return true if we are in FAKEABLESAMPLE mode
 		inline bool IsInFakeableMode() const { return _samplemode == CutManager::FAKEABLESAMPLE ; }
-
-		//! Basic selection: usually consist in some loose kinematical cuts
-		//! and some loose id cuts
-		virtual unsigned int SelectBasicLeptons() = 0; 
-		//! Select leptons close to the Primary Vertex
-		virtual unsigned int SelectLeptonsCloseToPV() = 0;
-		//! Select isolated leptons 
-		virtual unsigned int SelectIsoLeptons() = 0;
-		//! Select good Identified leptons 
-		virtual unsigned int SelectGoodIdLeptons() = 0;
-		//! Loose leptons: to study fakes background, the iso and id cuts are 
-		//! loose generating a fakeable objects sample. Only activated when
-		//! mode == CutManager::FAKEABLESAMPLE
-		virtual unsigned int SelectLooseLeptons() = 0; 
-
+		
 		//-- Getters
-		//! Get good leptons (passing the PV, Iso and ID cuts)
+		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
+		//! leptons if fakeable mode is active
 		virtual std::vector<int> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
-		//! Get The lepton type for the i-esim good lepton 
+		//! Get the Tight leptons (passing the PV, Iso and ID cuts)
+		inline virtual std::vector<int> * GetTightLeptons() const { return _tightLeptons; }
+		//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
+		inline virtual std::vector<int> * GetNoTightLeptons() const { return _notightLeptons; }
+		//! Get The lepton type for the i-esim good lepton  (tight+notight)
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const = 0;
-
-		//! Get the i-essim index of the NoTight lepton
-		const unsigned int GetNoTightIndex(const unsigned int & i) const;
+		//! Get The lepton type for the i-esim Tight lepton 
+		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const = 0;
 		//! Get The lepton type for the i-esim no Tight lepton 
 		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const = 0;
+		
+		//! Get the i-essim index of the NoTight lepton
+		const unsigned int GetNoTightIndex(const unsigned int & i) const;
 
 		//-- Setters
 		//! Set the operational MODE
@@ -138,6 +133,24 @@ class CutManager
 		friend std::ostream & operator<<(std::ostream & out, const CutManager & cm );
 
 	protected:
+		//! Selectors: WARNING use GetNWhatever methods instead!! Not to be used by any client
+		//! Basic selection: usually consist in some loose kinematical cuts
+		//! and some loose id cuts (Loose)
+		virtual unsigned int SelectBasicLeptons() = 0; 
+		//! Select leptons close to the Primary Vertex
+		virtual unsigned int SelectLeptonsCloseToPV() = 0;
+		//! Select isolated leptons 
+		virtual unsigned int SelectIsoLeptons() = 0;
+		//! Select good Identified leptons (tight, must be used GetNGoodIdLeptons to get
+		//! the tight+notight)
+		virtual unsigned int SelectGoodIdLeptons() = 0;
+		//! Loose leptons: to study fakes background, the iso and id cuts are 
+		//! loose generating a fakeable objects sample. Only activated when
+		//! mode == CutManager::FAKEABLESAMPLE
+		virtual unsigned int SelectLooseLeptons() = 0; 
+
+		void KeepLeptonType() { /* Just for the mixing case */ }
+
 		//! Container of the data:  FIXME: IT is needed?
 		TreeManager * _data;
 
@@ -156,18 +169,20 @@ class CutManager
 		//! note that _nLeptons = _nTights + _nFails
 		unsigned int _nFails;
 
-		//! Selection datamembers
-		//! Vector of index of leptons which pass the basic selection
+		//! Selection datamembers (in parenthesis the meaning when fake mode active)
+		//! Vector of index of leptons which pass the basic selection (Loose)
 		std::vector<int> * _selectedbasicLeptons;
-		//! Vector of index of leptons closest to PV
+		//! Vector of index of leptons closest to PV (tight)
 		std::vector<int> * _closeToPVLeptons;
-		//! Vector of index of isolated leptons 
+		//! Vector of index of isolated leptons (tight)
 		std::vector<int> * _selectedIsoLeptons;
-		//! Vector of index of good identified leptons 
+		//! Vector of index of good identified leptons ( tight + no tight)
 		std::vector<int> * _selectedGoodIdLeptons;
 
-		//! Vector of leptons indices which have not passed the tight cuts
+		//! Vector of leptons indices which have not passed the tight cuts 
 		std::vector<int> * _notightLeptons;
+		//! Vector of leptons indices which have pass the tight cuts
+		std::vector<int> * _tightLeptons;
 
 	ClassDef(CutManager,0);
 };

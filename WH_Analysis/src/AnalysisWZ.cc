@@ -486,29 +486,23 @@ unsigned int AnalysisWZ::InsideLoop()
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoLeptons, puw, fsNTau);
 	
-	// (4) Isolated good muons: Identification
+	// (4) Isolated good muons: Identification (tight + notight)
 	//--------------------
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
 	_histos[fHNSelectedIsoGoodLeptons]->Fill(nSelectedIsoGoodMuons,puw);
 	
-	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedIsoGoodMuons) )
+	// Note that nSelectedIsoGoodMuons are tight+noTights leptons (when proceed, so
+	// I cannot use the CutManager::IspassAtLeastN(howmany,nTights) because the 
+	// second argument are the number of  tight leptons
+	if( kNMuons > nSelectedIsoGoodMuons )
 	{
 		return WZCuts::_iHas2IsoGoodLeptons;
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
 	//FillGenPlots(_iHas2IsoGoodLeptons,puw);
-	
 	// Keep events at least 3 leptons and store momentum and charge
 	//---------------------------------------------------------------------------
-	//bool fullfillFS = true;
-	//if( fFS == SignatureFS::_iFSeem || fFS == SignatureFS::_iFSmme )
-	//{
-		// Check we have the correct signature
-		// FIXME: To be done a function to extract the signature of final
-		// state (in Cutmanager)
-	//}
-
 	if( ! fLeptonSelection->IspassAtLeastN() )
 	{
 		return WZCuts::_iHasAtLeast3Leptons;
@@ -537,8 +531,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
-	// Indexs of good leptons
+	// Indexs of good leptons (noTight+Tights if proceed)
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
+
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
 	// + Store Momentum and charge for the muons

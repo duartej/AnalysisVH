@@ -78,10 +78,10 @@ $(DICTSRC): $(TARGETDICTHEADERS)
 		exit -2; \
 	fi
 
-$(DICTOBJECT): $(DICTSRC)
-	@echo "=== $(PACKAGE): +++++ Creating dictionary objects ($@)"
-	@$(shell mkdir -p build)
-	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ $(patsubst build/%.o,src/%.cxx,$@)
+#$(DICTOBJECT): $(DICTSRC)
+#	@echo "=== $(PACKAGE): +++++ Creating dictionary objects ($@)"
+#	@$(shell mkdir -p build)
+#	@$(CXX) $(LDFLAGS) -MD -c $(CXXFLAGS) $(DEPSINC) $(INCDIR) $(ROOTINCDIR) -o $@ $(patsubst build/%.o,src/%.cxx,$@)
 
 
 -include $(patsubst src/%.cc,$(OBJDIR)/%.d,$(SOURCES))

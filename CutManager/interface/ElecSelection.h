@@ -50,8 +50,27 @@ class ElecSelection : public CutManager
 	//	bool IsPassAcceptanceCuts(const unsigned int & i,
 	//			const double & pt, const double & eta) const
 
+		//! Get the code names of the selection cuts
+		virtual std::vector<std::string> GetCodenames() const;
+		
 		//-- Selection
 		//---------------------------------------------
+		//! Get the lepton type of the i-esim good lepton (tight+notight)
+		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//! Get the lepton type of the i-esim tight lepton
+		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//! Get the lepton type of the i-esim no tight lepton
+		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return ELECTRON; }
+
+	private:
+		//-- The effective cuts whose would be called by IsPass
+		//   method
+		bool IsPassPtCuts() const;
+		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
+		bool IsInsideZWindow(const double & invariantMass) const; 
+		bool IsPassMETCut(const double & MET) const;
+		bool IsPassWP( const unsigned int & index ) const;
+		
 		//! Select basic muons: 
 		//! - with pt > MinPt and fabs(eta) < eta 
 		virtual unsigned int SelectBasicLeptons();
@@ -66,23 +85,6 @@ class ElecSelection : public CutManager
 		virtual unsigned int SelectGoodIdLeptons();
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
-
-		//! Get the code names of the selection cuts
-		virtual std::vector<std::string> GetCodenames() const;
-		
-		//! Get the lepton type of the i-esim good lepton
-		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return ELECTRON; }
-		//! Get the lepton type of the i-esim no tight lepton
-		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return ELECTRON; }
-
-	private:
-		//-- The effective cuts whose would be called by IsPass
-		//   method
-		bool IsPassPtCuts() const;
-		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
-		bool IsInsideZWindow(const double & invariantMass) const; 
-		bool IsPassMETCut(const double & MET) const;
-		bool IsPassWP( const unsigned int & index ) const;
 
 		//! Working Point for the pt > 20 Gev/c (highPt)
 		//  and pt < 20 GeV/c (lowPt)
