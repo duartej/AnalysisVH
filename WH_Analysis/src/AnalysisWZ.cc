@@ -179,7 +179,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
-	if(!fIsData)
+	if(!fIsData && !fFO)
 	{
 		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}
@@ -447,7 +447,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		std::string leptonpx = std::string("T_"+fLeptonName[i]+"_Px");
 		nLeptonsbfCuts += fData->GetSize<float>(leptonpx.c_str());
 	}
-	_histos[fHNRecoLeptons]->Fill(nLeptonsbfCuts);
+	_histos[fHNRecoLeptons]->Fill(nLeptonsbfCuts,puw);
 	
 	// (1) Basic selection
 	//--------------------
@@ -526,7 +526,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		TLorentzVector lvec = this->GetTLorentzVector(name,i);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
-		puw *= fFO->GetWeight(ileptontype,pt,eta);
+		puw = fFO->GetWeight(ileptontype,pt,eta);
 	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
@@ -736,8 +736,8 @@ unsigned int AnalysisWZ::InsideLoop()
 		// the muon due to internal bremsstrahlung in W an Z decays
 		const double dRl1 = lepton[i].DeltaR( lepton[i1Z] );
 		const double dRl2 = lepton[i].DeltaR( lepton[i2Z] );
-		_histos[fHdRl1Wcand]->Fill( dRl1 );
-		_histos[fHdRl2Wcand]->Fill( dRl2 );
+		_histos[fHdRl1Wcand]->Fill( dRl1, puw );
+		_histos[fHdRl2Wcand]->Fill( dRl2, puw );
 		if( dRl1 < 0.1 || dRl2 < 0.1 )
 		{
 			continue;

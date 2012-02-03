@@ -349,16 +349,14 @@ void PlotAll(const common & cd ,
 	// Set colors and styles
 	std::vector<int> colors;
 	colors.push_back(kRed+3);
-	colors.push_back(kOrange-6);
-	colors.push_back(kOrange+3);
-	colors.push_back(kRed+2); 
-	colors.push_back(kOrange+5);
-	colors.push_back(kCyan-2);
-	colors.push_back(kRed);
 	colors.push_back(kGreen-3);
-	colors.push_back(kBlue+5);
-	colors.push_back(kGreen+5);
-	colors.push_back(kBlue-3);
+	colors.push_back(kCyan-2);
+	colors.push_back(kAzure-7);
+	colors.push_back(kOrange+5);
+	colors.push_back(kRed);
+	colors.push_back(kOrange+3);
+	colors.push_back(kOrange-6);
+	colors.push_back(kRed+2); 
 
 	hdata->SetMarkerStyle(20);
 	hdata->SetLineColor(hdata->GetMarkerColor());
@@ -374,7 +372,7 @@ void PlotAll(const common & cd ,
 	for(unsigned int i = 0 ; i < NBKG ; ++i)
 	{
 		hbkg[i]->SetFillColor(colors[i]);
-		hbkg[i]->SetLineColor(colors[i]+1);
+		hbkg[i]->SetLineColor(kBlack);//colors[i]+1);
 	}
 
 	//////
@@ -733,9 +731,9 @@ int main(int argc, char *argv[])
 	bkg.push_back("ZZ");
 	bkg.push_back("WW");
 	bkg.push_back("WJets_Madgraph");
-	bkg.push_back("TTbar_Madgraph");
 	if( ! infakemode )
 	{
+		bkg.push_back("TTbar_Madgraph");
 		bkg.push_back("ZJets_Powheg");
 	}
 	else
@@ -759,9 +757,9 @@ int main(int argc, char *argv[])
 	blegend.push_back("ZZ");
 	blegend.push_back("WW");
 	blegend.push_back("W+Jets (MG)");
-	blegend.push_back("t#bar{t} (MG)");
 	if( ! infakemode )
 	{
+		blegend.push_back("t#bar{t} (MG)");
 		blegend.push_back("Z+Jets (incl. Zbb)");
 	}
 	else

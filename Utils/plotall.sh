@@ -95,7 +95,7 @@ HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets"
 HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3"
 if [ "$1" == "WZ" ];
 then
-	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand" # fHDRl2Wcand"
+	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand"
 	HISTOS8B=""
 	plotmode=0
 else

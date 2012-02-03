@@ -437,23 +437,16 @@ int main(int argc, char *argv[])
 	// Signal
         knowndata.insert("WH120");
         knowndata.insert("WH130");
-        //knowndata.insert("WH140");
-        //knowndata.insert("WH150");
-        //knowndata.insert("WH160");
-        //knowndata.insert("WH170");
-        //knowndata.insert("WH180");
-        //knowndata.insert("WH190");
-        //knowndata.insert("WH200");
 	// Z+jets
-	/*knowndata.insert("ZJets_Madgraph");
+	knowndata.insert("ZJets_Madgraph");
 	knowndata.insert("DYee_Powheg");
 	knowndata.insert("DYmumu_Powheg");
 	knowndata.insert("DYtautau_Powheg");
 	knowndata.insert("Zee_Powheg");
 	knowndata.insert("Zmumu_Powheg");
 	knowndata.insert("Ztautau_Powheg");
-	 Zbb+jets
-	knowndata.insert("Zbb");*/
+	// Zbb+jets
+	knowndata.insert("Zbb");
 	// Other background
 	knowndata.insert("WZ"); // WZTo3LNu ??? Mejor este
 	knowndata.insert("ZZ");

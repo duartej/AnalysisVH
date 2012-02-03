@@ -131,7 +131,7 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 	double f = 0.15; // MUON
 	if( lt == ELECTRON )
 	{
-		f = 0.25;
+		f = 0.20;
 	}
 	
 	return f/(1.0-f);

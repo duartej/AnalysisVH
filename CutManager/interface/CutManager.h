@@ -81,9 +81,9 @@ class CutManager
 		//! Number of Good Identified leptons (tight + no tight)
 		unsigned int GetNGoodIdLeptons();
 		//! Number of Tight Leptons 
-		unsigned int GetNTightLeptons();
+		//unsigned int GetNTightLeptons();
 		//! Number of no Tight Leptons 
-		unsigned int GetNnoTightLeptons();
+		//unsigned int GetNnoTightLeptons();
 
 		//! Auxiliary methods to deal with fakeables sample
 		//! ---------------------------------------------------------------
