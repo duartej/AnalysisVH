@@ -2,8 +2,9 @@
 
 #include<iostream>
 #include<sstream>
-#include<stdlib.h>
+#include<cstdlib>
 #include<cstring>
+#include<cmath>
 
 #include "TFile.h"
 #include "TKey.h"
@@ -11,12 +12,31 @@
 #include "TROOT.h"
 
 
-FOManager::FOManager()
+FOManager::FOManager() 
 {
 	_fakerate[MUON] = 0;
 	_fakerate[ELECTRON] = 0;
 	_promptrate[MUON] = 0;
 	_promptrate[ELECTRON] = 0;
+
+	// FIXME: Hardcoded filenames
+	char * pkgpath = 0;
+	pkgpath = getenv("VHSYS");
+	if( pkgpath == 0 )
+	{
+		std::cerr << "\033[1;31mFOManager::SetFR ERROR\033[1;m Not set the 'VHSYS'"
+			<< " environment varible; this is an inconsistency in the code"
+			<< std::endl;
+		exit(-1);
+	}
+
+	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_all2011_LPcuts_AND_kink_jet30.root");
+	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
+
+	this->SetFR(MUON,mufile.c_str());
+	this->SetFR(ELECTRON,elecfile.c_str());
+
+
 }
 
 FOManager::~FOManager()
@@ -45,7 +65,7 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 	TFile * f = new TFile(filename);
 	if( f->IsZombie() )
 	{
-		std::cerr << "\033[1;31mFOManager::SetFR ERROR[1;m Not found the filename '"
+		std::cerr << "\033[1;31mFOManager::SetFR ERROR\033[1;m Not found the filename '"
 			<< filename << "'" << std::endl;
 		exit(-1);
 	}
@@ -59,7 +79,7 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 		TClass * cl = gROOT->GetClass(classname);
 		if(cl->InheritsFrom(TH2::Class()))
 		{
-			_fakerate[leptontype] = new TH2F;
+			//_fakerate[leptontype] = new TH2F;
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_fr");
@@ -72,7 +92,7 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 
 	if( _fakerate[leptontype] == 0)
 	{
-		std::cerr << "\033[1;31mFOManager::SetFR ERROR[1;m Not found the TH2F with the"
+		std::cerr << "\033[1;31mFOManager::SetFR ERROR\033[1;m Not found the TH2F with the"
 			<< " rates. File '" << filename << "' not well defined" << std::endl;
 		exit(-1);
 	}
@@ -87,7 +107,7 @@ void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 	TFile * f = new TFile(filename);
 	if( f->IsZombie() )
 	{
-		std::cerr << "\033[1;31mFOManager::SetPR ERROR[1;m Not found the filename '"
+		std::cerr << "\033[1;31mFOManager::SetPR ERROR\033[1;m Not found the filename '"
 			<< filename << "'" << std::endl;
 		exit(-1);
 	}
@@ -101,7 +121,7 @@ void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 		TClass * cl = gROOT->GetClass(classname);
 		if(cl->InheritsFrom(TH2::Class()))
 		{
-			_promptrate[leptontype] = new TH2F;
+	//		_promptrate[leptontype] = new TH2F;
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_fr");
@@ -114,7 +134,7 @@ void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 
 	if( _promptrate[leptontype] == 0)
 	{
-		std::cerr << "\033[1;31mFOManager::SetFR ERROR[1;m Not found the TH2F with the"
+		std::cerr << "\033[1;31mFOManager::SetFR ERROR\033[1;m Not found the TH2F with the"
 			<< " rates. File '" << filename << "' not well defined" << std::endl;
 		exit(-1);
 	}
@@ -123,17 +143,19 @@ void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 	delete f;
 }
 
-const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, const double & eta) const
+const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, const double & eta)
 {
-	// FIXME:  
-	// _fakerate[lt]->FindBin(pt,eta);
-
-	double f = 0.15; // MUON
-	if( lt == ELECTRON )
+	if( _fakerate[lt] == 0 )
 	{
-		f = 0.20;
+		std::cerr << "\033[1;31mFOManager::SetGetWeight ERROR\033[1;m Not initialized the "
+			<< " fake rate histogram!" << std::endl;
+		exit(-1);
 	}
 	
+	int bin = _fakerate[MUON]->FindBin(pt,fabs(eta));
+	double f = _fakerate[MUON]->GetBinContent(bin);
+	
+	// FIXME: ERROR RETURN--> std::pair
 	return f/(1.0-f);
 }
 

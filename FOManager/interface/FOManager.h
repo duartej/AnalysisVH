@@ -42,11 +42,14 @@ class FOManager
 
 		//! Get the weight 
 		const double GetWeight(const LeptonTypes & lt, const double & pt, 
-				const double & eta) const; 
+				const double & eta); 
 
 	private:
 		std::map<LeptonTypes,TH2F*> _fakerate;
 		std::map<LeptonTypes,TH2F*> _promptrate;
+
+	//	TFile * _frmuon;
+	//	TFile * _frelec;
 
 
 	//ClassDef(FOManager,0);
