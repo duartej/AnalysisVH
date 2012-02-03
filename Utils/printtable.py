@@ -264,7 +264,7 @@ class table(object):
 		elif totalsample == "Z+Jets":
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
 		elif totalsample == "Other":
-			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph", "Fakes" ]
+			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
 		else:
 			message  = "\033[1;31mgetsamplecomponents ERROR\033 '"+totalsample+"'" 
 			message += " not recognized. Valid samples are: DY Z+Jets Other"
