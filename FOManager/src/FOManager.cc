@@ -50,7 +50,7 @@ FOManager::~FOManager()
 		}
 	}
 	
-	for(std::map<LeptonTypes,TH2F*>::iterator it = _fakerate.begin(); it != _fakerate.end(); ++it)
+	for(std::map<LeptonTypes,TH2F*>::iterator it = _promptrate.begin(); it != _promptrate.end(); ++it)
 	{
 		if( it->second != 0 )
 		{
@@ -62,7 +62,11 @@ FOManager::~FOManager()
 
 void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 {
-	TFile * f = new TFile(filename);
+	// Forcing the ownership to FOManager instead of TFile,
+	// in order not to enter in conflict with the TreeManager TFile
+	TH2::AddDirectory(kFALSE);
+	
+	TFile *f = new TFile(filename);
 	if( f->IsZombie() )
 	{
 		std::cerr << "\033[1;31mFOManager::SetFR ERROR\033[1;m Not found the filename '"
@@ -70,7 +74,6 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 		exit(-1);
 	}
 
-	// HARDCODED NAMES FOR THE HISTOGRAMS!! FIXME?
 	TKey * key;
 	TIter nextkey(f->GetListOfKeys());
 	while( (key=(TKey*)nextkey()) )
@@ -79,14 +82,11 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 		TClass * cl = gROOT->GetClass(classname);
 		if(cl->InheritsFrom(TH2::Class()))
 		{
-			//_fakerate[leptontype] = new TH2F;
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_fr");
 			_fakerate[leptontype] = (TH2F*)((TH2F*)f->Get(key->GetName()))->Clone(name.c_str());
 		}
-		
-		delete cl;
 	}
 	delete key;
 
@@ -104,6 +104,10 @@ void FOManager::SetFR(const LeptonTypes & leptontype, const char * filename)
 
 void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 {
+	// Forcing the ownership to FOManager instead of TFile,
+	// in order not to enter in conflict with the TreeManager TFile
+	TH2::AddDirectory(kFALSE);
+
 	TFile * f = new TFile(filename);
 	if( f->IsZombie() )
 	{
@@ -121,14 +125,11 @@ void FOManager::SetPR(const LeptonTypes & leptontype, const char * filename)
 		TClass * cl = gROOT->GetClass(classname);
 		if(cl->InheritsFrom(TH2::Class()))
 		{
-	//		_promptrate[leptontype] = new TH2F;
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_fr");
 			_promptrate[leptontype] = (TH2F*)((TH2F*)f->Get(key->GetName()))->Clone(name.c_str());
 		}
-		
-		delete cl;
 	}
 	delete key;
 
@@ -155,7 +156,7 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 	int bin = _fakerate[MUON]->FindBin(pt,fabs(eta));
 	double f = _fakerate[MUON]->GetBinContent(bin);
 	
-	// FIXME: ERROR RETURN--> std::pair
+	// FIXME: Also return error --> std::pair
 	return f/(1.0-f);
 }
 

@@ -1,0 +1,106 @@
+#------------------------------------------------------------
+# ET = 35, nominal selection 
+
+# eta <1
+bin = 1, value = 0.066 +- 0.015
+bin = 2, value = 0.057 +- 0.009
+bin = 3, value = 0.085 +- 0.009
+bin = 4, value = 0.085 +- 0.012
+bin = 5, value = 0.085 +- 0.017
+bin = 6, value = 0.129 +- 0.025
+bin = 7, value = 0.100 +- 0.031
+bin = 8, value = 0.166 +- 0.050
+
+# 1< eta < 1.479
+bin = 1, value = 0.040 +- 0.012
+bin = 2, value = 0.054 +- 0.010
+bin = 3, value = 0.064 +- 0.011
+bin = 4, value = 0.067 +- 0.015
+bin = 5, value = 0.059 +- 0.019
+bin = 6, value = 0.043 +- 0.023
+bin = 7, value = 0.125 +- 0.043
+bin = 8, value = 0.091 +- 0.051
+
+# 1.479 < eta < 2
+bin = 1, value = 0.016 +- 0.009
+bin = 2, value = 0.018 +- 0.007
+bin = 3, value = 0.057 +- 0.010
+bin = 4, value = 0.052 +- 0.012
+bin = 5, value = 0.072 +- 0.019
+bin = 6, value = 0.122 +- 0.034
+bin = 7, value = 0.0 + - 0.
+bin = 8, value = 0.0 + - 0.
+
+# 2 < eta < 2.5
+bin = 1, value = 0.023 +- 0.013
+bin = 2, value = 0.041 +- 0.013
+bin = 3, value = 0.046 +- 0.009
+bin = 4, value = 0.070 +- 0.015
+bin = 5, value = 0.068 +- 0.019
+bin = 6, value = 0.072 +- 0.027
+bin = 7, value = 0.030 +- 0.020
+bin = 8, value = 0.116 +- 0.047
+
+
+#------------------------------------------------------------
+#ET = 15 for systematics
+
+# eta < 1
+bin = 1, value = 0.109 +- 0.007
+bin = 2, value = 0.103 +- 0.008
+bin = 3, value = 0.123 +- 0.010
+bin = 4, value = 0.099 +- 0.013
+bin = 5, value = 0.102 +- 0.018
+
+# 1 < eta < 1.479
+bin = 1, value = 0.056 +- 0.006
+bin = 2, value = 0.074 +- 0.009
+bin = 3, value = 0.093 +- 0.012
+bin = 4, value = 0.070 +- 0.015
+bin = 5, value = 0.058 +- 0.019
+
+# 1.479 < eta < 2.
+bin = 1, value = 0.028 +- 0.005
+bin = 2, value = 0.028 +- 0.007
+bin = 3, value = 0.085 +- 0.011
+bin = 4, value = 0.059 +- 0.013
+bin = 5, value = 0.071 +- 0.019
+
+# 2 < eta < 2.5
+bin = 1, value = 0.035 +- 0.006
+bin = 2, value = 0.048 +- 0.009
+bin = 3, value = 0.069 +- 0.010
+bin = 4, value = 0.080 +- 0.014
+bin = 5, value = 0.073 +- 0.019
+
+
+#------------------------------------------------------------
+#ET = 50 for systematics
+
+# eta < 1
+bin = 1, value = 0.063 +- 0.036
+bin = 2, value = 0.026 +- 0.012
+bin = 3, value = 0.061 +- 0.015
+bin = 4, value = 0.052 +- 0.014
+bin = 5, value = 0.031 +- 0.012
+
+# 1 < eta < 1.479
+bin = 1, value = 0.042 +- 0.029
+bin = 2, value = 0.034 +- 0.016
+bin = 3, value = 0.060 +- 0.018
+bin = 4, value = 0.024 +- 0.012
+bin = 5, value = 0.025 +- 0.015
+
+# 1.479 < eta < 2 
+bin = 1, value = 0.008 +- 0.010   # was 0: taken from bin2
+bin = 2, value = 0.008 +- 0.010
+bin = 3, value = 0.054 +- 0.018
+bin = 4, value = 0.033 +- 0.015
+bin = 5, value = 0.044 +- 0.017
+
+# 2 < eta < 2.5
+bin = 1, value = 0.034 +- 0.034
+bin = 2, value = 0.041 +- 0.024
+bin = 3, value = 0.051 +- 0.018
+bin = 4, value = 0.044 +- 0.016
+bin = 5, value = 0.039 +- 0.017

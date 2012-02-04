@@ -26,6 +26,7 @@
 #include "LeptonTypes.h"
 #include "TH2F.h"
 
+class TFile;
 
 class FOManager
 {
@@ -47,46 +48,7 @@ class FOManager
 	private:
 		std::map<LeptonTypes,TH2F*> _fakerate;
 		std::map<LeptonTypes,TH2F*> _promptrate;
-
-	//	TFile * _frmuon;
-	//	TFile * _frelec;
-
-
 	//ClassDef(FOManager,0);
 };
-
-//! Print method
-/*inline std::ostream & operator<<(std::ostream & out, const FOManager & cutmanager)
-{
-	out << "|========== FOManager Print ============|" << std::endl;
-	out << "| Operational mode:" << cutmanager._samplemode << std::endl;
-	if( cutmanager._samplemode == FOManager::FAKEABLESAMPLE )
-	{
-		out << "| ++ Sample: ";
-		for(unsigned int j = 0; j < cutmanager._nTights; ++j)
-		{
-			out << "Tight ";
-		}
-		for(unsigned int j = 0; j < cutmanager._nFails; ++j)
-		{
-			out << "No-Tight ";
-		}
-		out << std::endl;
-	}
-	out << "|============ Selection Cuts: " << std::endl;
-	if( cutmanager._cuts != 0 )
-	{
-		for(std::map<std::string,double>::iterator it = cutmanager._cuts->begin();
-				it != cutmanager._cuts->end(); ++it)
-		{
-			out << " + " << it->first << ": " << it->second << std::endl;
-		}
-	}
-	out << "|============ Selection Cuts ============| " << std::endl;
-
-	return out;
-}*/
-
-
 
 #endif
