@@ -30,7 +30,7 @@ FOManager::FOManager()
 		exit(-1);
 	}
 
-	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_all2011_LPcuts_AND_kink_jet30.root");
+	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
 	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
 
 	this->SetFR(MUON,mufile.c_str());
@@ -153,8 +153,8 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 		exit(-1);
 	}
 	
-	int bin = _fakerate[MUON]->FindBin(pt,fabs(eta));
-	double f = _fakerate[MUON]->GetBinContent(bin);
+	int bin = _fakerate[lt]->FindBin(pt,fabs(eta));
+	double f = _fakerate[lt]->GetBinContent(bin);
 	
 	// FIXME: Also return error --> std::pair
 	return f/(1.0-f);
