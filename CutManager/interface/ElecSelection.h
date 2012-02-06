@@ -125,6 +125,10 @@ class ElecSelection : public CutManager
 		int    kMinNValidHitsInTrk     ;
 		double kMaxDeltaPtMuOverPtMu   ;
 
+		// Loose
+		double kMaxLoosed0;
+		double kMaxLooseIso;
+
 	ClassDef(ElecSelection,0);
 };
 #endif

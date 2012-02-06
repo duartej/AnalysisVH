@@ -35,7 +35,9 @@ ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
 	kMinNumOfMatches(-1),
 	kMinNValidPixelHitsInTrk(-1),
 	kMinNValidHitsInTrk(-1),
-	kMaxDeltaPtMuOverPtMu(-1)  
+	kMaxDeltaPtMuOverPtMu(-1),
+	kMaxLoosed0(-1),
+	kMaxLooseIso(-1)
 { 
 	// Initialize the selection codenames
 	_codenames.insert("PtMuonsCuts");
@@ -188,6 +190,14 @@ void ElecSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 		else if( cut->first == "MinZMass" )
 		{
 			kMinZMass = cut->second;
+		}
+		else if( cut->first == "MaxLoosed0" )
+		{
+			kMaxLoosed0 = cut->second;
+		}
+		else if( cut->first == "MaxLooseIso" )
+		{
+			kMaxLooseIso = cut->second;
 		}
 		/*else --> Noooo, pues esta funcion se utiliza tambien
 		           para recibir otros cortes genericos
@@ -768,7 +778,7 @@ unsigned int ElecSelection::SelectLooseLeptons()
 		deltaZMu = _data->Get<float>("T_Elec_dzPVBiasedPV",i);
 		IPMu     = _data->Get<float>("T_Elec_IP2DBiasedPV",i);
 		// Apply cut on d0
-		if(fabs(IPMu) > 0.2)//kLoosed0 ) FIXME HARDCODED
+		if(fabs(IPMu) > kMaxLoosed0 )
 		{
 			continue;
 		}
@@ -776,7 +786,7 @@ unsigned int ElecSelection::SelectLooseLeptons()
 		//[ISO cut]
 		double isolation =(_data->Get<float>("T_Elec_eleSmurfPF",i) )/ptMu;
 
-		if( isolation > 0.4 ) //kLooseIso
+		if( isolation > kMaxLooseIso )
 		{
 			continue;
 		}

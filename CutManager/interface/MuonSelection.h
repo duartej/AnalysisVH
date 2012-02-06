@@ -123,6 +123,10 @@ class MuonSelection : public CutManager
 		int    kMinNValidPixelHitsInTrk;
 		int    kMinNValidHitsInTrk     ;
 		double kMaxDeltaPtMuOverPtMu   ;
+
+		// Loose leptons
+		double kMaxLoosed0;
+		double kMaxLooseIso;
 		
 	ClassDef(MuonSelection,0);
 };

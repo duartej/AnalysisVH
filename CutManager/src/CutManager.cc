@@ -109,6 +109,13 @@ void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & i
   	//   - Min MET of the event
 	cuts.push_back("MinMET");
 
+	// Fakeable mode
+	if( this->IsInFakeableMode() )
+	{
+		cuts.push_back( "MaxLoosed0" );
+		cuts.push_back( "MaxLooseIso" );
+	}
+
 	// Now including all the cuts to the manager
 	this->LockCuts(ipmap,cuts);
 }
