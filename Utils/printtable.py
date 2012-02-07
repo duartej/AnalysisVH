@@ -80,8 +80,8 @@ class table(object):
 					" environment (VHSYS env variable needed)"
 
 		# Reduced table or not
-		self.reduced = False
-		self.fakemode= False
+		self.reduced   = False
+		self.fakemode  = False
 
 		formatprov = None
 
@@ -108,17 +108,29 @@ class table(object):
 			# Removing
 			for f in nonsignalfiles:
 				self.filenames.remove(f)
+		# Fakes mode where fakes acting as Data (to compare this fakes with 
+		# several Monte Carlo)
+		self.fakeasdata= False
+		if signal == "Fakes":
+			self.fakeasdata = True
+
 		# samples names
 		self.samples = map(lambda x: os.path.basename(x).split(".")[0], self.filenames )
 		self.filesamplemap = dict(map(lambda x: (x,os.path.basename(x).split(".")[0]), self.filenames ))
 		# Check the signal and data are there
 		if not signal in self.samples:
 			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."
-		if not "Data" in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The data is not available"
+		if not self.fakeasdata:
+			if not "Data" in self.samples:
+				raise "\033[1;31mtable ERROR\033[1;m The data is not available"
 		# signal name
-		self.signal  = signal
-		self.data    = "Data"
+		# Adapting the code to the mode (fakes,...)
+		if self.fakeasdata:
+			self.signal = ""
+			self.data   = "Fakes"
+		else:
+			self.signal  = signal
+			self.data    = "Data"
 
 		# Ordered samples for column titles
 		self.columntitles = []
@@ -458,13 +470,13 @@ if __name__ == '__main__':
 		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
 		sys.exit( message )
 	
-	usage="usage: printtable <WZ|WHnnn> [options]"
+	usage="usage: printtable <WZ|WHnnn|Fakes> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(output="table.tex",isreduced=False,fakemode=False)
+	parser.set_defaults(output="table.tex",isreduced=False,fakemode=False,fakeasdata=False)
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format," \
 			" can be more than one comma separated" )
 	parser.add_option( '-F', action='store_true', dest='fakemode', help="Activate the fake mode where the Z+Jets, DY and ttbar are estimated with" \
-			" the fakeable object method" )
+			" the fakeable object method. Incompatible with '\033[1;39mFakes\033[1;m' signal" )
 	parser.add_option( '-r', action='store_true', dest='isreduced', help="More printable version of the table, where several samples have been merged" \
 			" into one" )
 
@@ -474,13 +486,16 @@ if __name__ == '__main__':
 		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory argument signal, see usage."
 		sys.exit(message)
 	signal = args[0]
-	if signal != "WZ" and signal.find("WH") != 0:
+	if signal != "WZ" and signal.find("WH") != 0 and signal != "Fakes":
 		message = "\033[1;31mprinttable ERROR\033[1;m Signal '"+signal+"' not implemented, see usage."
 		sys.exit(message)
 
 	if signal.find("WH") == 0:
 		signal = signal.replace("WH","WHToWW2L")
 
+	if opt.fakeasdata and opt.fakemode:
+		message = "\033[1;31mprinttable ERROR\033[1;m Incompatible options '-F' and '-k'. See help."
+		sys.exit(message)
 
 	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()

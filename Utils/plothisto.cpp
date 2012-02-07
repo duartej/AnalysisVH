@@ -148,6 +148,12 @@ void PlotAll(const common & cd ,
 	{
 		infakemode = true;
 	}
+	// If is in fake as data mode -> signal=""
+	bool fakeasdata=false;
+	if( sig.CompareTo("") == 0 )
+	{
+		fakeasdata = true;
+	}
 
 	gROOT->SetBatch(1);
 	
@@ -160,7 +166,11 @@ void PlotAll(const common & cd ,
 	// + Data
 	TFile* fdata = OpenFile(data);
 	// + Signal
-	TFile* fwh = OpenFile(sig);
+	TFile* fwh = 0;
+	if( ! fakeasdata )
+	{
+		fwh = OpenFile(sig);
+	}
 	// + Backgrounds
 	TFile* fbkg[NBKG];
 	TFile* fbkgzjets[NBKGZJETS];
@@ -185,7 +195,11 @@ void PlotAll(const common & cd ,
 	// + Data
 	TH1D * hdata = GetHistogram(histoname, fdata, data);
 	// + Signal
-	TH1D* hwh = GetHistogram(histoname, fwh, sig);
+	TH1D* hwh = 0; 
+	if( ! fakeasdata )
+	{
+		hwh = GetHistogram(histoname, fwh, sig);
+	}
 	// + Backgrounds
 	TH1D* hbkg[NBKG];
 	TH1D* hbkgzjets[NBKGZJETS];
@@ -211,7 +225,11 @@ void PlotAll(const common & cd ,
 	gSystem->Load("libInputParameters.so");
 	
 	// + Signal
-	double weightwh = GetWeight(fwh, luminosity);
+	double weightwh = 0;
+	if( ! fakeasdata )
+	{ 
+		weightwh = GetWeight(fwh, luminosity);
+	}
 	
 	// + Background
 	double weight[NBKG];
@@ -238,7 +256,11 @@ void PlotAll(const common & cd ,
 	// + Data
 	double nevdat = hdata->GetEntries();
 	// + Signal
-	double nevwh  = GetNormEntries(hwh, weightwh);
+	double nevwh = 0;
+	if( ! fakeasdata )
+	{
+		nevwh = GetNormEntries(hwh, weightwh);
+	}
 	// + Background
 	double nevbkg = 0;
 	for(unsigned int i = 0; i < NBKG; i++) 
@@ -264,7 +286,10 @@ void PlotAll(const common & cd ,
 	int izjets = -1;
 	if(plottype==0 || plottype==1) 
 	{
-		hwh->Scale(weightwh*SIGNALFACTOR);
+		if( ! fakeasdata )
+		{
+			hwh->Scale(weightwh*SIGNALFACTOR);
+		}
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
 			if(fbkg[i])
@@ -283,7 +308,10 @@ void PlotAll(const common & cd ,
 	}
 	else if(plottype==2) 
 	{
-		hwh->Scale(1./hwh->Integral());
+		if( ! fakeasdata )
+		{
+			hwh->Scale(1./hwh->Integral());
+		}
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
 			if(fbkg[i])
@@ -339,7 +367,10 @@ void PlotAll(const common & cd ,
 		}
 	}
 	hdata->Rebin(rebin);
-	hwh->Rebin(rebin);
+	if( ! fakeasdata )
+	{
+		hwh->Rebin(rebin);
+	}
 	for(unsigned int i = 0; i < NBKG; i++)
 	{
 		hbkg[i]->Rebin(rebin);
@@ -363,8 +394,11 @@ void PlotAll(const common & cd ,
 	gStyle->SetOptStat(0);
 	gStyle->SetLegendBorderSize(0);
 
-	hwh->SetFillColor(kOrange-2);
-	hwh->SetLineColor(kOrange-1);
+	if( ! fakeasdata )
+	{
+		hwh->SetFillColor(kOrange-2);
+		hwh->SetLineColor(kOrange-1);
+	}
 	if(plottype == 1)
 	{
 		hwh->SetFillStyle(3254);
@@ -395,8 +429,11 @@ void PlotAll(const common & cd ,
 			// ratio histo
 			mcratio->Add(hbkg[i]); 
 		}
-		hs->Add(hwh);
-		mcratio->Add(hwh);
+		if( ! fakeasdata )
+		{
+			hs->Add(hwh);
+			mcratio->Add(hwh);
+		}
 		
 		//2.- Draw data
 		double hsmax = 1.1 * hs->GetMaximum();
@@ -430,11 +467,17 @@ void PlotAll(const common & cd ,
 		//2.- Draw signal and data
 		double hmax = 1.1 * hs->GetMaximum();
 		hmax = TMath::Max(hmax, 1.1 * hdata->GetMaximum());
-		hmax = TMath::Max(hmax, 1.1 * hwh->GetMaximum());
+		if( ! fakeasdata )
+		{
+			hmax = TMath::Max(hmax, 1.1 * hwh->GetMaximum());
+		}
 		hs->SetMaximum(hmax);
 		//   Create canvas
 		hs->Draw();
-		hwh->Draw("SAME");
+		if( ! fakeasdata )
+		{
+			hwh->Draw("SAME");
+		}
 		hdata->Draw("E SAME");
 
 		//3.- Set titles and axis
@@ -448,7 +491,11 @@ void PlotAll(const common & cd ,
 	}
 	else if(plottype == 2) 
 	{
-		double max=1.1*hwh->GetMaximum();
+		double max= 0;
+		if( ! fakeasdata )
+		{
+			max = 1.1*hwh->GetMaximum();
+		}
 		for(unsigned int i = 0; i < NBKG; i++) 
 		{
 			max = TMath::Max(max,1.1*(hbkg[i]->GetMaximum()));
@@ -462,7 +509,10 @@ void PlotAll(const common & cd ,
 				hbkg[i]->Draw("SAME");
 			}
 		}
-		hwh->Draw("SAMES");
+		if( ! fakeasdata )
+		{
+			hwh->Draw("SAMES");
+		}
 	}
 	
 	//////
@@ -479,14 +529,21 @@ void PlotAll(const common & cd ,
 	}
 	TString lumstats = Form("Lumi: %.1f fb^{-1}",luminosity/1000);
 	TString bkgstats = Form("Bkg.: %.*f",ndec, nevbkg);
-	TString sigstats = Form("Sig.: %.4f", nevwh);
+	TString sigstats = "";
+	if( ! fakeasdata )
+	{
+		sigstats = Form("Sig.: %.4f", nevwh);
+	}
 	//TPaveText* stats = new TPaveText(0.78,0.78,0.98,0.98, "NDC");
 	TPaveText* stats = new TPaveText(0.72,0.78,0.92,0.98, "NDC");
 	stats->SetTextAlign(12);
 	stats->AddText(lumstats);
 	stats->AddText(datstats);
 	stats->AddText(bkgstats);
-	stats->AddText(sigstats);
+	if( ! fakeasdata )
+	{
+		stats->AddText(sigstats);
+	}
 	stats->SetFillColor(10);
 	stats->SetBorderSize(0);
 	stats->Draw();
@@ -509,7 +566,10 @@ void PlotAll(const common & cd ,
 	TString llegend;
 	llegend += SIGNALFACTOR;
 	llegend += TString(" #times ") + slegend;
-	legend->AddEntry(hwh,   llegend, format);
+	if( ! fakeasdata )
+	{
+		legend->AddEntry(hwh,   llegend, format);
+	}
 	for(unsigned int i = 0; i < NBKG; i++) 
 	{
 		legend->AddEntry(hbkg[i],blegend[i],format);
@@ -595,7 +655,10 @@ void PlotAll(const common & cd ,
 	//////
 	// Close files
 	fdata->Close();
-	fwh->Close();
+	if( ! fakeasdata )
+	{
+		fwh->Close();
+	}
 	for(unsigned int i = 0; i < NBKG ; i++) 
 	{
 		if(fbkg[i])
@@ -625,7 +688,7 @@ void display_usage()
 	std::cout << "                      - 1: All backgrounds stacked, signal alone [default]" << std::endl;
 	std::cout << "                      - 2: No stacking at all" << std::endl;
 	std::cout << "    -l L              Luminosity in pb^-1 [default: 2143.3 pb^-1]" << std::endl;
-	std::cout << "    -F                Mode Fakes: deactivating DrellYan and Z+Jets MC samples" << std::endl;
+	std::cout << "    -F                Mode Fakes: deactivating DrellYan and Z+Jets MC samples. Incompatible with '-f' option" << std::endl;
 	std::cout << "    -f                Mode Fakes: Comparing fake sample with the MC-samples which can generate it.\n" 
 		<<   "                      In this mode, the Fake sample is used as Data and it will be compared with\n"
 		<<   "                      some MC samples which could create this Fake sample: WZ, ZZ, Z+Jets, ttbar" << std::endl;
@@ -642,7 +705,9 @@ int main(int argc, char *argv[])
 	const char * luminosity= "2143.3";
 	const char * histoname = 0;
 	const char * ismodefake= 0;
-
+	const char * dataname  = "Data";
+	
+	bool isfakeasdata = false;
 	// Arguments used
 	std::set<int> usedargs;
 	//Parsing input options
@@ -653,8 +718,6 @@ int main(int argc, char *argv[])
 	}
 	else
 	{
-		//Argument 1 must be a valid input fileName
-		//dataName = argv[1];
 		for(int i = 1; i < argc; i++) 
 		{
 			if( strcmp(argv[i],"-h") == 0 )
@@ -695,7 +758,13 @@ int main(int argc, char *argv[])
 			{
 				ismodefake = "1";
 				usedargs.insert(i);
-				i++;
+			}
+			if( strcmp(argv[i],"-f") == 0 )
+			{
+				dataname = "Fakes";
+				signal = "";
+				isfakeasdata=true;
+				usedargs.insert(i);
 			}
 		}
 	}
@@ -721,6 +790,14 @@ int main(int argc, char *argv[])
 	bool infakemode = false;
 	if( ismodefake != 0 )
 	{
+		if( isfakeasdata )
+		{
+			std::cerr << "\033[1;31mplothistos ERROR:\033[1;m The '-F' and '-f' option cannot be called"
+				<< " simultaneously!" << std::endl;
+			display_usage();
+			return -1;
+		}
+
 		infakemode = true;
 	}
 	
@@ -728,24 +805,29 @@ int main(int argc, char *argv[])
 	//
 	// + The following values are used to construct the name of the files 
 	//   to look for the histograms
-	const TString data      = "Data";
+	const TString data      = dataname;
 	const TString sig       = signal;
 	std::vector<TString> bkg;
 	bkg.push_back("ZZ");
-	bkg.push_back("WW");
-	bkg.push_back("WJets_Madgraph");
-	if( ! infakemode )
+	if( infakemode )
+	{
+		bkg.push_back("Fakes");
+	}
+	else if( isfakeasdata )
 	{
 		bkg.push_back("TTbar_Madgraph");
 		bkg.push_back("ZJets_Powheg");
 	}
 	else
 	{
-		bkg.push_back("Fakes");
+		bkg.push_back("WW");
+		bkg.push_back("WJets_Madgraph");
+		bkg.push_back("TTbar_Madgraph");
+		bkg.push_back("ZJets_Powheg");
 	}
 
 	std::vector<TString> bkgzjets;
-	if( ! infakemode )
+	if( !infakemode || isfakeasdata )
 	{
 		bkgzjets.push_back("DYee_Powheg");
 		bkgzjets.push_back("DYmumu_Powheg");
@@ -754,21 +836,26 @@ int main(int argc, char *argv[])
 		bkgzjets.push_back("Zmumu_Powheg");
 		bkgzjets.push_back("Ztautau_Powheg");
 	}
-	const TString dlegend   = "Data";
+	const TString dlegend   = dataname;
 	const TString slegend   = signal;
 	std::vector<TString> blegend; 
 	blegend.push_back("ZZ");
-	blegend.push_back("WW");
-	blegend.push_back("W+Jets (MG)");
-	if( ! infakemode )
-	{
-		blegend.push_back("t#bar{t} (MG)");
-		blegend.push_back("Z+Jets (incl. Zbb)");
-	}
-	else
+	if( infakemode )
 	{
 		blegend.push_back("Fakes (PPF)");
+	}
+	else if( isfakeasdata )
+	{
+		blegend.push_back("t#bar{t} (MG)");
+		blegend.push_back("Z+Jets");// (incl. Zbb)");
 	}	
+	else
+	{
+		blegend.push_back("WW");
+		blegend.push_back("W+Jets (MG)");
+		blegend.push_back("t#bar{t} (MG)");
+		blegend.push_back("Z+Jets");// (incl. Zbb)");
+	}
 	// + Value to scale the signal
 	int SIGNALFACTOR=1;
 	
@@ -776,11 +863,14 @@ int main(int argc, char *argv[])
 	{
 		bkg.push_back("WZ");
 		blegend.push_back("WZ");
-		bkg.push_back("TW_DR");
-		blegend.push_back("tW");
-		bkg.push_back("TbarW_DR");
-		blegend.push_back("tbarW");
-		SIGNALFACTOR = 100;
+		if( strcmp(sig,"WH") == 0 )
+		{
+			bkg.push_back("TW_DR");
+			blegend.push_back("tW");
+			bkg.push_back("TbarW_DR");
+			blegend.push_back("tbarW");
+			SIGNALFACTOR = 100;
+		}
 	}
 
 	common cd;

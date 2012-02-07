@@ -21,12 +21,17 @@ SYNTAX:
    Note that the signal is a mandatory argument. WHnnn must be
    substituted by the mass hypothesis, p.e. Higgs mass 120:
    $0 WH120
+   WARNING: the '-F' option is incompatible with the 'Fakes' signal
 
 OPTIONS:
 
    [-l]: Set the luminosity. Default: 4664.7 (full 2011 period)
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
+   [-f]: Activate fakeable mode: the Fakes data sample is considered
+         as data and compared with the potential MC sample which could
+	 contribute (so the Monte Carlo sample was sent in -F 3,2 mode)
+	 This option is incompatible with '-F' option
 
 EOF
 }
@@ -57,13 +62,15 @@ fi
 autobin=""
 fakemode=""
 isreduced="-r"
+fakeasdata=""
 
-while getopts l:Fah opt;
+while getopts l:Ffah opt;
 	do
 		case "$opt" in
 			l)	luminosity=$OPTARG;;
 			a)	autobin="yes";;
-			F)	fakemode="-F";
+			F)	fakemode="-F";;
+			f) 	fakeasdata="yes";
 			        isreduced="";;
 			h)	help;
 				exit 1;;
@@ -111,27 +118,36 @@ merge3leptonfs -d $dircommasep;
 
 rbinoption4=""
 rbinoption8=""
-if [  "X${autobin}" == "X" ]; then
+if [ "X${autobin}" == "X" ]; then
 	rbinoption4="-r 4"
 	rbinoption8="-r 8"
 fi
+
+# Fakes comparation with MC mode
+if [ "X${fakeasdata}" == "Xyes" ];
+then
+	signal="Fakes"
+	fakeasdata="-f"
+	isreduced=""
+fi
+
 
 for j in $fsdirectories leptonchannel;
 do
 	cd $j;
 	for i in $HISTOSNOC;
 	do
-		plothisto $i -r 1 -s $signal -p $plotmode -l $luminosity $fakemode
+		plothisto $i -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
 	
 	for i in $HISTOS4B;
 	do
-		plothisto $i $rbinoption4 -s $signal -p $plotmode -l $luminosity $fakemode
+		plothisto $i $rbinoption4 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		plothisto $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode
+		plothisto $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
 	printtable $signal $fakemode $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
