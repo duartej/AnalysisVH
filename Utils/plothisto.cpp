@@ -51,6 +51,7 @@ struct common
 	std::vector<TString> bkg;
 	std::vector<TString> bkgzjets;
 	std::vector<TString> blegend;
+	bool fakeasdata;
 };
 
 ///////////////////////////////
@@ -137,6 +138,7 @@ void PlotAll(const common & cd ,
 	const std::vector<TString> bkg = cd.bkg;
 	const std::vector<TString> bkgzjets = cd.bkgzjets;
 	const std::vector<TString> blegend = cd.blegend;
+	const bool fakeasdata = cd.fakeasdata;
 
 
 	const unsigned int NBKG = bkg.size();
@@ -148,13 +150,7 @@ void PlotAll(const common & cd ,
 	{
 		infakemode = true;
 	}
-	// If is in fake as data mode -> signal=""
-	bool fakeasdata=false;
-	if( sig.CompareTo("") == 0 )
-	{
-		fakeasdata = true;
-	}
-
+	
 	gROOT->SetBatch(1);
 	
 	std::cout << "\033[1;34mPlotAll INFO\033[1;m Plotting '" << histoname
@@ -255,6 +251,10 @@ void PlotAll(const common & cd ,
 	// Get the input parameters that we need: cross sections, n. events...
 	// + Data
 	double nevdat = hdata->GetEntries();
+	if( fakeasdata )
+	{
+		nevdat = GetNormEntries(hdata,1.0);
+	}
 	// + Signal
 	double nevwh = 0;
 	if( ! fakeasdata )
@@ -345,7 +345,11 @@ void PlotAll(const common & cd ,
 	if( rebin == 0 )
 	{
 		// Automatic rebinning Rule: sqrt(n)+1
-		const int ndata = (int)hdata->GetEntries();
+		int ndata = (int)hdata->GetEntries();
+		if( fakeasdata ) 
+		{
+			ndata = (int)GetNormEntries(hdata,1.0);
+		}
 		const int nbins = hdata->GetNbinsX();
 		// Number of bins following the rule 
 		int ksqrt = (int)(sqrt(ndata)+1);
@@ -365,6 +369,7 @@ void PlotAll(const common & cd ,
 			// Minimum: 10 bins
 			rebin = nbins/10;
 		}
+std::cout << rebin << std::endl;
 	}
 	hdata->Rebin(rebin);
 	if( ! fakeasdata )
@@ -882,6 +887,7 @@ int main(int argc, char *argv[])
 	cd.bkg = bkg;
 	cd.bkgzjets = bkgzjets;
 	cd.blegend = blegend;
+	cd.fakeasdata = isfakeasdata;
 
 	int rebinI = -1;
 	std::stringstream ss(rebin);
