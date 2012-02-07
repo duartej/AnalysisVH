@@ -661,34 +661,31 @@ if __name__ == '__main__':
 		message = 'sendcluster: I need python version >= 2.4'
 		sys.exit( message )
 	#Opciones de entrada
-	usage="usage: sendcluster <submit|harvest|delete> [options]"
+	usage="usage: sendcluster <\033[1;39msubmit\033[1;m|\033[1;39mharvest\033[1;m|"+\
+			"\033[1;39mdelete\033[1;m> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(shouldCompile=False,jobsNumber=0)
-	#parser.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
-	#parser.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
-	#parser.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
+	parser.set_defaults(shouldCompile=False,jobsNumber=0,fakeasdata=False)
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
-	#parser.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis)' )
-	#parser.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs' )
-	#parser.add_option('-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
-	#parser.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
-	#		' (launching datamanager executable)' )
 	
-	group = OptionGroup(parser, "submit options","")
+	group = OptionGroup(parser, "\033[1;39msubmit\033[1;m options","")
 	group.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
 	group.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
-	group.add_option( '-F', '--fakeable', action='store', dest='fakeable', metavar="N,T", help="Fakeable mode, so N,T (where N=Leptons and T=Tight leptons")
+	group.add_option( '-F', '--fakeable', action='store', dest='fakeable', metavar="N,T", help="Fakeable mode, so N,T (where N=Leptons and T=Tight leptons."+\
+			" Used with the '-k' option")
+	group.add_option( '-k', '--fakeasdata', action='store_true', dest='fakeasdata', help="Fakeable mode ALLOWING whatever datasample (not only"+\
+			" the so called Fakes) to be created the N,T sample. So it must use with the '-F' option.")
 	group.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis -h). Also'
 			' not using this option, the script will use all the datafiles *_datanames.dn found in the working directory to launch process')
 	group.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs. Not using this option, the script'
 			' will trying to found how many jobs are needed to create a 10min job')
-	group.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', help='name of the lepton and config file (absolute path), \':\' separated' )
+	group.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', metavar="LEPTON:cfgfile[,..]",\
+			help='name of the lepton and config file (absolute path), \':\' separated' )
 	group.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
-			' (launching datamanager executable)' )
+			' (launching datamanager executable) \033[1;31mTO BE DEPRECATED\033[1;m' )
 	parser.add_option_group(group)
 
-	groupharvest = OptionGroup(parser,"harvest and delete options","")
+	groupharvest = OptionGroup(parser,"\033[1;39mharvest\033[1;m and \033[1;39mdelete\033[1;m options","")
 	groupharvest.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option_group(groupharvest)
 	
@@ -753,6 +750,11 @@ if __name__ == '__main__':
 		# Also fakeable or not:
 		if not opt.fakeable:
 			opt.fakeable=False
+		# Checking the correct use of -k option 
+		if opt.fakeasdata:
+			if not opt.fakeable:
+				message = "\033[31;1msendcluster: ERROR\033[0m It is mandatory the '-F' option"+\
+						" with the '-k' option"
 		# Instantiate and submit
 		manager = None
 		for dataname in datanameslist:
@@ -765,7 +767,7 @@ if __name__ == '__main__':
 							" with the 'Fakes' dataname"
 					sys.exit( message )			
 			else:
-				if dataname != "Fakes":
+				if dataname != "Fakes" and not opt.fakeasdata:
 					# not sending to the instance
 					fakeable = False
 

@@ -272,6 +272,10 @@ void AnalysisBase::InitialiseParameters()
 	{
 		fIsData = true;
 	}
+	else if(fDataName.Contains("Fake"))
+	{
+		fIsData = true;
+	}
 	
 	// Luminosity
 	//--------------------------------

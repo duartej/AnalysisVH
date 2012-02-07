@@ -179,7 +179,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
-	if(!fIsData && !fFO)
+	if(!fIsData)
 	{
 		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}

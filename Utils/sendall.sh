@@ -16,7 +16,7 @@ Send all the final states jobs to the cluster
 
 SYNTAX:
 
-   $0 [-r runperiod] [-F] <WZ|WH> 
+   $0 [-r runperiod] [-F] [-f] <WZ|WH> 
 
 
    Note that the signal is a mandatory argument. 
@@ -29,7 +29,12 @@ SYNTAX:
 OPTIONS:
 
    [-r]: Set the Run period: 2011, 2011A, 2011B. Default: 2011
-   [-F]: Activate fakeable mode
+   [-F]: Activate fakeable mode: the Fakes data sample will be send
+         in substitution of Z+Jets, Drell-Yan and ttbar MC samples
+   [-f]: Activate fakeable mode: the Fakes data sample is considered
+         as data and compared with the potential MC sample which could
+	 contribute (so the Monte Carlo sample are sent in -F 3,2 mode)
+	 This option implies '-F' option, so it is called automatically
 
 EOF
 }
@@ -56,23 +61,30 @@ if [ -z $1 ]; then
 fi
 
 fakeable=""
+fakeasdata=""
 
-while getopts r:Fh o
+while getopts r:Ffh o;
 	do
 		case "$o" in
-			l)	runperiod=$OPTARG; 
-			 	shift;
-				shift;;
+			r)	runperiod=$OPTARG; 
+				;;
 			F)      fakeable="yes";
-				shift;;
+				;;
+			f)	fakeasdata="yes";
+				fakeable="yes";
+				;;
 			h)	help;
 				exit 1;;
 		esac
 	done
 
+shift $((OPTIND-1))
+
 # Checking the signal
 if [ "$1" != "WZ" -a "$1" != "WH" ] ;
 then
+	echo "+++++++++++++++** $1"
+	echo "[$fakeasdata] [$fakeable]"
 	echo "ERROR: the signal argument is mandatory. See the help below"
 	help
 	exit -1;
@@ -113,15 +125,29 @@ fi
 
 if [ "X"$fakeable == "X" ];
 then
-	echo "[sendall] Info: not needed the Fakes sample, removing";
-	rm Fakes*.dn;
+	if [ "X"$fakeasdata == "X" ];
+	then
+		echo "[sendall] Info: not needed the Fakes sample, removing";
+		rm Fakes*.dn;
+	fi
 else
-	echo "[sendall] Info: not needed the Z+Jets, DY and TTbar samples, removing";
-	rm Z*_Powheg_datanames.dn;
-	rm DY*_Powheg_datanames.dn;
-	rm TTbar_Madgraph_datanames.dn;
-fi
+	if [ "X"$fakeasdata == "Xyes" ];
+	then
+		echo "[sendall] Info: not needed the Data, TbarW_DR, TW_DR, WJets_Madgraph and WW, removing";
+		rm Data_datanames.dn
+		rm TbarW_DR_datanames.dn;
+		rm TW_DR_datanames.dn;
+		rm WJets_Madgraph_datanames.dn;
+		rm WW_datanames.dn;
+		
+	else
+		echo "[sendall] Info: not needed the Z+Jets, DY and TTbar samples, removing";
+		rm Z*_Powheg_datanames.dn;
+		rm DY*_Powheg_datanames.dn;
+		rm TTbar_Madgraph_datanames.dn;
+	fi
 
+fi
 
 
 for finalstate in mmm mme eem eee;
@@ -130,7 +156,12 @@ do
 	mkdir -p $i;
 	cd $i;
 	cp ../*.dn .
-	datamanagercreator Data -r $runperiod -f $finalstate;
+	if [ "X"$fakeasdata == "X" ];
+	then
+		datamanagercreator Data -r $runperiod -f $finalstate;
+	else
+		fakeasdataOPT="-k"
+	fi
 	fakeoption=""
 	if [ "X"$fakeable == "Xyes" ];
 	then
@@ -138,7 +169,7 @@ do
 		fakeoption="-F 3,2"
 	fi
 	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption;
+	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 	cd ../; 
 done
 rm *.dn

@@ -413,7 +413,7 @@ int main(int argc, char *argv[])
 			return -1;
 		}
 	}
-	else{
+/*	else{  FIXME: PROVISIONAL
 		if( fakeable != 0)
 		{
 			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
@@ -422,7 +422,7 @@ int main(int argc, char *argv[])
 				<< dataName << "'" << std::endl;
 			return -1;
 		}
-	}
+	}*/
 
 
 #ifdef TIMERS

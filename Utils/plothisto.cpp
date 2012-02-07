@@ -110,7 +110,7 @@ double GetWeight(TFile* f, double luminosity)
 	ip->TheNamedInt("NEventsSample", neventssample);
 	ip->TheNamedInt("NEventsTotal", neventsskim);
 	double weight = xs * luminosity / neventssample;
-	// Checking the fakes casea
+	// Checking the fakes case
 	if( xs == 0 )
 	{
 		weight = 1.0;
@@ -183,7 +183,7 @@ void PlotAll(const common & cd ,
 	//////
 	// Get the Histograms
 	// + Data
-	TH1D * hdata = GetHistogram(histoname, fdata, "Data");
+	TH1D * hdata = GetHistogram(histoname, fdata, data);
 	// + Signal
 	TH1D* hwh = GetHistogram(histoname, fwh, sig);
 	// + Backgrounds
@@ -625,7 +625,10 @@ void display_usage()
 	std::cout << "                      - 1: All backgrounds stacked, signal alone [default]" << std::endl;
 	std::cout << "                      - 2: No stacking at all" << std::endl;
 	std::cout << "    -l L              Luminosity in pb^-1 [default: 2143.3 pb^-1]" << std::endl;
-	std::cout << "    -F                Mode Fakes (deactivating DrellYan and Z+Jets MC samples)" << std::endl;
+	std::cout << "    -F                Mode Fakes: deactivating DrellYan and Z+Jets MC samples" << std::endl;
+	std::cout << "    -f                Mode Fakes: Comparing fake sample with the MC-samples which can generate it.\n" 
+		<<   "                      In this mode, the Fake sample is used as Data and it will be compared with\n"
+		<<   "                      some MC samples which could create this Fake sample: WZ, ZZ, Z+Jets, ttbar" << std::endl;
 	std::cout << "    -h                displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
 }
