@@ -526,7 +526,7 @@ unsigned int AnalysisWZ::InsideLoop()
 		TLorentzVector lvec = this->GetTLorentzVector(name,i);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
-		puw = fFO->GetWeight(ileptontype,pt,eta);
+		puw *= fFO->GetWeight(ileptontype,pt,eta);
 	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);

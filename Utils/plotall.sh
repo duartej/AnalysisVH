@@ -69,7 +69,8 @@ while getopts l:Ffah opt;
 		case "$opt" in
 			l)	luminosity=$OPTARG;;
 			a)	autobin="yes";;
-			F)	fakemode="-F";;
+			F)	fakemode="-F";
+				isreduced="";;
 			f) 	fakeasdata="yes";
 			        isreduced="";;
 			h)	help;
@@ -128,7 +129,6 @@ if [ "X${fakeasdata}" == "Xyes" ];
 then
 	signal="Fakes"
 	fakeasdata="-f"
-	isreduced=""
 fi
 
 

@@ -369,7 +369,6 @@ void PlotAll(const common & cd ,
 			// Minimum: 10 bins
 			rebin = nbins/10;
 		}
-std::cout << rebin << std::endl;
 	}
 	hdata->Rebin(rebin);
 	if( ! fakeasdata )
@@ -816,6 +815,8 @@ int main(int argc, char *argv[])
 	bkg.push_back("ZZ");
 	if( infakemode )
 	{
+		bkg.push_back("WW");
+		bkg.push_back("WJets_Madgraph");
 		bkg.push_back("Fakes");
 	}
 	else if( isfakeasdata )
@@ -847,6 +848,8 @@ int main(int argc, char *argv[])
 	blegend.push_back("ZZ");
 	if( infakemode )
 	{
+		blegend.push_back("WW");
+		blegend.push_back("W+Jets (MG)");
 		blegend.push_back("Fakes (PPF)");
 	}
 	else if( isfakeasdata )
