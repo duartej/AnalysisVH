@@ -109,6 +109,9 @@ void AnalysisWZ::Initialise()
 		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,WZCuts::kCutNames[i]);
 	}
 
+	// Number of Primary Vertices in the event
+	_histos[fHNPrimaryVertices] = CreateH1D("fHNPrimaryVertices", "Number of Primary Vertices", 31, 0, 30);
+
 	// Reconstructed muons in the event
 	_histos[fHNRecoLeptons] = CreateH1D("fHNRecoLeptons", "Reconstructed #mu", 
 			10, -0.5, 9.5);
@@ -179,9 +182,10 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
+	const int nPV = fData->Get<int>("T_Event_nPU");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
+		puw = fPUWeight->GetWeight(nPV);
 	}
 
 	// Generation studies
@@ -530,6 +534,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
+
+	// N-primary vertices
+	_histos[fHNPrimaryVertices]->Fill(nPV,puw);
 
 	// Indexs of good leptons (noTight+Tights if proceed)
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 

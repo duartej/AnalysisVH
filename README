@@ -51,6 +51,25 @@ Dec. 19th 2011-- Tag release v04.00: WZ analysis stable
      6. Do the plots and merge all final states using 'plotall SIGNAL' where SIGNAL can be WHnnn or WZ.
         nnn is the mass hypothesis
    You can see what are the actual process calling in each script
+Feb. 08th 2012-- Tag release v04.01: Improvements in the analysis and Fakes incorporation
+   * Analysis improvements: 
+      - Anti internal breamsstraulhung cut
+      - Z and W candidate cut levels (in WZ analysis)
+   * Management improvements:
+      - New scripts for send, collect all the samples at once
+      - New histograms added
+   * Fakes incorporation:  it is possible to extract a first estimation of fake background using 
+   the new -F option in runanalysis. The estimation is done assuming:
+      1. p = 1 (prompt ratio)
+      2. TTnT ---> nT ==> weight per event: f/(1-f) where f=f(pt,eta) of the noTight lepton of the
+         event
+      - The manager of this new functionality is FOManager class
+      - Also, added new options to the sendcluster, plothisto, printable, ... scripts to deal with
+        this new mode 
+
+
+     
+    
 
 
 TODO:

@@ -110,6 +110,9 @@ void AnalysisVH::Initialise()
 	{
 		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,WHCuts::kCutNames[i]);
 	}
+	
+	// Number of Primary Vertices in the event
+	_histos[fHNPrimaryVertices] = CreateH1D("fHNPrimaryVertices", "Number of Primary Vertices", 31, 0, 30);
 
 	// Reconstructed muons in the event
 	_histos[fHNRecoLeptons] = CreateH1D("fHNRecoLeptons", "Reconstructed #mu", 
@@ -202,9 +205,10 @@ unsigned int AnalysisVH::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
+	const int nPV = fData->Get<int>("T_Event_nPU");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
+		puw = fPUWeight->GetWeight(nPV);
 	}
 
 	// Generation studies
@@ -613,6 +617,9 @@ unsigned int AnalysisVH::InsideLoop()
 	FillGenPlots(WHCuts::_iHasExactly3Leptons,puw);
 	
 	FillHistoPerCut(WHCuts::_iHasExactly3Leptons, puw, fsNTau);
+	
+	// N-primary vertices
+	_histos[fHNPrimaryVertices]->Fill(nPV,puw);
 
 	// CAVEAT =================================================
 	// Note that from here on, the indices used are the ones of

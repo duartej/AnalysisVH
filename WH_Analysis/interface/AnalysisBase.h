@@ -98,6 +98,7 @@ class AnalysisBase : public CMSAnalysisSelector
 			fHProcess,                //Process ID
 			fHEventsPerCut,           //Events passing every cut
 			fHEventsPerCut3Lepton,    //Events passing every cut that are 3 lepton from gen
+			fHNPrimaryVertices,       //Number of primary vertices
 			nextenumerate
 
 		};
