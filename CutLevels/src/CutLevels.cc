@@ -29,6 +29,7 @@ TString WZCuts::kCutNames[] =
 { 
 	"AllEvents",
 	"IsWH",
+	"MET", // FIXME: PROVISIONAL
 	"HLT",
 	//"GoodVertex",
 	"Has2Leptons",
@@ -41,6 +42,6 @@ TString WZCuts::kCutNames[] =
 	"HasZOverlapping",
 	"HasWCandidate",
 	//"JetVeto",
-	"MET",
+	//"MET",
 	"NCuts"
 };

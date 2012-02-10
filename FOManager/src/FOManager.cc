@@ -35,8 +35,6 @@ FOManager::FOManager()
 
 	this->SetFR(MUON,mufile.c_str());
 	this->SetFR(ELECTRON,elecfile.c_str());
-
-
 }
 
 FOManager::~FOManager()

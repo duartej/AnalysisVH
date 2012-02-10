@@ -40,7 +40,8 @@ struct WZCuts
 	enum 
 	{
 		_iAllEvents,          //  0
-		_iIsWH,               //  1 For WH samples get the number of WH events
+		_iIsWZ,               //  1 For WZ samples get the number of WZ events
+		_iMET,                // 15 Missing ET cut FIXME: PROVISIONAL
 		_iHLT,                //  2
 		//_iGoodVertex,         //  3 : DEPRECATED --> In Latinos tree always true
 		_iHas2Leptons,        //  4
@@ -53,7 +54,7 @@ struct WZCuts
 		_iHasZOverlapping,    // 11 Has another Z candidate (ZZ)
 		_iHasWCandidate,      // 11 Has a W candidate
 		//_iJetVeto,            // 12 Reject events with a jet: DEPRECATED
-		_iMET,                // 15 Missing ET cut
+		//_iMET,                // 15 Missing ET cut FIXME: PROVISIONAL
 		_iNCuts               //  N
 	};
 

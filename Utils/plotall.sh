@@ -15,7 +15,7 @@ Generate the plots and tables of each final state
 
 SYNTAX:
 
-   $0 [-l luminosity] [-a] [-F] <WZ|WHnnn>
+   $0 [-l luminosity] [-a] [-F|-f] <WZ|WHnnn>
 
 
    Note that the signal is a mandatory argument. WHnnn must be
@@ -100,7 +100,7 @@ fHGenPtLepton_1_0 fHGenPtLepton_2_0 fHGenPtLepton_3_0"
 HISTOSLEP="fHNRecoLeptons fHNSelectedLeptons"
 
 HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets"
-HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3"
+HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3 fHEtaLepton1 fHEtaLepton2 fHEtaLepton3"
 if [ "$1" == "WZ" ];
 then
 	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand"

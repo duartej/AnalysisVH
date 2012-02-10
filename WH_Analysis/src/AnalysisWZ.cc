@@ -182,10 +182,10 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
-	const int nPV = fData->Get<int>("T_Event_nPU");
+	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(nPV);
+		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}
 
 	// Generation studies
@@ -431,10 +431,24 @@ unsigned int AnalysisWZ::InsideLoop()
 
 	/*if(fIsWH && (procn != _iWH || fsNTau != fFS))
 	{
-		return WZCuts::_iIsWH;
+		return WZCuts::_iIsWZ;
 	}*/
 	
-	FillHistoPerCut(WZCuts::_iIsWH, puw, fsNTau);
+	FillHistoPerCut(WZCuts::_iIsWZ, puw, fsNTau);
+	
+	// MET Cut: FIXME: PROVISIONAL-----------------------------------
+	const double met = fData->Get<float>("T_METPF_ET");
+	_histos[fHMETAfterZCand]->Fill(met,puw);
+	std::vector<double> * auxVar = new std::vector<double>;
+	auxVar->push_back( met );
+	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
+	{
+		return WZCuts::_iMET;
+	}
+	FillHistoPerCut(WZCuts::_iMET, puw, fsNTau);
+
+	delete auxVar;
+	auxVar=0;
 
 	// HLT: TBD...
 	//------------------------------------------------------------------
@@ -696,9 +710,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	// + Fill histograms
 	//   - Invariant mass of leptons supposedly from Z
 	_histos[fHZInvMassAfterZCand]->Fill(invMassLL,puw);
-	// Extract MET to fill histograms
-	const double met = fData->Get<float>("T_METPF_ET");
-	_histos[fHMETAfterZCand]->Fill(met,puw);
+	// Extract MET to fill histograms: FIXME: PROVISONAL
+	/*const double met = fData->Get<float>("T_METPF_ET");
+	_histos[fHMETAfterZCand]->Fill(met,puw);*/
 	
 	// W selection
 	//------------------------------------------------------------------
@@ -802,7 +816,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	
 	// MET
 	//------------------------------------------------------------------
-	std::vector<double> * auxVar = new std::vector<double>;
+	/*std::vector<double> * auxVar = new std::vector<double>;
 	auxVar->push_back( met );
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
@@ -811,7 +825,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	FillHistoPerCut(WZCuts::_iMET, puw, fsNTau);
 
 	delete auxVar;
-	auxVar=0;
+	auxVar=0;*/
 
 	// Filling histos -------------------------------------
 	_histos[fHZInvMass]->Fill(invMassLL,puw);

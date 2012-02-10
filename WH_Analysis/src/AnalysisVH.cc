@@ -205,10 +205,10 @@ unsigned int AnalysisVH::InsideLoop()
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	double puw(1);
-	const int nPV = fData->Get<int>("T_Event_nPU");
+	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(nPV);
+		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}
 
 	// Generation studies

@@ -73,7 +73,11 @@ Feb. 08th 2012-- Tag release v04.01: Improvements in the analysis and Fakes inco
 
 
 TODO:
-  0. Find a way to deal with the control region analysis: now I have to recompile and change the code if
+  A00. Incorporate to the ATleast3Leptons level, the channel information when are dealing
+     with mixing channels. Now until we arrive to the Z candidate level the 2mu1e and the
+     2e1mu channel behave the same (because is in that level where it is introduced the 
+     flavour requirement). This makes impossible to compare data-MC up to Z candidate level 
+  A01. Find a way to deal with the control region analysis: now I have to recompile and change the code if
      I want to send a control region.
   A. Include in the 'cuts' TTree the 'RunNumber' also
   B. Include the Z+Jets madgraph (including also the needed modifications in the code

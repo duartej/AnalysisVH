@@ -53,7 +53,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
 		fFO = new FOManager;
-		// Initialize
+		// Initialize: Note that the SetFR method is called by the
+		// constructor directly
 		// fFO->SetFR(blblab)
 	}
 
