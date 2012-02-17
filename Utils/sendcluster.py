@@ -549,7 +549,7 @@ class clustermanager(object):
 		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+self.cfgnames+\
 				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+"\n"
 		if self.fakeable:
-			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights
+			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights+"\n"
 	
 		filename = self.dataname+".sh"
 		f = open(filename,"w")

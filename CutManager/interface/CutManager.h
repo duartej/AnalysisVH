@@ -103,6 +103,8 @@ class CutManager
 
 		//! Return true if we are in FAKEABLESAMPLE mode
 		inline bool IsInFakeableMode() const { return _samplemode == CutManager::FAKEABLESAMPLE ; }
+
+		void UpdateFakeableCollections( const std::vector<int> * todrop );
 		
 		//-- Getters
 		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
@@ -118,9 +120,14 @@ class CutManager
 		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const = 0;
 		//! Get The lepton type for the i-esim no Tight lepton 
 		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const = 0;
-		
 		//! Get the i-essim index of the NoTight lepton
 		const unsigned int GetNoTightIndex(const unsigned int & i) const;
+		//! Get the number of total leptons which are considered in this analysis
+		inline const unsigned int GetNAnalysisLeptons() { return _nLeptons; }
+		//! Get the number of total Tight leptons which are considered in this analysis
+		inline const unsigned int GetNAnalysisTightLeptons() { return _nTights; }
+		//! Get the number of total No-Tight leptons which are considered in this analysis
+		inline const unsigned int GetNAnalysisNoTightLeptons() { return _nFails; }
 
 		//-- Setters
 		//! Set the operational MODE
@@ -137,7 +144,7 @@ class CutManager
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts (Loose)
 		virtual unsigned int SelectBasicLeptons() = 0; 
-		//! Select leptons close to the Primary Vertex
+		//! Select leptons close to the Primary Vertex 
 		virtual unsigned int SelectLeptonsCloseToPV() = 0;
 		//! Select isolated leptons 
 		virtual unsigned int SelectIsoLeptons() = 0;
@@ -175,7 +182,7 @@ class CutManager
 		std::vector<int> * _selectedbasicLeptons;
 		//! Vector of index of leptons closest to PV (tight)
 		std::vector<int> * _closeToPVLeptons;
-		//! Vector of index of isolated leptons (tight)
+		//! Vector of index of isolated leptons (tight + no tight)
 		std::vector<int> * _selectedIsoLeptons;
 		//! Vector of index of good identified leptons ( tight + no tight)
 		std::vector<int> * _selectedGoodIdLeptons;

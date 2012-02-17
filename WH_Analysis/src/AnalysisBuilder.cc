@@ -61,7 +61,7 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	{
 		nTights = fakeablenumbers->at(1);
 		nLeptons = fakeablenumbers->at(0);
-		if( nLeptons != 3 )
+		if( nLeptons > 3 )
 		{
 			std::cerr << "\033[1;31mAnalysisBuilder::Build NOT IMPLEMENTED YET\033[1;m"
 				<< " the analysis with more than 3 leptons" << std::endl;

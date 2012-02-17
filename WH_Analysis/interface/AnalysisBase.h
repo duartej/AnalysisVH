@@ -16,6 +16,8 @@
 
 #include "TString.h"
 #include "TLorentzVector.h"
+// FIXME: PROVISONAL
+#include "TH2F.h"
 
 
 class InputParameters;
@@ -204,10 +206,14 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		// -- Histograms
 		std::map<int,TH1D*> _histos;
-		
+
 		// -- It is was stored the ouput
 		bool fWasStored;
 
+		// FIXME: Provisional
+		TH2F * fHPTETA_NOTIGHTS;
+		TH2F * fHPTETA_NOTIGHTS_WEIGHTED;
+		
 
 	public:
 		ClassDef(AnalysisBase,0);

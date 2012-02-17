@@ -44,6 +44,9 @@ class FOManager
 		//! Get the weight 
 		const double GetWeight(const LeptonTypes & lt, const double & pt, 
 				const double & eta); 
+	
+		//! Get a template of the fake rate map filled with 1
+		TH2F * GetFakeMapTemplate(const LeptonTypes & lt);
 
 	private:
 		std::map<LeptonTypes,TH2F*> _fakerate;

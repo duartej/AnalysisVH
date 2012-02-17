@@ -150,7 +150,9 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 			<< " fake rate histogram!" << std::endl;
 		exit(-1);
 	}
-	
+	// FIXME: NECESITO rectificar en el caso de muones: el bin de pt>40 es malo, mejor
+	// coge el valor del bin anterior
+
 	int bin = _fakerate[lt]->FindBin(pt,fabs(eta));
 	double f = _fakerate[lt]->GetBinContent(bin);
 	
@@ -158,4 +160,16 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 	return f/(1.0-f);
 }
 
-	
+// Just return the TH2F maps filled with 1
+TH2F * FOManager::GetFakeMapTemplate(const LeptonTypes & lt)
+{
+	TH2F * h = 0;
+	if( _fakerate[lt] != 0 )
+	{
+		h = (TH2F*)_fakerate[lt]->Clone("fHPTETA_CLONE");
+		h->Divide(_fakerate[lt]);
+	}
+
+	return h;
+}
+

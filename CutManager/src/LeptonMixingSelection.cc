@@ -784,7 +784,7 @@ void LeptonMixingSelection::SyncronizeLeptonType()
 	for(unsigned int k = 0 ; k < _notightLeptons->size(); ++k)
 	{
 		LeptonTypes lepton = (*_notightLeptonTypes)[k];
-		_leptontypeGoodIdLeptons->push_back(lepton);
+		_leptontypeIsoLeptons->push_back(lepton);
 	}
 	// Already Updated the lepton type
 }

@@ -352,7 +352,10 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	//      once -- to be checked
 	if( _selectedbasicLeptons == 0 )
 	{
-		_selectedbasicLeptons = new std::vector<int>;
+		// A way to force this function to be called
+		// via the GetN methods
+		//_selectedbasicLeptons = new std::vector<int>;
+		this->GetNBasicLeptons();
 	}
 
 	// Empty the selected muons vector --> Redundant to be removed
@@ -415,7 +418,8 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 {
 	if( _closeToPVLeptons == 0)
 	{
-		_closeToPVLeptons = new std::vector<int>;
+		this->GetNLeptonsCloseToPV();
+		//_closeToPVLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -466,6 +470,10 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 //			IPMu     = _data->GetMuonIP2DUnBiasedPV()->at(i);
 //		}
 //#endif
+		if(fabs(deltaZMu) > kMaxDeltaZMu )
+		{
+			continue;
+		}		
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
@@ -478,15 +486,6 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 			continue;
 		}
 		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
-		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
-			{
-				_notightLeptons->push_back(i);
-			}
-			continue;
-		}
-		
-		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
 			if( _samplemode == CutManager::FAKEABLESAMPLE )
 			{
@@ -513,7 +512,8 @@ unsigned int MuonSelection::SelectIsoLeptons()
 	//      once -- to be checked
 	if( _selectedIsoLeptons == 0)
 	{
-		_selectedIsoLeptons = new std::vector<int>;
+		this->GetNIsoLeptons();
+		//_selectedIsoLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -609,7 +609,7 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		// If we got here it means the muon is good
 		_selectedIsoLeptons->push_back(i);
 	}
-	
+
 	return _selectedIsoLeptons->size();
 }
 
@@ -624,7 +624,8 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	//      once -- to be checked
 	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIdLeptons = new std::vector<int>;
+		this->GetNGoodIdLeptons();
+		//_selectedGoodIdLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -636,7 +637,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	{
 		this->SelectIsoLeptons();
 	}
-	
+
 	//Loop over selected muons
 	for(std::vector<int>::iterator it = _selectedIsoLeptons->begin();
 			it != _selectedIsoLeptons->end(); ++it)
@@ -679,12 +680,6 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 //#endif
 	           && fabs(ptResolution) < kMaxDeltaPtMuOverPtMu;
 
-		//Fill Histograms
-		//if (fFillHistos) 
-		//{
-		//	fHMuonSelectionDeltaPTOverPT->Fill(ptResolution);
-		//}*/
-		
 		// Remember, if you are here, passSpecific=true
 		if( ! Idcuts )
 		{

@@ -19,7 +19,7 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_tightLeptons(0)
 {
 	_cuts = new std::map<std::string,double>;
-	
+
 	// Fakeable mode
 	if( nTights >= 0 )
 	{
@@ -163,6 +163,7 @@ unsigned int CutManager::GetNBasicLeptons()
 	int size = 0;
 	if( _selectedbasicLeptons == 0)
 	{
+		_selectedbasicLeptons = new std::vector<int>;
 		size = this->SelectBasicLeptons();
 	}
 	else
@@ -185,6 +186,7 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	int size = 0;
 	if( _closeToPVLeptons == 0)
 	{
+		_closeToPVLeptons = new std::vector<int>;
 		size = this->SelectLeptonsCloseToPV();
 	}
 	else
@@ -195,31 +197,18 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	return size;
 }
 
+// Return tight + no tight (if Proceed)
 unsigned int CutManager::GetNIsoLeptons()
 {
-	int size = 0;
+	unsigned int size = 0;
 	if( _selectedIsoLeptons == 0)
 	{
+		_selectedIsoLeptons = new std::vector<int>;
 		size = this->SelectIsoLeptons();
 	}
 	else
 	{
 		size = _selectedIsoLeptons->size();
-	}
-
-	return size;
-}
-
-unsigned int CutManager::GetNGoodIdLeptons()
-{
-	unsigned int size = 0;
-	if( _selectedGoodIdLeptons == 0)
-	{
-		size = this->SelectGoodIdLeptons();
-	}
-	else
-	{
-		size = _selectedGoodIdLeptons->size();
 	}
 	// If we are at fake mode, at this stage it is need
 	// to separate the tight and no tight leptons but
@@ -230,18 +219,43 @@ unsigned int CutManager::GetNGoodIdLeptons()
 		_tightLeptons = new std::vector<int>;
 		for(unsigned int i = 0; i < size; ++i)
 		{
-			_tightLeptons->push_back( _selectedGoodIdLeptons->at(i) );
+			_tightLeptons->push_back( _selectedIsoLeptons->at(i) );
 		}
 		// Plus the notight
 		const unsigned int notightsize = _notightLeptons->size();
 		for(unsigned int i = 0; i < notightsize; ++i)
 		{
-			_selectedGoodIdLeptons->push_back( _notightLeptons->at(i) );
+			_selectedIsoLeptons->push_back( _notightLeptons->at(i) );
 		}
 		// Keep track of the lepton type if proceed (mixing classes)
+		// Is at this level when _selected Vector has the tight, notight
+		// merged collection
 		this->SyncronizeLeptonType();
-		// the total size is
+
 		size += notightsize;		
+	}
+
+	return size;
+}
+
+unsigned int CutManager::GetNGoodIdLeptons()
+{
+	unsigned int size = 0;
+	if( _selectedGoodIdLeptons == 0)
+	{
+		_selectedGoodIdLeptons = new std::vector<int>;
+		size = this->SelectGoodIdLeptons();
+	}
+	else
+	{
+		size = _selectedGoodIdLeptons->size();
+	}
+	// If we are at fake mode, at this stage it is need
+	// to update the tight and no tight collections with the new
+	// results 
+	if( this->IsInFakeableMode() )
+	{
+		this->UpdateFakeableCollections(_selectedGoodIdLeptons);
 	}
 
 	return size;
@@ -305,6 +319,51 @@ bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int
 	}
 
 	return size >= nLeptons;
+}
+
+// Update the tight and no tight collection, the vector introduced as argument
+// contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
+void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol )
+{
+	if( ! this->IsInFakeableMode() )
+	{
+		return;
+	}
+
+	if( finalcol == 0 || _tightLeptons == 0 || _notightLeptons == 0)
+	{
+		std::cerr << "\033[1;31mCutManager::UpdateFakeableCollections ERROR\033[1;m" 
+			<< "Incoherent use of this function" << std::endl;
+		exit(-1);
+	}
+
+	std::vector<int> *tight = new std::vector<int>;
+	std::vector<int> *notight = new std::vector<int>;
+	for(std::vector<int>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
+	{
+		const int index = *it;
+		if( std::find(_tightLeptons->begin(),_tightLeptons->end(), index) != 
+				_tightLeptons->end() )
+		{
+			tight->push_back( index );
+			continue; //FIXME COMPRUEBA---> POR CONSTRUCCITON DEBERIA SER VALIDO
+		}
+		if( std::find(_notightLeptons->begin(),_notightLeptons->end(), index) != 
+				_notightLeptons->end() )
+		{
+			notight->push_back( index );
+			continue; //FIXME COMPRUEBA---> POR CONSTRUCCITON DEBERIA SER VALIDO
+		}
+	}
+
+	_tightLeptons->clear();
+	*_tightLeptons = *tight;
+	
+	_notightLeptons->clear();
+	*_notightLeptons = *notight;
+
+	delete tight;
+	delete notight;
 }
 
 // Extract the Index (in the data) of the i-essim no Tight lepton

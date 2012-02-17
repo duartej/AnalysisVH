@@ -79,6 +79,8 @@ TODO:
      flavour requirement). This makes impossible to compare data-MC up to Z candidate level 
   A01. Find a way to deal with the control region analysis: now I have to recompile and change the code if
      I want to send a control region.
+  A02. Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
+     I think it will turn out more legible.
   A. Include in the 'cuts' TTree the 'RunNumber' also
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email)

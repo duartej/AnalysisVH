@@ -435,7 +435,8 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	//      once -- to be checked
 	if( _selectedbasicLeptons == 0 )
 	{
-		_selectedbasicLeptons = new std::vector<int>;
+		this->GetNBasicLeptons();
+		//_selectedbasicLeptons = new std::vector<int>;
 	}
 
 	// Empty the selected muons vector --> Redundant to be removed
@@ -489,7 +490,8 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 {
 	if( _closeToPVLeptons == 0)
 	{
-		_closeToPVLeptons = new std::vector<int>;
+		this->GetNLeptonsCloseToPV();
+		//_closeToPVLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -541,6 +543,15 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 //			IPMu     = _data->GetMuonIP2DUnBiasedPV()->at(i);
 //		}
 //#endif
+		if(fabs(deltaZMu) > kMaxDeltaZMu )
+		{
+			/*if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				_notightLeptons->push_back(i);
+			}*/
+			continue;
+		}
+
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
@@ -553,15 +564,6 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 			continue;
 		}
 		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
-		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
-			{
-				_notightLeptons->push_back(i);
-			}
-			continue;
-		}
-		
-		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
 			if( _samplemode == CutManager::FAKEABLESAMPLE )
 			{
@@ -588,7 +590,8 @@ unsigned int ElecSelection::SelectIsoLeptons()
 	//      once -- to be checked
 	if( _selectedIsoLeptons == 0)
 	{
-		_selectedIsoLeptons = new std::vector<int>;
+		this->GetNIsoLeptons();
+		//_selectedIsoLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -700,7 +703,8 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 	//      once -- to be checked
 	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIdLeptons = new std::vector<int>;
+		this->GetNGoodIdLeptons();
+		//_selectedGoodIdLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
