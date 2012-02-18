@@ -108,6 +108,8 @@ void LeptonMixingSelection::Reset()
 		delete _notightLeptonTypes;
 		_notightLeptonTypes = 0;
 	}
+	fMuonSelection->Reset(); 
+	fElecSelection->Reset();
 	CutManager::Reset();
 }
 
@@ -453,7 +455,8 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	//      once -- to be checked
 	if( _selectedbasicLeptons == 0 )
 	{
-		_selectedbasicLeptons = new std::vector<int>;
+		this->GetNBasicLeptons();
+		//_selectedbasicLeptons = new std::vector<int>;
 	}
 	if( _leptontypebasicLeptons == 0 )
 	{
@@ -461,9 +464,9 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	}
 	_leptontypebasicLeptons->clear();  // As this function do not have reset!!!
 
-	// Extract muons
-	const int nselectedMuons = fMuonSelection->SelectBasicLeptons();
-	const int nselectedElecs = fElecSelection->SelectBasicLeptons();
+	// Extract muons and electrons
+	const int nselectedMuons = fMuonSelection->GetNBasicLeptons();
+	const int nselectedElecs = fElecSelection->GetNBasicLeptons();
 	
 	// Be ready the notightLeptons if proceed
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
@@ -504,7 +507,7 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 		_leptontypebasicLeptons->push_back( it->second.first );
 		_selectedbasicLeptons->push_back( it->second.second );
 	}
-	
+
 	return _selectedbasicLeptons->size();
 }
 //---------------------------------------------
@@ -518,7 +521,8 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 {
 	if( _closeToPVLeptons == 0)
 	{
-		_closeToPVLeptons = new std::vector<int>;
+		this->GetNLeptonsCloseToPV();
+		//_closeToPVLeptons = new std::vector<int>;
 	}
 	if( _leptontypecloseToPVLeptons == 0 )
 	{
@@ -541,9 +545,9 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 	//unsigned int iGoodVertex = 0;
 
 	// Muons
-	fMuonSelection->SelectLeptonsCloseToPV();
+	fMuonSelection->GetNLeptonsCloseToPV();
 	// Electrons
-	fElecSelection->SelectLeptonsCloseToPV();
+	fElecSelection->GetNLeptonsCloseToPV();
 
 	//Loop over selected leptons
 	for(unsigned int k = 0; k < _selectedbasicLeptons->size(); ++k)
@@ -578,7 +582,6 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		_leptontypecloseToPVLeptons->push_back(lepton);
 		_closeToPVLeptons->push_back(i);
 	}
-	
 	return _closeToPVLeptons->size();
 }
 
@@ -593,7 +596,8 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	//      once -- to be checked
 	if( _selectedIsoLeptons == 0)
 	{
-		_selectedIsoLeptons = new std::vector<int>;
+		this->GetNIsoLeptons();
+		//_selectedIsoLeptons = new std::vector<int>;
 	}
 	if( _leptontypeIsoLeptons == 0 )
 	{
@@ -611,42 +615,58 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 		this->SelectLeptonsCloseToPV();
 	}
 	// Muons
-	fMuonSelection->SelectIsoLeptons();
+	fMuonSelection->GetNIsoLeptons();
 	// Electrons
-	fElecSelection->SelectIsoLeptons();
+	fElecSelection->GetNIsoLeptons();
 	//Loop over selected muons
 	for(unsigned int k = 0 ; k < _closeToPVLeptons->size(); ++k)
 	{
 		unsigned int i = (*_closeToPVLeptons)[k];
 		LeptonTypes lepton = (*_leptontypecloseToPVLeptons)[k];
+		// CAVEAT: here the algorithm is differnt w.r.t. last method,
+		// because fMuonSelection->_selectedIsoLeptons and 
+		// fElecSelection->_selectedIsoLeptons are composed by tights+notights
 		if( lepton == MUON )
 		{
+			// --- First check: the leptons was lost: not tight neither no-tight
 			if( ! isfoundindex(fMuonSelection->_selectedIsoLeptons, i) )
 			{
-				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				continue;
+			}
+				
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				// Otherwise, store the no-tight info
+				if( ! isfoundindex(fMuonSelection->_tightLeptons, i) )
 				{
 					_notightLeptons->push_back(i);
 					_notightLeptonTypes->push_back(lepton);
 				}
-				continue;
 			}
 		}
 		else if( lepton == ELECTRON )
 		{
+			// --- First check: the leptons was lost: not tight neither no-tight
 			if( ! isfoundindex(fElecSelection->_selectedIsoLeptons, i) )
 			{
-				if( _samplemode == CutManager::FAKEABLESAMPLE )
+				continue;
+			}
+			
+			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			{
+				// Otherwise, store the no-tight info
+				if( ! isfoundindex(fElecSelection->_tightLeptons, i) )
 				{
 					_notightLeptons->push_back(i);
 					_notightLeptonTypes->push_back(lepton);
 				}
-				continue;
 			}
 		}
 
 		_leptontypeIsoLeptons->push_back(lepton);
 		_selectedIsoLeptons->push_back(i);
 	}
+	
 	return _selectedIsoLeptons->size();
 }
 
@@ -661,7 +681,8 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	//      once -- to be checked
 	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIdLeptons = new std::vector<int>;
+		this->GetNGoodIdLeptons();
+		//_selectedGoodIdLeptons = new std::vector<int>;
 	}
 	if( _leptontypeGoodIdLeptons == 0 )
 	{
@@ -680,9 +701,9 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	}
 	
 	// Muons
-	fMuonSelection->SelectGoodIdLeptons();
+	fMuonSelection->GetNGoodIdLeptons();
 	// Electrons
-	fElecSelection->SelectGoodIdLeptons();
+	fElecSelection->GetNGoodIdLeptons();
 
 	//Loop over selected muons
 	for(unsigned int k = 0 ; k < _selectedIsoLeptons->size(); ++k)
@@ -702,6 +723,7 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 			{
 				continue;
 			}
+			
 		}
 
 		_leptontypeGoodIdLeptons->push_back(lepton);
