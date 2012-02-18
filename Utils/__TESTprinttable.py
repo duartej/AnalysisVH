@@ -63,18 +63,6 @@ class format(object):
 		self.format = format
 
 
-class row(object):
-	"""
-	A row is
-	"""
-	def __init__(self,title):
-		"""
-		"""
-		self.title = title
-		self.column= {}
-
-
-
 class column(object):
 	"""
 	A column has a file where to extract the information
@@ -83,17 +71,19 @@ class column(object):
 	implementation)
 	"""
 	def __init__(self,file,**keywords):
-		""".. class:: column(file[,title=title]) 
+		""".. class:: column(file[,title=title,nobuilt=True|False]) 
 
 		A column is associated with a file containing the information. The 
 		file has to get an TH1F histogram (see __builddict__ method) defining
 		the rows (the x-axis of the histogram) and the values of the rows
 		(the bin content of the histogram). So a column is formed by 
-		(rows,values) 
+		(rows,values).
+		Also, if it is called with 'nobuilt=True' it is created a instance
+		without fill any of its datamember, so the user must do that.
 		"""
 		import os
 
-		validkeywords = [ "title" ]
+		validkeywords = [ "title", "nobuilt" ]
 		self.title = None
 		wildcardfiles = "*.root" # Per default in the current working directory
 		for key,value in keywords.iteritems():
@@ -103,6 +93,12 @@ class column(object):
 				raise message
 			if key == 'title':
 				self.title = value
+			if key == 'nobuilt':
+				self.title = None
+				self.filename = None
+				self.cutordered = None
+				self.rowvaldict = None
+				return
 
 		self.filename = file
 		# FIXME: Must be a root file, checks missing
@@ -159,23 +155,49 @@ class column(object):
 
 		return valdict	
 
-	def add(self,col):
-		"""
-		FIXME: TO BE CHECKED: TO OVERLOAD OPERATOR ADD
+	def __add__(self,other):
+		""".. operator+(other) -> column 
+
+		Adding up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
 		"""
 		from math import sqrt
 		# Checks
-		if self.rowvaldict.keys() != col.rowvaldict.keys():
-			raise TypeError,"Cannot be added because they don't have the same"+\
-					" row composition"
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise TypeError,"Cannot be added because they don't have the same"+\
+						" row composition"
+			hasdict=True
+		except AttributeError:
+			hasdict=False
+
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
 		
 		addeddict = {}
 		for cutname,(val,err) in self.rowvaldict.iteritems():
-			val  += col.rowvaldict[cutname][0]
-			swap = sqrt(err**2.0+col.rowvaldict[cutname][1]**2.0)
+			val  += other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
 			addeddict[cutname] = (val,swap)
 
-		self.rowvaldict = addeddict
+		#self.rowvaldict = addeddict
+		result = column("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+
+		return result
 
 		
 class table(object):
@@ -232,7 +254,10 @@ class table(object):
 			elif key == "wildcardfiles":
 				wildcardfiles = value
 			elif key == "join":
-				join = value
+				if type(value) == list:
+					join = value
+				else:
+					join = [ value ]
 
 		# available filenames
 		self.filenames = glob.glob(wildcardfiles)
@@ -273,64 +298,54 @@ class table(object):
 		self.columntitles.append( self.data )
 		self.columntitles.append( self.signal )
 
-		# 2) Merge Z+Jets, Drell-Yan and other backgrounds in order to
-		# get a more printable table, just if it was demanded
-		if self.reduced:
-			valdict = {}
-			for cut,sampledict in self.values.iteritems():
-				valdict[cut] = {}
-				for totalsample in [ "DY", "Z+Jets", "Other" ]:
-					valdict[cut][totalsample] = self.addupsample(cut,totalsample)
-
-			# Deleting the old keys and substituing by the new ones
-			for cut in self.cutordered:
-				for sample2add in [ "DY", "Z+Jets", "Other" ]:
-					for sample2del in self.getsamplecomponents(sample2add):
-						# Deleting
-						self.values[cut].pop(sample2del)
-					# New total samples
-					self.values[cut][sample2add] = valdict[cut][sample2add]
-			# Redoing the column title and sample datamember
-			self.columntitles = []
-			self.samples = []
-			for sample in self.values[self.cutordered[0]].iterkeys():
-				self.samples.append( sample )
-				if sample == self.signal or sample == self.data:
-					continue
-				if self.fakemode and (sample == "DY" or sample == "Z+Jets"):
-					continue
-				self.columntitles.append(sample)
-			self.columntitles.append( "TotBkg" )
-			self.columntitles.append( self.data )
-			self.columntitles.append( self.signal )
+		# 2) Merge some samples just in one
+		for metasample in join:
+			samplestodelete = []
+			self.columns[metasample] = column("",nobuilt=True)
+			for sample in self.getsamplecomponents(metasample):
+				self.columns[metasample] += self.columns[sample]
+				samplestodelete.append( sample )
+			# Put the title
+			self.columns[metasample].title = metasample
+			# Erase the samples merged 
+			for i in xrange(len(samplestodelete)-1):
+				self.columns.pop(samplestodelete[i])
+				self.columntitles.remove(samplestodelete[i])
+			self.columns.pop(samplestodelete[-1])
+			# And substitute the last sample by the metasample
+			indexlast = self.columntitles.index(samplestodelete[-1])
+			self.columntitles[indexlast] = metasample
+		
 
 		# format specific
 		self.format = format()
 		if formatprov:
 			self.setformat(formatprov)
 
-	def getsamplecomponents(self, totalsample ):
-		""".. function::getsamplecomponents( totalsample ) -> [ 'comp1', comp1, ... ]
+	def getsamplecomponents(self, metasample ):
+		""".. function::getsamplecomponents( metasample ) -> [ 'comp1', comp1, ... ]
 
-		Return the names of the samples which define a 'totalsample'
+		Return samples's name defining a 'metasample' (a sample composed by several
+		real samples, a metasample does not have a file associated)
 
-		:param totalsample: final name of the sample which will be add up
-		:type totalsample: str
+		:param metasample: final name of the sample which will be add up
+		:type metasample: str
 		
-		:return: list of the samples names which will compose the total sample
+		:return: list of the samples names which will compose the meta sample
 		:rtype:  [ str, str, ... ] 
 		"""
 		components = []
-		if totalsample == "DY":
+		if metasample == "DY":
 			components = [ "DYee_Powheg", "DYmumu_Powheg", "DYtautau_Powheg" ]
-		elif totalsample == "Z+Jets":
+		elif metasample == "Z+Jets":
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
-		elif totalsample == "Other":
+		elif metasample == "Other":
 			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
 		else:
-			message  = "\033[1;31mgetsamplecomponents ERROR\033 '"+totalsample+"'" 
-			message += " not recognized. Valid samples are: DY Z+Jets Other"
-			raise message
+			message  = "\033[1;31mgetsamplecomponents ERROR\033[1;m '"+metasample+"'" 
+			message += " not recognized. Current valid metasamples are:"
+			message += " 'DY' 'Z+Jets' 'Other'"
+			raise RuntimeError,message
 
 		return components
 
