@@ -574,8 +574,10 @@ if __name__ == '__main__':
 	parser.add_option( '-r', action='store_true', dest='isreduced', help="More printable version of the table, where several samples have been merged" \
 			" into one. Shortcut for '-j [DY,Z+Jetsj,Other]" )
 	parser.add_option( '-d', action='store', dest='dataname', help='Name of the sample to be used in the role of "data" [Default: Data]')
-	parser.add_option( '-n', action='store', dest='filenames', help='Path where to find the root '\
-			'filenames to extract the table, it could be wildcards [Default: cluster_*/Results/*.root"]')
+	parser.add_option( '-n', action='store', dest='wildcardfiles', help='Path where to find the root '\
+			'filenames to extract the table, it could be wildcards. \033[1;33mWARNING:\033[1;m'\
+			' if uses wildcards, be sure to be included between quotes: "whatever*"'\
+			' [Default: "cluster_*/Results/*.root"]')
 	parser.add_option( '-j', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
 			help='Merge two or more samples into one unique metasample,'\
 			' it could be a str defining a pre-built metasample: "DY" "Z+Jets" "Other";'\
