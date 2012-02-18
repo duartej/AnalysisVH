@@ -30,6 +30,7 @@ class format(object):
 				self.tablestart += ' l ' 
 			self.tablestart += '}'	        	
 			self.tableend   = '\\end{tabular}'
+			self.rowstart = ''
 			self.rowend   = '\\\\'
 			self.cellstart  = ' & '
 			self.cellend    = ' '
@@ -63,154 +64,75 @@ class format(object):
 		self.format = format
 
 
-
-
-class table(object):
+class column(object):
 	"""
+	A column has a file where to extract the information
+	Also it is assumed than the values are extracted from
+	an TH1F histogram (at least in this __builddict__ 
+	implementation)
 	"""
-	def __init__(self,signal,**keywords):
+	def __init__(self,file,**keywords):
+		""".. class:: column(file[,title=title,nobuilt=True|False]) 
+
+		A column is associated with a file containing the information. The 
+		file has to get an TH1F histogram (see __builddict__ method) defining
+		the rows (the x-axis of the histogram) and the values of the rows
+		(the bin content of the histogram). So a column is formed by 
+		(rows,values).
+		Also, if it is called with 'nobuilt=True' it is created a instance
+		without fill any of its datamember, so the user must do that.
 		"""
-		"""
-		import glob
-		import ROOT
 		import os
-		# First checkings:
-		if not os.getenv("VHSYS"):
-			raise "\033[1;31mtable ERROR\033[1;m Initialize your"+\
-					" environment (VHSYS env variable needed)"
 
-		# Reduced table or not
-		self.reduced   = False
-		self.fakemode  = False
-
-		formatprov = None
-
-		validkeywords = [ "format", "isreduced", "fakemode" ]
+		validkeywords = [ "title", "nobuilt" ]
+		self.title = None
+		wildcardfiles = "*.root" # Per default in the current working directory
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
-				message  = "\033[1;31mtable ERROR\033 Incorrect instantiation of 'table'"
+				message  = "\033[1;31mcolumn ERROR\033 Incorrect instantiation of 'column'"
 				message += " class. Valid keywords are: "+str(validkeywords)
 				raise message
+			if key == 'title':
+				self.title = value
+			if key == 'nobuilt':
+				self.title = None
+				self.filename = None
+				self.cutordered = None
+				self.rowvaldict = None
+				return
 
-			if key == 'format':
-				formatprov = value
-			elif key == 'isreduced':
-				self.reduced = value
-			elif key == "fakemode":
-				self.fakemode = value
+		self.filename = file
+		# FIXME: Must be a root file, checks missing
+		# Define the title of the column as the last word 
+		# before the .root (if the client doesn't provided it)
+		if not self.title:
+			self.title = os.path.basename(self.filename).split(".")[0]
 
-		# available filenames
-		self.filenames = glob.glob("cluster_*/Results/*.root")
-		if signal.find("WH") == 0:
-			#Extract the other WH signals
-			potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
-			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
-			# Removing
-			for f in nonsignalfiles:
-				self.filenames.remove(f)
-		# Fakes mode where fakes acting as Data (to compare this fakes with 
-		# several Monte Carlo)
-		self.fakeasdata= False
-		if signal == "Fakes":
-			self.fakeasdata = True
+		# Extract the values and stores to a dict
+		self.rowvaldict = self.__builddict__()
 
-		# samples names
-		self.samples = map(lambda x: os.path.basename(x).split(".")[0], self.filenames )
-		self.filesamplemap = dict(map(lambda x: (x,os.path.basename(x).split(".")[0]), self.filenames ))
-		# Check the signal and data are there
-		if not signal in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."
-		if not self.fakeasdata:
-			if not "Data" in self.samples:
-				raise "\033[1;31mtable ERROR\033[1;m The data is not available"
-		# signal name
-		# Adapting the code to the mode (fakes,...)
-		if self.fakeasdata:
-			self.signal = ""
-			self.data   = "Fakes"
-		else:
-			self.signal  = signal
-			self.data    = "Data"
-
-		# Ordered samples for column titles
-		self.columntitles = []
-		for i in self.samples:
-			if i == self.signal or i == self.data:
-				continue
-			self.columntitles.append(i)
-		self.columntitles.append( "TotBkg" )
-		self.columntitles.append( self.data )
-		self.columntitles.append( self.signal )
-
-		# list of cuts (ordered)
-		self.cutordered = []
-		f = ROOT.TFile.Open(self.filenames[0])
-		# -- FIXME: Control de Errores
-		histocut = f.Get("fHEventsPerCut")
-		# -- FIXME: Control de Errores
-		self.values = {} # {'cut': { 'sample': [ contentperbin,....] , ...]
-		for i in xrange(histocut.GetNbinsX()):
-			self.cutordered.append( histocut.GetXaxis().GetBinLabel(i+1) )
-			#Initialization of the bin content dict
-			self.values[self.cutordered[-1]] = {}
-		f.Close()
-
-		# 1) Load the InputParameters
-		ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
-		ROOT.gSystem.Load("libInputParameters.so")
-		# 1a) Set the total events weighted (in the self.values data member)
-		for f in self.filenames:
-			self.setweightedevents(f)
-
-
-		# 2) Merge Z+Jets, Drell-Yan and other backgrounds in order to
-		# get a more printable table, just if it was demanded
-		if self.reduced:
-			valdict = {}
-			for cut,sampledict in self.values.iteritems():
-				valdict[cut] = {}
-				for totalsample in [ "DY", "Z+Jets", "Other" ]:
-					valdict[cut][totalsample] = self.addupsample(cut,totalsample)
-
-			# Deleting the old keys and substituing by the new ones
-			for cut in self.cutordered:
-				for sample2add in [ "DY", "Z+Jets", "Other" ]:
-					for sample2del in self.getsamplecomponents(sample2add):
-						# Deleting
-						self.values[cut].pop(sample2del)
-					# New total samples
-					self.values[cut][sample2add] = valdict[cut][sample2add]
-			# Redoing the column title and sample datamember
-			self.columntitles = []
-			self.samples = []
-			for sample in self.values[self.cutordered[0]].iterkeys():
-				self.samples.append( sample )
-				if sample == self.signal or sample == self.data:
-					continue
-				if self.fakemode and (sample == "DY" or sample == "Z+Jets"):
-					continue
-				self.columntitles.append(sample)
-			self.columntitles.append( "TotBkg" )
-			self.columntitles.append( self.data )
-			self.columntitles.append( self.signal )
-
-		# format specific
-		self.format = format()
-		if formatprov:
-			self.setformat(formatprov)
-
-	def setweightedevents(self,filename):
+	def __builddict__(self):
+		"""..method: __builddict__() -> { 'cutname1': (val,err), ... } 
+		This could be a pure virtual, in order to be used by anyone
+		and  any storage method (not just a histo). So this is concrete
+		for my analysis: fHEventsPerCut  histogram
+		Build a dict containing the values already weighted by its luminosity
 		"""
-		"""
-		from ROOT import TFile
+		import ROOT
 		from array import array
+		import os
 
-		f = TFile.Open(filename)
-		if "Data.root" in filename:
+		f = ROOT.TFile(self.filename)
+		# Including the luminosity, efficiency weights,,...
+		if "Data.root" in self.filename:
 			weight = 1.0
-		elif "Fakes.root" in filename:
+		elif "Fakes.root" in self.filename:
 			weight = 1.0
 		else:
+			# 1) Load the InputParameters
+			ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
+			ROOT.gSystem.Load("libInputParameters.so")
+
 			weight = 1.0
 			xs = array('d',[0.0])
 			luminosity = array('d',[0.0])
@@ -222,75 +144,245 @@ class table(object):
 			ip.TheNamedInt("NEventsTotal",neventsskim)
 			ip.TheNamedDouble("Luminosity",luminosity)
 			weight  = xs[0]*luminosity[0]/neventsample[0]
-
-		# Extract all the number of events weighted in each stage
-		histocut = f.Get("fHEventsPerCut")
-		sample = self.filesamplemap[filename]
-		for i in xrange(histocut.GetNbinsX()):
-			cut = histocut.GetXaxis().GetBinLabel(i+1)
-			self.values[cut][sample] = (weight*histocut.GetBinContent(i+1),weight*histocut.GetBinError(i+1))
-
+		
+		h = f.Get("fHEventsPerCut")
+		self.cutordered = []
+		valdict = {}
+		#FIXME: Control de errores: histo esta
+		for i in xrange(h.GetNbinsX()):
+			self.cutordered.append( h.GetXaxis().GetBinLabel(i+1) )
+			#Initialization of the bin content dict
+			valdict[self.cutordered[-1]] = (weight*h.GetBinContent(i+1),weight*h.GetBinError(i+1))
 		f.Close()
 
-	def addupsample(self, cut, totalsample ):
-		""".. function::addupsample(cut, totalsample ) -> (value,error)
-		
-		Extract the total yield adding up the different components of 
-		some added up sample. Valid 'totalsample' and components 
-		(see getsamplecomponents function)
+		return valdict	
 
-		:param cut: cut name
-		:type cut: str
-		:param totalsample: final name of the sample which will be add up
-		:type totalsample: str
+	def __add__(self,other):
+		""".. operator+(other) -> column 
 
-		:return: value and error added up
-		:rtype: (float,float)
+		Adding up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
 		"""
 		from math import sqrt
+		# Checks
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise TypeError,"Cannot be added because they don't have the same"+\
+						" row composition"
+			hasdict=True
+		except AttributeError:
+			hasdict=False
 
-		components = self.getsamplecomponents(totalsample)
-		value = 0.0
-		error = 0.0
-		for i in components:
-			value += self.values[cut][i][0]
-			error += self.values[cut][i][1]**2.0
-
-		return (value,sqrt(error))
-
-
-	def getsamplecomponents(self, totalsample ):
-		""".. function::getsamplecomponents( totalsample ) -> [ 'comp1', comp1, ... ]
-
-		Return the names of the samples which define a 'totalsample'
-
-		:param totalsample: final name of the sample which will be add up
-		:type totalsample: str
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
 		
-		:return: list of the samples names which will compose the total sample
+		addeddict = {}
+		for cutname,(val,err) in self.rowvaldict.iteritems():
+			val  += other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
+			addeddict[cutname] = (val,swap)
+
+		#self.rowvaldict = addeddict
+		result = column("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+
+		return result
+
+	def getvalerr(self,cutname):
+		""".. method:: getvalerr(cutname) -> (val,err)
+		"""
+		try:
+			return self.rowvaldict[cutname]
+		except KeyError:
+			raise RuntimeError,"column.getvalerr:: the cut '"+cutname+"' is not "+\
+					"defined"
+
+		
+class table(object):
+	"""
+	"""
+	def __init__(self,data,signal,**keywords):
+		"""..class:: table(data,signal[,format="tex|html", isreduced=True|False, wildcardfiles="dir",join="metasample"]) 
+		
+		The table is composed by several 'columns' (see 'column' class), and is 
+		going to be built as
+		               bkg1  bkg2 ... TotBkg data signal
+		
+
+		:param data: name of the column which it will be placed before the last one. Also
+		             the values of this column are not going to be added up with the other
+			     columns (to create the TotBkg column)
+		:type data: str
+		:param signal: name of the column which it will placed the last one. Also the 
+		             values of this column are not going to be added up with the other
+			     columns (creating the TotBkg column)
+		:type param: str
+		:param format: latex|tex|html  The output format of the table
+		:type format: str
+		:param wildcardfiles: string with wildcards which can be used to find what files
+		             have to be used as column generators
+		:param join: Complex parameter to introduce the possibility of merge two or more
+		             samples into one unique metasample (called in this way because the
+			     metasample does not have associated any filename and is compossed by
+			     two or more original samples). The argument could be a str defining
+			     a pre-built metasample: DY Z+Jets Other (see getsamplecomponent);
+			     or could be a list of string which are defining more than one 
+			     pre-built metasample; or could be a dictionary whose keys are the
+			     metasample names and the values are list containing the samples to
+			     merge.
+		:type join: str| [ str, str, ...] | { str: [ str, str, ... ], ... }
+		"""
+		import glob
+		import ROOT
+		import os
+		# First checkings:
+		if not os.getenv("VHSYS"):
+			raise "\033[1;31mtable ERROR\033[1;m Initialize your"+\
+					" environment (VHSYS env variable needed)"
+
+		formatprov = None
+
+		validkeywords = [ "format", "isreduced", "join", "wildcardfiles" ]
+		wildcardfiles = "*.root" # Per default
+		join = []
+		self.usermetasample = {}
+		for key,value in keywords.iteritems():
+			if not key in keywords.keys():
+				message  = "\033[1;31mtable ERROR\033 Incorrect instantiation of 'table'"
+				message += " class. Valid keywords are: "+str(validkeywords)
+				raise message
+
+			if key == 'format':
+				formatprov = value
+			elif key == 'isreduced':
+				if value:
+					join = [ "DY", "Z+Jets", "Other" ]
+			elif key == "wildcardfiles":
+				wildcardfiles = value
+			elif key == "join":
+				if type(value) == list:
+					join = value
+				elif type(value) == dict:
+					self.usermetasample = value
+					join = self.usermetasample.keys()
+				else:
+					join = [ value ]
+
+		# available filenames
+		self.filenames = glob.glob(wildcardfiles)
+
+		# Just to be sure that only use one WH signal
+		if signal.find("WH") == 0:
+			#Extract the other WH signals
+			potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
+			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
+			# Removing
+			for f in nonsignalfiles:
+				self.filenames.remove(f)
+
+		# building the columns
+		self.columns = {}
+		for f in self.filenames:
+			col = column(f)
+			self.columns[col.title] = col
+		
+		# samples names
+		self.samples = self.columns.keys()
+		# Check the signal and data are there
+		if not signal in self.samples:
+			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."
+		if not data in self.samples:
+			raise "\033[1;31mtable ERROR\033[1;m The data introduced '"+data+"' has not been found."
+
+		self.signal = signal
+		self.data   = data
+
+		# Ordered samples names (column names)
+		self.columntitles = []
+		for i in self.samples:
+			if i == self.signal or i == self.data:
+				continue
+			self.columntitles.append(i)
+		self.columntitles.append( "TotBkg" )
+		self.columntitles.append( self.data )
+		self.columntitles.append( self.signal )
+
+		# The datamember samples is superceeded by columntitles
+		self.samples = self.columntitles
+
+		# 2) Merge some samples just in one
+		for metasample in join:
+			samplestodelete = []
+			self.columns[metasample] = column("",nobuilt=True)
+			for sample in self.getsamplecomponents(metasample):
+				self.columns[metasample] += self.columns[sample]
+				samplestodelete.append( sample )
+			# Put the title
+			self.columns[metasample].title = metasample
+			# Erase the samples merged 
+			for i in xrange(len(samplestodelete)-1):
+				self.columns.pop(samplestodelete[i])
+				self.columntitles.remove(samplestodelete[i])
+			self.columns.pop(samplestodelete[-1])
+			# And substitute the last sample by the metasample
+			indexlast = self.columntitles.index(samplestodelete[-1])
+			self.columntitles[indexlast] = metasample
+
+
+		# format specific
+		self.format = format()
+		if formatprov:
+			self.setformat(formatprov)
+
+	def getsamplecomponents(self, metasample ):
+		""".. function::getsamplecomponents( metasample ) -> [ 'comp1', comp1, ... ]
+
+		Return samples's name defining a 'metasample' (a sample composed by several
+		real samples, a metasample does not have a file associated)
+
+		:param metasample: final name of the sample which will be add up
+		:type metasample: str
+		
+		:return: list of the samples names which will compose the meta sample
 		:rtype:  [ str, str, ... ] 
 		"""
 		components = []
-		if totalsample == "DY":
+		if metasample == "DY":
 			components = [ "DYee_Powheg", "DYmumu_Powheg", "DYtautau_Powheg" ]
-		elif totalsample == "Z+Jets":
+		elif metasample == "Z+Jets":
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
-		elif totalsample == "Other":
+		elif metasample == "Other":
 			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
+		elif metasample in self.usermetasample.keys():
+			components = self.usermetasample[metasample]
 		else:
-			message  = "\033[1;31mgetsamplecomponents ERROR\033 '"+totalsample+"'" 
-			message += " not recognized. Valid samples are: DY Z+Jets Other"
-			raise message
+			message  = "\033[1;31mgetsamplecomponents ERROR\033[1;m '"+metasample+"'" 
+			message += " not recognized. Current valid metasamples are:"
+			message += " 'DY' 'Z+Jets' 'Other' and user introduced '"
+			message += str(self.usermetasample.keys())+"'"
+			raise RuntimeError,message
 
 		return components
 
 
-	def getvaluestr(self, cut,sample):
-		""".. function::getvaluestr( cut, sample ) -> valueanderror
+	def getMSvalerr(self, cut,sample):
+		""".. function::getMSvalerr( cut, sample ) -> valueanderror
 
-		Extract the value and the error, already weighted to the correct
-		luminosity, given the cut and the sample name. The function will
-		find the format to return the value using only the most 
+		Extract the value and the error, given the cut and the sample name. 
+		The function will find the format to return the value using only the most 
 		significant decimal numbers depending on how is its errror. The 
 		error will be modified following the below rules:
 		 - if the error is >= 1.5, then the error is an integer, same as
@@ -299,25 +391,27 @@ class table(object):
 		 two decimals 
 		 - if the error is < 1.0, then return 
 
-		:param cut: cut name, must be contained in 'self.cutordered'
+		:param cut: cut name
 		:type  cut: str
-		:param sample: sample name, must be contained in 'self.samples'
+		:param sample: sample name
 		:type  sample: str
 
 		:return: the value and its error 
 		:rtype : (str,str)
 		"""
+		# FIXME: TO BE MODIFIED: IT NEEDS SOME IMPROVEMENTS (THERE ARE MINOR BUGS)
 		from math import sqrt
 
 		try:
-			val,err=self.values[cut][sample]
+			val,err=self.columns[sample].getvalerr(cut)
 		except KeyError:
-			# Is total background,
+			# Is total background, so create it
 			val = 0.0
 			err2 = 0.0
-			for s in filter(lambda x: x != self.data and x != self.signal,self.samples):
-				val += self.values[cut][s][0]
-				err2 += (self.values[cut][s][1])**2.0
+			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg",self.samples):
+				(v,e) = self.columns[s].getvalerr(cut)
+				val += v
+				err2 += e**2.0
 			err = sqrt(err2)
 
 		# Begin the formatting
@@ -422,14 +516,16 @@ class table(object):
 		lines += self.format.rowend+" \n"
 		#Content 
 		# Extract the maximum lenght of the cuts
-		maxlenght = str(max(map(lambda x: len(x),self.values.keys())))
+		cutordered = self.columns.values()[0].cutordered
+		maxlenght = str(max(map(lambda x: len(x),cutordered)))
 		cutformat = "%"+maxlenght+"s"
-		for cut in self.cutordered:
+		# Build the table row by row (cut by cut)
+		for cut in cutordered:
 			lines += self.format.rowstart+self.format.cellrowitstart
 			lines += cutformat % cut
 			lines += self.format.cellrowitend
 			for sample in self.columntitles:
-				lines += self.format.cellstart+self.getvaluestr(cut,sample)+self.format.cellend
+				lines += self.format.cellstart+self.getMSvalerr(cut,sample)+self.format.cellend
 			lines += self.format.rowend+" \n"
 
 		lines += self.format.tableend+"\n"
@@ -470,15 +566,22 @@ if __name__ == '__main__':
 		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
 		sys.exit( message )
 	
-	usage="usage: printtable <WZ|WHnnn|Fakes> [options]"
+	usage  ="usage: printtable <WZ|WHnnn|Fakes> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(output="table.tex",isreduced=False,fakemode=False,fakeasdata=False)
+	parser.set_defaults(output="table.tex",isreduced=False,dataname="Data",wildcardfiles="cluster_*/Results/*.root")
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format," \
 			" can be more than one comma separated" )
-	parser.add_option( '-F', action='store_true', dest='fakemode', help="Activate the fake mode where the Z+Jets, DY and ttbar are estimated with" \
-			" the fakeable object method. Incompatible with '\033[1;39mFakes\033[1;m' signal" )
 	parser.add_option( '-r', action='store_true', dest='isreduced', help="More printable version of the table, where several samples have been merged" \
-			" into one" )
+			" into one. Shortcut for '-j [DY,Z+Jetsj,Other]" )
+	parser.add_option( '-d', action='store', dest='dataname', help='Name of the sample to be used in the role of "data" [Default: Data]')
+	parser.add_option( '-n', action='store', dest='filenames', help='Path where to find the root '\
+			'filenames to extract the table, it could be wildcards [Default: cluster_*/Results/*.root"]')
+	parser.add_option( '-j', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
+			help='Merge two or more samples into one unique metasample,'\
+			' it could be a str defining a pre-built metasample: "DY" "Z+Jets" "Other";'\
+			' it could be a list of strings comma separated which are defining more than one pre-built'\
+			' metasample; or could be metasample names and a list of samples')
+
 
 	( opt, args ) = parser.parse_args()
 
@@ -486,20 +589,30 @@ if __name__ == '__main__':
 		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory argument signal, see usage."
 		sys.exit(message)
 	signal = args[0]
-	if signal != "WZ" and signal.find("WH") != 0 and signal != "Fakes":
-		message = "\033[1;31mprinttable ERROR\033[1;m Signal '"+signal+"' not implemented, see usage."
-		sys.exit(message)
 
 	if signal.find("WH") == 0:
 		signal = signal.replace("WH","WHToWW2L")
 
-	if opt.fakeasdata and opt.fakemode:
-		message = "\033[1;31mprinttable ERROR\033[1;m Incompatible options '-F' and '-k'. See help."
-		sys.exit(message)
+	if opt.join:
+		if opt.join.find("@") != -1:
+			# Dictionary build
+			keyvallist = opt.join.split("::")
+			join = {}
+			for items in keyvallist:
+				kv = items.split("@")
+				join[kv[0]] = kv[1].split(",")
+			# FIXME: Comprobacion de errores?
+		elif opt.join.find(","):
+			join = opt.join.split(",")
+		else:
+			join = opt.join
+	else:
+		join = []
+
 
 	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()
-	t = table(signal,isreduced=opt.isreduced,fakemode=opt.fakemode)
+	t = table(opt.dataname,signal,isreduced=opt.isreduced,wildcardfiles=opt.wildcardfiles,join=join)
 	print "( ",
 	sys.stdout.flush()
 	for fileoutput in opt.output.split(","):

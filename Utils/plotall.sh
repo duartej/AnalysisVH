@@ -149,7 +149,7 @@ do
 	do
 		plothisto $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
-	printtable $signal $fakemode $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
+	printtable $signal $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
 	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`).tex
 	cd ..;
