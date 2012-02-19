@@ -538,6 +538,8 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Storing all Iso-ID (tight,loose) variables before cut
 	// Indexs of good leptons (noTight+Tights if proceed) :FIXME-- INTERCAMBIA
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
+	int howmanyMuons = 0;
+	int howmanyElecs = 0;
 	for(unsigned int k=0; k < theLeptons->size(); ++k)
 	{
 		const unsigned int i = (*theLeptons)[k];
@@ -548,11 +550,13 @@ unsigned int AnalysisWZ::InsideLoop()
 		{
 			lepton = "Muon";
 			laux = "_mu";
+			++howmanyMuons;
 		}
 		else
 		{
 			lepton = "Elec";
 			laux = "_ele";
+			++howmanyElecs;
 		}
 		TLorentzVector lvec = this->GetTLorentzVector(lepton.c_str(),i);
 		std::string Isostr("T_"+lepton+laux+"SmurfPF");
@@ -560,11 +564,20 @@ unsigned int AnalysisWZ::InsideLoop()
 		_histos[fHIsoLepton]->Fill(fData->Get<float>(Isostr.c_str(),i)/lvec.Pt(),puw);
 		_histos[fHD0Lepton]->Fill(fData->Get<float>(IPstr.c_str(),i),puw);
 	}
-
-	// Keep events at least 3 leptons and store momentum and charge
+	
+	//The signature has to be fulfilled
+	bool fulfillSignature = false;
+	const int nMuonsNeeded =  SignatureFS::GetNMuons( fFS );
+	const int nElecsNeeded =  SignatureFS::GetNElecs( fFS );
+	if( nMuonsNeeded == howmanyMuons && nElecsNeeded == howmanyElecs )
+	{
+		fulfillSignature = true;
+	}
+	// Keep events with exactly 3 leptons and the asked signature
+	// and store momentum and charge
 	//---------------------------------------------------------------------------
 	//if( ! fLeptonSelection->IspassAtLeastN() )
-	if( ! fLeptonSelection->IspassExactlyN() )
+	if( (! fLeptonSelection->IspassExactlyN()) || (! fulfillSignature) )
 	{
 		return WZCuts::_iHasAtLeast3Leptons;
 	}
