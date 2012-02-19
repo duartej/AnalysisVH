@@ -323,7 +323,7 @@ bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int
 
 // Update the tight and no tight collection, the vector introduced as argument
 // contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
-void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol )
+void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
 {
 	if( ! this->IsInFakeableMode() )
 	{
@@ -335,6 +335,12 @@ void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol )
 		std::cerr << "\033[1;31mCutManager::UpdateFakeableCollections ERROR\033[1;m" 
 			<< "Incoherent use of this function" << std::endl;
 		exit(-1);
+	}
+
+	// Mixing channel: already done
+	if( this->WasAlreadyUpdated() )
+	{
+		return;
 	}
 
 	std::vector<int> *tight = new std::vector<int>;

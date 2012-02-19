@@ -111,3 +111,44 @@ unsigned int SignatureFS::GetFSID(const unsigned int & nel,
         
         return fs;
 }
+
+// Get N muons given the EFS enum final state
+unsigned int SignatureFS::GetNMuons(const unsigned int & fs)
+{
+	int nMuons = 0;
+	if( fs == _iFSmmm )
+	{
+		nMuons = 3;
+	}
+	else if( fs == _iFSmme )
+	{
+		nMuons = 2;
+	}
+	else if( fs == _iFSeem )
+	{
+		nMuons = 1;
+	}
+
+	return nMuons;
+}
+
+// Get N Elec given the EFS enum final state
+unsigned int SignatureFS::GetNElecs(const unsigned int & fs)
+{
+	int nElecs = 0;
+	if( fs == _iFSeee )
+	{
+		nElecs = 3;
+	}
+	else if( fs == _iFSeem )
+	{
+		nElecs = 2;
+	}
+	else if( fs == _iFSmme )
+	{
+		nElecs = 1;
+	}
+
+	return nElecs;
+}
+

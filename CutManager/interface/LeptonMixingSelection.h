@@ -94,6 +94,12 @@ class LeptonMixingSelection : public CutManager
 		//! Syncronize lepton type with indices vector when fake mode active
 		virtual void SyncronizeLeptonType();
 		
+		//! Update fakeables collection, taking into account the lepton type 
+		virtual bool WasAlreadyUpdated() { return true; }
+		
+		//! Update fakeables collections, concrete method for this class
+		void UpdateFakeableCollections();
+		
 
 		//! The muon cut manager
 		MuonSelection * fMuonSelection;

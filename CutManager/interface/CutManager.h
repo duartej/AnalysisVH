@@ -104,7 +104,7 @@ class CutManager
 		//! Return true if we are in FAKEABLESAMPLE mode
 		inline bool IsInFakeableMode() const { return _samplemode == CutManager::FAKEABLESAMPLE ; }
 
-		void UpdateFakeableCollections( const std::vector<int> * todrop );
+		void UpdateFakeableCollections( const std::vector<int> * finalcol );
 		
 		//-- Getters
 		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
@@ -158,6 +158,9 @@ class CutManager
 		
 		//! Syncronize lepton type with indices vector when fake mode active
 		virtual void SyncronizeLeptonType() = 0;
+		
+		//! Update fakeables collection, taking into account the lepton type (fake mode active)
+		virtual bool WasAlreadyUpdated() = 0;
 
 		//! Container of the data:  FIXME: IT is needed?
 		TreeManager * _data;

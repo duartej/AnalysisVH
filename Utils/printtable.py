@@ -303,9 +303,13 @@ class table(object):
 		self.samples = self.columns.keys()
 		# Check the signal and data are there
 		if not signal in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."
+			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."+\
+					" Check you have not introduced the '-n' option without quotes:\n"+\
+					" printtable "+signal+" -n \"whatever*..\"" 
 		if not data in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The data introduced '"+data+"' has not been found."
+			raise "\033[1;31mtable ERROR\033[1;m The data introduced '"+data+"' has not been found."+\
+					" Check you have not introduced the '-n' option without quotes:\n"+\
+					" printtable "+signal+" -n \"whatever*..\"" 
 
 		self.signal = signal
 		self.data   = data

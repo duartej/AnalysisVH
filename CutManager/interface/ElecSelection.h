@@ -74,6 +74,9 @@ class ElecSelection : public CutManager
 		//! Syncronize lepton type with indices vector when fake mode active
 		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
 		
+		//! Update fakeables collection, taking into account the lepton type 
+		virtual bool WasAlreadyUpdated() { return false; }
+		
 		//! Select basic muons: 
 		//! - with pt > MinPt and fabs(eta) < eta 
 		virtual unsigned int SelectBasicLeptons();

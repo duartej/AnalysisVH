@@ -48,6 +48,11 @@ class SignatureFS
 				const unsigned int & nmu, const unsigned int & ntau);
 		//! Return the EFS enum final state giving a char* describing it
 		static unsigned int GetFSID( const char * finalstate );
+		
+		//! Return the number of Muons giving giving a EFS enum
+		static unsigned int GetNMuons( const unsigned int & fs );
+		//! Return the number of Elecs giving giving a EFS enum
+		static unsigned int GetNElecs( const unsigned int & fs );
 
 		SignatureFS() { }
 		~SignatureFS() { }

@@ -582,6 +582,7 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		_leptontypecloseToPVLeptons->push_back(lepton);
 		_closeToPVLeptons->push_back(i);
 	}
+
 	return _closeToPVLeptons->size();
 }
 
@@ -623,7 +624,7 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	{
 		unsigned int i = (*_closeToPVLeptons)[k];
 		LeptonTypes lepton = (*_leptontypecloseToPVLeptons)[k];
-		// CAVEAT: here the algorithm is differnt w.r.t. last method,
+		// CAVEAT: here the algorithm is different w.r.t. last method,
 		// because fMuonSelection->_selectedIsoLeptons and 
 		// fElecSelection->_selectedIsoLeptons are composed by tights+notights
 		if( lepton == MUON )
@@ -636,11 +637,15 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 				
 			if( _samplemode == CutManager::FAKEABLESAMPLE )
 			{
-				// Otherwise, store the no-tight info
+				// Otherwise, store the no-tight info 
 				if( ! isfoundindex(fMuonSelection->_tightLeptons, i) )
 				{
 					_notightLeptons->push_back(i);
 					_notightLeptonTypes->push_back(lepton);
+					// And continue because the GetNIsoLepton function
+					// already take into account to incorporate the notights
+					// to the selected collection
+					continue;
 				}
 			}
 		}
@@ -659,6 +664,10 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 				{
 					_notightLeptons->push_back(i);
 					_notightLeptonTypes->push_back(lepton);
+					// And continue because the GetNIsoLepton function
+					// already take into account to incorporate the notights
+					// to the selected collection
+					continue;
 				}
 			}
 		}
@@ -699,7 +708,19 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	{
 		this->SelectIsoLeptons();
 	}
-	
+
+	// Before go on, the _tight leptons was introduced by GetNIsoLeptons, so 
+	// the _tightLeptonTypes must be introduced also to keep track of the types
+	if( this->IsInFakeableMode() )
+	{
+		_tightLeptonTypes =  new std::vector<LeptonTypes>;
+		// Recall _selectedIsoLeptons = [ Tights1,..,TightsN, noTight1,...,noTightN],
+		// so     _leptontypeIsoLeptons=[ T_type1,..,T_typeN, nT_type1,...,nT_typeN ]
+		for(unsigned int k = 0; k < _tightLeptons->size(); ++k)
+		{
+			_tightLeptonTypes->push_back( (*_leptontypeIsoLeptons)[k] );
+		}
+	}
 	// Muons
 	fMuonSelection->GetNGoodIdLeptons();
 	// Electrons
@@ -730,7 +751,13 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 		_selectedGoodIdLeptons->push_back(i);
 	}
 	
-      	return _selectedGoodIdLeptons->size();
+	// Updating the tight, no-tight info if proceed
+	if( this->IsInFakeableMode() )
+	{
+		this->UpdateFakeableCollections();
+	}
+
+	return _selectedGoodIdLeptons->size();
 }
 
 
@@ -799,7 +826,7 @@ unsigned int LeptonMixingSelection::SelectLooseLeptons()
 }
 
 
-// The type; 
+// Propagating the lepton type
 void LeptonMixingSelection::SyncronizeLeptonType()
 {
 	//Loop over no tight muons
@@ -810,3 +837,81 @@ void LeptonMixingSelection::SyncronizeLeptonType()
 	}
 	// Already Updated the lepton type
 }
+
+// Particular method for the mixing channel, note it is overloaded
+void LeptonMixingSelection::UpdateFakeableCollections()
+{
+	if( ! this->IsInFakeableMode() )
+	{
+		return;
+	}
+
+	if(_tightLeptons == 0 || _notightLeptons == 0)
+	{
+		std::cerr << "\033[1;31mCutManager::UpdateFakeableCollections ERROR\033[1;m" 
+			<< "Incoherent use of this function" << std::endl;
+		exit(-1);
+	}
+
+	std::vector<int> *notight = new std::vector<int>;
+	std::vector<LeptonTypes> *notightLT = new std::vector<LeptonTypes>;
+	for(unsigned int k = 0; k < _notightLeptonTypes->size(); ++k)
+	{
+		LeptonTypes lt =(* _notightLeptonTypes)[k];
+		const int index = (*_notightLeptons)[k];
+		CutManager * tmp = 0;
+		if( lt == MUON )
+		{
+			tmp = fMuonSelection;
+		}
+		else
+		{
+			tmp = fElecSelection;
+		}
+		if( std::find(tmp->GetNoTightLeptons()->begin(),tmp->GetNoTightLeptons()->end(), index ) !=
+				tmp->GetNoTightLeptons()->end() )
+		{
+			notight->push_back( index );
+			notightLT->push_back( lt );
+		}		
+	}
+	_notightLeptons->clear();
+	*_notightLeptons = *notight;
+	delete notight;
+	notight = 0;
+	_notightLeptonTypes->clear();
+	*_notightLeptonTypes = *notightLT;
+	delete notightLT;
+	notightLT = 0;
+	
+	std::vector<int> *tight = new std::vector<int>;
+	std::vector<LeptonTypes> *tightLT = new std::vector<LeptonTypes>;
+	for(unsigned int k = 0; k < _tightLeptonTypes->size(); ++k)
+	{
+		LeptonTypes lt =(* _tightLeptonTypes)[k];
+		const int index = (*_tightLeptons)[k];
+		CutManager * tmp = 0;
+		if( lt == MUON )
+		{
+			tmp = fMuonSelection;
+		}
+		else
+		{
+			tmp = fElecSelection;
+		}
+		if( std::find(tmp->GetTightLeptons()->begin(),tmp->GetTightLeptons()->end(), index ) !=
+				tmp->GetTightLeptons()->end() )
+		{
+			tight->push_back( index );
+			tightLT->push_back( lt );
+		}
+	}
+	_tightLeptons->clear();
+	*_tightLeptons = *tight;
+	delete tight;
+	tight=0;
+	_tightLeptonTypes->clear();
+	*_tightLeptonTypes = *tightLT;
+	delete tightLT;
+	tightLT = 0;
+}	
