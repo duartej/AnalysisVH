@@ -1,7 +1,17 @@
 #!/usr/bin/env python
 
 def getdatanamefiles(t):
-	"""
+	""".. function(path) -> { 'dataname': 'filename', .. } 
+
+	The function gets a path where must contain directories named
+	as 'cluster_dataname/Results/dataname.root'. Return a dictionary 
+	with the dataname pointing to a root filename which contain the info
+
+	:param path: directory where find the cluster_* directories
+	:type param: str
+
+	:return: dictionary with the datanames and their root files
+	:rtype: dict
 	"""
 	import glob
 	import os
@@ -47,6 +57,8 @@ def domerge(dataname,rootfilenames):
 	for f in rootfilenames:
 		command.append(f)
 	p = Popen( command, stdout=PIPE,stderr=PIPE).communicate()
+
+	# Also incorporate the channel histogram
 	
 	os.chdir(lastdir)
 	# FIXME: Check...
@@ -129,6 +141,8 @@ if __name__ == '__main__':
 	for dn, filelist in mergefiles.iteritems():
 		print " +"+dn
 		domerge(dn,filelist)
+
+
 	
 
 

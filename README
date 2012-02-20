@@ -99,5 +99,6 @@ TODO:
   15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
      should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
      interface methods to use not the SelectWhateverLeptons ... 
-
+  16. Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels
+  17. Incorporate an histogram giving the flavour of the tight leptons (in fakes mode)
 
