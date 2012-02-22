@@ -53,22 +53,22 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 
 	if( strcmp(runperiod,"2011A") == 0 )
 	{
-		runpath = "../"+production+"/Data7TeVRun2011A_newJEC_Reload";
+		runpath = "../"+production+"/Data7TeVRun2011A";
 		// O Quizas este --> runpath = "../"+production+"/Data7TeVRun2011A";
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuMay10_210.5");
-			filenames.push_back("Tree_DoubleMuV4_927.9");
-			filenames.push_back("Tree_DoubleMuAug5_334.4");
-			filenames.push_back("Tree_DoubleMuV6_662.9");
+			filenames.push_back("Tree_DoubleMuMay10_Latinos_211.4");
+			filenames.push_back("Tree_DoubleMuV4_Latinos_929.7");
+			filenames.push_back("Tree_DoubleMuAug5_Latinos_317.8");
+			filenames.push_back("Tree_DoubleMuV6_Latinos_658.9");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronMay10_210.5");
-			filenames.push_back("Tree_DoubleElectronV4_927.9"); // OJO hay dos, lo hara el DM
-			filenames.push_back("Tree_DoubleElectronAug5_334.4"); 
-			filenames.push_back("Tree_DoubleElectronV6_662.9");
+			filenames.push_back("Tree_DoubleElectronMay10_Latinos_211.4");
+			filenames.push_back("Tree_DoubleElectronV4_Latinos_929.7"); // OJO hay dos, lo hara el DM
+			filenames.push_back("Tree_DoubleElectronAug5_Latinos_317.8"); 
+			filenames.push_back("Tree_DoubleElectronV6_Latinos_658.9");
 		}
 		else if( strcmp(finalstate,"mme") == 0  ) 
 		{

@@ -77,12 +77,14 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 	}
 	else if( finalstate == SignatureFS::_iFSeee )
 	{
-		selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
+		//selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
+		selectioncuts = new ElecSelection(data,nTights,nLeptons);
 	}
 	else if( finalstate == SignatureFS::_iFSeem ||
 			finalstate == SignatureFS::_iFSmme )
 	{
-		selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
+		//selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
+		selectioncuts = new LeptonMixingSelection(data,nTights,nLeptons);
 	}
 	else
 	{

@@ -32,9 +32,12 @@ class MuonSelection;
 class LeptonMixingSelection : public CutManager
 {
 	public:
-		//! Constructor
+		//! Constructor using cut-based electrons
 		LeptonMixingSelection( TreeManager * data, const int & WPlowpt, 
 				const int & WPhighpt, 
+				const int & nTights, const int & nLeptons);
+		//! Constructor using BDT-based electrons
+		LeptonMixingSelection( TreeManager * data,
 				const int & nTights, const int & nLeptons);
 		//! Destructor
 		virtual ~LeptonMixingSelection();

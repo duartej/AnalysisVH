@@ -9,7 +9,7 @@
 #include<map>
 #include<algorithm>
 
-//Constructor: 
+//Constructor cut-based electrons: 
 LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WPlowpt,
 		const int & WPhighpt, const int & nTights, const int & nLeptons) : 
 	CutManager(data,nTights,nLeptons),
@@ -24,6 +24,23 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 { 
 	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
 	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons);
+}
+
+//Constructor BDT-based electrons: 
+LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, 
+		const int & nTights, const int & nLeptons) : 
+	CutManager(data,nTights,nLeptons),
+	fMuonSelection(0),
+	fElecSelection(0),
+	_leptontypebasicLeptons(0),
+	_leptontypecloseToPVLeptons(0),
+	_leptontypeIsoLeptons(0),
+	_leptontypeGoodIdLeptons(0),
+	_tightLeptonTypes(0),
+	_notightLeptonTypes(0)
+{ 
+	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
+	fElecSelection = new ElecSelection(data,nTights,nLeptons);
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()
