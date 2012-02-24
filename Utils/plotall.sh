@@ -37,7 +37,7 @@ EOF
 }
 
 # Default
-luminosity=4626.8
+luminosity=4644.7
 
 
 #
