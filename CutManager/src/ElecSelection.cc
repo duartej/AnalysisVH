@@ -414,8 +414,8 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 	//Variables:
 	const double pt       = _data->Get<float>("T_Elec_Pt",index);
 	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
-
-	const double mvaout   = _data->Get<float>("T_Elec_MVA",index);
+	
+	const double bdtValue = _data->Get<float>("T_Elec_BDT",index);
 
 	double mvacut = 999;
 	// Low pt electrons
@@ -444,13 +444,13 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 		{
 			mvacut = 0.950;
 		}
-		else if( absSCeta > 1.479 && absSCeta <= 2.5 )
+		else if( absSCeta > 1.479 )
 		{
 			mvacut = 0.884;
 		}
 	}
-
-	return (mvaout < mvacut);
+	
+	return (bdtValue > mvacut);
 }
 
 
@@ -467,7 +467,7 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 	const double SCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 
 	bool ispass = false;
-	if( _ElecType == CUTBASED )
+	if( _ElecType == ElecSelection::CUTBASED )
 	{
 		// BARREL Electrons
 		if( SCeta < 1.479 )
@@ -505,7 +505,7 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 			}
 		}
 	}
-	else if( _ElecType == BDTBASED )
+	else if( _ElecType == ElecSelection::BDTBASED )
 	{
 		const double trkIso03 = _data->Get<float>("T_Elec_dr03TkSumPt",index);
 		const double emIso03  = _data->Get<float>("T_Elec_dr03EcalSumEt",index);
@@ -699,7 +699,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 				_data->Get<float>("T_Elec_Pz",i), 
 				_data->Get<float>("T_Elec_Energy",i));
 
-		if( _ElecType == CUTBASED )
+		if( _ElecType == ElecSelection::CUTBASED )
 		{
 			//[Require muons to be isolated]
 			//-------------------
@@ -761,7 +761,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 				continue;
 			}
 		}
-		else if( _ElecType == BDTBASED )
+		else if( _ElecType == ElecSelection::BDTBASED )
 		{
 			// Technically it is in this function when the no tights must be totally
 			// filled altough conceptually is not here where we have to use the 
@@ -891,7 +891,7 @@ unsigned int ElecSelection::SelectLooseLeptons()
 const bool ElecSelection::IsPassLoose(const unsigned int & i) const
 {
 	// IF BDT, all the Electrons are Loose
-	if( _ElecType == BDTBASED )
+	if( _ElecType == ElecSelection::BDTBASED )
 	{
 		return true;
 	}
