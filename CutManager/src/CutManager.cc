@@ -1,5 +1,6 @@
 #include<assert.h>
 #include<stdlib.h>
+#include<algorithm>
 
 #include "CutManager.h"
 #include "TreeManager.h"

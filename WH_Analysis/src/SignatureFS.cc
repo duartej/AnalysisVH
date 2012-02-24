@@ -1,5 +1,6 @@
 #include "SignatureFS.h"
 #include <stdlib.h>
+#include <cstring>
 #include <iostream>
 
 const char * SignatureFS::kFinalStates[SignatureFS::_iFStotal] = 
