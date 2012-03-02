@@ -82,9 +82,6 @@ class ElecSelection : public CutManager
 		bool IsPassWP( const unsigned int & index ) const;
 		//! Check if pass the BDT Working Point selected
 		bool IsPassBDT( const unsigned int & index ) const;
-		//! Check if the electron i-esim pass the Loose definitions (used in
-		//! the fake mode in  and in normal mode) 
-		const bool IsPassLoose( const unsigned int & index ) const;
 		
 		//! Syncronize lepton type with indices vector when fake mode active
 		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
