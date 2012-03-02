@@ -25,7 +25,7 @@ SYNTAX:
 
 OPTIONS:
 
-   [-l]: Set the luminosity. Default: 4626.8 (full 2011 period)
+   [-l]: Set the luminosity. Default: 4644.7 (full 2011 period)
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
@@ -58,10 +58,12 @@ if [ -z $1 ]; then
 fi
 
 
+# FIXME: Watch out with the 'isreduced' variable, so far it has sense just 
+#        for the WZ analysis
 
 autobin=""
 fakemode=""
-isreduced="-r"
+isreduced="-j DY,Z+Jets,Other"
 fakeasdata=""
 
 while getopts l:Ffah opt;
@@ -70,7 +72,7 @@ while getopts l:Ffah opt;
 			l)	luminosity=$OPTARG;;
 			a)	autobin="yes";;
 			F)	fakemode="-F";
-				isreduced="";;
+				isreduced="-j Other@TbarW_DR,TW_DR,WJets_Madgraph,WW";;
 			f) 	fakeasdata="yes";
 			        isreduced="";;
 			h)	help;
