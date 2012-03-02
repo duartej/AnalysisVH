@@ -89,6 +89,7 @@ def createroot(FRhist,ptlow_high,filename):
 	"""
 	"""
 	from ROOT import TFile,TH2F
+	import array
 	
 	#Extract some info, number of bins, ...
 	ptNbins = len(FRhist.values()[0])
@@ -99,10 +100,16 @@ def createroot(FRhist,ptlow_high,filename):
 	etaHigh= max(map(lambda x: float(x.split(",")[1]),FRhist.keys()))
 	# Create a ordered set of eta pairs 
 	settoextractbin =  set(map(lambda x: (float(x[0]),float(x[1])), map(lambda y: y.split(",") ,FRhist.keys())))
-	
+	# set of bin eta edges
+	setetabins = []
+	for i in settoextractbin:
+		setetabins.append( i[0] )
+		setetabins.append( i[1] )
+	listetabins = sorted(list(set(setetabins)))
+	etabins = array.array('d', listetabins )	
 	
 	f = TFile(filename,"RECREATE")
-	h = TH2F("h_Elec_FR_pt_eta","",ptNbins,ptLow,ptHigh,etaNbins,etaLow,etaHigh)
+	h = TH2F("h_Elec_FR_pt_eta","",ptNbins,ptLow,ptHigh,etaNbins,etabins)
 	h.Sumw2()
 	for etastr,ptlist in FRhist.iteritems():
 		etacentral = (float(etastr.split(",")[1])+float(etastr.split(",")[0]))/2.0
@@ -134,7 +141,8 @@ if __name__ == '__main__':
 		message = 'txt2root: I need python version >= 2.4'
 		sys.exit( message )
 	#Opciones de entrada
-	parser = OptionParser()
+	usage = "usage: txt2root.py input_txt_filename [options]"
+	parser = OptionParser(usage=usage)
 	parser.set_defaults(rootname="ElecFR_all2011_jet35.root")
 	parser.add_option('-p',  action='store', type='string', dest='pts',metavar="PT_LOW,PT_HIGH",\
 			help='Interval of lepton pt where was calculated the FR')
