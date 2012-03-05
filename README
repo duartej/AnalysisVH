@@ -79,7 +79,9 @@ TODO:
   A00. Incorporate to the ATleast3Leptons level, the channel information when are dealing
      with mixing channels. Now until we arrive to the Z candidate level the 2mu1e and the
      2e1mu channel behave the same (because is in that level where it is introduced the 
-     flavour requirement). This makes impossible to compare data-MC up to Z candidate level 
+     flavour requirement). This makes impossible to compare data-MC up to Z candidate level --> DONE for WZ
+     DO NOW For VH
+  A001. Add the fakes to the VH. IMPORTANT!!
   A01. Find a way to deal with the control region analysis: now I have to recompile and change the code if
      I want to send a control region.
   A02. Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
