@@ -10,6 +10,7 @@
 #include "CutManager.h"
 #include "PUWeight.h"
 #include "FOManager.h"
+#include "WManager.h"
 
 #include "TTree.h"
 #include "TH1D.h"
@@ -39,6 +40,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fNGenLeptons(0),
 	fPUWeight(0),
 	fFO(0),
+	fSF(0),
 	_cuttree(0),
 	_cutvalue(-1),
 	_eventnumber(-1),
@@ -49,13 +51,13 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// Initialize the cuts for the cut manager
 	fLeptonSelection->InitialiseCuts(ipmap);
 
-	// Are in fake sample mode?
-	if( fLeptonSelection->IsInFakeableMode() )
+	// Initialize the scale factors // FIXME: Para el InitializeParameters
+	fSF = new WManager( WManager::SF );
+
+	// Are in fake sample mode?  // FIXME: Para el InitializeParameters
+	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
 		fFO = new FOManager;
-		// Initialize: Note that the SetFR method is called by the
-		// constructor directly
-		// fFO->SetFR(blblab)
 	}
 
 	
@@ -183,6 +185,12 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete fFO;
 		fFO = 0;
+	}
+	
+	if( fSF != 0 )
+	{
+		delete fSF;
+		fSF = 0;
 	}
 
 }

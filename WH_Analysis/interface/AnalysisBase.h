@@ -13,6 +13,7 @@
 #include "LeptonTypes.h"
 #include "SignatureFS.h"
 #include "FOManager.h"
+#include "WManager.h"
 
 #include "TString.h"
 #include "TLorentzVector.h"
@@ -26,7 +27,7 @@ class TTree;
 class CutManager;
 class TH1D;
 class FOManager;
-
+class WManager;
 
 
 
@@ -186,6 +187,9 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		// Fakeable object manager, if it is needed...
 		FOManager * fFO;
+
+		// Scale factors
+		WManager * fSF;
 
 		// Tree containing the last cut used in a given event
 		TTree * _cuttree;

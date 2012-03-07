@@ -536,7 +536,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	//FillGenPlots(_iHas2IsoGoodLeptons,puw);
 	
 	// Storing all Iso-ID (tight,loose) variables before cut
-	// Indexs of good leptons (noTight+Tights if proceed) :FIXME-- INTERCAMBIA
+	// Indexs of good leptons (noTight+Tights if proceed)
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	int howmanyMuons = 0;
 	int howmanyElecs = 0;
@@ -602,14 +602,37 @@ unsigned int AnalysisWZ::InsideLoop()
 		const double eta = lvec.Eta();
 		puw *= fFO->GetWeight(ileptontype,pt,eta);
 	}
+
+	// Including the scale factors if proceed:    FIXME: CODE DOBLADO... MODIFICAR Y MEJORAR
+	if( !fIsData )
+	{
+		int k = 0;
+		for(std::vector<int>::iterator it = theLeptons->begin(); it != theLeptons->end();
+				++it)
+		{
+			unsigned int i = *it;
+			const LeptonTypes ilt = fLeptonSelection->GetLeptonType(k);
+			const char * name = 0;
+			if( ilt == MUON )
+			{
+				name = "Muon";
+			}
+			else
+			{
+				name = "Elec";
+			}
+			TLorentzVector lvec = this->GetTLorentzVector(name,i);
+			const double pt  = lvec.Pt();
+			const double eta = lvec.Eta();
+			puw *= fSF->GetWeight(ilt,pt,eta);
+			++k;
+		}
+	}
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
 	// N-primary vertices
 	_histos[fHNPrimaryVertices]->Fill(nPV,puw);
-
-	// Indexs of good leptons (noTight+Tights if proceed) : FIXME: INTERCAMBIA
-	//std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree

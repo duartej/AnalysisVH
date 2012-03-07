@@ -7,9 +7,11 @@
 #include<cmath>
 
 #include "TFile.h"
+#include "TH2F.h"
 #include "TKey.h"
 #include "TClass.h"
 #include "TROOT.h"
+
 
 WManager::WManager(const unsigned int & weighttype) :
 	_wtype(weighttype)
@@ -34,7 +36,7 @@ WManager::WManager(const unsigned int & weighttype) :
 	if( _wtype == WManager::SF )
 	{
 		mufile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-		elecfile+= "Elec_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+		elecfile+= "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
 	}
 	else
 	{
@@ -62,15 +64,6 @@ WManager::~WManager()
 
 void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filename)
 {
-	// Removing old histograms
-	for(std::map<LeptonTypes,TH2F*>::iterator it = _weights.begin(); it != _weights.end(); ++it)
-	{
-		if( it->second != 0 )
-		{
-			delete it->second;
-			it->second = 0;
-		}
-	}
 	// Forcing the ownership to WManager instead of TFile,
 	// in order not to enter in conflict with the TreeManager TFile
 	TH2::AddDirectory(kFALSE);
@@ -94,6 +87,12 @@ void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filena
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_w");
+			// Check if it was already filled: then removed
+			if( _weights[leptontype] != 0 )
+			{
+				delete _weights[leptontype];
+				_weights[leptontype] = 0;
+			}
 			_weights[leptontype] = (TH2F*)((TH2F*)f->Get(key->GetName()))->Clone(name.c_str());
 		}
 	}
@@ -133,7 +132,7 @@ const double WManager::GetWeight(const LeptonTypes & lt, const double & pt, cons
 {
 	if( _weights[lt] == 0 )
 	{
-		std::cerr << "\033[1;31mWManager::SetGetWeight ERROR\033[1;m Not initialized the "
+		std::cerr << "\033[1;31mWManager::GetWeight ERROR\033[1;m Not initialized the"
 			<< " fake rate histogram!" << std::endl;
 		exit(-1);
 	}

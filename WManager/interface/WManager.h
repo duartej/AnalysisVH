@@ -24,9 +24,9 @@
 #include<iostream>
 
 #include "LeptonTypes.h"
-#include "TH2F.h"
 
 class TFile;
+class TH2F;
 
 class WManager
 {
@@ -62,8 +62,6 @@ class WManager
 		unsigned int _wtype;
 		//! Weight map
 		std::map<LeptonTypes,TH2F*> _weights;
-	
-	ClassDef(WManager,0);
 };
 
 #endif
