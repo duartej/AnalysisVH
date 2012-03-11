@@ -458,11 +458,6 @@ unsigned int AnalysisWZ::InsideLoop()
 	}
 	_histos[fHProcess]->Fill(procn);
 
-	/*if(fIsWH && (procn != _iWH || fsNTau != fFS))
-	{
-		return WZCuts::_iIsWZ;
-	}*/
-	
 	FillHistoPerCut(WZCuts::_iIsWZ, puw, fsNTau);
 	
 	// HLT: TBD...
