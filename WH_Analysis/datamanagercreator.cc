@@ -240,7 +240,6 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		if (dataName.Contains("WH")) 
 		{
 			folder = "HWW Fall11 Latinos";
-			//folder = "HWW Summer11 Latinos";
 			skim = "/";
 			dataName.Replace(0,2, "WHToWW2L");
 		}
@@ -349,7 +348,7 @@ void display_usage()
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee_Powheg DYmumu_Powheg Dytautau_Powheg Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
-	std::cout << "    Other backgrounds: WZ ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
+	std::cout << "    Other backgrounds: WZ WZTo3LNu ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -448,8 +447,8 @@ int main(int argc, char *argv[])
 	// Zbb+jets
 	knowndata.insert("Zbb");
 	// Other background
-	knowndata.insert("WZ"); // WZTo3LNu ??? Mejor este
-	//knowndata.insert("WZTo3LNu"); // WZTo3LNu ??? Mejor este
+	knowndata.insert("WZ");
+	knowndata.insert("WZTo3LNu");
 	knowndata.insert("ZZ");
 	knowndata.insert("WW");
 	knowndata.insert("TTbar_Madgraph");
@@ -486,12 +485,6 @@ int main(int argc, char *argv[])
 			dummy = 0;
 			wasprocessed = true;
 		}
-//		else
-//		{
-//			std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: Could not find dataset '" 
-//				<< *it << "'. Is it a valid name? " << std::endl;
-//			exit(-1);
-//		}
 	}
 
 	if( ! wasprocessed )
