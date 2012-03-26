@@ -122,6 +122,10 @@ if [ "$1" == "WZ" ]; then
 	echo "[sendall] Info: not needed the WH samples, removing";
 	rm WHTo*.dn;
 fi
+# NOTE: Change this line if you want to use WZ pythia. FIXME: I don't know yet how to deal this
+#       Probably WZ pythia will be totally removed (from datamanagercreator)
+#echo "[sendall] Info: using the WZTo3LNu sample (madgraph inclusive), removing WZ (pythia)"
+#rm WZ_datanames.dn;
 
 if [ "X"$fakeable == "X" ];
 then

@@ -129,8 +129,10 @@ fi
 # Fakes comparation with MC mode
 if [ "X${fakeasdata}" == "Xyes" ];
 then
-	signal="Fakes"
+	signal="Fakes -d Fakes"
 	fakeasdata="-f"
+	isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg"
+
 fi
 
 

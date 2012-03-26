@@ -598,6 +598,9 @@ if __name__ == '__main__':
 
 	if signal.find("WH") == 0:
 		signal = signal.replace("WH","WHToWW2L")
+	
+	if signal.find("WZ") == 0:
+		signal = signal.replace("WZ","WZTo3LNu")
 
 	if opt.join:
 		if opt.join.find("@") != -1:

@@ -65,6 +65,10 @@ TString GetFile(const TString& d)
 	{
 		namefile.Replace(0,2, "WHToWW2L");
 	}
+	else if(d.Contains("WZ"))
+	{
+		namefile.Replace(0,2,"WZTo3LNu");
+	}
 	f.Form("cluster_%s/Results/%s.root",namefile.Data(),namefile.Data());
 	return f;
 }
@@ -816,7 +820,7 @@ int main(int argc, char *argv[])
 	if( infakemode )
 	{
 		bkg.push_back("WW");
-		bkg.push_back("WJets_Madgraph");
+		//bkg.push_back("WJets_Madgraph");
 		bkg.push_back("Fakes");
 	}
 	else if( isfakeasdata )
@@ -849,7 +853,7 @@ int main(int argc, char *argv[])
 	if( infakemode )
 	{
 		blegend.push_back("WW");
-		blegend.push_back("W+Jets (MG)");
+		//blegend.push_back("W+Jets (MG)");
 		blegend.push_back("Fakes (PPF)");
 	}
 	else if( isfakeasdata )
