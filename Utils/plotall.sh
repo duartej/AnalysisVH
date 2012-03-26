@@ -25,7 +25,7 @@ SYNTAX:
 
 OPTIONS:
 
-   [-l]: Set the luminosity. Default: 4626.8 (full 2011 period)
+   [-l]: Set the luminosity. Default: 4922.0 (full 2011 period- UPDATED at March-2012)
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
@@ -37,7 +37,8 @@ EOF
 }
 
 # Default
-luminosity=4626.8
+#luminosity=4626.8 # NEW CALCULATION -->
+luminosity=4922.0 
 
 
 #
