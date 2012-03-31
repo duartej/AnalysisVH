@@ -25,7 +25,9 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 
 AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 				CutManager * selectorcuts, const unsigned int & finalstate ) :
-	AnalysisBase(data,ipmap,selectorcuts,finalstate ) 
+	AnalysisBase(data,ipmap,selectorcuts,finalstate ),
+	_nTMuons(0),
+	_nTElecs(0)
 { 
 	// Number of cuts
 	fNCuts = WZCuts::_iNCuts;
@@ -33,7 +35,13 @@ AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters
 	{
 		fCutNames.push_back(WZCuts::kCutNames[i]);
 	}
-} 
+}
+
+AnalysisWZ::~AnalysisWZ()
+{
+	std::cout << "======= Number of no Tight Muons: " << _nTMuons << std::endl;
+	std::cout << "======= Number of no Tight Elecs: " << _nTElecs << std::endl;
+}
 
 
 void AnalysisWZ::Initialise()
@@ -587,10 +595,12 @@ unsigned int AnalysisWZ::InsideLoop()
 		if( ileptontype == MUON )
 		{
 			name = "Muon";
+			++_nTMuons;
 		}
 		else
 		{
 			name = "Elec";
+			++_nTElecs;
 		}
 		TLorentzVector lvec = this->GetTLorentzVector(name,i);
 		const double pt  = lvec.Pt();

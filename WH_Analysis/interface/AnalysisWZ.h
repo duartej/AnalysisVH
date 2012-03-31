@@ -58,8 +58,8 @@ class AnalysisWZ : public AnalysisBase
 		//! Constructor
 		AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 				CutManager * selectorcuts, const unsigned int & finalstate ) ;
-		//! Destructor
-		virtual ~AnalysisWZ() { }
+		//! Destructor 
+		virtual ~AnalysisWZ();
 
 	protected:
 		virtual void Initialise();
@@ -67,6 +67,9 @@ class AnalysisWZ : public AnalysisBase
 
 	private:
 		AnalysisWZ();
+		int _nTMuons;
+		int _nTElecs;
+
 		ClassDef(AnalysisWZ,0);
 
 };
