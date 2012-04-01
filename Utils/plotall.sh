@@ -102,7 +102,7 @@ HISTOSGEN="fHGenFinalState fHGenFinalStateNoTaus fHGenWElectrons fHGenWMuons fHG
 fHGenPtLepton_1_0 fHGenPtLepton_2_0 fHGenPtLepton_3_0"
 HISTOSLEP="fHNRecoLeptons fHNSelectedLeptons"
 
-HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets fHNPrimaryVertices"
+HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets fHNPrimaryVertices fHNPrimaryVerticesAfter3Leptons"
 HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3 fHEtaLepton1 fHEtaLepton2 fHEtaLepton3"
 if [ "$1" == "WZ" ];
 then

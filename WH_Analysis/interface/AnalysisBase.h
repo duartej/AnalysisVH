@@ -98,10 +98,11 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! For histograms: Must be common all analysis
 		enum 
 		{
-			fHProcess,                //Process ID
-			fHEventsPerCut,           //Events passing every cut
-			fHEventsPerCut3Lepton,    //Events passing every cut that are 3 lepton from gen
-			fHNPrimaryVertices,       //Number of primary vertices
+			fHProcess,                      //Process ID
+			fHEventsPerCut,                 //Events passing every cut
+			fHEventsPerCut3Lepton,          //Events passing every cut that are 3 lepton from gen
+			fHNPrimaryVertices,             //Number of primary vertices just after be PU-weighted 
+			fHNPrimaryVerticesAfter3Leptons,//Idem but after exactly NLeptons cut
 			nextenumerate
 
 		};

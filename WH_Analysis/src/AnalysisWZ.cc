@@ -117,7 +117,8 @@ void AnalysisWZ::Initialise()
 		_histos[fHEventsPerCut3Lepton]->GetXaxis()->SetBinLabel(i+1,WZCuts::kCutNames[i]);
 	}
 
-	// Number of Primary Vertices in the event
+	// Number of Primary Vertices in the event: before all cuts
+	_histos[fHNPrimaryVerticesAfter3Leptons] = CreateH1D("fHNPrimaryVerticesAfter3Leptons", "Number of Primary Vertices", 31, 0, 30);
 	_histos[fHNPrimaryVertices] = CreateH1D("fHNPrimaryVertices", "Number of Primary Vertices", 31, 0, 30);
 
 	// Reconstructed muons in the event
@@ -224,6 +225,9 @@ unsigned int AnalysisWZ::InsideLoop()
 	{
 		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
 	}
+	
+	// Filling the npv to see how was weighted
+	_histos[fHNPrimaryVertices]->Fill(nPV,puw);
 
 	// Generation studies
 	//----------------------------------------------------------------------
@@ -587,25 +591,34 @@ unsigned int AnalysisWZ::InsideLoop()
 	// Using the fake rate if we are in fake mode
 	if( fFO != 0 && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
-		//FIXME: Note that by the moment we are assuming that the only fakeable sample
-		// available is TTnT, so there are just 1 no tight lepton (and must be at least 1)
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(0);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(0);
-		const char * name = 0;
-		if( ileptontype == MUON )
+		// As we are using the approximation PromptRate=1, then
+		// PPF (3,2) = fF0->GetWeight
+		// PFF (3,1) = (fFO->GetWeight)^2
+		// FFF (3,0) = (fFO->GetWeight)^3
+		// Where (N,T) are actually the number of Total leptons and PROMPT leptons. 
+		// This equivalence between tight-prompt can be done because of the approximations
+		// used. So, each tight lepton is weighted in order to get its probability to be
+		// prompt.
+		for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
 		{
-			name = "Muon";
-			++_nTMuons;
+			const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
+			const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
+			const char * name = 0;
+			if( ileptontype == MUON )
+			{
+				name = "Muon";
+				++_nTMuons;
+			}
+			else
+			{
+				name = "Elec";
+				++_nTElecs;
+			}
+			TLorentzVector lvec = this->GetTLorentzVector(name,i);
+			const double pt  = lvec.Pt();
+			const double eta = lvec.Eta();
+			puw *= fFO->GetWeight(ileptontype,pt,eta);
 		}
-		else
-		{
-			name = "Elec";
-			++_nTElecs;
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
-		puw *= fFO->GetWeight(ileptontype,pt,eta);
 	}
 
 	// Including the scale factors if proceed:    FIXME: CODE DOBLADO... MODIFICAR Y MEJORAR
@@ -637,7 +650,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
 	// N-primary vertices
-	_histos[fHNPrimaryVertices]->Fill(nPV,puw);
+	_histos[fHNPrimaryVerticesAfter3Leptons]->Fill(nPV,puw);
 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
