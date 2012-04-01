@@ -92,7 +92,7 @@ bin = 4, value = 0.024 +- 0.012
 bin = 5, value = 0.025 +- 0.015
 
 # 1.479 < eta < 2 
-bin = 1, value = 0.008 +- 0.010   # was 0: taken from bin2
+bin = 1, value = 0.008 +- 0.010   
 bin = 2, value = 0.008 +- 0.010
 bin = 3, value = 0.054 +- 0.018
 bin = 4, value = 0.033 +- 0.015
