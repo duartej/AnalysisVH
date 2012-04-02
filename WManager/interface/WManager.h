@@ -42,7 +42,7 @@ class WManager
 		};
 
 		//! Constructor
-		WManager(const unsigned int & weighttype); 
+		WManager(const unsigned int & weighttype, const bool & isSystematics = false); 
 
 		//! Destructor
 		virtual ~WManager();
@@ -58,6 +58,8 @@ class WManager
 		const char * GetWTStr(const unsigned int & wt) const;
 	
 	private:
+		//! get the complete path to the weight maps
+		std::string getfile(const unsigned int & lepton, const bool & isSystematics);
 		//! Weight type
 		unsigned int _wtype;
 		//! Weight map

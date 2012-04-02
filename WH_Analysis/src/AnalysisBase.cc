@@ -58,6 +58,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
 		fFO = new FOManager;
+		//fFO = new WManager( WManager::FR );
 	}
 
 	

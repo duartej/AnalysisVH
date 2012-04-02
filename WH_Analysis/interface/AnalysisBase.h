@@ -188,6 +188,8 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		// Fakeable object manager, if it is needed...
 		FOManager * fFO;
+		// Fake Rate weights
+		//WManager * fFO;
 
 		// Scale factors
 		WManager * fSF;

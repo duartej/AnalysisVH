@@ -13,27 +13,21 @@
 #include "TROOT.h"
 
 
-WManager::WManager(const unsigned int & weighttype) :
+WManager::WManager(const unsigned int & weighttype, const bool & isSystematics ) :
 	_wtype(weighttype)
 {
 	_weights[MUON] = 0;
 	_weights[ELECTRON] = 0;
 
-	char * pkgpath = 0;
-	pkgpath = getenv("VHSYS");
-	if( pkgpath == 0 )
-	{
-		std::cerr << "\033[1;31mWManager::WManager ERROR\033[1;m Not set the 'VHSYS'"
-			<< " environment varible; this is an inconsistency in the code"
-			<< std::endl;
-		exit(-1);
-	}
 
-	std::string mufile(std::string(pkgpath)+"/WManager/data/");
-	std::string elecfile(std::string(pkgpath)+"/WManager/data/");
+	std::string mufile( this->getfile(MUON,isSystematics) );
+	std::string elecfile( this->getfile(ELECTRON,isSystematics) ); 
+
+	//std::string mufile(std::string(pkgpath)+"/WManager/data/");
+	//std::string elecfile(std::string(pkgpath)+"/WManager/data/");
 
 	// FIXME: Hardcoded filenames
-	if( _wtype == WManager::SF )
+	/*if( _wtype == WManager::SF )
 	{
 		mufile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
 		elecfile+= "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
@@ -44,7 +38,7 @@ WManager::WManager(const unsigned int & weighttype) :
 			<< "'" << this->GetWTStr(weighttype) << "' weight type." 
 			<< std::endl;
 		exit(-1);
-	}
+	}*/
 
 	this->SetWeightFile(MUON,mufile.c_str());
 	this->SetWeightFile(ELECTRON,elecfile.c_str());
@@ -61,6 +55,68 @@ WManager::~WManager()
 		}
 	}	
 }
+
+std::string WManager::getfile(const unsigned int & lepton, const bool & isSystematics)
+{
+	char * pkgpath = 0;
+	pkgpath = getenv("VHSYS");
+	if( pkgpath == 0 )
+	{
+		std::cerr << "\033[1;31mWManager::getfile ERROR\033[1;m Not set the 'VHSYS'"
+			<< " environment varible; this is an inconsistency in the code"
+			<< std::endl;
+		exit(-1);
+	}
+	
+	std::string thefile(std::string(pkgpath)+"/WManager/data/");
+
+	if( _wtype == WManager::SF )
+	{
+		if( lepton == MUON )
+		{
+			thefile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+		}
+		else if( lepton == ELECTRON )
+		{
+			thefile  += "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+		}
+	}
+	else if( _wtype == WManager::FR )
+	{
+		if( lepton == MUON )
+		{
+			if( isSystematics )
+			{
+				thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root";
+			}
+			else
+			{
+				thefile  += "MuFR_All2011_LPcuts_AND_kink_jet15.root";
+			}
+		}
+		else if( lepton == ELECTRON )
+		{
+			if( isSystematics )
+			{
+				thefile  += "ElecFR_all2011_jet15.root";
+			}
+			else
+			{
+				thefile += "ElecFR_all2011_jet35.root";
+			}
+		}
+	}
+	else
+	{
+		std::cerr << "\033[1;31mWManager::getfile ERROR\033[1;m Not implemented "
+			<< "'" << this->GetWTStr(_wtype) << "' weight type." 
+			<< std::endl;
+		exit(-1);
+	}
+
+	return thefile;
+}
+
 
 void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filename)
 {
@@ -105,26 +161,25 @@ void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filena
 		exit(-1);
 	}
 
-	f->Close();
-	delete f;
-
 	// Some arrangements in order to avoid the calculation inside the loop
 	// for the fake rate case the weight per event is f/(1-f)
+	// FIXME: SOMETHING IS WRONG HERE, I DIDN'T FIND THE SAME RESULT AS IN THE FOMANAGER. 
+	//        TO CHECK!! BY THE MOMENT I DON'T USE IT
 	if( _wtype == WManager::FR )
 	{
-		for(std::map<LeptonTypes,TH2F*>::iterator it = _weights.begin(); it != _weights.end(); ++it)
+		for(int i = 0; i < _weights[leptontype]->GetNbinsX(); ++i)
 		{
-			for(int i = 0; i < it->second->GetNbinsX(); ++i)
+			for(int j = 0; j < _weights[leptontype]->GetNbinsY(); ++j)
 			{
-				for(int j = 0; j < it->second->GetNbinsY(); ++j)
-				{
-					const double f = it->second->GetBinContent(i,j);
-					double finalweight = f/(1.0-f);
-					it->second->SetBinContent(i,j,finalweight);
-				}
+				const double f = _weights[leptontype]->GetBinContent(i,j);
+				double finalweight = f/(1.0-f);
+				_weights[leptontype]->SetBinContent(i,j,finalweight);
 			}
 		}
 	}
+	
+	f->Close();
+	delete f;
 }
 
 
@@ -155,6 +210,10 @@ const char * WManager::GetWTStr(const unsigned int & wt) const
 	else if( wt == WManager::SF )
 	{
 		type = "scale factor";
+	}
+	else if( wt == WManager::FR )
+	{
+		type = "fake rate";
 	}
 	else
 	{
