@@ -30,8 +30,16 @@ FOManager::FOManager()
 		exit(-1);
 	}
 
+	// FIXME : No harcodear los systematicos....
+	// NOMINAL
 	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
 	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
+	// SYSTEMATICS
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
+	//std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet15.root");
+	// SYSTEMATICS
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
+	//std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet50.root");
 
 	this->SetFR(MUON,mufile.c_str());
 	this->SetFR(ELECTRON,elecfile.c_str());

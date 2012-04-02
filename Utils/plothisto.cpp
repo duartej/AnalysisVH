@@ -389,8 +389,8 @@ void PlotAll(const common & cd ,
 	std::vector<int> colors;
 	colors.push_back(kRed+3);
 	colors.push_back(kGreen-3);
-	colors.push_back(kCyan-2);
 	colors.push_back(kAzure-7);
+	colors.push_back(kCyan-2);
 	colors.push_back(kOrange+5);
 	colors.push_back(kRed);
 	colors.push_back(kOrange+3);
