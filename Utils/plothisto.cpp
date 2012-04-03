@@ -586,7 +586,7 @@ void PlotAll(const common & cd ,
 	legend->Draw();
 	
 	gSystem->MakeDirectory("Plots");
-	canvas->SaveAs("Plots/"+histoname+".eps");
+	canvas->SaveAs("Plots/"+histoname+".pdf");
 	//canvas->SetLogy();
 	if( plottype != 2 )
 	{
@@ -657,7 +657,7 @@ void PlotAll(const common & cd ,
 		stats->Draw();
 	}
 
-	canvas->SaveAs("Plots/"+histoname+"_log.eps");
+	canvas->SaveAs("Plots/"+histoname+"_log.pdf");
 	canvas->SetLogy(0);
 	
 	//////
