@@ -1,8 +1,23 @@
-********************
-**                **
-** Changelog      **
-**                **
-********************
+*********************************************************************************
+*** Tag releases guidelines: vXX.YY                                            **
+***                                                                            ** 
+***     XX: Increases by one with every change that breaks the precedent tag.  **
+***         It means, that using exactly the same configuration files and the  **
+***         the same scripts, the executables launched have a runtime error    **
+***         or return no-sense results.                                        **
+***                                                                            **
+***     YY: Increases by one with an indetermined bunch of improvements. The   ** 
+***         ouptput will probably change (because new functionalities, bug     ** 
+***         fixes, ...), but it doesn't break with the last tag release.       **
+***                                                                            **
+*********************************************************************************
+
+
+******************************
+***************************
+**   Changelog    ****
+***************************
+******************************
 
 Nov. 9th 2011 --  Tag release v0.1 : First version working
   * Synchronised with original-PROOF code (IFCA-UO/WH  MAIN r1.11)
@@ -66,17 +81,27 @@ Feb. 08th 2012-- Tag release v04.01: Improvements in the analysis and Fakes inco
       - The manager of this new functionality is FOManager class
       - Also, added new options to the sendcluster, plothisto, printable, ... scripts to deal with
         this new mode 
-
-
+Apr. 03rd 2012-- Tag release v04.02: Scale factors incorporation and changes in default sample definitions
+   * Analysis improvements:
+      - Incorporated the WManager class which controls the scale factors (and ideally whatever 
+        efficiency related. So it would superseed the FOManager class, but still not solve some
+	problems so FOManager is still working): Inclusion of scale factors
+      - WZ Analysis has changed the pre-selection cut from require AT LEAST 3 leptons to 
+        EXACTLY 3 leptons
+      - BDT based-id electrons included in the analysis, removing the cut-based id electrons
+      - Changed WZ sample to be an exclusive (fully leptonic) Madgraph (Fall11)
+      - Changed (in all the places where required) the default luminosity to the new value: 4922.0pb-1
+   * Management improvements: 
+      - Shown in the harvesting process (or standard output of runanalysis) the number of muons
+        and electrons whose where selected as no Tight in the Fake sample
+      - Changed default ouput format to .pdf
+      - New script 'getsystematics' to extract the relative differences of several samples (to be 
+        used as systematic extraction)
+      - New output table format, more compact, besides the old one. Added a new column which shown
+        Nobs-Nbkg
      
-    
-
 
 TODO:
-  ALEPH. IMPORTANT. Include the efficiencies and scales factors (it will be managed by
-     the same class, something like EffManager or WManager (W for weights), in fact I think
-     has to have the same functionality than FOManager, maybe I can reorganize this class --> CHECK 
-     COMPRUEBA SI ESTAN BIEN INCLUIDOS!!
   A00. Incorporate to the ATleast3Leptons level, the channel information when are dealing
      with mixing channels. Now until we arrive to the Z candidate level the 2mu1e and the
      2e1mu channel behave the same (because is in that level where it is introduced the 
@@ -105,4 +130,7 @@ TODO:
      interface methods to use not the SelectWhateverLeptons ... 
   16. Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels
   17. Incorporate an histogram giving the flavour of the tight leptons (in fakes mode)
+  18. Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
+      the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
+      for instance)
 
