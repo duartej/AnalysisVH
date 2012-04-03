@@ -292,6 +292,15 @@ class table(object):
 			# Removing
 			for f in nonsignalfiles:
 				self.filenames.remove(f)
+			# Added the important cuts to be used in the reduced table case
+			self.importantcutsdict = { } # FIXME: TO BE DONE!!
+			self.importantcutslist = []
+		else:
+			# Added the important cuts to be used in the reduced table case
+			# FIXME WARNING HARDCODED!! --> THis is a temporal patch...
+			self.importantcutsdict = { 'Pre-selection' : 'AtLeast3Leptons',
+					'Z' : 'HasZCandidate',  'W': 'MET' }
+			self.importantcutslist = [ 'Pre-selection', 'Z', 'W' ]
 
 		# building the columns
 		self.columns = {}
@@ -322,6 +331,7 @@ class table(object):
 			self.columntitles.append(i)
 		self.columntitles.append( "TotBkg" )
 		self.columntitles.append( self.data )
+		self.columntitles.append( "Nobs-Nbkg" )
 		self.columntitles.append( self.signal )
 
 		# The datamember samples is superceeded by columntitles
@@ -405,18 +415,35 @@ class table(object):
 		"""
 		# FIXME: TO BE MODIFIED: IT NEEDS SOME IMPROVEMENTS (THERE ARE MINOR BUGS)
 		from math import sqrt
-
-		try:
-			val,err=self.columns[sample].getvalerr(cut)
-		except KeyError:
-			# Is total background, so create it
+	
+		# Dealing with the TotBkg sample which has to be built 
+		if sample == "TotBkg":
 			val = 0.0
 			err2 = 0.0
-			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg",self.samples):
+			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg" and x != "Nobs-Nbkg",self.samples):
 				(v,e) = self.columns[s].getvalerr(cut)
 				val += v
 				err2 += e**2.0
-			err = sqrt(err2)
+				err = sqrt(err2)
+				try:
+					self.columns["TotBkg"].rowvaldict[cut] = (val,err)
+				except KeyError:
+					# Creating the column
+					self.columns["TotBkg"] = column("",nobuilt=True)
+					# Inititalizing dict
+					self.columns["TotBkg"].rowvaldict= { cut: (val,err) }
+
+		# extracting the values
+		try:
+			val,err=self.columns[sample].getvalerr(cut)
+		except KeyError:
+			# It's substraction data - TotBkg columns
+			if sample == "Nobs-Nbkg":
+				# Note that as it has been extract by order, Data and total background
+				(valdata,errdata) = self.columns["Data"].getvalerr(cut)
+				(valbkg,errbkg)   = self.columns["TotBkg"].getvalerr(cut)
+				val = valdata-valbkg
+				err = sqrt(errdata**2.0+errbkg**2.0)
 
 		# Begin the formatting
 		# Found the last significant value: we get the first value
@@ -506,11 +533,13 @@ class table(object):
 
 
 
-	def printstr(self,format=''):
+	def printstr(self,format,isreduced=False):
 		"""
 		"""
-		if format != '':
-			self.setformat(format)
+		if isreduced:
+			return self.__printreducedstr__(format)
+		#if format != '':
+		self.setformat(format)
 
 		lines = self.format.tablestart+"\n"
 		# Column titles
@@ -536,13 +565,42 @@ class table(object):
 
 		return lines
 
-		
-	def saveas(self, filename):
+	def __printreducedstr__(self,format):
+		"""
+		"""
+		ncolumns = 4
+		self.format.setformat(format,ncolumns)
+
+		lines = self.format.tablestart+"\n"
+		# Column titles
+		lines += self.format.rowstart+self.format.cellrowitstart+"       "+self.format.cellrowitend
+		for s in self.importantcutslist:
+			lines += self.format.cellcolitstart+s+self.format.cellcolitend
+		lines += self.format.rowend+" \n"
+		# Content
+		# Extract the maximum lenght of the samples
+		maxlenght = str(max(map(lambda x: len(x),self.columntitles)))
+		sampleformat = "%"+maxlenght+"s"
+		# Build the table row by row (sample by sample)
+		for sample in self.columntitles:
+			lines += self.format.rowstart+self.format.cellrowitstart
+			lines += sampleformat % sample
+			lines += self.format.cellrowitend
+			for cut in self.importantcutslist:
+				realcut = self.importantcutsdict[cut]
+				lines += self.format.cellstart+self.getMSvalerr(realcut,sample)+self.format.cellend
+			lines += self.format.rowend+" \n"
+
+		lines += self.format.tableend+"\n"
+
+		return lines
+
+	def saveas(self, filename,isreduced=False):
 		"""
 		"""
 		# Extract the type from the file suffix
 		format = filename.split(".")[-1]
-		tablelines = self.printstr(format)
+		tablelines = self.printstr(format,isreduced)
 
 		f = open(filename,"w")
 		f.writelines(tablelines)
@@ -625,7 +683,9 @@ if __name__ == '__main__':
 	print "( ",
 	sys.stdout.flush()
 	for fileoutput in opt.output.split(","):
-		t.saveas(fileoutput)
+		t.saveas(fileoutput,True)
+		notredfilename = fileoutput.replace(".","_large.")
+		t.saveas(notredfilename,False)
 		print fileoutput+" ",
 		sys.stdout.flush()
 	print ")"
