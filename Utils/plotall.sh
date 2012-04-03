@@ -156,7 +156,7 @@ do
 	done;
 	printtable $signal $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
-	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`).tex
+	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`)_large.html table_$(basename `pwd`).tex table_$(basename `pwd`)_large.tex
 	cd ..;
 done;
 
