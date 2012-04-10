@@ -118,7 +118,7 @@ else
 	HISTOS8B="fHTrileptonMass fHTrileptonMassAfterWCand fHHT fHHTAfterWCand" 
 fi;
 
-fsdirectories=(`ls |grep ${signal:0:2}`)
+fsdirectories=`ls |grep ${signal:0:2}`
 
 echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`
@@ -147,7 +147,8 @@ if [ "X${ctsample}" == "Xyes" ];
 then
 	isreduced=""
 	plothistoexe=plotClosureTest
-	cd ${fsdirectories[0]};
+	testdir=($fsdirectories)
+	cd ${testdir[0]};
 	signalarray=(`ls |grep cluster|sed -e 's/cluster_//g'`)
 	cd ..;
 	# Checking consistency
