@@ -415,7 +415,7 @@ class table(object):
 		"""
 		# FIXME: TO BE MODIFIED: IT NEEDS SOME IMPROVEMENTS (THERE ARE MINOR BUGS)
 		from math import sqrt
-	
+
 		# Dealing with the TotBkg sample which has to be built 
 		if sample == "TotBkg":
 			val = 0.0
@@ -424,14 +424,15 @@ class table(object):
 				(v,e) = self.columns[s].getvalerr(cut)
 				val += v
 				err2 += e**2.0
-				err = sqrt(err2)
-				try:
-					self.columns["TotBkg"].rowvaldict[cut] = (val,err)
-				except KeyError:
-					# Creating the column
-					self.columns["TotBkg"] = column("",nobuilt=True)
-					# Inititalizing dict
-					self.columns["TotBkg"].rowvaldict= { cut: (val,err) }
+			err = sqrt(err2)
+			try:
+				self.columns["TotBkg"].rowvaldict[cut] = (val,err)
+			except KeyError:
+				# Creating the column
+				self.columns["TotBkg"] = column("",nobuilt=True)
+				# Inititalizing dict and all the other needed data members
+				self.columns["TotBkg"].rowvaldict= { cut: (val,err) }
+				self.columns["TotBkg"].cutordered = self.columns[self.data].cutordered
 
 		# extracting the values
 		try:
@@ -440,7 +441,7 @@ class table(object):
 			# It's substraction data - TotBkg columns
 			if sample == "Nobs-Nbkg":
 				# Note that as it has been extract by order, Data and total background
-				(valdata,errdata) = self.columns["Data"].getvalerr(cut)
+				(valdata,errdata) = self.columns[self.data].getvalerr(cut)
 				(valbkg,errbkg)   = self.columns["TotBkg"].getvalerr(cut)
 				val = valdata-valbkg
 				err = sqrt(errdata**2.0+errbkg**2.0)
@@ -549,6 +550,7 @@ class table(object):
 		lines += self.format.rowend+" \n"
 		#Content 
 		# Extract the maximum lenght of the cuts
+		print self.columns.values()[0]
 		cutordered = self.columns.values()[0].cutordered
 		maxlenght = str(max(map(lambda x: len(x),cutordered)))
 		cutformat = "%"+maxlenght+"s"
