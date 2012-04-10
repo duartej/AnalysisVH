@@ -15,7 +15,7 @@ Generate the plots and tables of each final state
 
 SYNTAX:
 
-   $0 [-l luminosity] [-a] [-F|-f] <WZ|WHnnn>
+   $0 [-l luminosity] [-a] [ [-F|-f] | [-c] ] <WZ|WHnnn>
 
 
    Note that the signal is a mandatory argument. WHnnn must be
@@ -32,7 +32,9 @@ OPTIONS:
          as data and compared with the potential MC sample which could
 	 contribute (so the Monte Carlo sample was sent in -F 3,2 mode)
 	 This option is incompatible with '-F' option
-
+   [-c]: Closure test. This option implies that inside the per channel
+         directories would have two folders: sample and sample_WEIGHTED
+	 
 EOF
 }
 
@@ -66,8 +68,9 @@ autobin=""
 fakemode=""
 isreduced="-j DY,Z+Jets,Other"
 fakeasdata=""
+ctsample=""
 
-while getopts l:Ffah opt;
+while getopts l:Ffach opt;
 	do
 		case "$opt" in
 			l)	luminosity=$OPTARG;;
@@ -76,6 +79,7 @@ while getopts l:Ffah opt;
 				isreduced="-j Other@TbarW_DR,TW_DR,WJets_Madgraph,WW";;
 			f) 	fakeasdata="yes";
 			        isreduced="";;
+			c)	ctsample="yes";;
 			h)	help;
 				exit 1;;
 		esac
@@ -114,7 +118,7 @@ else
 	HISTOS8B="fHTrileptonMass fHTrileptonMassAfterWCand fHHT fHHTAfterWCand" 
 fi;
 
-fsdirectories=`ls |grep ${signal:0:2}`
+fsdirectories=(`ls |grep ${signal:0:2}`)
 
 echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`
@@ -136,25 +140,58 @@ then
 
 fi
 
+plothistoexe=plothisto
+data="Data"
+signalToPlot=$signal
+if [ "X${ctsample}" == "Xyes" ];
+then
+	isreduced=""
+	plothistoexe=plotClosureTest
+	cd ${fsdirectories[0]};
+	signalarray=(`ls |grep cluster|sed -e 's/cluster_//g'`)
+	cd ..;
+	# Checking consistency
+	if [ ${#signalarray[@]} -ne 2 ]; 
+	then
+		echo "ERROR: Trying to summarize a closure test but there is no"
+		echo "       coherent folder structrure. When option '-c' is activated"
+		echo "       then below 'SignalChannel' directories have to exist:"
+		echo "       SignalChannel -"
+		echo "                     |- cluster_closureTestSample"
+		echo "                     |- cluster_closureTestSample_WEIGHTED"
+		exit;
+	fi
+	# If everything is fine then renaming
+	signal=${signalarray[0]}
+	data=${signalarray[1]}
+	if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
+	then
+		signalToPlot="TTbar"
+	else
+		signalToPlot="ZJets"
+	fi
+fi
+
+
 
 for j in $fsdirectories leptonchannel;
 do
 	cd $j;
 	for i in $HISTOSNOC;
 	do
-		plothisto $i -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
 	
 	for i in $HISTOS4B;
 	do
-		plothisto $i $rbinoption4 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		plothisto $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
-	printtable $signal $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
+	printtable $signal -d $data $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
 	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`)_large.html table_$(basename `pwd`).tex table_$(basename `pwd`)_large.tex
 	cd ..;
