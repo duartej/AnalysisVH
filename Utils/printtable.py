@@ -550,7 +550,6 @@ class table(object):
 		lines += self.format.rowend+" \n"
 		#Content 
 		# Extract the maximum lenght of the cuts
-		print self.columns.values()[0]
 		cutordered = self.columns.values()[0].cutordered
 		maxlenght = str(max(map(lambda x: len(x),cutordered)))
 		cutformat = "%"+maxlenght+"s"
