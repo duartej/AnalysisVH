@@ -32,10 +32,10 @@ FOManager::FOManager()
 
 	// FIXME : No harcodear los systematicos....
 	// NOMINAL
-	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
 	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
 	// SYSTEMATICS
-	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
+	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
 	//std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet15.root");
 	// SYSTEMATICS
 	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
