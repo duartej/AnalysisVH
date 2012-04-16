@@ -113,7 +113,7 @@ TODO:
   A02. Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
      I think it will turn out more legible.
   A03. FIX BUG in printtable: the rounding is not done appropiately. Check it
-  A. Include in the 'cuts' TTree the 'RunNumber' also
+  A. Include in the 'cuts' TTree the 'RunNumber' also. And 'weight' <--
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email)
   5. Check with the *.sh.e* the good behaviour of the job
