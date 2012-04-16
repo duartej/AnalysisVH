@@ -63,7 +63,7 @@ class AnalysisWZ : public AnalysisBase
 
 	protected:
 		virtual void Initialise();
-		virtual unsigned int InsideLoop();
+		virtual std::pair<unsigned int,float> InsideLoop();
 
 	private:
 		AnalysisWZ();

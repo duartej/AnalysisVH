@@ -196,7 +196,7 @@ void AnalysisVH::Initialise()
 //---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
-unsigned int AnalysisVH::InsideLoop()
+std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
@@ -454,7 +454,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	if(fIsWH && (procn != _iWH || fsNTau != fFS))
 	{
-		return WHCuts::_iIsWH;
+		return std::pair<unsigned int,float>(WHCuts::_iIsWH,puw);
 	}
 	
 	FillHistoPerCut(WHCuts::_iIsWH, puw, fsNTau);
@@ -463,7 +463,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! IspassHLT() )
 	{
-		return WHCuts::_iHLT;
+		return std::pair<unsigned int,float>(WHCuts::_iHLT,puw);
 	}
 	FillHistoPerCut(WHCuts::_iHLT, puw, fsNTau);
 
@@ -473,7 +473,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//fLeptonSelection->PassEventsCuts();
 	//if( iGoodVertex < 0)
 	//{
-	//	return WHCuts::_iGoodVertex;
+	//	return std::pair<unsigned int,float>(WHCuts::_iGoodVertex;
 	//}
 	//FillHistoPerCut(WHCuts::_iGoodVertex, puw, fsNTau);
 	
@@ -501,7 +501,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	if(nSelectedMuons < kNMuons)
 	{
-		return WHCuts::_iHas2Leptons;
+		return std::pair<unsigned int,float>(WHCuts::_iHas2Leptons,puw);
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2Leptons, puw, fsNTau);
@@ -513,7 +513,7 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	if(nSelectedPVMuons < kNMuons)
 	{
-		return WHCuts::_iHas2PVLeptons;
+		return std::pair<unsigned int,float>(WHCuts::_iHas2PVLeptons,puw);
 	}
 
 	FillHistoPerCut(WHCuts::_iHas2PVLeptons, puw, fsNTau);
@@ -526,7 +526,7 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	if(nSelectedIsoMuons < kNMuons)
 	{
-		return WHCuts::_iHas2IsoLeptons;
+		return std::pair<unsigned int,float>(WHCuts::_iHas2IsoLeptons,puw);
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2IsoLeptons, puw, fsNTau);
@@ -538,7 +538,7 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	if(nSelectedIsoGoodMuons < kNMuons)
 	{
-		return WHCuts::_iHas2IsoGoodLeptons;
+		return std::pair<unsigned int,float>(WHCuts::_iHas2IsoGoodLeptons,puw);
 	}
 	
 	FillHistoPerCut(WHCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
@@ -565,7 +565,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	if( ! fLeptonSelection->IsPass("PtMuonsCuts",nLeptons) )
 	{
-		return WHCuts::_iMuPTPattern;
+		return std::pair<unsigned int,float>(WHCuts::_iMuPTPattern,puw);
 	}
 	FillHistoPerCut(WHCuts::_iMuPTPattern, puw, fsNTau);
 	delete nLeptons;
@@ -575,7 +575,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//---------------------------------------------------------------------------
 	if(nSelectedIsoGoodMuons != _nLeptons)
 	{
-		return WHCuts::_iHasExactly3Leptons;
+		return std::pair<unsigned int,float>(WHCuts::_iHasExactly3Leptons,puw);
 	}
 	// Indexs of good leptons
 	std::vector<int> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
@@ -641,7 +641,7 @@ unsigned int AnalysisVH::InsideLoop()
 	
 	if( (unsigned int)TMath::Abs(charge) == theLeptons->size() )
 	{
-		return WHCuts::_iNotSameSign;
+		return std::pair<unsigned int,float>(WHCuts::_iNotSameSign,puw);
 	}
 	
 	FillHistoPerCut(WHCuts::_iNotSameSign, puw, fsNTau);
@@ -682,7 +682,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	//if(nJets > 0)
 	//{
-	//	return WHCuts::_iJetVeto;
+	//	return std::pair<unsigned int,float>(WHCuts::_iJetVeto;
 	//}
 	//FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
 
@@ -737,7 +737,7 @@ unsigned int AnalysisVH::InsideLoop()
 	// be no difference w.r.t. the last cut)
 	if( leptonPair.size() < 1 )
 	{
-		return WHCuts::_iOppositeCharge;
+		return std::pair<unsigned int,float>(WHCuts::_iOppositeCharge,puw);
 	} 
 	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
 
@@ -798,7 +798,7 @@ unsigned int AnalysisVH::InsideLoop()
 		(*auxVar)[0] = invMass;
 		if( (! fLeptonSelection->IsPass("ZMassWindow", auxVar)) )
 		{
-			return WHCuts::_iZMuMuInvMass;
+			return std::pair<unsigned int,float>(WHCuts::_iZMuMuInvMass,puw);
 		}
 	}
 	FillHistoPerCut(WHCuts::_iZMuMuInvMass, puw, fsNTau);	
@@ -829,7 +829,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	if( iWcand < 0 )
 	{
-		return WHCuts::_iWCandidate;
+		return std::pair<unsigned int,float>(WHCuts::_iWCandidate,puw);
 	}
 	FillHistoPerCut(WHCuts::_iWCandidate, puw, fsNTau);
 
@@ -860,7 +860,7 @@ unsigned int AnalysisVH::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! fLeptonSelection->IsPass("DeltaRMuMuCut", auxVar) )
 	{
-		return WHCuts::_iDeltaR;
+		return std::pair<unsigned int,float>(WHCuts::_iDeltaR,puw);
 	}
 	FillHistoPerCut(WHCuts::_iDeltaR, puw, fsNTau); 
 	
@@ -872,7 +872,7 @@ unsigned int AnalysisVH::InsideLoop()
 
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
-		return WHCuts::_iMET;
+		return std::pair<unsigned int,float>(WHCuts::_iMET,puw);
 	}
 	delete auxVar;
 	auxVar=0;
@@ -885,6 +885,6 @@ unsigned int AnalysisVH::InsideLoop()
 	_histos[fHHT]->Fill(Ht,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
 
-	return WHCuts::_iNCuts;
+	return std::pair<unsigned int,float>(WHCuts::_iNCuts,puw);
 }
 

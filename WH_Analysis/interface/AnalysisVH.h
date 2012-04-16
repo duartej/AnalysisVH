@@ -66,7 +66,7 @@ class AnalysisVH : public AnalysisBase
 
 	protected:
 		virtual void Initialise();
-		virtual unsigned int InsideLoop(); // = 0;
+		virtual std::pair<unsigned int,float> InsideLoop(); // = 0;
 
 	private:
 		AnalysisVH();

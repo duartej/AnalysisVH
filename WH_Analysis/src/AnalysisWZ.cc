@@ -211,7 +211,7 @@ void AnalysisWZ::Initialise()
 //---------------------------------------------------------------------
 // InsideLoop
 //---------------------------------------------------------------------
-unsigned int AnalysisWZ::InsideLoop()
+std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 {
 #ifdef DEBUGANALYSIS
 	std::cout << "========================================================" << std::endl;
@@ -476,7 +476,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	//------------------------------------------------------------------
 	if( ! IspassHLT() )
 	{
-		return WZCuts::_iHLT;
+		return std::pair<unsigned int,float>(WZCuts::_iHLT,puw);
 	}
 	FillHistoPerCut(WZCuts::_iHLT, puw, fsNTau);
 
@@ -496,7 +496,7 @@ unsigned int AnalysisWZ::InsideLoop()
 
 	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedMuons) )
 	{
-		return WZCuts::_iHas2Leptons;
+		return std::pair<unsigned int,float>(WZCuts::_iHas2Leptons,puw);
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2Leptons, puw, fsNTau);
@@ -508,7 +508,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	
 	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedPVMuons) )
 	{
-		return WZCuts::_iHas2PVLeptons;
+		return std::pair<unsigned int,float>(WZCuts::_iHas2PVLeptons,puw);
 	}
 
 	FillHistoPerCut(WZCuts::_iHas2PVLeptons, puw, fsNTau);
@@ -521,7 +521,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	
 	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedIsoMuons) )
 	{
-		return WZCuts::_iHas2IsoLeptons;
+		return std::pair<unsigned int,float>(WZCuts::_iHas2IsoLeptons,puw);
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoLeptons, puw, fsNTau);
@@ -536,7 +536,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	// second argument are the number of  tight leptons
 	if( kNMuons > nSelectedIsoGoodMuons )
 	{
-		return WZCuts::_iHas2IsoGoodLeptons;
+		return std::pair<unsigned int,float>(WZCuts::_iHas2IsoGoodLeptons,puw);
 	}
 	
 	FillHistoPerCut(WZCuts::_iHas2IsoGoodLeptons, puw, fsNTau);	
@@ -586,7 +586,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	//if( ! fLeptonSelection->IspassAtLeastN() )
 	if( (! fLeptonSelection->IspassExactlyN()) || (! fulfillSignature) )
 	{
-		return WZCuts::_iHasAtLeast3Leptons;
+		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
 	if( fFO != 0 && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
@@ -751,7 +751,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	// when already get the total charge of the selected leptons
 	if( leptonPair.size() == 0 )
 	{
-		return WZCuts::_iOppositeCharge;
+		return std::pair<unsigned int,float>(WZCuts::_iOppositeCharge,puw);
 	}	
 	// Accepted events with two opposite charge leptons
 	FillHistoPerCut(WZCuts::_iOppositeCharge, puw, fsNTau);
@@ -777,7 +777,7 @@ unsigned int AnalysisWZ::InsideLoop()
 
 	if( candidatesZMass.size() == 0 )
 	{
-		return WZCuts::_iHasZCandidate;
+		return std::pair<unsigned int,float>(WZCuts::_iHasZCandidate,puw);
 	}
 	FillHistoPerCut(WZCuts::_iHasZCandidate, puw, fsNTau);
         
@@ -796,7 +796,7 @@ unsigned int AnalysisWZ::InsideLoop()
 			if( index1 != i1Z && index1 != i2Z && index2 != i1Z && index2 != i2Z)
 			{
 				// Found another Z non-overlapping with the other already found
-				return WZCuts::_iHasZOverlapping;
+				return std::pair<unsigned int,float>(WZCuts::_iHasZOverlapping,puw);
 			}
 		}
 	}
@@ -869,7 +869,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	// No W candidate
 	if( wcandidate.size() == 0 )
 	{
-		return WZCuts::_iHasWCandidate; 
+		return std::pair<unsigned int,float>(WZCuts::_iHasWCandidate,puw); 
 	}
 	FillHistoPerCut(WZCuts::_iHasWCandidate, puw, fsNTau);
 	// Fill histos
@@ -917,7 +917,7 @@ unsigned int AnalysisWZ::InsideLoop()
 	auxVar->push_back( met );
 	if( ! fLeptonSelection->IsPass("MinMET", auxVar) ) 
 	{
-		return WZCuts::_iMET;
+		return std::pair<unsigned int,float>(WZCuts::_iMET,puw);
 	}
 	FillHistoPerCut(WZCuts::_iMET, puw, fsNTau);
 
@@ -928,6 +928,6 @@ unsigned int AnalysisWZ::InsideLoop()
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
 
-	return WZCuts::_iNCuts;
+	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);
 	
 }

@@ -121,8 +121,8 @@ class CMSAnalysisSelector : public TSelector {
   //
   virtual void InitialiseParameters() {}
   virtual void Initialise() = 0;
-  virtual unsigned int InsideLoop() = 0;
-  virtual void StoresCut(const unsigned int & cut) = 0 ;
+  virtual std::pair<unsigned int,float> InsideLoop() = 0;
+  virtual void StoresCut(const unsigned int & cut,const float & weight) = 0 ;
   virtual void Summary() = 0;
   //
   /////////////////////////////////////////////////////////////

@@ -119,11 +119,11 @@ class AnalysisBase : public CMSAnalysisSelector
 	protected:
 		virtual void InitialiseParameters();
 		virtual void Initialise() = 0;
-		virtual unsigned int InsideLoop() = 0;
+		virtual std::pair<unsigned int,float> InsideLoop() = 0;
 		//! Method to fill the tree which contain the cut number used per event
 		//! (to be fill with the return value of InsideLoop method and inside the
 		//! parent method Process)
-		virtual void StoresCut(const unsigned int & cut);
+		virtual void StoresCut(const unsigned int & cut,const float & weight);
 		virtual void Summary();
 
 	private:
@@ -196,10 +196,12 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		// Tree containing the last cut used in a given event
 		TTree * _cuttree;
+		// Weight of a given event
+		float _cutweight;
 		// Value of the cut
 		unsigned int _cutvalue;
-
 		int _eventnumber;
+		int _runnumber;
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }
