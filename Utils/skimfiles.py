@@ -23,7 +23,7 @@ class clustermanager(object):
 				'workingdir', 'basedir', 'cutid', 'cutfile' ]
 		self.precompile = False
 		self.outputfiles= {}
-		self.datanames = None
+		self.dataname = None
 		# Trying to extract the env variables to define 
 		# the path of the General package
 		if os.getenv("VHSYS"):
@@ -48,8 +48,8 @@ class clustermanager(object):
 				raise message
 			
 			if key == 'inputfile':
-				self.datanames = value
-				self.nameID = self.datanames.split("_")[0].replace("/","").replace(".","")
+				self.dataname = os.path.abspath(value)
+				self.nameID = os.path.basename(value).replace("_datanames.dn","")
 			elif key == 'njobs':
 				self.njobs = int(value)
 			elif key == 'pkgdir':
@@ -79,7 +79,7 @@ class clustermanager(object):
 			elif key == 'cutid':
 				self.cutid = value
 			elif key == 'cutfile':
-				self.cutfile = value
+				self.cutfile = os.path.abspath(value)
 		
 		# Checked if basedir and pkgpath are there
 		try:
@@ -100,7 +100,7 @@ class clustermanager(object):
 		
 		if self.status == "submit":
 			# Extract the total number of events and split 
-			self.nevents = self.getevents(self.datanames)
+			self.nevents = self.getevents(self.dataname)
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
 			# so we are trying to send 10minutes-jobs: ~450000 evt per job  (changed to 300000-> New calculations)
 			if self.njobs == 0:
@@ -202,7 +202,7 @@ class clustermanager(object):
 		import tarfile
 		import glob
 		
-		print "=== ",self.dataname,": Joining all the files in one"
+		print "=== ",self.nameID,": Joining all the files in one"
 		# FIXME: Only there are 1 file, not needed the hadd
 		finalfile = os.path.join("Results",self.outputfile)
 		# FIXED BUG: just cp when there is only one file, otherwise
@@ -322,13 +322,14 @@ class clustermanager(object):
 		os.chdir( self.cwd )
 
 		# FIXME: DEPENDENT!!!
-		lines = 'LINE 0: NOT TO USE\n'
+		#lines = 'LINE 0: NOT TO USE\n'
+		lines = ''
 		# Extract the number of events per job
 		for i,evttuple in self.jobidevt:
 			# Splitting the config file in the number of jobs
 			lines = self.createconfig(lines,evttuple)
 			# Storing the name of the files
-			self.outputfiles[i] = self.outputfile.replace(".root","_"+str(i)+".root")
+			self.outputfiles[i] = os.path.join("Results",self.outputfile.replace(".root","_"+str(i)+".root"))
 		# File containing the event init and event end to be evaluated 
 		# in each row corresponding to the jobid
 		self.eventsfile = "seedevents.txt"
@@ -368,7 +369,7 @@ class clustermanager(object):
 		
 		# Putting the datamembers: FIXME: If you want all the datanames
 		# do it with the __dict__ and __setattr__ methods
-		self.dataname     = copyself.dataname
+		self.nameID       = copyself.nameID
 		self.jobsid       = copyself.jobsid
 		self.jobidevt     = copyself.jobidevt
 		self.tasksID      = copyself.tasksID
@@ -377,7 +378,6 @@ class clustermanager(object):
 		self.basedir      = copyself.basedir
 		self.pkgpath      = copyself.pkgpath
 		self.libsdir      = copyself.libsdir
-		self.filedatanames= copyself.filedatanames
 		self.nevents      = copyself.nevents
 		try:
 			self.taskstatus   = copyself.taskstatus
@@ -596,7 +596,7 @@ if __name__ == '__main__':
 			sys.exit( message )
 
 		if not opt.outputfile:
-			opt.outputfile = opt.inputfile.split('.root')[0]+"_skimcuts.root"
+			opt.outputfile = os.path.basename(opt.inputfile).replace('_datanames.dn','_skimcuts.root')
 
 		# Instantiate and submit
 		manager = None
