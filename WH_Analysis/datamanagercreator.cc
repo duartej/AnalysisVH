@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 			// Checking the validity of the input dataname
 			if( knowndata.find(std::string(dataName)) == knowndata.end() )
 			{
-				std::cerr << "datamanagercreator: ERROR dataname '" << dataName << "'"
+				std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: dataname '" << dataName << "'"
 					<< " not implemented! Exiting..." << std::endl;
 				return -1;
 			}
