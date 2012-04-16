@@ -33,8 +33,10 @@ OPTIONS:
 	 contribute (so the Monte Carlo sample was sent in -F 3,2 mode)
 	 This option is incompatible with '-F' option
    [-c]: Closure test. This option implies that inside the per channel
-         directories would have two folders: sample and sample_WEIGHTED
-	 
+         directories would have two folders: sample and sample_WEIGHTED.
+	 NOTE that this option is incompatible with the '-F' and '-f' 
+	 options	 
+
 EOF
 }
 
