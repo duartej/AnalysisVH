@@ -583,7 +583,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Keep events with exactly 3 leptons and the asked signature
 	// and store momentum and charge
 	//---------------------------------------------------------------------------
-	//if( ! fLeptonSelection->IspassAtLeastN() )
 	if( (! fLeptonSelection->IspassExactlyN()) || (! fulfillSignature) )
 	{
 		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
@@ -597,8 +596,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		// FFF (3,0) = (fFO->GetWeight)^3
 		// Where (N,T) are actually the number of Total leptons and PROMPT leptons. 
 		// This equivalence between tight-prompt can be done because of the approximations
-		// used. So, each tight lepton is weighted in order to get its probability to be
-		// prompt.
+		// used. So, each no-tight lepton is weighted in order to get its probability to be
+		// fake.
 		for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
 		{
 			const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
@@ -621,7 +620,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		}
 	}
 
-	// Including the scale factors if proceed:    FIXME: CODE DOBLADO... MODIFICAR Y MEJORAR
+	// Including the scale factors if proceed
 	if( !fIsData )
 	{
 		int k = 0;

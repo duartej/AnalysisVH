@@ -35,7 +35,7 @@ TString WZCuts::kCutNames[] =
 	"Has2PVLeptons",
 	"Has2IsoLeptons",
 	"Has2IsoGoodLeptons",
-	"AtLeast3Leptons",
+	"Exactly3Leptons",
 	"OppositeCharge",
 	"HasZCandidate",
 	"HasZOverlapping",
