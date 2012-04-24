@@ -32,7 +32,7 @@ class FOManager
 {
 	public:
 		//! Constructor
-		FOManager(); 
+		FOManager(const bool & systematics=false); 
 
 		//! Destructor
 		~FOManager();

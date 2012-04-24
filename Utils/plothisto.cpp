@@ -419,7 +419,7 @@ void PlotAll(const common & cd ,
 
 	//////
 	//Drawing
-	TCanvas* canvas = new TCanvas(sig, sig);
+	TCanvas* canvas = new TCanvas(TString("canvas_sig"), sig);
 	//-- Ration histogram for log plots
 	TH1F * ratio = new TH1F("ratio","",hdata->GetNbinsX(),
 			hdata->GetXaxis()->GetXmin(),hdata->GetXaxis()->GetXmax());
@@ -587,6 +587,7 @@ void PlotAll(const common & cd ,
 	
 	gSystem->MakeDirectory("Plots");
 	canvas->SaveAs("Plots/"+histoname+".pdf");
+	canvas->SaveAs("Plots/"+histoname+".root");
 	//canvas->SetLogy();
 	if( plottype != 2 )
 	{
@@ -825,14 +826,16 @@ int main(int argc, char *argv[])
 	}
 	else if( isfakeasdata )
 	{
-		bkg.push_back("TTbar_Madgraph");
+		//bkg.push_back("TTbar_Madgraph");
+		bkg.push_back("TTbar_2L2Nu_Powheg");
 		bkg.push_back("ZJets_Powheg");
 	}
 	else
 	{
 		bkg.push_back("WW");
 		bkg.push_back("WJets_Madgraph");
-		bkg.push_back("TTbar_Madgraph");
+		//bkg.push_back("TTbar_Madgraph");
+		bkg.push_back("TTbar_2L2Nu_Powheg");
 		bkg.push_back("ZJets_Powheg");
 	}
 

@@ -133,15 +133,6 @@ if [ "X${autobin}" == "X" ]; then
 	rbinoption8="-r 8"
 fi
 
-# Fakes comparation with MC mode
-if [ "X${fakeasdata}" == "Xyes" ];
-then
-	signal="Fakes -d Fakes"
-	fakeasdata="-f"
-	isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg"
-
-fi
-
 plothistoexe=plothisto
 data="Data"
 signalToPlot=$signal
@@ -173,6 +164,17 @@ then
 	else
 		signalToPlot="ZJets"
 	fi
+fi
+
+# Fakes comparation with MC mode
+if [ "X${fakeasdata}" == "Xyes" ];
+then
+	signalToPlot="Fakes"
+	signal="Fakes"
+	data="Fakes"
+	fakeasdata="-f"
+	isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg"
+
 fi
 
 

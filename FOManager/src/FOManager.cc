@@ -12,7 +12,7 @@
 #include "TROOT.h"
 
 
-FOManager::FOManager() 
+FOManager::FOManager(const bool & systematics) 
 {
 	_fakerate[MUON] = 0;
 	_fakerate[ELECTRON] = 0;
@@ -30,12 +30,14 @@ FOManager::FOManager()
 		exit(-1);
 	}
 
-	// FIXME : No harcodear los systematicos....
 	// NOMINAL
-	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
-//	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_MCQCD_LPcuts_AND_kink_jet15.root"); // QCD
+	std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet35.root");
+	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_all2011_jet50.root");
 	// SYSTEMATICS
-//	std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet15.root");
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_all2011_jet70.root");
+	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
 	//std::string elecfile(std::string(pkgpath)+"/FOManager/data/ElecFR_all2011_jet15.root");
 	// SYSTEMATICS
 	//std::string mufile(std::string(pkgpath)+"/FOManager/data/MuFR_All2011_LPcuts_AND_kink_jet30.root");
@@ -161,7 +163,15 @@ const double FOManager::GetWeight(const LeptonTypes & lt, const double & pt, con
 	// FIXME: NECESITO rectificar en el caso de muones: el bin de pt>40 es malo, mejor
 	// coge el valor del bin anterior
 
-	int bin = _fakerate[lt]->FindBin(pt,fabs(eta));
+	// WARNING: FAKE RATE for pt>35 is wrong evaluated, just take 
+	// the pt in [30,35] bin 
+	double ptMod = pt;
+	if( pt >= 35.0 )
+	{
+		ptMod = 34.;
+	}
+
+	int bin = _fakerate[lt]->FindBin(ptMod,fabs(eta));
 	double f = _fakerate[lt]->GetBinContent(bin);
 	
 	// FIXME: Also return error --> std::pair

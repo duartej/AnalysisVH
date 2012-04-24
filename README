@@ -106,18 +106,15 @@ TODO:
      with mixing channels. Now until we arrive to the Z candidate level the 2mu1e and the
      2e1mu channel behave the same (because is in that level where it is introduced the 
      flavour requirement). This makes impossible to compare data-MC up to Z candidate level --> DONE for WZ
-     DO NOW For VH
+     DO NOW For VH 
   A001. Add the fakes to the VH. IMPORTANT!!
-  A01. Find a way to deal with the control region analysis: now I have to recompile and change the code if
-     I want to send a control region.
-  A02. Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
-     I think it will turn out more legible.
   A03. FIX BUG in printtable: the rounding is not done appropiately. Check it
-  A. Include in the 'cuts' TTree the 'RunNumber' also. And 'weight' <--
+  A. Include in the 'cuts' TTree the 'RunNumber' also. And 'weight' ---> DONE
+  A1.Include an algorithm to extract the WZ and ZZ contribution to the Fake estimation (the PPP contribution)
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
-     to avoid doble counting, see Ana's email)
+     to avoid doble counting, see Ana's email) 
   5. Check with the *.sh.e* the good behaviour of the job
-  9. Put in the configuration the Working Point to be used in the Electrons
+  9. Put in the configuration the Working Point to be used in the Electrons-->SUPERSEEDED
   12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
      runanalysis job (see skimfiles.py script to identify what functions could be used as general funtions
      of an abstract class (clustermanager, for instance) and what ones must be implemented in each concrete
@@ -128,9 +125,19 @@ TODO:
   15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
      should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
      interface methods to use not the SelectWhateverLeptons ... 
-  16. Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels
-  17. Incorporate an histogram giving the flavour of the tight leptons (in fakes mode)
-  18. Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
-      the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
-      for instance)
+  16.Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels
+  17.Incorporate an histogram giving the flavour of the tight leptons (in fakes mode)
+  18.Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
+     the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
+     for instance)
+  19.Substitute the plothisto.cpp by a plothisto.py, include the no-dependence of the samples used
+  20.Add a way to check if a variable has a cut, then the plot should use the min bin edge of that cut
+     (see MET plot after all cuts)
+  21.Substitute the FOManager by the WManager (centralized weights class)
+  22.Find a way to deal with the control region analysis: now I have to recompile and change the code if
+     I want to send a control region.
+  23.Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
+     I think it will turn out more legible.
+  24.Included a way to deal with the madgraph-powheg (exclusive-inclusive) samples
+  
 
