@@ -16,10 +16,11 @@ Send all the final states jobs to the cluster
 
 SYNTAX:
 
-   $0 [-r runperiod] [-F] [-f] <WZ|WH> 
+   $0 [-r runperiod] [-F] [-f] <-c|WZ|WH>
 
 
-   Note that the signal is a mandatory argument. 
+   Note that the signal is a mandatory argument if not use the -c
+   option
 
    Note: in the launching directory must exist the
    configuration files for electrons and muons:
@@ -30,11 +31,62 @@ OPTIONS:
 
    [-r]: Set the Run period: 2011, 2011A, 2011B. Default: 2011
    [-F]: Activate fakeable mode: the Fakes data sample will be send
-         in substitution of Z+Jets, Drell-Yan and ttbar MC samples
+         in substitution of Z+Jets, Drell-Yan and ttbar MC samples.
+	 Also, it is sended a WZ3LNu and ZZ sample in fakeable mode
+	 in order to extract its contribution (PPP) from the fakes
+	 estimation
    [-f]: Activate fakeable mode: the Fakes data sample is considered
          as data and compared with the potential MC sample which could
 	 contribute (so the Monte Carlo sample are sent in -F 3,2 mode)
 	 This option implies '-F' option, so it is called automatically
+   [-c]: Closure test. Don't do anything, just showing some guidelines
+         to do the work
+
+EOF
+}
+
+# Show information of the closure test
+showct()
+{
+	cat <<EOF
+============================================
++ INFORMATIONAL OPTION: Nothing to be done +
+============================================
+
+
+In order to send a DDM vs. MC (or closure test) you need to create inside
+the working folder two directories:
+    |- TTnT:  where to send the Fakes sample (DDM)
+    |- TTT:   where to send the Nt3 sample (MC)
+
+SENDING THE JOBS ---------------------------------------------------------
+Then, assuming you are using two MC samples: S1 and S2,
+1. you need to create the datanames files:
+   $ datamanager creator S1 -r 2011 -f mmm
+   $ datamanager creator S2 -r 2011 -f mmm
+2. you need to send the DDM jobs
+   $ mkdir TTnT; cd TTnT
+   $ cp /fromwhateveryouhave/analysis*.ip .
+   $ for i in eee eem mme mmm; do mkdir WZ$i; cd WZ$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f $\i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip -F 3,2 -k; cd ..; done
+3. and the MC jobs
+   $ mkdir TTT; cd TTT;
+   $ cp /fromwhateveryouhave/analysis*.ip .
+   $ for i in eee eem mme mmm; do mkdir WZ$i; cd WZ$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f $\i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip; cd ..; done
+
+COLLECTING THE JOBS ------------------------------------------------------
+To check and collect the jobs, go to the initial working folder:
+   $ for i in TTT TTnT; do for j in WZeee WZeem WZmme WZmmm; do echo "$i $j"; for k in \`ls cluster\`; sendcluster harvest -w $i/$j/$k;done; done;done
+
+PLOTTING ----------------------------------------------------------------
+You need to move the names of the fakes samples in order to be accepted
+by the plotall script, and also create the usual structure of folders by
+channel. So, in the working folder:
+   $ for i in eee eem mme mmm; do for samples in S1 S2; do mkdir -p WZ$i/cluster_${samples}/Results; mkdir -p WZ$i/cluster_${samples}_WEIGHTED/Results; cp TTnT/WZ$i/cluster_${samples}/Results/${samples}.root WZ$i/cluster_${samples}_WEIGHTED/Results/${samples}_WEIGHTED.root; cp TTT/WZ${i}/cluster_${samples}/Results/${samples}.root WZ$i/cluster_${samples}/Results/; done;done;
+   $ plotall -a -c WZ
+
+============================================
++ INFORMATIONAL OPTION: Nothing to be done +
+============================================
 
 EOF
 }
@@ -63,7 +115,7 @@ fi
 fakeable=""
 fakeasdata=""
 
-while getopts r:Ffh o;
+while getopts r:Ffch o;
 	do
 		case "$o" in
 			r)	runperiod=$OPTARG; 
@@ -73,6 +125,8 @@ while getopts r:Ffh o;
 			f)	fakeasdata="yes";
 				fakeable="yes";
 				;;
+			c)      showct;
+			        exit 0;;
 			h)	help;
 				exit 1;;
 		esac
@@ -122,10 +176,6 @@ if [ "$1" == "WZ" ]; then
 	echo "[sendall] Info: not needed the WH samples, removing";
 	rm WHTo*.dn;
 fi
-# NOTE: Change this line if you want to use WZ pythia. FIXME: I don't know yet how to deal this
-#       Probably WZ pythia will be totally removed (from datamanagercreator)
-#echo "[sendall] Info: using the WZTo3LNu sample (madgraph inclusive), removing WZ (pythia)"
-#rm WZ_datanames.dn;
 
 if [ "X"$fakeable == "X" ];
 then
@@ -143,14 +193,12 @@ else
 		rm TW_DR_datanames.dn;
 		rm WJets_Madgraph_datanames.dn;
 		rm WW_datanames.dn;
-		
 	else
 		echo "[sendall] Info: not needed the Z+Jets, DY and TTbar samples, removing";
 		rm Z*_Powheg_datanames.dn;
 		rm DY*_Powheg_datanames.dn;
 		rm TTbar_Madgraph_datanames.dn;
 	fi
-
 fi
 
 
@@ -174,6 +222,16 @@ do
 	fi
 	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
 	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
+	# The WZ3LNu and ZZ sample has to be considered for the Fake substraction (-F and no -f options)
+	if [ "X"$fakeable == "Xyes" -a "X"$fakeasdata == "X" ];
+	then
+		WZSAMPLE=WZTo3LNu
+		ZZSAMPLE=ZZ
+		cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
+		cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+	fi
 	cd ../; 
 done
 rm *.dn
