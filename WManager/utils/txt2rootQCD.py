@@ -114,7 +114,7 @@ if __name__ == '__main__':
 	# Note that FRhist = { etabins: [ ptbins,....], ... ], and eta is actually abs
 
 	# And create the root file what is going to be used by the WManager
-	createroot(FRhist,opt.rootname)º
+	createroot(FRhist,opt.rootname)
 	dirtomv=os.path.join(os.getenv("VHSYS"),"WManager/data")
 	shutil.move(opt.rootname, os.path.join(dirtomv,opt.rootname))
 	print "\033[1;34mCreated '"+opt.rootname+"' and moved to the directory '"+dirtomv+"'\033[1;m"
