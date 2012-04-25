@@ -12,7 +12,6 @@
 //#include "CutLevels.h"
 #include "LeptonTypes.h"
 #include "SignatureFS.h"
-#include "FOManager.h"
 #include "WManager.h"
 
 #include "TString.h"
@@ -26,7 +25,6 @@ class PUWeight;
 class TTree;
 class CutManager;
 class TH1D;
-class FOManager;
 class WManager;
 
 

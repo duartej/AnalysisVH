@@ -9,7 +9,6 @@
 #include "InputParameters.h"
 #include "CutManager.h"
 #include "PUWeight.h"
-#include "FOManager.h"
 #include "WManager.h"
 
 #include "TTree.h"
