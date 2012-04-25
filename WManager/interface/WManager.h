@@ -47,8 +47,6 @@ class WManager
 		//! Destructor
 		virtual ~WManager();
 
-		//! Set the root file where to find the TH2F with the weights
-		void SetWeightFile(const LeptonTypes & lt, const char * filename);
 
 		//! Get the weight 
 		const double GetWeight(const LeptonTypes & lt, const double & pt, 
@@ -58,8 +56,12 @@ class WManager
 		const char * GetWTStr(const unsigned int & wt) const;
 	
 	private:
+		//! Set the root file where to find the TH2F with the weights
+		void setweightfile(const LeptonTypes & lt, const char * filename);
+		
 		//! get the complete path to the weight maps
 		std::string getfile(const unsigned int & lepton, const bool & isSystematics);
+
 		//! Weight type
 		unsigned int _wtype;
 		//! Weight map

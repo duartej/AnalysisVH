@@ -522,8 +522,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	if( ! fLeptonSelection->IspassAtLeastN(kNMuons,nSelectedIsoMuons) )
 	{
 		return std::pair<unsigned int,float>(WZCuts::_iHas2IsoLeptons,puw);
-	}
-	
+	}	
 	FillHistoPerCut(WZCuts::_iHas2IsoLeptons, puw, fsNTau);
 	
 	// (4) Isolated good muons: Identification (tight + notight)

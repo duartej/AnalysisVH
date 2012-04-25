@@ -23,25 +23,8 @@ WManager::WManager(const unsigned int & weighttype, const bool & isSystematics )
 	std::string mufile( this->getfile(MUON,isSystematics) );
 	std::string elecfile( this->getfile(ELECTRON,isSystematics) ); 
 
-	//std::string mufile(std::string(pkgpath)+"/WManager/data/");
-	//std::string elecfile(std::string(pkgpath)+"/WManager/data/");
-
-	// FIXME: Hardcoded filenames
-	/*if( _wtype == WManager::SF )
-	{
-		mufile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-		elecfile+= "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-	}
-	else
-	{
-		std::cerr << "\033[1;31mWManager::WManager ERROR\033[1;m Not implemented "
-			<< "'" << this->GetWTStr(weighttype) << "' weight type." 
-			<< std::endl;
-		exit(-1);
-	}*/
-
-	this->SetWeightFile(MUON,mufile.c_str());
-	this->SetWeightFile(ELECTRON,elecfile.c_str());
+	this->setweightfile(MUON,mufile.c_str());
+	this->setweightfile(ELECTRON,elecfile.c_str());
 }
 
 WManager::~WManager()
@@ -91,7 +74,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 			}
 			else
 			{
-				thefile  += "MuFR_All2011_LPcuts_AND_kink_jet15.root";
+				thefile  += "MuFR_all2011_jet50.root";
 			}
 		}
 		else if( lepton == ELECTRON )
@@ -118,7 +101,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 }
 
 
-void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filename)
+void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename)
 {
 	// Forcing the ownership to WManager instead of TFile,
 	// in order not to enter in conflict with the TreeManager TFile
@@ -143,7 +126,8 @@ void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filena
 			std::stringstream ss;
 			ss << leptontype;
 			std::string name(ss.str()+"_w");
-			// Check if it was already filled: then removed
+			// Check if it was already filled: if yes, remove it
+			// to include the last one
 			if( _weights[leptontype] != 0 )
 			{
 				delete _weights[leptontype];
@@ -163,18 +147,37 @@ void WManager::SetWeightFile(const LeptonTypes & leptontype, const char * filena
 
 	// Some arrangements in order to avoid the calculation inside the loop
 	// for the fake rate case the weight per event is f/(1-f)
-	// FIXME: SOMETHING IS WRONG HERE, I DIDN'T FIND THE SAME RESULT AS IN THE FOMANAGER. 
-	//        TO CHECK!! BY THE MOMENT I DON'T USE IT
 	if( _wtype == WManager::FR )
 	{
-		for(int i = 0; i < _weights[leptontype]->GetNbinsX(); ++i)
+		TH2F * prov = (TH2F*)_weights[leptontype]->Clone("prov");
+		// Get the Overflow bin in pt in order to assign any lepton
+		// higher than the maximum (50)
+		for(int i = 1; i <= prov->GetNbinsX()+1; ++i)
 		{
-			for(int j = 0; j < _weights[leptontype]->GetNbinsY(); ++j)
+			// WARNING: FAKE RATE Matrix for  pt > 35 is not reliable
+			//          Following Alicia advice take the values of bin [30,35]
+			double ptIn = prov->GetXaxis()->GetBinCenter(i);
+			const double ptOut = ptIn;
+			if( ptIn >= 35.0 )
 			{
-				const double f = _weights[leptontype]->GetBinContent(i,j);
-				double finalweight = f/(1.0-f);
-				_weights[leptontype]->SetBinContent(i,j,finalweight);
+				ptIn = 34.;
 			}
+			
+			// Same as pt (w.r.t. the overflow) for the eta case 
+			for(int j = 1; j <= prov->GetNbinsY()+1; ++j)
+			{
+				const double eta = prov->GetYaxis()->GetBinCenter(j);
+				const int globalbin = prov->FindBin(ptIn,eta);
+				const double f = prov->GetBinContent(globalbin);
+				double finalweight = f/(1.0-f);
+				const int globalbinOut = prov->FindBin(ptOut,eta);
+				_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
+			}
+		}
+		if(prov != 0)
+		{
+			delete prov;
+			prov = 0;
 		}
 	}
 	

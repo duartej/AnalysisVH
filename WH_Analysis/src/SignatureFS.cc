@@ -35,7 +35,7 @@ unsigned int SignatureFS::GetFSID(const char * fs)
 	{
 		finalstate = (int)_iFSmme;
 	}
-	else if( strcmp(fs,"eem") == 0 || strcmp(fs,"eem") == 0 || 
+	else if( strcmp(fs,"eem") == 0 || strcmp(fs,"mee") == 0 || 
 			strcmp(fs,"eme") == 0 )
 	{
 		finalstate = (int)_iFSeem;

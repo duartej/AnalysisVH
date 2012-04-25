@@ -59,8 +59,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// Are in fake sample mode?  // FIXME: Para el InitializeParameters
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
-		fFO = new FOManager;
-		//fFO = new WManager( WManager::FR );
+		fFO = new WManager( WManager::FR );
 	}
 
 	

@@ -139,5 +139,10 @@ TODO:
   23.Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
      I think it will turn out more legible.
   24.Included a way to deal with the madgraph-powheg (exclusive-inclusive) samples
+  25.Include in the Scale Factors and Weights (fake rates) a way to deal with different 
+     run periods(A, B) because the input files for each period are different
+  26.Find a way to deal with the web conection to extract the PU histogram (PUWeight class). It must
+     be used with caution and if there are no answer from the web, then used some per default and
+     already downloaded local PU histogram.
   
 
