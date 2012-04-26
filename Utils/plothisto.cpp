@@ -108,6 +108,11 @@ TH1D* GetHistogram(const TString& hname, TFile* f, const TString& ds)
 double GetWeight(TFile* f, double luminosity) 
 {
 	InputParameters* ip = (InputParameters*) f->Get("Set Of Parameters");
+	// Just checking the Fake substraction case
+	if( ip == 0 ) 
+	{
+		return  1.0;
+	}
 	double xs = 0;
 	int neventssample = 0;
 	int neventsskim   = 0;

@@ -122,6 +122,14 @@ fi;
 
 fsdirectories=`ls |grep ${signal:0:2}`
 
+#-------------------------------------------------------------
+# TO BE ACTIVATED WHEN DECIDED THE PPP SUBSTRACTION
+# Extracting PPP contribution to Fakes (if needed)
+#if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
+#	promptsubstract -s ${signal:0:2};
+#fi
+#-------------------------------------------------------------
+
 echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`
 merge3leptonfs -d $dircommasep;

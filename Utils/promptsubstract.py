@@ -143,8 +143,9 @@ a loop for each channel subfolder."""
 		path=[ os.getcwd() ]
 
 	# Do the substraction at each directory
-	thefiles = {}
 	for folder in path:
+		previousdir=os.getcwd()
+		os.chdir(folder)
 		# Find the DDD sample
 		fakesample = os.path.join(folder,"cluster_Fakes/Results/Fakes.root")
 		if not os.path.isfile(fakesample):
@@ -217,6 +218,8 @@ a loop for each channel subfolder."""
 		fw = open("cluster_Fakes/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
 		fw.writelines(warningfile)
 		fw.close()
+
+		os.chdir(previousdir)
 
 
 
