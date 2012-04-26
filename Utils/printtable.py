@@ -126,7 +126,7 @@ class column(object):
 		# Including the luminosity, efficiency weights,,...
 		if "Data.root" in self.filename:
 			weight = 1.0
-		elif "Fakes.root" in self.filename:
+		elif "Fakes.root" in self.filename and not "_Fakes.root" in self.filename:
 			weight = 1.0
 		else:
 			# 1) Load the InputParameters
@@ -298,7 +298,7 @@ class table(object):
 		else:
 			# Added the important cuts to be used in the reduced table case
 			# FIXME WARNING HARDCODED!! --> THis is a temporal patch...
-			self.importantcutsdict = { 'Pre-selection' : 'AtLeast3Leptons',
+			self.importantcutsdict = { 'Pre-selection' : 'Exactly3Leptons',
 					'Z' : 'HasZCandidate',  'W': 'MET' }
 			self.importantcutslist = [ 'Pre-selection', 'Z', 'W' ]
 

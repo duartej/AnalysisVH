@@ -94,6 +94,10 @@ EOF
 # Default
 runperiod=2011
 
+# TTbar sample and WZ
+TTBAR=TTbar_2L2Nu_Powheg
+TTBAR=TTbar_Madgraph
+
 
 #
 # Process the arguments
@@ -197,7 +201,7 @@ else
 		echo "[sendall] Info: not needed the Z+Jets, DY and TTbar samples, removing";
 		rm Z*_Powheg_datanames.dn;
 		rm DY*_Powheg_datanames.dn;
-		rm TTbar_Madgraph_datanames.dn;
+		rm ${TTBAR}_datanames.dn;
 	fi
 fi
 

@@ -57,7 +57,7 @@ def extractyields(sample,lumi=None):
 
 
 
-def substractprompt(filefakes,filepromptsdict, lumi=None):
+def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
 	"""
 	"""
 	import ROOT
@@ -76,13 +76,14 @@ def substractprompt(filefakes,filepromptsdict, lumi=None):
 			except KeyError:
 				hnamedict[hname] = [ hdict[hname] ]
 
-	fsubstracted = ROOT.TFile("test_kkita.root","RECREATE")
+	fsubstracted = ROOT.TFile(outfilename,"RECREATE")
 	fwithPPP = ROOT.TFile(filefakes)
 	for hname,histolist in hnamedict.iteritems():
 		oldh = fwithPPP.Get(hname)
 		#oldh.Sumw2()
 		for h in histolist:
 			oldh.Add(h,-1.0)
+		# Checking we aren't with negative values??
 		fsubstracted.cd()
 		oldh.Write()
 	
@@ -97,6 +98,8 @@ if __name__ == '__main__':
 	import sys
 	import os
 	import glob
+	import tarfile
+	import shutil
 	from optparse import OptionParser
 	
 	#Comprobando la version (minimo 2.4)
@@ -109,7 +112,7 @@ if __name__ == '__main__':
 		sys.exit( message )
 	
 	usage  ="usage: promptsubstract [options]"
-	usage +="""\nSubstract to the DDD sample (Fakes) the contribution due to PPP "
+	usage +="""\nSubstract to the DDD sample (Fakes) the contribution due to PPP
 samples (WZTo3LNu and ZZ). This is done by looking for any folder with 
 the name structure as 'cluster_sampleName_Fakes': those samples are 
 going to be used as elements to substract to the Fake sample which is 
@@ -121,9 +124,11 @@ containing at least one 'cluster_Fakes' and one or several
   -with '-s' options: you are going to call the script doing 
 a loop for each channel subfolder."""
 	parser = OptionParser(usage=usage)
-	#parser.set_defaults(tput="table.tex")
+	parser.set_defaults(force=False)
 	parser.add_option( '-s', action='store', type='string', dest='signal', 
-			help="<WZ|WH> it describes what subdirectories to search when '-i' option was called" )
+			help="<WZ|WH> it describes what subdirectories to search (recall standard structure SIGNALeee ... " )
+	parser.add_option( '-f', action='store_true', dest='force', 
+			help="Force the creation of the backup file 'fakespool.tar.gz' even if it already exists" )
 	( opt, args ) = parser.parse_args()
 
 	path=None
@@ -150,10 +155,22 @@ a loop for each channel subfolder."""
 		# Find the PPP samples
 		pppfolders = glob.glob(os.path.join(folder,"cluster_*_Fakes"))
 		if len(pppfolders) == 0:
-			message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed folder structure:"\
-					" Not found the PPP samples files 'cluster_sampleNames_Fakes/Results/sampleName_Fakes.root'"\
-					" inside the folder '%s'" % (folder)
-			sys.exit(message)
+			# Checking we didn't use this script before
+			if os.path.isfile("fakespool.tar.gz"):
+				# Recovering the original samples
+				shutil.rmtree("cluster_Fakes")
+				tar = tarfile.open("fakespool.tar.gz")
+				tar.extractall()
+				tar.close()
+				if opt.force:
+					os.remove("fakespool.tar.gz")
+				# And again do the search
+				pppfolders = glob.glob(os.path.join(folder,"cluster_*_Fakes"))
+			else:
+				message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed folder structure:"\
+						" Not found the PPP samples files 'cluster_sampleNames_Fakes/Results/sampleName_Fakes.root'"\
+						" inside the folder '%s'" % (folder)
+				sys.exit(message)
 		# --- extract the names of the samples
 		pppnames = map(lambda x: os.path.basename(x).replace("cluster_",""), pppfolders)
 		pppsamples = dict([ (name, filter(lambda x: x.find(name) != -1,pppfolders)[0]+"/Results/"+name+".root")\
@@ -164,10 +181,44 @@ a loop for each channel subfolder."""
 						" Not found the PPP sample root file '%s'" % (_f)
 				sys.exit(message)
 
-		substractprompt(fakesample,pppsamples)
 		print "\033[1;34mpromptsubstract INFO\033[1;m Extracting the prompt contribution to the DDD sample "\
 				"(%s subfolder)" % os.path.basename(folder)
 		sys.stdout.flush()
+		fakesubstractedfile = "fsubsprov.root"
+		substractprompt(fakesample,pppsamples,fakesubstractedfile)
+
+		print "\033[1;34mpromptsubstract INFO\033[1;m Generating backup fake folders (fakespool.tar.gz) "\
+				"(%s subfolder)" % os.path.basename(folder)
+		# Re-organizing the output
+		# --- Don't do it continously (just by demand)
+		folderstotar = map(lambda x: os.path.basename(x),pppfolders)+["cluster_Fakes"]
+		if not os.path.isfile("fakespool.tar.gz") or opt.force:
+			tar = tarfile.open("fakespool.tar.gz","w:gz")
+			for f in folderstotar:
+				tar.add(f)
+			for s in pppsamples:
+				tar.add(s+"_datanames.dn")
+				os.remove(s+"_datanames.dn")
+			tar.close()
+		if os.path.exists("fakespool.tar.gz"):
+			for f in folderstotar:
+				shutil.rmtree(f)
+		else:
+			message  = "\033[33;1mpromptsubstract: WARNING\033[0m I can't manage\n"
+			message += "to create the backup fakespool.tar.gz file\n"
+			print message
+		# -- The new folder for the Fakes containing the substracted fakes
+		os.makedirs("cluster_Fakes/Results")
+		shutil.move(fakesubstractedfile,"cluster_Fakes/Results/Fakes.root")
+		warningfile = "CAVEAT: Directory tree created automatically from 'promptsubstract'\n"
+		warningfile+= "         script. You can find the original file inside the 'fakespool.tar.gz' file.\n"
+		warningfile+= "WARNING: do not untar the fakespool file at the same level you found it because you will\n"
+		warningfile+= "        destroy the fake substracted folder\n"
+		fw = open("cluster_Fakes/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
+		fw.writelines(warningfile)
+		fw.close()
+
+
 
 	
 
