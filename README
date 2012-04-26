@@ -110,6 +110,7 @@ TODO:
   A001. Add the fakes to the VH. IMPORTANT!!
   A03. FIX BUG in printtable: the rounding is not done appropiately. Check it
   A1.Include an algorithm to extract the WZ and ZZ contribution to the Fake estimation (the PPP contribution)
+     ---> DONE, but pending of validation
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email) 
   5. Check with the *.sh.e* the good behaviour of the job
@@ -124,8 +125,7 @@ TODO:
   15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
      should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
      interface methods to use not the SelectWhateverLeptons ... 
-  16.Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels
-  17.Incorporate an histogram giving the flavour of the tight leptons (in fakes mode)
+  16.Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels --> DONE
   18.Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
      the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
      for instance)

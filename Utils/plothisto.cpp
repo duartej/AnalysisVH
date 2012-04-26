@@ -136,7 +136,8 @@ void PlotAll(const common & cd ,
 		TString histoname="fHMET",
 		int rebin = 0,
 		int plottype = 0, 
-		double luminosity=2143.3) 
+		double luminosity=2143.3,
+		bool wantroot=false) 
 {
 	// Renaming 
 	const int SIGNALFACTOR = cd.SIGNALFACTOR;
@@ -592,7 +593,10 @@ void PlotAll(const common & cd ,
 	
 	gSystem->MakeDirectory("Plots");
 	canvas->SaveAs("Plots/"+histoname+".pdf");
-	canvas->SaveAs("Plots/"+histoname+".root");
+	if( wantroot )
+	{
+		canvas->SaveAs("Plots/"+histoname+".root");
+	}
 	//canvas->SetLogy();
 	if( plottype != 2 )
 	{
@@ -707,6 +711,7 @@ void display_usage()
 		<<   "                      In this mode, the Fake sample is used as Data and it will be compared with\n"
 		<<   "                      some MC samples which could create this Fake sample: WZ, ZZ, Z+Jets, ttbar" << std::endl;
 	std::cout << "    -h                displays this help message and exits " << std::endl;
+	std::cout << "    -w                Want root output files plus the pdf plot files" << std::endl;
 	std::cout << "" << std::endl;
 }
 
@@ -716,11 +721,12 @@ int main(int argc, char *argv[])
 	const char * signal    = "WHToWW2L120";
 	const char * rebin     = "0";
 	const char * plottype  = "0";
-	const char * luminosity= "2143.3";
+	const char * luminosity= "4922.0";
 	const char * histoname = 0;
 	const char * ismodefake= 0;
 	const char * dataname  = "Data";
-	
+
+	bool wantroot = false;	
 	bool isfakeasdata = false;
 	// Arguments used
 	std::set<int> usedargs;
@@ -778,6 +784,11 @@ int main(int argc, char *argv[])
 				dataname = "Fakes";
 				signal = "";
 				isfakeasdata=true;
+				usedargs.insert(i);
+			}
+			if( strcmp(argv[i],"-w") == 0 )
+			{
+				wantroot = true;
 				usedargs.insert(i);
 			}
 		}
@@ -917,5 +928,5 @@ int main(int argc, char *argv[])
 	ss2 >> lumi;
 
 
-	PlotAll(cd,histoname,rebinI,plottypeI,lumi);	
+	PlotAll(cd,histoname,rebinI,plottypeI,lumi,wantroot);	
 }

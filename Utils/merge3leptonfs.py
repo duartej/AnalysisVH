@@ -36,6 +36,37 @@ def getdatanamefiles(t):
 
 	return datanamefilem
 
+def getweight(f):
+	"""
+	"""
+	import ROOT
+	from array import array
+	
+	filename = f.GetName()
+	if "Data.root" in filename:
+		weight = 1.0
+	elif "Fakes.root" in filename and not "_Fakes.root" in filename:
+		weight = 1.0
+	else:
+		# 1) Load the InputParameters
+		ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
+		ROOT.gSystem.Load("libInputParameters.so")
+
+		weight = 1.0
+		xs = array('d',[0.0])
+		luminosity = array('d',[0.0])
+		neventsample = array('i',[0])
+		neventsskim  = array('i',[0])
+		ip = f.Get("Set Of Parameters")
+		ip.TheNamedDouble("CrossSection",xs)
+		ip.TheNamedInt("NEventsSample",neventsample)
+		ip.TheNamedInt("NEventsTotal",neventsskim)
+		ip.TheNamedDouble("Luminosity",luminosity)
+		weight  = xs[0]*luminosity[0]/neventsample[0]
+
+	return weight
+
+
 	
 def domerge(dataname,rootfilenames):
 	"""
@@ -59,6 +90,33 @@ def domerge(dataname,rootfilenames):
 	p = Popen( command, stdout=PIPE,stderr=PIPE).communicate()
 
 	# Also incorporate the channel histogram
+	f =  ROOT.TFile(finalfilename,"UPDATE")
+	if not f.Get("fHFlavour"):
+		h = ROOT.TH1D("fHFlavour","Number of events by channel",4,0,4)
+		if finalfilename.find("Data") != -1:
+			h.SetMarkerStyle(20)
+			h.SetLineColor(h.GetMarkerColor())
+		idchannel = { 1: 'mmm', 2: 'mme', 3: 'eem', 4: 'eee' }
+		channelid = dict([ (y,x) for x,y in idchannel.iteritems() ])
+		for i in xrange(1,5):
+			h.GetXaxis().SetBinLabel(i,idchannel[i])
+		for i in rootfilenames:
+			channelstr = filter(lambda x: i.find(x) != -1, channelid.keys())[0]
+			id = channelid[channelstr]
+			fchannel = ROOT.TFile(i)
+			hevents = fchannel.Get("fHEventsPerCut")
+			nevents = hevents.GetBinContent(hevents.GetNbinsX())
+			errevt  = hevents.GetBinError(hevents.GetNbinsX())
+			h.SetBinContent(id,nevents)
+			h.SetBinError(id,errevt)
+			fchannel.cd()
+			fchannel.Close()
+			fchannel.Delete()
+		f.cd()
+		h.Write()
+	f.Close()
+			
+
 	
 	os.chdir(lastdir)
 	# FIXME: Check...

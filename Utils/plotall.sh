@@ -194,6 +194,10 @@ do
 	do
 		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
 	done;
+	if [ "X$j" == "Xleptonchannel" ];
+	then
+		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
+	fi
 	
 	for i in $HISTOS4B;
 	do
