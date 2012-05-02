@@ -192,21 +192,21 @@ do
 	cd $j;
 	for i in $HISTOSNOC;
 	do
-		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
 	fi
 	
 	for i in $HISTOS4B;
 	do
-		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata
+		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
 	done;
 	printtable $signal -d $data $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
