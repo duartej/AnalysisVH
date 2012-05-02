@@ -342,8 +342,14 @@ class table(object):
 			samplestodelete = []
 			self.columns[metasample] = column("",nobuilt=True)
 			for sample in self.getsamplecomponents(metasample):
-				self.columns[metasample] += self.columns[sample]
-				samplestodelete.append( sample )
+				try:
+					self.columns[metasample] += self.columns[sample]
+					samplestodelete.append( sample )
+				except KeyError:
+					# Protecting the case where the pre-defined
+					# samples aren't there (for instance WJets_Madgraph
+					# in the 'Other' metasample)
+					pass
 			# Put the title
 			self.columns[metasample].title = metasample
 			# Erase the samples merged 
