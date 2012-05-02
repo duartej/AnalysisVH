@@ -205,6 +205,7 @@ void PlotAll(const common & cd ,
 	if( ! fakeasdata )
 	{
 		hwh = GetHistogram(histoname, fwh, sig);
+		hwh->SetOption("HIST");
 	}
 	// + Backgrounds
 	TH1D* hbkg[NBKG];
@@ -214,6 +215,7 @@ void PlotAll(const common & cd ,
 		if(fbkg[i])
 		{
 			hbkg[i] = GetHistogram(histoname, fbkg[i], bkg[i]);
+			hbkg[i]->SetOption("HIST");
 		}
 		else
 		{ 
@@ -222,6 +224,7 @@ void PlotAll(const common & cd ,
 			for(unsigned int j = 0; j < NBKGZJETS; j++) 
 			{
 				hbkgzjets[j] = GetHistogram(histoname, fbkgzjets[j], bkgzjets[j]);
+				hbkgzjets[j]->SetOption("HIST");
 			}
 		}
 	}
@@ -426,9 +429,10 @@ void PlotAll(const common & cd ,
 	//////
 	//Drawing
 	TCanvas* canvas = new TCanvas(TString("canvas_sig"), sig);
-	//-- Ration histogram for log plots
+	//-- Ratio histogram for log plots
 	TH1F * ratio = new TH1F("ratio","",hdata->GetNbinsX(),
 			hdata->GetXaxis()->GetXmin(),hdata->GetXaxis()->GetXmax());
+	ratio->SetMaximum(2.0);
 	ratio->SetMarkerStyle(20);
 	ratio->SetLineColor(hdata->GetMarkerColor());
 	if(plottype == 0) 
