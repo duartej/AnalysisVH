@@ -96,6 +96,8 @@ def domerge(dataname,rootfilenames):
 		if finalfilename.find("Data") != -1:
 			h.SetMarkerStyle(20)
 			h.SetLineColor(h.GetMarkerColor())
+		else:
+			h.SetOption("HIST")
 		idchannel = { 1: 'mmm', 2: 'mme', 3: 'eem', 4: 'eee' }
 		channelid = dict([ (y,x) for x,y in idchannel.iteritems() ])
 		for i in xrange(1,5):
