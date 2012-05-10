@@ -58,11 +58,11 @@ class clustermanager(object):
 				#Checking is a file and can be find it
 				for lepton,cfg in value.iteritems():
 					if not os.path.exists(cfg):
-						message = "\033[1;31mclustermanager: ERROR\033[1;m Not found '"+value+"'.\n"
+						message = "\033[31mclustermanager: ERROR\033[m Not found '"+value+"'.\n"
 						raise message
 					if lepton.lower() != "muon" and lepton.lower() != "mu" \
 							and lepton.lower() != "electron" and lepton.lower() != "elec":
-						message = "\033[1;31mclustermanager: ERROR\033[1;m Not valid lepton assignation"
+						message = "\033[31mclustermanager: ERROR\033[m Not valid lepton assignation"
 						message +=" to the config file '"+cfg+"'. Parsed:'"+lepton.lower()+"'."
 						message += " Valid keys are: muon mu electron ele"
 						raise message 
@@ -76,7 +76,7 @@ class clustermanager(object):
 					continue
 				# Check if exist the path and it is correct
 				if not os.path.exists( os.path.join(value,"interface/AnalysisBuilder.h") ):
-					message = "\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+					message = "\033[31mclustermanager: ERROR\033[m the path introduced '" \
 							+value+"' do not contain the header interface/AnalysisBuilder.h"
 					raise message
 				self.pkgpath = os.path.abspath(value)
@@ -85,7 +85,7 @@ class clustermanager(object):
 					continue
 				# Check if exist the path and it is correct
 				if not os.path.exists( os.path.join(value,"CutManager") ):
-					message = "\033[1;31mclustermanager: ERROR\033[1;m the path introduced '" \
+					message = "\033[31mclustermanager: ERROR\033[m the path introduced '" \
 							+value+"' is not the base directory"
 					raise message 
 				self.basedir = os.path.abspath(value)
@@ -189,7 +189,7 @@ class clustermanager(object):
 					havetoprint = True
 					break
 			if havetoprint:
-				getcolor = lambda x,color: "\033[1;"+str(color)+"m"+x+"\033[1;m"
+				getcolor = lambda x,color: "\033["+str(color)+"m"+x+"\033[m"
 				outputmessage = ''
 				textstatusdict = { "r": getcolor("Running",32), "qw": getcolor("Queued",30), \
 						"Undefined": getcolor("Undefined",35), "Done": getcolor("Done",34) }
@@ -221,7 +221,7 @@ class clustermanager(object):
 		import os
 		import shutil
 
-		print "\033[1;37mDeleting the '"+self.dataname+"' job:\033[1;m "+self.jobsid+" and data .",
+		print "\033[37mDeleting the '"+self.dataname+"' job:\033[m "+self.jobsid+" and data .",
 		sys.stdout.flush()
 		command = [ 'qdel',str(self.jobsid) ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
@@ -263,7 +263,6 @@ class clustermanager(object):
 			message += "Total events to be processed:"+str(self.nevents)+"\n"
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
 			print message
-			return 
 		# Adding up all the final results and show them
 		textresultfiles = glob.glob("./"+self.dataname+"*.sh.o*")
 		showresults(textresultfiles)
@@ -323,7 +322,7 @@ class clustermanager(object):
 		if not isincluster:
 			# Checking if the outputfiles are there
 			if not os.path.exists(self.outputfiles[taskid]):
-				message = "\033[1;31mclustermanager.checkjob: Something went wrong in the cluster:\033[1;m"
+				message = "\033[31mclustermanager.checkjob: Something went wrong in the cluster:\033[m"
 				message += "The task '"+str(taskid)+"' of the job '"+str(self.jobsid)
 				message += "' is already finish but there is no output root file '"
 				message += self.outputfiles[taskid]+"'\n"
@@ -357,7 +356,7 @@ class clustermanager(object):
 			os.mkdir( self.cwd )
 		except OSError:
 			# FIXME
-			message  = "\033[1;31mclustermanager: ERROR\033[1;m I cannot create the directory '"+self.cwd+"'"
+			message  = "\033[31mclustermanager: ERROR\033[m I cannot create the directory '"+self.cwd+"'"
 			message += "\nPossibly the job is currently in use. Remove the directory if you "
 			message += "want to send it again."
 			# FIXME: Comprobar si hay jobs activos---> usa status method
@@ -575,7 +574,7 @@ class clustermanager(object):
 				'-P','l.gaes','-l', 'immediate', '-l','h_rt=02:00:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
-			message = "\033[1;31mclustermanager: ERROR\033[1;m from 'qsub':\n"
+			message = "\033[31mclustermanager: ERROR\033[m from 'qsub':\n"
 			message += p[1]+"\n"
 			raise message
 		
@@ -678,14 +677,14 @@ if __name__ == '__main__':
 		message = 'sendcluster: I need python version >= 2.4'
 		sys.exit( message )
 	#Opciones de entrada
-	usage="usage: sendcluster <\033[1;39msubmit\033[1;m|\033[1;39mharvest\033[1;m|"+\
-			"\033[1;39mdelete\033[1;m> [options]"
+	usage="usage: sendcluster <\033[39msubmit\033[m|\033[39mharvest\033[m|"+\
+			"\033[39mdelete\033[m> [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(shouldCompile=False,jobsNumber=0,fakeasdata=False)
 	parser.add_option( '--pkgdir', action='store', type='string', dest='pkgdir', help="Analysis package directory (where the Analysis live)")
 	parser.add_option( '--basedir', action='store', type='string', dest='basedir', help="Complete package directory")
 	
-	group = OptionGroup(parser, "\033[1;39msubmit\033[1;m options","")
+	group = OptionGroup(parser, "\033[39msubmit\033[m options","")
 	group.add_option( '-a', '--analysis', action='store', type='string', dest='antype', help="Analysis to be processed WZ|WH" )
 	group.add_option( '-f', '--finalstate', action='store', type='string', dest='finalstate', help="Final state signature: mmm eee mme eem")
 	group.add_option( '-F', '--fakeable', action='store', dest='fakeable', metavar="N,T", help="Fakeable mode, so N,T (where N=Leptons and T=Tight leptons."+\
@@ -699,17 +698,17 @@ if __name__ == '__main__':
 	group.add_option( '-c', '--cfg' ,  action='store', type='string', dest='config', metavar="LEPTON:cfgfile[,..]",\
 			help='name of the lepton and config file (absolute path), \':\' separated' )
 	group.add_option( '-p', '--precompile',action='store_true', dest='shouldCompile', help='Set if exist a previous job to do compilation' \
-			' (launching datamanager executable) \033[1;31mTO BE DEPRECATED\033[1;m' )
+			' (launching datamanager executable) \033[31mTO BE DEPRECATED\033[m' )
 	parser.add_option_group(group)
 
-	groupharvest = OptionGroup(parser,"\033[1;39mharvest\033[1;m and \033[1;39mdelete\033[1;m options","")
+	groupharvest = OptionGroup(parser,"\033[39mharvest\033[m and \033[39mdelete\033[m options","")
 	groupharvest.add_option( '-w', '--wd', action='store', type='string', dest='workingdir', help="Working directory used with the '-a harvest' option")
 	parser.add_option_group(groupharvest)
 	
 	( opt, args ) = parser.parse_args()
 
 	if len(args) == 0 :
-		message = "\033[31;1msendcluster: ERROR\033[0m Note that is mandatory an action: 'submit' 'harvest'"
+		message = "\033[31msendcluster: ERROR\033[m Note that is mandatory an action: 'submit' 'harvest'"
 		message += "\nSee usage: "+parser.usage
 		sys.exit(message)
 	#Archivo de configuracion obligatorio:
@@ -723,7 +722,7 @@ if __name__ == '__main__':
 	if args[0] == 'submit':
 		leptoncfgmap = {}
 		if not opt.config:
-			message = "\033[31;1msendcluster: ERROR\033[0m the '-c' option is mandatory"
+			message = "\033[31sendcluster: ERROR\033[m the '-c' option is mandatory"
 			sys.exit( message )
 		else:
 			#Extract type of lepton
@@ -735,14 +734,14 @@ if __name__ == '__main__':
 				config = i.split(':')[1]
 				#Checking is a file and can be find it
 				if not os.path.exists(config):
-					message = "\033[34;1msendcluster: ERROR\033[0m Not found '"+config+"'"
+					message = "\033[34msendcluster: ERROR\033[m Not found '"+config+"'"
 					sys.exit( message )
 				configabspath = os.path.abspath(config)
 				leptoncfgmap[lepton] = configabspath
 		# Dataname mandatory:
 		if not opt.dataname:
 			# Obtaining all the datanames from files in the current directory
-			message = "\033[34;1msendcluster: INFO\033[0m obtaining the datanames"\
+			message = "\033[34msendcluster: INFO\033[m obtaining the datanames"\
 					" files from the current directory"
 			print message
 			datanameslist = [ x.replace("WHToWW2L","WH").replace("_datanames.dn","") \
