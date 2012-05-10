@@ -41,9 +41,9 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 {
 	if( finalstate == 0 )
 	{
-		std::cerr << "\033[1;31mgetdatapathfile ERROR\033[1;m Need to kwown the final"
+		std::cerr << "\033[31mgetdatapathfile ERROR\033[m Need to kwown the final"
 			<< " state to extract the data filenames."
-			<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
+			<< " See \033[37datamanagercreator -h\033[m" << std::endl;
 		exit(-1);
 	}
 	std::string production = "LatinosSkims";
@@ -77,7 +77,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			// Just checking things are consistent
 			if( mapmuons.size() != 1)
 			{
-				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 					<< " this shows some inconsistency in the code. Contact the developer"
 					<< std::endl;
 				exit(-4);
@@ -96,7 +96,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			// Just checking things are consistent
 			if( mapelec.size() != 1)
 			{
-				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 					<< " this shows some inconsistency in the code. Contact the developer"
 					<< std::endl;
 				exit(-4);
@@ -106,9 +106,9 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		}
 		else
 		{
-			std::cerr << "\033[1;31mgetdatapathfile ERROR\033[1;m Not recognized"
+			std::cerr << "\033[31mgetdatapathfile ERROR\033[m Not recognized"
 				" finalstate '"  << finalstate << "'"
-				<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
+				<< " See \033[37datamanagercreator -h\033[m" << std::endl;
 			exit(-1);
 		}
 		mappathfiles[runpath] = filenames;
@@ -132,7 +132,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			// Just checking things are consistent
 			if( mapmuons.size() != 1)
 			{
-				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 					<< " this shows some inconsistency in the code. Contact the developer"
 					<< std::endl;
 				exit(-4);
@@ -148,7 +148,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			// Just checking things are consistent
 			if( mapelec.size() != 1)
 			{
-				std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 					<< " this shows some inconsistency in the code. Contact the developer"
 					<< std::endl;
 				exit(-4);
@@ -158,9 +158,9 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		}
 		else
 		{
-			std::cerr << "\033[1;31mgetdatapathfile ERROR\033[1;m Not recognized"
+			std::cerr << "\033[31mgetdatapathfile ERROR\033[m Not recognized"
 				" finalstate '"  << finalstate << "'"
-				<< " See \033[1;37datamanagercreator -h\033[1;m" << std::endl;
+				<< " See \033[37datamanagercreator -h\033[m" << std::endl;
 			exit(-1);
 		}
 		mappathfiles[runpath] = filenames;
@@ -174,7 +174,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		// Just checking things are consistent
 		if( map2011A.size() != 1 and map2011B.size() != 1)
 		{
-			std::cerr << "\033[1;31mgetdatapathfiles ERROR\033[1;m Some weird error;"
+			std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 				<< " this shows some inconsistency in the code. Contact the developer"
 				<< std::endl;
 			exit(-4);
@@ -184,7 +184,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 	}
 	else
 	{
-		std::cout << "\033[1;34mgetdatapathfile\033[1;m Not Implemented yet ('"
+		std::cout << "\033[34mgetdatapathfile\033[m Not Implemented yet ('"
 			<< runperiod << "')" << std::endl;
 		exit(-3);
 	}
@@ -255,7 +255,7 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		evtsample= dm->GetEventsInTheSample();
 		if( evtsample == 0 )
 		{
-			std::cerr << "\033[1;33mextractdatafiles WARNING\033[1;m"
+			std::cerr << "\033[33mextractdatafiles WARNING\033[m"
 				<< " Not found the dataset '" << dataName << "'. Skipping the"
 				<< " '" << dataName << "_datanames.dn' creation."
 				<< std::endl;
@@ -383,7 +383,7 @@ int main(int argc, char *argv[])
 						&& strcmp(runperiod,"2011B") != 0 
 						&& strcmp(runperiod,"2011") != 0 )
 				{
-					std::cerr << "\033[1;31mdatamanager ERROR\033[1;m "
+					std::cerr << "\033[31mdatamanager ERROR\033[m "
 						<< "Not a valid run period: '" << runperiod
 						<< "'" << std::endl;
 					display_usage();
@@ -414,20 +414,20 @@ int main(int argc, char *argv[])
 	}
 	if( dataName == 0 )
 	{
-		std::cout << "\033[1;34mdatamanagercreator INFO\033[1;m All the known datasets" 
+		std::cout << "\033[34mdatamanagercreator INFO\033[m All the known datasets" 
 			<< " will be created" << std::endl;
 		//std::cout << "List of known datasets:"
 	}
 	if( runperiod == 0 )
 	{
-		std::cerr << "\033[1;31mdatamanagercreator ERROR:\033[1;m The '-r' argument is mandatory!"
+		std::cerr << "\033[31mdatamanagercreator ERROR:\033[m The '-r' argument is mandatory!"
 			<< std::endl;
 		display_usage();
 		return -1;
 	}
 	if( finalstate == 0 )
 	{
-		std::cerr << "\033[1;31mdatamanagercreator ERROR:\033[1;m The '-f' argument is mandatory!"
+		std::cerr << "\033[31mdatamanagercreator ERROR:\033[m The '-f' argument is mandatory!"
 			<< std::endl;
 		display_usage();
 		return -1;
@@ -471,7 +471,7 @@ int main(int argc, char *argv[])
 			// Checking the validity of the input dataname
 			if( knowndata.find(std::string(dataName)) == knowndata.end() )
 			{
-				std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: dataname '" << dataName << "'"
+				std::cerr << "\033[31mdatamanagercreator ERROR\033[m: dataname '" << dataName << "'"
 					<< " not implemented! Exiting..." << std::endl;
 				return -1;
 			}
@@ -491,7 +491,7 @@ int main(int argc, char *argv[])
 
 	if( ! wasprocessed )
 	{
-		std::cerr << "\033[1;31mdatamanagercreator ERROR\033[1;m: Could not find dataset '" 
+		std::cerr << "\033[31mdatamanagercreator ERROR\033[m: Could not find dataset '" 
 			<< dataName << "' in the list of known datasets. You should update this code..." << std::endl;
 		return -2;
 	}
