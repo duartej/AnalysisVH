@@ -86,7 +86,7 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 	if( ! inputf.is_open() )
 	{
 		// Call the extractdatafiles overloaded to create the filename// DEPRECATED
-		std::cout << "\033[1;31mextractdatafiles DEPRECATED\033[1;m function. Launch "
+		std::cout << "\033[31mextractdatafiles DEPRECATED\033[m function. Launch "
 			<< "'datamanagercreator' instead. Exiting" << std::endl;
 		//return extractdatafiles(dataName);
 	}
@@ -204,7 +204,7 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 
 void display_usage()
 {
-	std::cout << "\033[1;37musage:\033[1;m runanalysis dataname [options]" << std::endl;
+	std::cout << "\033[37musage:\033[m runanalysis dataname [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
 	std::cout << "    -a <WZ|WH>               Analysis to be done" << std::endl;
@@ -278,7 +278,7 @@ int main(int argc, char *argv[])
 					}
 					if( tmpvectstr.size() != 2 )
 					{
-						std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+						std::cerr << "\033[31mrunanalysis ERROR\033[m"
 							<< " Not able to parse '-c' option, recall the syntaxis:"
 							<< " '-c MUON:config_file,ELEC:config_file'" 
 							<< std::endl;
@@ -316,7 +316,7 @@ int main(int argc, char *argv[])
 						&& strcmp(fsSignature,"mme") != 0
 						&& strcmp(fsSignature,"eem") != 0 )
 				{
-					std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m Not implemented '" << fsSignature
+					std::cerr << "\033[31mrunanalysis ERROR:\033[m Not implemented '" << fsSignature
 						<< "' in '-l' option. Valid arguments are: mmm eee mme eem" << std::endl;
 					return -1;
 				}
@@ -346,7 +346,7 @@ int main(int argc, char *argv[])
 				// Checks
 				if( fakeable->size() != 2 )
 				{
-					std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+					std::cerr << "\033[31mrunanalysis ERROR\033[m"
 						<< " Not able to parse '-F' option, recall the" 
 						<< " syntaxis: '-F N,T' where N=number of total" 
 						<< " leptons and T=number of tight leptons" 
@@ -356,7 +356,7 @@ int main(int argc, char *argv[])
 				// Ntotal must be >= Ntight
 				if( fakeable->at(0) < fakeable->at(1) )
 				{
-					std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+					std::cerr << "\033[31mrunanalysis ERROR\033[m"
 						<< " Inconsistency in '-F' option. Recall " 
 						<< " syntaxis: '-F N,T' where N=number of total" 
 						<< " leptons and T=number of tight leptons" 
@@ -374,7 +374,7 @@ int main(int argc, char *argv[])
 				if( strcmp(antype,"WZ") != 0 
 						&& strcmp(antype,"WH") != 0 )
 				{
-					std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m Not implemented '" << antype
+					std::cerr << "\033[31mrunanalysis ERROR:\033[m Not implemented '" << antype
 						<< "' in '-a' option. Valid arguments are: WH WZ" << std::endl;
 					return -1;
 				}
@@ -395,7 +395,7 @@ int main(int argc, char *argv[])
 	}
 	if( dataName == 0 )
 	{
-		std::cerr << "\033[1;31mrunanalysis ERROR:\033[1;m The 'dataname' argument is mandatory!"
+		std::cerr << "\033[31mrunanalysis ERROR:\033[m The 'dataname' argument is mandatory!"
 			<< std::endl;
 		display_usage();
 		return -1;
@@ -407,7 +407,7 @@ int main(int argc, char *argv[])
 		// The -F option must be active
 		if( fakeable == 0 )
 		{
-			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+			std::cerr << "\033[31mrunanalysis ERROR\033[m"
 				<< " Inconsistency in the executable options: the 'Fakes' dataname" 
 				<< " needs the '-F' option" << std::endl;
 			return -1;
@@ -416,7 +416,7 @@ int main(int argc, char *argv[])
 /*	else{  FIXME: PROVISIONAL
 		if( fakeable != 0)
 		{
-			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m"
+			std::cerr << "\033[31mrunanalysis ERROR\033[m"
 				<< " Inconsistency in the executable options: the '-F' option is" 
 				<< " used only by the 'Fakes' dataName. Can not be used with'"
 				<< dataName << "'" << std::endl;
@@ -450,7 +450,7 @@ int main(int argc, char *argv[])
 	// Sanity check
 	if( cfgfilemap.size() > 2 )
 	{
-		std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m It has been"
+		std::cerr << "\033[31mrunanalysis ERROR\033[m It has been"
 		<< " introduced 2 configuration files which it has no sense:"
 		<< " There are 2 different stable lepton flavours!"
 		<< std::endl;
@@ -476,7 +476,7 @@ int main(int argc, char *argv[])
 		}
 		else
 		{
-			std::cerr << "\033[1;31mrunanalysis ERROR\033[1;m Not recognized"
+			std::cerr << "\033[31mrunanalysis ERROR\033[m Not recognized"
 				<< " '" << cfgfile->first << "' as a valid lepton to associate"
 				<< " a config file (-c option). Valid names are:"
 				<< "\nMUON MU muon mu ELECTRON ELE electron ele"
