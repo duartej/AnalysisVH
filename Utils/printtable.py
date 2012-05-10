@@ -58,7 +58,7 @@ class format(object):
 			self.exponentend    = '</sup>'
 			self.cdot = '&middot;'
 		else:
-			raise "\033[1;31mformat ERROR\033[1;m Format "+format+\
+			raise "\033[31mformat ERROR\033[m Format "+format+\
 					" not implemented"
 
 		self.format = format
@@ -89,7 +89,7 @@ class column(object):
 		wildcardfiles = "*.root" # Per default in the current working directory
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
-				message  = "\033[1;31mcolumn ERROR\033 Incorrect instantiation of 'column'"
+				message  = "\033[31mcolumn ERROR\033[m Incorrect instantiation of 'column'"
 				message += " class. Valid keywords are: "+str(validkeywords)
 				raise message
 			if key == 'title':
@@ -250,7 +250,7 @@ class table(object):
 		import os
 		# First checkings:
 		if not os.getenv("VHSYS"):
-			raise "\033[1;31mtable ERROR\033[1;m Initialize your"+\
+			raise "\033[31mtable ERROR\033[m Initialize your"+\
 					" environment (VHSYS env variable needed)"
 
 		formatprov = None
@@ -261,7 +261,7 @@ class table(object):
 		self.usermetasample = {}
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
-				message  = "\033[1;31mtable ERROR\033 Incorrect instantiation of 'table'"
+				message  = "\033[31mtable ERROR\033[m Incorrect instantiation of 'table'"
 				message += " class. Valid keywords are: "+str(validkeywords)
 				raise message
 
@@ -312,11 +312,11 @@ class table(object):
 		self.samples = self.columns.keys()
 		# Check the signal and data are there
 		if not signal in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The signal introduced '"+signal+"' has not been found."+\
+			raise "\033[31mtable ERROR\033[m The signal introduced '"+signal+"' has not been found."+\
 					" Check you have not introduced the '-n' option without quotes:\n"+\
 					" printtable "+signal+" -n \"whatever*..\"" 
 		if not data in self.samples:
-			raise "\033[1;31mtable ERROR\033[1;m The data introduced '"+data+"' has not been found."+\
+			raise "\033[31mtable ERROR\033[m The data introduced '"+data+"' has not been found."+\
 					" Check you have not introduced the '-n' option without quotes:\n"+\
 					" printtable "+signal+" -n \"whatever*..\"" 
 
@@ -389,7 +389,7 @@ class table(object):
 		elif metasample in self.usermetasample.keys():
 			components = self.usermetasample[metasample]
 		else:
-			message  = "\033[1;31mgetsamplecomponents ERROR\033[1;m '"+metasample+"'" 
+			message  = "\033[31mgetsamplecomponents ERROR\033[m '"+metasample+"'" 
 			message += " not recognized. Current valid metasamples are:"
 			message += " 'DY' 'Z+Jets' 'Other' and user introduced '"
 			message += str(self.usermetasample.keys())+"'"
@@ -629,10 +629,10 @@ if __name__ == '__main__':
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
 	if vX > 2 and vY < 4:
-		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31printtable ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	elif vX < 2:
-		message = '\033[1;31printtable ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31printtable ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	
 	usage  ="usage: printtable <WZ|WHnnn|Fakes> [options]"
@@ -644,7 +644,7 @@ if __name__ == '__main__':
 			" into one. Shortcut for '-j [DY,Z+Jetsj,Other]" )
 	parser.add_option( '-d', action='store', dest='dataname', help='Name of the sample to be used in the role of "data" [Default: Data]')
 	parser.add_option( '-n', action='store', dest='wildcardfiles', help='Path where to find the root '\
-			'filenames to extract the table, it could be wildcards. \033[1;33mWARNING:\033[1;m'\
+			'filenames to extract the table, it could be wildcards. \033[33mWARNING:\033[m'\
 			' if uses wildcards, be sure to be included between quotes: "whatever*"'\
 			' [Default: "cluster_*/Results/*.root"]')
 	parser.add_option( '-j', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
@@ -657,7 +657,7 @@ if __name__ == '__main__':
 	( opt, args ) = parser.parse_args()
 
 	if len(args) == 0 :
-		message = "\033[1;31mprinttable ERROR\033[1;m Missing mandatory argument signal, see usage."
+		message = "\033[31mprinttable ERROR\033[m Missing mandatory argument signal, see usage."
 		sys.exit(message)
 	signal = args[0]
 
@@ -684,7 +684,7 @@ if __name__ == '__main__':
 		join = []
 
 
-	print "\033[1;34mprinttable INFO\033[1;m Creating yields table for "+signal+" analysis",
+	print "\033[34mprinttable INFO\033[m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()
 	t = table(opt.dataname,signal,isreduced=opt.isreduced,wildcardfiles=opt.wildcardfiles,join=join)
 	print "( ",
