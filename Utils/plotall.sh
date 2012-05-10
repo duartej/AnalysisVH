@@ -123,11 +123,10 @@ fi;
 fsdirectories=`ls |grep ${signal:0:2}`
 
 #-------------------------------------------------------------
-# TO BE ACTIVATED WHEN DECIDED THE PPP SUBSTRACTION
 # Extracting PPP contribution to Fakes (if needed)
-#if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
-#	promptsubstract -s ${signal:0:2};
-#fi
+if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
+	promptsubstract -s ${signal:0:2};
+fi
 #-------------------------------------------------------------
 
 echo "Creating lepton final state"
@@ -192,21 +191,21 @@ do
 	cd $j;
 	for i in $HISTOSNOC;
 	do
-		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
+		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
+		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
 	fi
 	
 	for i in $HISTOS4B;
 	do
-		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
+		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u
+		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
 	done;
 	printtable $signal -d $data $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
 	
