@@ -105,10 +105,10 @@ if __name__ == '__main__':
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
 	if vX > 2 and vY < 4:
-		message = '\033[1;31promptsubstract ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31promptsubstract ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	elif vX < 2:
-		message = '\033[1;31promptsubstract ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31promptsubstract ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	
 	usage  ="usage: promptsubstract [options]"
@@ -136,7 +136,7 @@ a loop for each channel subfolder."""
 	if opt.signal:
 		path=glob.glob(os.path.join(os.getcwd(),opt.signal+"*"))
 		if len(path) == 0:
-			message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed '-s' option: %s"\
+			message = "\033[31mpromptsubstract ERROR\033[m Malformed '-s' option: %s"\
 					" Not found the standard folders %schannel" % (opt.signal,opt.signal)
 			sys.exit(message)
 	else:
@@ -149,7 +149,7 @@ a loop for each channel subfolder."""
 		# Find the DDD sample
 		fakesample = os.path.join(folder,"cluster_Fakes/Results/Fakes.root")
 		if not os.path.isfile(fakesample):
-			message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed folder structure:"\
+			message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
 					" Not found the FAKES file 'cluster_Fakes/Results/Fakes.root'"\
 					" inside the folder '%s'" % (folder)
 			sys.exit(message)
@@ -168,7 +168,7 @@ a loop for each channel subfolder."""
 				# And again do the search
 				pppfolders = glob.glob(os.path.join(folder,"cluster_*_Fakes"))
 			else:
-				message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed folder structure:"\
+				message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
 						" Not found the PPP samples files 'cluster_sampleNames_Fakes/Results/sampleName_Fakes.root'"\
 						" inside the folder '%s'" % (folder)
 				sys.exit(message)
@@ -178,17 +178,17 @@ a loop for each channel subfolder."""
 				for name in pppnames ])
 		for _f in pppsamples.itervalues():
 			if not os.path.isfile(_f):
-				message = "\033[1;31mpromptsubstract ERROR\033[1;m Malformed folder structure:"\
+				message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
 						" Not found the PPP sample root file '%s'" % (_f)
 				sys.exit(message)
 
-		print "\033[1;34mpromptsubstract INFO\033[1;m Extracting the prompt contribution to the DDD sample "\
+		print "\033[34mpromptsubstract INFO\033[m Extracting the prompt contribution to the DDD sample "\
 				"(%s subfolder)" % os.path.basename(folder)
 		sys.stdout.flush()
 		fakesubstractedfile = "fsubsprov.root"
 		substractprompt(fakesample,pppsamples,fakesubstractedfile)
 
-		print "\033[1;34mpromptsubstract INFO\033[1;m Generating backup fake folders (fakespool.tar.gz) "\
+		print "\033[34mpromptsubstract INFO\033[m Generating backup fake folders (fakespool.tar.gz) "\
 				"(%s subfolder)" % os.path.basename(folder)
 		# Re-organizing the output
 		# --- Don't do it continously (just by demand)
@@ -209,7 +209,7 @@ a loop for each channel subfolder."""
 			for f in folderstotar:
 				shutil.rmtree(f)
 		else:
-			message  = "\033[33;1mpromptsubstract: WARNING\033[0m I can't manage\n"
+			message  = "\033[33mpromptsubstract: WARNING\033[m I can't manage\n"
 			message += "to create the backup fakespool.tar.gz file\n"
 			print message
 		# -- The new folder for the Fakes containing the substracted fakes

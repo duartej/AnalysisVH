@@ -18,18 +18,18 @@ def getdatanamefiles(t):
 	# Found the list of cluster_ directories
 	clusterdirs = glob.glob(os.path.join(t,"cluster_*"))
 	if len(clusterdirs) == 0:
-		message = "\033[1;31mjoinall ERROR\033[1;m Not found 'cluster_' subdirectories in '"+t
+		message = "\033[31mjoinall ERROR\033[m Not found 'cluster_' subdirectories in '"+t
 		raise message
 	datanamefilem = {}
 	for clusterd in clusterdirs:
 		if not os.path.isdir(clusterd):
-			message = "\033[1;31mjoinall ERROR\033[1;m Some unexpected error: '"+clusterd+\
+			message = "\033[31mjoinall ERROR\033[m Some unexpected error: '"+clusterd+\
 					"' is not a directory"
 			raise message
 		dataname = clusterd.split("cluster_")[-1]
 		filename = os.path.join(os.path.join(clusterd,"Results"),dataname+".root")
 		if not os.path.isfile(filename):
-			message = "\033[1;31mjoinall ERROR\033[1;m Some unexpected error: '"+filename+\
+			message = "\033[31mjoinall ERROR\033[m Some unexpected error: '"+filename+\
 					"' do not exist"
 			raise message
 		datanamefilem[dataname] = filename
@@ -164,7 +164,7 @@ if __name__ == '__main__':
 		targetdir.append(completepath)
 	
 	fsdfiles = {}
-	print "\033[1;34mmerge3leptonfs INFO\033[1;m Searching the datafiles to be merged"
+	print "\033[34mmerge3leptonfs INFO\033[m Searching the datafiles to be merged"
 	for t in targetdir:
 		fsdfiles[t] = getdatanamefiles(t)
 
@@ -178,7 +178,7 @@ if __name__ == '__main__':
 	for dlist in datanamesPRE:
 		# FIXED: using 'set' to avoid the different order
 		if set(dlist)!= set(dntobecompared):
-			message = "\033[1;31mmerge3leptonfs ERROR\033[1;m Unexpected error: not found"+\
+			message = "\033[31mmerge3leptonfs ERROR\033[m Unexpected error: not found"+\
 					" the same datanames in each directory"
 			sys.exit( message )
 	datanames = datanamesPRE[0]
@@ -197,7 +197,7 @@ if __name__ == '__main__':
 			mergefiles[dn].append( fsdfiles[tdir][dn] )
 
 	# Finally merge
-	print "\033[1;34mmerge3leptonfs INFO\033[1;m Merging all the final states:"
+	print "\033[34mmerge3leptonfs INFO\033[m Merging all the final states:"
 	for dn, filelist in mergefiles.iteritems():
 		print " +"+dn
 		domerge(dn,filelist)
