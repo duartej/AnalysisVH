@@ -110,13 +110,13 @@ class clustermanager(object):
 		try:
 			dummy = self.basedir
 		except AttributeError:
-		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base directory for the package VHAnalysis"
+		        message  = "\033[31mclustermanager: ERROR\033[m You have to introduce the base directory for the package VHAnalysis"
 			message += "Or you can use an environment variable: 'export VHSYS=path'"
 			raise message
 		try:
 			dummy = self.pkgpath
 		except AttributeError:
-		        message  = "\033[31;1mclustermanager: ERROR\033[0m You have to introduce the base analysis directory"
+			message  = "\033[31mclustermanager: ERROR\033[m You have to introduce the base analysis directory"
 			message += "Or you can use an environment variable: 'export ANALYSISSYS=path'"
 			raise message
 
@@ -129,12 +129,12 @@ class clustermanager(object):
 			self.filedatanames = os.path.join( os.getenv( "PWD" ), self.dataname+"_datanames.dn" )
 			if not os.path.exists(self.filedatanames):
 				if "dataname" in self.originaldataname:
-					message  = "\033[31;1mclustermanager: ERROR\033[0m"
+					message  = "\033[31mclustermanager: ERROR\033[m"
 					message += " Syntax mistake in '-d dataname' option. The argument 'dataname' must be just"
 					message += " the name, without '_dataname.dn'. So '"+self.originaldataname+"' is not valid"
 					raise message
 				# if not created previously
-				message  = "\033[31;1mclustermanager: ERROR\033[0m"
+				message  = "\033[31mclustermanager: ERROR\033[m"
 				message += " I need the list of file names, execute:"
 				message += "\n'datamanager "+self.originaldataname+" -f "+self.finalstate+"'"
 				message += "\nAnd then launch again this script"
@@ -144,14 +144,14 @@ class clustermanager(object):
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
 			# so we are trying to send 10minutes-jobs: ~450000 evt per job  (changed to 300000-> New calculations)
 			if self.njobs == 0:
-				message = "\033[34;1mclustermanager: INFO\033[0m Guessing the number of tasks "\
+				message = "\033[34mclustermanager: INFO\033[m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
 				self.njobs = self.nevents/300000   #450000 
 				message += str(self.njobs)
 				print message
 			# Checking if has sense the njobs
 			if self.njobs < 1:
-				message = "\033[33;1mclustermanager: WARNING\033[0m the Number of jobs introduced '"\
+				message = "\033[33mclustermanager: WARNING\033[m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
 				self.njobs = 1
@@ -258,7 +258,7 @@ class clustermanager(object):
 		# Checking if everything was allright
 		totalevts = self.getevents(finalfile,True)
 		if totalevts != self.nevents:
-			message  = "\033[33;1mclustermanager.gatherfiles: WARNING\033[0m the total file"
+			message  = "\033[33mclustermanager.gatherfiles: WARNING\033[m the total file"
 			message += "'"+finalfile+"' do not contain all the events:\n"
 			message += "Total events to be processed:"+str(self.nevents)+"\n"
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
@@ -282,7 +282,7 @@ class clustermanager(object):
 			for f in filestotar:
 				os.remove(f)
 		else:
-			message  = "\033[33;1mclustermanager.gatherfiles: WARNING\033[0m I can't manage\n"
+			message  = "\033[33mclustermanager.gatherfiles: WARNING\033[m I can't manage\n"
 			message += "to create the backup .tar.gz file\n"
 			print message
 
@@ -487,7 +487,7 @@ class clustermanager(object):
 			command.append( "-h" )
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
-			message = "\nclustermanager: ERROR from 'extractEvents':\n"
+			message = "\033[31mclustermanager\033[m ERROR from 'extractEvents':\n"
 			message = p[1]+"\n"
 			raise message
 
@@ -779,7 +779,7 @@ if __name__ == '__main__':
 			fakeable = opt.fakeable
 			if not opt.fakeable:
 				if dataname == "Fakes":
-					message = "\033[31;1msendcluster: ERROR\033[0m It is mandatory the '-F' option"+\
+					message = "\033[31msendcluster: ERROR\033[m It is mandatory the '-F' option"+\
 							" with the 'Fakes' dataname"
 					sys.exit( message )			
 			else:
@@ -795,11 +795,11 @@ if __name__ == '__main__':
 	#elif opt.action == 'harvest':
 	elif args[0] == 'harvest':
 		if opt.workingdir is None:
-			message = "\033[31;1msendcluster: ERROR\033[0m the '--cw' option is mandatory"
+			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
 			sys.exit( message )
 		
 		if not os.path.exists(opt.workingdir):
-			message = "\033[31;1msendcluster: ERROR\033[0m the working path '"+opt.workingdir \
+			message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
 					+"' does not exists"
 			sys.exit( message )
 		
@@ -807,18 +807,18 @@ if __name__ == '__main__':
 	
 	elif args[0] == 'delete':
 		if opt.workingdir is None:
-			message = "\033[31;1msendcluster: ERROR\033[0m the '--cw' option is mandatory"
+			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
 			sys.exit( message )
 		
 		if not os.path.exists(opt.workingdir):
-			message = "\033[31;1msendcluster: ERROR\033[0m the working path '"+opt.workingdir \
+			message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
 					+"' does not exists"
 			sys.exit( message )
 		
 		manager = clustermanager("delete",workingdir=opt.workingdir)
 	
 	else:
-		message = "\033[31;1msendcluster: ERROR\033[0mNot recognized the action '"+args[0]+"'"
+		message = "\033[31msendcluster: ERROR\033[mNot recognized the action '"+args[0]+"'"
 		sys.exit( message )
 
 	
