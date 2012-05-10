@@ -227,17 +227,16 @@ do
 	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
 	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 	#-------------------------------------------------------------
-	# TO BE ACTIVATED WHEN DECIDED THE PPP SUBSTRACTION
 	# The WZ3LNu and ZZ sample has to be considered for the Fake substraction (-F and no -f options)
-	#if [ "X"$fakeable == "Xyes" -a "X"$fakeasdata == "X" ];
-	#then
-	#	WZSAMPLE=WZTo3LNu
-	#	ZZSAMPLE=ZZ
-	#	cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
-	#	cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
-	#	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
-	#	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
-	#fi
+	if [ "X"$fakeable == "Xyes" -a "X"$fakeasdata == "X" ];
+	then
+		WZSAMPLE=WZTo3LNu
+		ZZSAMPLE=ZZ
+		cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
+		cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+	fi
 	#-------------------------------------------------------------
 	cd ../; 
 done
