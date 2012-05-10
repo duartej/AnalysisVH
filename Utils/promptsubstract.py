@@ -198,8 +198,12 @@ a loop for each channel subfolder."""
 			for f in folderstotar:
 				tar.add(f)
 			for s in pppsamples:
-				tar.add(s+"_datanames.dn")
-				os.remove(s+"_datanames.dn")
+				try:
+					tar.add(s+"_datanames.dn")
+					os.remove(s+"_datanames.dn")
+				except OSError:
+					# Nothing happened if we don't find 
+					pass
 			tar.close()
 		if os.path.exists("fakespool.tar.gz"):
 			for f in folderstotar:
