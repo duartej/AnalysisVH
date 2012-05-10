@@ -594,7 +594,6 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 
 	hs = ROOT.THStack("hs","hstack")
 	mcratio = ratio.Clone("mcratio")
-	mcratio.Sumw2()
 	leginfodict = {}
 	for sample in sampledict.itervalues():
 		if sample.isdata or (plottype == 1 and sample.issignal):
