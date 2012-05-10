@@ -9,18 +9,21 @@ kCyan=432
 kOrange=800
 
 TEXTSIZE=0.03
+#TEXTSIZE=0.04
 
-LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ (ex. lept.)", "WJets_Madgraph": "W+Jets",
-		"ZZ": "ZZ (inc.)",
-		"TTbar_2L2Nu_Powheg": "t#bar{t} exc. lept.", "TTbar_Madgraph": "t#bar{t} incl.",
+OTHERBKG = [ "WW", "WJets_Madgraph", "TW_DR", "TbarW_DR" ]
+
+LEGENDSDICT = { "WW": "Other bkg", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": "Other bkg",
+		"ZZ": "ZZ",
+		"TTbar_2L2Nu_Powheg": "t#bar{t}", "TTbar_Madgraph": "t#bar{t} inclusive",
 		"ZJets": "Z+Jets (Powheg)", "ZJets_Madgraph": "Z+Jets (MG)",
-		"Data": "Data", "Fakes": "data driven (PPF est.)",
-		"TW_DR": "tW", "TbarW_DR": "#bar{t}W"
+		"Data": "Data", "Fakes": "Data-driven bkg",
+		"TW_DR": "Other bkg", "TbarW_DR": "Other bkg"
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHMET': 'UPRIGHT', 'fHNJets': 'UPRIGHT', 
-		'fHMETAfterZCand': 'UPRIGHT', 'fHZInvMass': 'UPRIGHT', 
+		'fHMETAfterZCand': 'UPRIGHT', 'fHZInvMass': 'UPLEFT', 
 		'fHD0Lepton': 'UPRIGHT', 'fHZInvMassAfterWCand': 'UPRIGHT',
 		'fHIsoLepton': 'UPRIGHT', 
 		'fHNPrimaryVerticesAfter3Leptons': 'UPRIGHT', 
@@ -35,28 +38,137 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHFlavour': 'UPRIGHT'
 		}
 
-COLORSDICT = { "WW" : kGreen-3, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kRed,
+COLORSDICT = { "WW" : kGreen-3, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kGreen-3,
 		"TTbar_2L2Nu_Powheg": kOrange+5, "TTbar_Madgraph": kOrange+5,
 		"ZZ": kRed+3, "ZJets": kCyan-2, "ZJets_Madgraph": kCyan-2,
 		"Data": kBlack, "Fakes": kAzure-7, 
-		"TW_DR": kOrange+3, "TbarW_DR": kOrange-6
+		"TW_DR": kGreen-3, "TbarW_DR": kGreen-3
 		}
 
-UNITDICT = { "MET": "(GeV/c^{2})", "PT": "(GeV/c)", "ETA": "", "PHI": "",
-		"ZINVMASS": "(GeV/c^{2})", "TRANSVERSMASS": "(GeV/c^{c2})",
+UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
+		"ZINVMASS": "(GeV/c^{2})", "TRANSVERSMASS": "(GeV/c^{2})",
 		"D0": "(cm)"
 		}
 
-VARDICT = { "MET": "MET", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
+VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"ZINVMASS": "M_{ll}", "TRANSVERSMASS": "M_{T}",
 		"D0": "d_{0}"
 		}
 
-def getweight(f,lumi=None):
-	"""
-	... getweight(rootfile) -> float
 
-	Get the weight
+def LatinosStyle():
+	"""
+	Latinos style
+	"""
+	import ROOT
+
+	ROOT.GloStyle = ROOT.gStyle
+
+	LatinosStyle = ROOT.TStyle("LatinosStyle", "LatinosStyle")
+	ROOT.gStyle = LatinosStyle
+	
+	#----------------------------------------------------------------------------
+	# Canvas
+	#----------------------------------------------------------------------------
+	LatinosStyle.SetCanvasBorderMode(  0)
+	LatinosStyle.SetCanvasBorderSize( 10)
+	LatinosStyle.SetCanvasColor     (  0)
+	LatinosStyle.SetCanvasDefH      (600)
+	LatinosStyle.SetCanvasDefW      (550)
+	LatinosStyle.SetCanvasDefX      ( 10)
+	LatinosStyle.SetCanvasDefY      ( 10)
+	
+	#----------------------------------------------------------------------------
+	# Pad
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetPadBorderMode  (   0)
+        LatinosStyle.SetPadBorderSize  (  10)
+        LatinosStyle.SetPadColor       (   0)
+        LatinosStyle.SetPadBottomMargin(0.20)
+        LatinosStyle.SetPadTopMargin   (0.08)
+        LatinosStyle.SetPadLeftMargin  (0.18)
+        LatinosStyle.SetPadRightMargin (0.05)
+      
+      
+        #----------------------------------------------------------------------------
+        # Frame
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetFrameFillStyle ( 0)
+        LatinosStyle.SetFrameFillColor ( 0)
+        LatinosStyle.SetFrameLineColor ( 1)
+        LatinosStyle.SetFrameLineStyle ( 0)
+        LatinosStyle.SetFrameLineWidth ( 2)
+        LatinosStyle.SetFrameBorderMode( 0)
+        LatinosStyle.SetFrameBorderSize(10)
+      
+      
+        #----------------------------------------------------------------------------
+        # Hist
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetHistFillColor(0)
+        LatinosStyle.SetHistFillStyle(1)
+        LatinosStyle.SetHistLineColor(1)
+        LatinosStyle.SetHistLineStyle(0)
+        LatinosStyle.SetHistLineWidth(1)
+      
+      
+        #----------------------------------------------------------------------------
+        # Axis
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetLabelFont  (   42, "xyz")
+        LatinosStyle.SetLabelOffset(0.015, "xyz")
+        LatinosStyle.SetLabelSize  (0.050, "xyz")
+        LatinosStyle.SetNdivisions (  505, "xyz")
+        LatinosStyle.SetTitleFont  (   42, "xyz")
+        LatinosStyle.SetTitleSize  (0.050, "xyz")
+      
+        #  LatinosStyle.SetNdivisions ( -503, "y")
+      
+        LatinosStyle.SetTitleOffset(  1.0,   "x")
+        LatinosStyle.SetTitleOffset(  1.2,   "y")
+        LatinosStyle.SetPadTickX   (           1)  # Tick marks on the opposite side of the frame
+        LatinosStyle.SetPadTickY   (           1)  # Tick marks on the opposite side of the frame
+      
+      
+        #----------------------------------------------------------------------------
+        # Title
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetTitleBorderSize(    0)
+        LatinosStyle.SetTitleFillColor (   10)
+        LatinosStyle.SetTitleAlign     (   12)
+        LatinosStyle.SetTitleFontSize  (0.045)
+        LatinosStyle.SetTitleX         (0.560)
+        LatinosStyle.SetTitleY         (0.860)
+      
+        LatinosStyle.SetTitleFont(42, "")
+      
+      
+        #----------------------------------------------------------------------------
+        # Stat
+        #----------------------------------------------------------------------------
+        LatinosStyle.SetOptStat       (1110)
+        LatinosStyle.SetStatBorderSize(   0)
+        LatinosStyle.SetStatColor     (  10)
+        LatinosStyle.SetStatFont      (  42)
+        LatinosStyle.SetStatX         (0.94)
+        LatinosStyle.SetStatY         (0.91)
+	
+	return LatinosStyle
+
+
+
+
+def getweight(f,lumi=None):
+	"""..function::getweight(f,[lumi=None]) -> float
+	Get the weight of a sample set
+
+	:param f: root filename to be used
+	:type f: ROOT.TFile
+	:param lumi: luminosity, if need
+	:type lumi: float (or None)
+
+	:return: the weigth needed to apply to the sample to match the luminosity
+	:rtype: float
 	"""
 	import ROOT 
 	from array import array
@@ -93,13 +205,17 @@ def getweight(f,lumi=None):
 
 class sampleclass(object):
 	"""
-	A sampleclass is a root file, a histogram
+	A sampleclass is an histogram with extra information needed to plot it
 	"""
 	def __init__(self,samplename,histoname,**keywords):
-		""".. class:: sampleclass(fileroot,histogram[,title=title,lumi=lumi) 
+		"""..class::sampleclass(fileroot,histogram[,title=title,lumi=lumi,issignal=issignal,
+		                       isdata=isdata,metaname=metaname,add=add]) 
 
 		A sampleclass is a histogram with all the needed attributes to be
 		plotted.
+
+		:return: an instance of this class
+		:rtype: sampleclass
 		"""
 		import os
 		
@@ -112,6 +228,7 @@ class sampleclass(object):
 		self.variable= None
 		self.unit    = None
 		self.channel = None
+		self.latexchannel = None
 		self.xtitle  = None
 		self.ytitle  = None
 		self.lumi    = None
@@ -121,29 +238,42 @@ class sampleclass(object):
 		self.isdata  = None
 		self.SIGNALFACTOR = 1.0
 		
-		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "addhistos" ]
+		metaname = None
+
+		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "metaname", "add" ]
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
-				message  = "\033[1;31msampleclass ERROR\033 Incorrect instantiation of 'class'"
+				message  = "\033[31msampleclass ERROR\033[m Incorrect instantiation of 'class'"
 				message += " class. Valid keywords are: "+str(validkeywords)
 				raise RuntimeError(message)
 			if key == 'title':
 				self.title = value
 			if key == 'lumi':
 				self.lumi = float(value)
-			if key == 'addhistos':
-				return
+			if key == 'metaname':
+				# Just need the histogram and the weight 
+				metaname = value
+			if key == "add":
+				if value:
+					return
 			if key == 'issignal':
 				self.issignal = value
 			if key == 'isdata':
 				self.isdata = value
 			if key == 'channel':
 				self.channel = value
+				if self.channel != "lll":
+					self.latexchannel = self.channel.replace("m","#mu")
 
-		# Searching the filename:
+		# Searching the filename (except when adding):
 		self.filename = os.path.join(os.path.abspath("cluster_"+self.samplename),"Results/"+self.samplename+".root")
+		
+		# -- If the sample is going to be part of a metasample, after the file extraction i
+		if metaname:
+			self.samplename = metaname
+
 		if not os.path.isfile(self.filename):
-			message  = "\033[1;31msampleclass ERROR\033 Filename do not exist: '%s'" % self.filename
+			message  = "\033[31msampleclass ERROR\033[ Filename do not exist: '%s'" % self.filename
 			raise RuntimeError(message)
 		# - Extract the histogram
 		self.histogram = self.__gethistogram__()
@@ -177,7 +307,7 @@ class sampleclass(object):
 		# Extract the histo
 		histogram = f.Get(self.histoname)
 		if not histogram:
-			message  = "\033[1;31msampleclass ERROR\033[1;m Histogram not found: '%s'" % self.histoname
+			message  = "\033[31msampleclass ERROR\033[m Histogram not found: '%s'" % self.histoname
 			raise RuntimeError(message)
 		
 		histogram.SetDirectory(0)
@@ -187,7 +317,7 @@ class sampleclass(object):
 
 	def __del__(self):
 		"""
-		Deleting the histogram
+		Deleting the class
 		"""
 		if self.histogram:
 			self.histogram.Delete()
@@ -205,39 +335,25 @@ class sampleclass(object):
 		:rtype:  sampleclass
 
 		"""
-		from math import sqrt
-		# Checks
-		# Allowing the a += b operation (when a was instantied using
-		# the 'nobuilt=True' argument, in this case rowvaldict=None
-		try:
-			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
-				raise TypeError("Cannot be added because they don't have the same"+\
-						" row composition")
-			hasdict=True
-		except AttributeError:
-			hasdict=False
-
-		# Case when self was called as a += b
-		if not hasdict:
-			self.rowvaldict = other.rowvaldict
-			self.cutordered = other.cutordered
-			return self			
+		# Check: the only way of adding samplesclass is
+		if self.samplename != other.samplename:
+			message = "\033[31msampleclass.__add__ ERROR\033[m Impossible to add "
+			message += " samples with a different name sampleclass 1: %s sampleclass 2: %s" % (self.samplename,other.samplename)
+			raise RuntimeError(message)
 		
-		addeddict = {}
-		for cutname,(val,err) in self.rowvaldict.iteritems():
-			val  += other.rowvaldict[cutname][0]
-			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
-			addeddict[cutname] = (val,swap)
+		# Scaling the histograms in order to deal with the histo addition
+		self.histogram.Scale(self.weight*self.SIGNALFACTOR)
+		other.histogram.Scale(other.weight*other.SIGNALFACTOR)
+		# Adding histograms
+		self.histogram.Add(other.histogram)
+		# And putting the weight to 1 (in order to not reweight when call 
+		# the sethistoattr method
+		self.weight = 1.0
 
-		#self.rowvaldict = addeddict
-		result = column("",nobuilt=True)
-		result.rowvaldict = addeddict
-		result.cutordered = self.cutordered
-
-		return result
+		return self
 
 	def sethistoattr(self,plottype,rebin):
-		"""... sethistoattr(plottype) --> None
+		"""..method::sethistoattr(plottype,rebin) --> None
 		"""
 		if self.isdata:
 			self.histogram.SetOption("PE")
@@ -256,7 +372,7 @@ class sampleclass(object):
 		# Titles
 		self.xtitle = self.variable+" "+self.unit
 		self.ytitle = "Events/(%.1f %s)" % (self.histogram.GetBinWidth(1),self.unit)
-		self.title  = "CMS Preliminary #sqrt{s}=7 TeV,  L_{int}=%.1f fb^{-1}" % (self.lumi/1000.0)
+		self.title  = "CMS Preliminary\n#sqrt{s}=7 TeV,  L=%.1f fb^{-1}" % (self.lumi/1000.0)
 
 		# It is needed a rebin
 		self.histogram.Rebin(rebin)
@@ -269,7 +385,7 @@ class sampleclass(object):
 			self.histogram.SetFillColor(COLORSDICT[self.samplename])
 			self.histogram.SetLineColor(kBlack)
 
-		if self.issignal:
+		if self.issignal and ( "WH" in self.samplename or "WZ" in self.samplename):
 			self.histogram.SetFillStyle(3254)
 			self.histogram.SetLineColor(COLORSDICT[self.samplename]-1)
 
@@ -277,7 +393,7 @@ class sampleclass(object):
 
 
 	def getnormentries(self):
-		"""... getnormentries() --> int
+		"""..method::getnormentries() --> int
 
 		Return the total and normalized to luminosity
 		self.lumi, entries of an histogram, taking into account
@@ -287,102 +403,147 @@ class sampleclass(object):
 				self.histogram.GetBinContent(self.histogram.GetNbinsX()+1)
 
 	def getrealentries(self):
-		"""... getnormentries() --> float
+		"""..method::getnormentries() --> float
 
 		Return the number of real entries in the histogram
 		"""
 		return self.getnormentries()/self.weight
 
 def getcoord(where,xwidth,ywidth,ystart=-1):
-	"""... getcoord(where) --> (x1,y1,x2,y2)
+	"""..function::getcoord(where) --> (x1,y1,x2,y2)
 	"""
 	if where == "UPLEFT":
-		x1 = 0.12
-		x2 = x1+xwidth
-		if ystart == -1:
-			y2 = 0.895
-		else:
-			y2 = ystart
-		y1 = y2-ywidth
+		x1 = 0.22 
 	elif where == "UPRIGHT":
-		x1 = 0.66
-		x2 = x1+xwidth
-		if ystart == -1:
-			y2 = 0.895
-		else:
-			y2 = ystart
-		y1 = y2-ywidth
+		x1 = 0.60  
 	else:
-		message = "\033[1;31mgetcoord ERROR\033[1;m Not defined coordinates at '%s'" % where
+		message = "\033[31mgetcoord ERROR\033[m Not defined coordinates at '%s'" % where
 		raise RuntimeError(message)
 
+	x2 = x1+xwidth
+	if ystart == -1:
+		y2 = 0.92
+	else:
+		y2 = ystart-0.005
+	y1 = y2-ywidth
+	
 	return (x1,y1,x2,y2)
 
 
+def getinfotext(sampledict,datasample,signalsample,isofficial):
+	"""..function::getinfotext(sampledict,datasample,signalsample,isofficial) --> ROOT.TPaveText
+	Returns a TPaveText with statistical info if isofficial is False, otherwise
+	it is filled with CMS Preliminary, blabla and channel
 
-def getstats(sampledict,datasample,signalsample):
-	"""... getstats --> ROOT.TPaveText
+	:param sampledict: dictionary of sampleclass
+	:type sampledict: dict(sampleclass)
+	:param datasample: sampleclass instance for data
+	:type datasample: sampleclass
+	:parama signalsample: sampleclass instance for signal
+	:type signalsample: sampleclass
+	:param isofficial: if true, filling with the 'CMS Preliminary' stuff
+	                   and the channel; if false filling with some stats info
+	:type isofficial: bool
+
+	:return: the pave text with the info depending of isofficial 
+	:rtype: ROOT.TPaveText
 	"""
 	import ROOT
 
-	nevtbkg = 0
-	for sample in sampledict.itervalues():
-		if sample.samplename != signalsample.samplename and \
-				sample.samplename != datasample.samplename:
-			nevtbkg += sample.getnormentries()
-	
-	Ndata = datasample.getnormentries()
-	datastat = "%s: %.0f" % (datasample.samplename,Ndata)
-	#lumstat  = "Lumi: %.1f fb^{-1}" % (datasample.lumi/1000.0)
-	ndec = 0
-	if nevtbkg < 1000 and nevtbkg > 10:
-		ndec = 1
-	elif nevtbkg < 10:
-		ndec = 2
-	stringbkg = "Bkg: %s" % ("%."+str(ndec)+"f")
-	bkgstat  = stringbkg % (nevtbkg)
-	signstat = "%s: %.1f" % (signalsample.samplename,signalsample.getnormentries())
-	observed = "N_{obs}-N_{bkg}: %.0f" % (Ndata-nevtbkg)
-	
+	if not isofficial:
+		nevtbkg = 0
+		for sample in sampledict.itervalues():
+			if sample.samplename != signalsample.samplename and \
+					sample.samplename != datasample.samplename:
+				nevtbkg += sample.getnormentries()
+		
+		Ndata = datasample.getnormentries()
+		datastat = "%s: %.0f" % (datasample.samplename,Ndata)
+		#lumstat  = "Lumi: %.1f fb^{-1}" % (datasample.lumi/1000.0)
+		ndec = 0
+		if nevtbkg < 1000 and nevtbkg > 10:
+			ndec = 1
+		elif nevtbkg < 10:
+			ndec = 2
+		stringbkg = "Bkg: %s" % ("%."+str(ndec)+"f")
+		bkgstat  = stringbkg % (nevtbkg)
+		signstat = "%s: %.1f" % (signalsample.samplename,signalsample.getnormentries())
+		observed = "N_{obs}-N_{bkg}: %.0f" % (Ndata-nevtbkg)
+		textfont = 42
+		howmanylines=4
 
-	stats = ROOT.TPaveText()#0.66,0.70,0.86,0.88,"NDC")
-	stats.SetTextSize(TEXTSIZE)
-	stats.SetTextAlign(12)
+	else:
+		preliminary = datasample.title.split("\n")[0] 
+		luminosity  = datasample.title.split("\n")[1]
+		textfont = 62
+		howmanylines=4
+		#t.SetTextAlign(32)
+		#t.SetTextFont(42)
+		#t.SetTextSize(0.04)
+		#t.Draw("SAME")
+
+	info = ROOT.TPaveText()#0.66,0.70,0.86,0.88,"NDC")
+	info.SetTextSize(TEXTSIZE)
+	info.SetTextAlign(12)
+	#info.SetTextAlign(32)
+	info.SetTextFont(textfont)
 	
 	xwidth = 0.12
 	try:
 		where = PAVECOORD[signalsample.histoname]
 	except KeyError:
-		print "\033[1;33mgetstat WARNING\033[1;m Histogram '%s' not defined at PAVECOORD. "\
+		print "\033[33mgetstat WARNING\033[m Histogram '%s' not defined at PAVECOORD. "\
 				" If you want to control the text position it have to be defined" % (signalsample.histoname)
 		where = "UPRIGHT"
 
-	x1,y1,x2,y2 = getcoord(where,xwidth,4*TEXTSIZE)
-	stats.SetX1NDC(x1)
-	stats.SetX2NDC(x2)
-	stats.SetY1NDC(y1)
-	stats.SetY2NDC(y2)
-	#stats.AddText(lumstat)
-	stats.AddText(datastat)
-	stats.AddText(bkgstat)
-	stats.AddText(observed)
-	stats.AddText(signstat)
+	x1,y1,x2,y2 = getcoord(where,xwidth,howmanylines*TEXTSIZE)
+	info.SetX1NDC(x1)
+	info.SetX2NDC(x2)
+	info.SetY1NDC(y1)
+	info.SetY2NDC(y2)
+	
+	if isofficial:
+		info.AddText(preliminary)
+		info.AddText(luminosity)
+		info.AddText("")
+		if datasample.channel != "lll":
+			info.AddText(datasample.latexchannel+" channel")
+	else:
+		info.AddText(datastat)
+		info.AddText(bkgstat)
+		info.AddText(observed)
+		info.AddText(signstat)
 
-	stats.SetFillColor(10)
-	stats.SetBorderSize(0)
+	info.SetFillColor(10)
+	info.SetBorderSize(0)
 
-	return stats
+	return info
 
 
 
-def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
+def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 	"""
 	"""
 	import os
 	import ROOT
+
 	ROOT.gROOT.SetBatch()
-	ROOT.gStyle.SetOptStat(0)
 	ROOT.gStyle.SetLegendBorderSize(0)
+
+	
+	lstyle = LatinosStyle()
+	lstyle.cd()
+	ROOT.gROOT.ForceStyle()
+	ROOT.gStyle.SetOptStat(0)
+
+	#-- 
+	#ROOT.gStyle.SetPadBorderMode(0)
+	#ROOT.gStyle.SetPadBorderSize(10)
+	#ROOT.gStyle.SetPadColor(0)
+	#ROOT.gStyle.SetPadBottomMargin(0.20)
+	#ROOT.gStyle.SetPadTopMargin(0.08)
+	#ROOT.gStyle.SetPadLeftMargin(0.18)
+	#ROOT.gStyle.SetPadRightMargin(0.05)
 
 	# Create the folder structure
 	try:
@@ -406,6 +567,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
 	# Defining the ratio histogram
 	ratio = ROOT.TH1F("ratio","",datasample.histogram.GetNbinsX(),
 			datasample.histogram.GetXaxis().GetXmin(),datasample.histogram.GetXaxis().GetXmax())
+	ratio.Sumw2()
 	#ratio.SetMaximum(2.0)
 	#ratio.SetMinimum(0.0)
 	ratio.SetLineColor(datasample.histogram.GetMarkerColor())
@@ -432,17 +594,25 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
 
 	hs = ROOT.THStack("hs","hstack")
 	mcratio = ratio.Clone("mcratio")
+	mcratio.Sumw2()
+	leginfodict = {}
 	for sample in sampledict.itervalues():
 		if sample.isdata or (plottype == 1 and sample.issignal):
 			continue
 		# If there are no contribution, skip
 		if sample.getnormentries() < 1e-3:
+			leginfodict[LEGENDSDICT[sample.samplename]] = (sample.histogram,format)
 			continue
 		hs.Add(sample.histogram)
 		mcratio.Add(sample.histogram)
 		# Legend (just the background, signal and data already included)
 		if not sample.isdata and not sample.issignal:
-			legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
+			leginfodict[LEGENDSDICT[sample.samplename]] = (sample.histogram,format)
+			#legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
+	legendorder = [ "Data-driven bkg", "ZZ", "Other bkg" ]
+	for legname in legendorder:
+		legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
+
 	# Data
 	hsmax  = 1.1*hs.GetMaximum()
 	hsdata = 1.1*datasample.histogram.GetMaximum()
@@ -451,8 +621,8 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
 	canvas = ROOT.TCanvas("canvas")
 	# If ratio plot including the two up-down pads
 	if hasratio: 
-		padup = ROOT.TPad("padup_"+histoname,"padup",0,0.20,1,1)
-		padup.SetBottomMargin(0)
+		padup = ROOT.TPad("padup_"+histoname,"padup",0,0.21,1,1)# LAtinos0.20,1,1)
+		padup.SetBottomMargin(0.1)
 		padup.Draw()
 		padup.cd()
 
@@ -461,15 +631,19 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
 		signalsample.histogram.Draw("SAME")
 	datasample.histogram.Draw("E SAME")
 	# Set title and axis
-	hs.SetTitle(datasample.title)
+	if isofficial:
+		hs.SetTitle()
+	else:
+		hs.SetTitle(datasample.title)
+
 	hs.GetXaxis().SetTitle(datasample.xtitle)
 	hs.GetYaxis().SetTitle(datasample.ytitle)
 	
 	# With ratio histogram
 	if hasratio:
-		ratio.Divide(datasample.histogram,mcratio)
+		ratio.Divide(datasample.histogram,mcratio,1,1,"B")
 		#ratio.SetMaximum(4.0)
-		# Building the Monte Carlo errors,
+		# Building the Monte Carlo statistical errors,
 		# taking advantage of the loop, put the x-labels if any
 		for i in xrange(1,mcratio.GetNbinsX()+1):
 			binlabel=datasample.histogram.GetXaxis().GetBinLabel(i)
@@ -521,26 +695,28 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,ispretty=False):
 		canvas.cd()
 
 
-	# Setting the stats 
-	statspave = getstats(sampledict,datasample,signalsample)
-	statspave.Draw()
+	# Setting the Info pave text (stats or CMS preliminary, channel, ...)
+	infopave = getinfotext(sampledict,datasample,signalsample,isofficial)
+	infopave.Draw()
+
+
 	# setting and drawing the legend
 	legend.SetFillColor(10)
 	y1width = 0.03*legend.GetNRows()
 	try:
 		where = PAVECOORD[signalsample.histoname]
 	except KeyError:
-		print "\033[1;33mplotallsamples WARNING\033[1;m Histogram '%s' not defined at PAVECOORD. "\
+		print "\033[33mplotallsamples WARNING\033[m Histogram '%s' not defined at PAVECOORD. "\
 				" If you want to control the text position it have to be defined" % (signalsample.histoname)
 		where = "UPRIGHT"
-	x1,y1,x2,y2 = getcoord(where,0.13,y1width,statspave.GetY1NDC())
+	x1,y1,x2,y2 = getcoord(where,0.13,y1width,infopave.GetY1NDC())
 	legend.SetX1NDC(x1)
 	legend.SetY1NDC(y1)
 	legend.SetX2NDC(x2)
 	legend.SetY2NDC(y2)
 	legend.Draw()
 	
-
+	# Plotting
 	canvas.SaveAs("Plots/"+datasample.histoname+".pdf")
 
 	# Logarithmic scale
@@ -569,16 +745,17 @@ if __name__ == '__main__':
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
 	if vX > 2 and vY < 4:
-		message = '\033[1;31plothisto ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31plothisto ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	elif vX < 2:
-		message = '\033[1;31plothisto ERROR\033[1;m I need python version >= 2.4'
+		message = '\033[31plothisto ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	
 	usage  ="usage: plothisto histogramname [options]"
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(rebin=0,plottype=1,luminosity=4922.0,data="Data",ismodefake=False,\
-			isfakeasdata=False,wantroot=False,wantratio=False)
+			isfakeasdata=False,wantratio=False,\
+			isofficial=False) #wantroot=FAlse
 	parser.add_option( "-s",action='store',dest='signal', metavar="WZ|WH#", help="Signal name, for Higgs subsituing # for mass")
 	parser.add_option( "-d",action='store',dest='data', help="Data name [default: 'Data']")
 	parser.add_option( "-r",action='store',dest='rebin',  help="Rebin the histos a factor N [default: 0]")
@@ -591,21 +768,23 @@ if __name__ == '__main__':
 	parser.add_option( "-f",action='store_true',dest='isfakeasdata', help="Mode Fakes: Comparing fake sample with the MC-samples which can generate it. "\
 			"In this mode, the Fake sample is used as Data and it will be compared with "\
 			"some MC samples which could create this Fake sample: WZ, ZZ, Z+Jets, ttbar")
-	parser.add_option( "-w",action='store_true',dest='wantroot',help="Want root output files plus the pdf plot files")
+	#parser.add_option( "-w",action='store_true',dest='wantroot',help="Want root output files plus the pdf plot files")
 	parser.add_option( "-u",action='store_true',dest='wantratio',help="Want ratio plot under the actual plot")
 	parser.add_option( "-c",action='store',dest='channel',help="Auxiliary option to introduce the channel in case it cannot be "\
 			"possible to guess it (example: when the folder structure is not the usual one)")
+	parser.add_option( "-o",action='store_true',dest='isofficial',help="Activating this flag the plots will be made"\
+			" with the official CMS style")
 
 	( opt, args ) = parser.parse_args()
 
 	if len(args) == 0 :
 		#FIXME: Preparalo para dibujar todos los que aparezcan en un .root
-		message = "\033[1;31mplothisto ERROR\033[1;m Missing mandatory argument name of the histogram, see usage."
+		message = "\033[31mplothisto ERROR\033[m Missing mandatory argument name of the histogram, see usage."
 		sys.exit(message)
 	histoname = args[0]
 
 	if not opt.signal:
-		message = "\033[1;31mplothisto ERROR\033[1;m Missing mandatory option '-s'"
+		message = "\033[31mplothisto ERROR\033[m Missing mandatory option '-s'"
 		sys.exit(message)
 	signal = opt.signal
 
@@ -626,30 +805,50 @@ if __name__ == '__main__':
 			if "leptonchannel" in path:
 				opt.channel = "lll"
 			else:
-				message = "\033[1;31mplothisto ERROR\033[1;m Cannot guessing the channel, please enter it with the '-c' option"
+				message = "\033[31mplothisto ERROR\033[m Cannot guessing the channel, please enter it with the '-c' option"
 				sys.exit(message)
 
-	print "\033[1;34mplothisto INFO\033[1;m Plotting histogram '"+histoname+"' ..."
+	print "\033[34mplothisto INFO\033[m Plotting histogram '"+histoname+"' ..."
 	sys.stdout.flush()
 	
 	# -- Extracting the samples available
 	samples = map(lambda x: x.replace("cluster_",""),glob.glob("cluster_*"))
+	# --- Some manipulations needed for the samples to be merged. DY and ZJets
+	metasamples = { "ZJets": [] }
+	METASAMPLESCOMP = { "ZJets": [ "DYee", "DYmumu", "DYtautau" , "Zmumu","Ztautau","Zee"] }
+	for name in samples:
+		reducedname = name.split("_")[0]
+		for metaname in metasamples.iterkeys():
+			if reducedname in METASAMPLESCOMP[metaname]:
+				metasamples[metaname].append(name)
+	if len(filter(lambda xlist: len(xlist) != 0, metasamples.values())) == 0:
+		metasamples = None
+		METASAMPLESCOMP = None
+	else:
+		#- Now substituting the samples for the corresponding metasample if proceed
+		for metaname,realnameslist in metasamples.iteritems():
+			if len(realnameslist) == 0:
+				continue
+			for realnames in realnameslist:
+				samples.remove(realnames)
+			samples.append(metaname)
+
 	# --- Checking we have the samples needed:
 	if not opt.data in samples:
-		message = "\033[1;31mplothisto ERROR\033[1;m Missing datasample '%s'" % (opt.data)
+		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.data)
 		sys.exit(message)
 	
 	if not signal in samples:
-		message = "\033[1;31mplothisto ERROR\033[1;m Missing datasample '%s'" % (opt.signal)
+		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
 
 	if (opt.ismodefake or opt.isfakeasdata) and not "Fakes" in samples:
-		message = "\033[1;31mplothisto ERROR\033[1;m Missing datasample '%s'" % (opt.signal)
+		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
 
 	# Just we don't want some samples when deal with fake mode
 	if opt.ismodefake:
-		nofakessamples = [ "WJets","TTbar","DY","Zee","Zmumu","Ztautau" ]
+		nofakessamples = [ "WJets","TTbar","DY","ZJets" ]
 		condition = ""
 		for nf in nofakessamples:
 			condition += " not '%s' in x and" % nf
@@ -661,6 +860,23 @@ if __name__ == '__main__':
 	for i in samples:
 		isdata = ( i == opt.data )
 		issignal = ( i == signal )
+		# Check if this class have to be merge in one (DY, ZJets,..)
+		if metasamples:
+			try:
+				realsampleslist = metasamples[i]
+				# Add all the samples to do a metasample
+				sc =  []
+				for realname in realsampleslist:
+					sc.append( sampleclass(realname, histoname,lumi=float(opt.luminosity),\
+							isdata=isdata,issignal=issignal,channel=opt.channel,metaname=i) )
+				# Adding
+				sampledict[i] = sc[0]
+				for k in xrange(1,len(sc)):
+					sampledict[i] += sc[k]
+				# And to the next sample
+				continue
+			except KeyError:
+				pass
 		sampledict[i] = sampleclass(i,histoname,lumi=float(opt.luminosity),isdata=isdata,issignal=issignal,channel=opt.channel)
 
 	# Rebining
@@ -682,9 +898,9 @@ if __name__ == '__main__':
 		rebin = opt.rebin
 
 	if int(opt.plottype) == 2:
-		print "\033[1;33mplothisto WARNING\033[1;m Not validated YET plottype==2"
+		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
 
-	plotallsamples(sampledict,int(opt.plottype),int(rebin),opt.wantratio)
+	plotallsamples(sampledict,int(opt.plottype),int(rebin),opt.wantratio,opt.isofficial)
 
 
 
