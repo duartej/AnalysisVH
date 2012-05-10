@@ -96,7 +96,7 @@ runperiod=2011
 
 # TTbar sample and WZ
 TTBAR=TTbar_2L2Nu_Powheg
-TTBAR=TTbar_Madgraph
+#TTBAR=TTbar_Madgraph
 
 
 #
