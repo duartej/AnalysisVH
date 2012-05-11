@@ -52,7 +52,7 @@ UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
 
 VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"ZINVMASS": "M_{ll}", "TRANSVERSMASS": "M_{T}",
-		"D0": "d_{0}"
+		"D0": "d_{0}", "CHARGE": "#Sigma q" 
 		}
 
 
@@ -288,7 +288,15 @@ class sampleclass(object):
 			# Taking the first one
 			self.unit = UNITDICT[unitguess[0]]
 			self.variable = VARDICT[unitguess[0]]
+			if unitguess[0] == "PT" or unitguess[0] == "ETA":
+				number = self.histoname.upper().split("LEPTON")[1]
+				self.variable = self.variable[:-1]+"_{"+str(number)+"}}"
 		else:
+			# FIXME: Doesn't like this patch, redo it for the charge!!
+			if self.histoname.upper().split("LEPTON")[1].find("CHARGE") != 1:
+				self.unit = ""
+				self.variable = VARDICT["CHARGE"]
+				
 			self.unit = ""
 
 
