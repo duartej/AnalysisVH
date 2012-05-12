@@ -529,8 +529,33 @@ def getinfotext(sampledict,datasample,signalsample,isofficial):
 
 
 
-def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
-	"""
+def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg=False):
+	"""..function::plotallsamples(sampledict,plottype,rebin,hasratio,isofficial[,allsamplesonleg]) -> None
+
+	Main function where the plot are actually done
+
+	:param sampledict: dictionary of sampleclass instances containing all the sample to
+	                   be plotted
+	:type sampledict: dictionary formed with pairs (str,sampleclass)
+	:param plottype: The way how the plot is going to be done. The accepted values are:
+			 - 0: All samples are being plotted stacked
+			 - 1: All background stacked, signal alone
+			 - 2: All samples alone
+	:type plottype: int
+	:param rebin: The number which the histograms are going to be re-grouped
+	:type rebin: int
+	:param hasratio: Whether or not want the below ratio Data/MC plot
+	:type hasratio: bool
+	:param isofficial: If it is true, above the legend is going to be placed the 
+	                   'CMS preliminary ....' string. Otherwise, there will be
+			   a statistic pave
+	:type isofficial: bool
+	:param allsamplesonleg: If it is true, all samples in the 'sampledict' are put in the 
+	                        legend. Otherwise, just the Fakes, ZZ and a metaname Other.
+				Note that a true value has only sense for the pure Monte Carlo
+				samples case.
+				Default: False
+	:type allsamplesonleg: bool
 	"""
 	import os
 	import ROOT
@@ -589,7 +614,6 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 	legend.SetBorderSize(0)
 	legend.SetTextSize(TEXTSIZE)
 	legend.SetFillColor(10)
-	#legend.SetNColumns(2)
 	legend.AddEntry(datasample.histogram,LEGENDSDICT[datasample.samplename],"P")
 	signalegstr = LEGENDSDICT[signalsample.samplename]
 	if signalsample.SIGNALFACTOR != 1:
@@ -603,6 +627,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 	hs = ROOT.THStack("hs","hstack")
 	mcratio = ratio.Clone("mcratio")
 	leginfodict = {}
+	# Two different behaviours if the user ask for
 	for sample in sampledict.itervalues():
 		if sample.isdata or (plottype == 1 and sample.issignal):
 			continue
@@ -615,15 +640,18 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 		# Legend (just the background, signal and data already included)
 		if not sample.isdata and not sample.issignal:
 			leginfodict[LEGENDSDICT[sample.samplename]] = (sample.histogram,format)
-			#legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
-	legendorder = [ "Data-driven bkg", "ZZ", "Other bkg" ]
-	for legname in legendorder:
-		try:
+			if allsamplesonleg:
+				legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
+	if not allsamplesonleg:
+		# Be careful, this has sense only with the Fakes sample 
+		if not "Fakes" in sampledict.values():
+			message = "\033[31plotallsamples ERROR\033[m Cannot be called this function with"
+			message += " the argument 'allsamplesonleg=True' and do not have a Fakes sample"
+			raise RuntimeError(message)
+		# Just we want to show 
+		legendorder = [ "Data-driven bkg", "ZZ", "Other bkg" ]
+		for legname in legendorder:
 			legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
-		except KeyError:
-			# Just we are in MC case
-			pass
-
 	# Data
 	hsmax  = 1.1*hs.GetMaximum()
 	hsdata = 1.1*datasample.histogram.GetMaximum()
@@ -642,10 +670,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 		signalsample.histogram.Draw("SAME")
 	datasample.histogram.Draw("E SAME")
 	# Set title and axis
-	if isofficial:
-		hs.SetTitle()
-	else:
-		hs.SetTitle(datasample.title)
+	hs.SetTitle()
 
 	hs.GetXaxis().SetTitle(datasample.xtitle)
 	hs.GetYaxis().SetTitle(datasample.ytitle)
@@ -712,15 +737,24 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 
 
 	# setting and drawing the legend
-	legend.SetFillColor(10)
-	y1width = 0.03*legend.GetNRows()
 	try:
 		where = PAVECOORD[signalsample.histoname]
 	except KeyError:
 		print "\033[33mplotallsamples WARNING\033[m Histogram '%s' not defined at PAVECOORD. "\
 				" If you want to control the text position it have to be defined" % (signalsample.histoname)
 		where = "UPRIGHT"
-	x1,y1,x2,y2 = getcoord(where,0.13,y1width,infopave.GetY1NDC())
+	legend.SetFillColor(10)
+	# -- Two columns if there are too many rows
+	textwidth=0.03
+	textlength=0.12
+	if legend.GetNRows() > 5:
+		legend.SetNColumns(2)
+		textwidth=0.02
+		textlength=0.15
+		legend.SetTextSize(textwidth)
+	y1width = textwidth*legend.GetNRows()
+	xwidth  = textlength*legend.GetNColumns()
+	x1,y1,x2,y2 = getcoord(where,xwidth,y1width,infopave.GetY1NDC())
 	legend.SetX1NDC(x1)
 	legend.SetY1NDC(y1)
 	legend.SetX2NDC(x2)
@@ -857,6 +891,7 @@ if __name__ == '__main__':
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
 
+	allsamplesonleg=False
 	# Just we don't want some samples when deal with fake mode
 	if opt.ismodefake:
 		nofakessamples = [ "WJets","TTbar","DY","ZJets" ]
@@ -865,6 +900,9 @@ if __name__ == '__main__':
 			condition += " not '%s' in x and" % nf
 		condition = condition[:-3]
 		swap = eval("filter(lambda x:"+condition+",samples)")
+	else:
+		# We are in MC mode, we want all the samples on the legend
+		allsamplesonleg=True
 
 	# Dictionary of samples with its sampleclass associated
 	sampledict = {}
@@ -915,13 +953,11 @@ if __name__ == '__main__':
 		while( k != 0 ):
 			rebin = nearestmult(rebin)
 			k = nbins % rebin
-		#if rebin == 0:
-		#	rebin = 1
 	
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
 
-	plotallsamples(sampledict,int(opt.plottype),rebin,opt.wantratio,opt.isofficial)
+	plotallsamples(sampledict,int(opt.plottype),rebin,opt.wantratio,opt.isofficial,allsamplesonleg)
 
 
 
