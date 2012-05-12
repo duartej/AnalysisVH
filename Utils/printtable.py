@@ -1,6 +1,15 @@
 #!/usr/bin/env python
 
 
+# Fancy name to the samples. The dictionary is built in run-time. Whenever a sample is not
+# defined here, the fancy will be the same as the default one
+TITLEDICT = { "Fakes": "Data-driven bkg", 
+		"Other": "Other bkg", 
+		"WZTo3LNu": "WZ#rightarrow3l#nu", 
+	    }
+ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
+
+
 class format(object):
 	"""
 	"""
@@ -110,6 +119,7 @@ class column(object):
 
 		# Extract the values and stores to a dict
 		self.rowvaldict = self.__builddict__()
+
 
 	def __builddict__(self):
 		"""..method: __builddict__() -> { 'cutname1': (val,err), ... } 
@@ -248,6 +258,8 @@ class table(object):
 		import glob
 		import ROOT
 		import os
+		global TITLEDICT
+
 		# First checkings:
 		if not os.getenv("VHSYS"):
 			raise "\033[31mtable ERROR\033[m Initialize your"+\
@@ -273,13 +285,17 @@ class table(object):
 			elif key == "wildcardfiles":
 				wildcardfiles = value
 			elif key == "join":
-				if type(value) == list:
+				if type(value) == list and len(value) == 0:
+					# we don't want to smash the join list
+					pass
+				elif type(value) == list:
 					join = value
 				elif type(value) == dict:
 					self.usermetasample = value
 					join = self.usermetasample.keys()
 				else:
-					join = [ value ]
+					join.append(value)
+
 
 		# available filenames
 		self.filenames = glob.glob(wildcardfiles)
@@ -305,6 +321,13 @@ class table(object):
 		# building the columns
 		self.columns = {}
 		for f in self.filenames:
+			naturalname = os.path.basename(f).split(".")[0]
+			# Putting the fancy name if has to, or using the
+			# per default name (so updating the TITLEDICT global)
+			try:
+				coltitle = TITLEDICT[naturalname]
+			except KeyError:
+				TITLEDICT[naturalname] = naturalname
 			col = column(f)
 			self.columns[col.title] = col
 		
@@ -325,13 +348,19 @@ class table(object):
 
 		# Ordered samples names (column names)
 		self.columntitles = []
+		# Backgrounds ordered first
+		self.columntitles = filter(lambda x: x in self.samples+join, ORDERCOLUMNS)
 		for i in self.samples:
+			# Already took into account
+			if i in self.columntitles:
+				continue
+			# Signal and data will be put after
 			if i == self.signal or i == self.data:
 				continue
 			self.columntitles.append(i)
 		self.columntitles.append( "TotBkg" )
 		self.columntitles.append( self.data )
-		self.columntitles.append( "Nobs-Nbkg" )
+		self.columntitles.append( "Data-TotBkg" )
 		self.columntitles.append( self.signal )
 
 		# The datamember samples is superceeded by columntitles
@@ -350,17 +379,24 @@ class table(object):
 					# samples aren't there (for instance WJets_Madgraph
 					# in the 'Other' metasample)
 					pass
+			# See if we have any of the samples to merge, if not then 
+			# it has no sense going on
+			if len(samplestodelete) == 0:
+				# Do not incorporate the metasample to the table
+				self.columns.pop(metasample)
+				# And do nothing else
+				continue
 			# Put the title
 			self.columns[metasample].title = metasample
+			# See if the user wants a particular fancy name
+			try:
+				self.columns[metasample].fancytitle = TITLEDICT[metasample]
+			except KeyError:
+				pass
 			# Erase the samples merged 
-			for i in xrange(len(samplestodelete)-1):
-				self.columns.pop(samplestodelete[i])
-				self.columntitles.remove(samplestodelete[i])
-			self.columns.pop(samplestodelete[-1])
-			# And substitute the last sample by the metasample
-			indexlast = self.columntitles.index(samplestodelete[-1])
-			self.columntitles[indexlast] = metasample
-
+			for s2remove in samplestodelete:
+				self.columns.pop(s2remove)
+				self.columntitles.remove(s2remove)
 
 		# format specific
 		self.format = format()
@@ -426,7 +462,7 @@ class table(object):
 		if sample == "TotBkg":
 			val = 0.0
 			err2 = 0.0
-			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg" and x != "Nobs-Nbkg",self.samples):
+			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg" and x != "Data-TotBkg",self.samples):
 				(v,e) = self.columns[s].getvalerr(cut)
 				val += v
 				err2 += e**2.0
@@ -445,7 +481,7 @@ class table(object):
 			val,err=self.columns[sample].getvalerr(cut)
 		except KeyError:
 			# It's substraction data - TotBkg columns
-			if sample == "Nobs-Nbkg":
+			if sample == "Data-TotBkg":
 				# Note that as it has been extract by order, Data and total background
 				(valdata,errdata) = self.columns[self.data].getvalerr(cut)
 				(valbkg,errbkg)   = self.columns["TotBkg"].getvalerr(cut)
@@ -552,7 +588,12 @@ class table(object):
 		# Column titles
 		lines += self.format.rowstart+self.format.cellrowitstart+"      Cuts "+self.format.cellrowitend
 		for s in self.columntitles:
-			lines += self.format.cellcolitstart+s+self.format.cellcolitend
+			fancyname = s
+			try:
+				fancyname = TITLEDICT[s]
+			except KeyError:
+				pass
+			lines += self.format.cellcolitstart+fancyname+self.format.cellcolitend
 		lines += self.format.rowend+" \n"
 		#Content 
 		# Extract the maximum lenght of the cuts
@@ -585,13 +626,19 @@ class table(object):
 			lines += self.format.cellcolitstart+s+self.format.cellcolitend
 		lines += self.format.rowend+" \n"
 		# Content
+		fancycolumntitles = []
+		for sample in self.columntitles:
+			try:
+				fancycolumntitles.append( TITLEDICT[sample] )
+			except KeyError:
+				fancycolumntitles.append(sample)
 		# Extract the maximum lenght of the samples
-		maxlenght = str(max(map(lambda x: len(x),self.columntitles)))
+		maxlenght = str(max(map(lambda x: len(x),fancycolumntitles)))
 		sampleformat = "%"+maxlenght+"s"
 		# Build the table row by row (sample by sample)
-		for sample in self.columntitles:
+		for sample,fancyname in zip(self.columntitles,fancycolumntitles):
 			lines += self.format.rowstart+self.format.cellrowitstart
-			lines += sampleformat % sample
+			lines += sampleformat % fancyname
 			lines += self.format.cellrowitend
 			for cut in self.importantcutslist:
 				realcut = self.importantcutsdict[cut]
@@ -652,6 +699,11 @@ if __name__ == '__main__':
 			' it could be a str defining a pre-built metasample: "DY" "Z+Jets" "Other";'\
 			' it could be a list of strings comma separated which are defining more than one pre-built'\
 			' metasample; or could be metasample names and a list of samples')
+	parser.add_option( '-a', "--addname", action='store', dest='samplenames', 
+			metavar="newname1@oldname1[,newname2@oldname2,...]",
+			help='Change the name which a sample'\
+			' will be put in the table. The standard notation comes from "SAMPLENAME_datanames.dn", so to'\
+			' modify this behaviour you can use that option"')
 
 
 	( opt, args ) = parser.parse_args()
@@ -682,6 +734,20 @@ if __name__ == '__main__':
 			join = opt.join
 	else:
 		join = []
+
+	# If the user wants to incorporate some names 
+	if opt.samplenames:
+		message = "\033[31mprinttable ERROR\033[m Malformed arguments on option"
+		message += " '-a','--addname'. See the help"
+		dosomething=False
+		for oldnew in opt.samplenames.split(","):
+			oldnew_list =oldnew.split("@")
+			if len(oldnew_list) != 2:
+				sys.exit(message)
+			TITLEDICT[oldnew_list[1]]=oldnew_list[0]
+			dosomething=True
+		if not dosomething:
+			sys.exit(message)
 
 
 	print "\033[34mprinttable INFO\033[m Creating yields table for "+signal+" analysis",
