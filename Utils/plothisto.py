@@ -31,8 +31,8 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHEtaLepton1': 'UPLEFT', 'fHEtaLepton2': 'UPLEFT', 'fHEtaLepton3': 'UPLEFT',
 		'fHZInvMassAfterZCand': 'UPLEFT', 'fHTransversMass': 'UPLEFT', 
 		'fHNPrimaryVertices': 'UPRIGHT', 'fHNSelectedIsoLeptons': 'UPRIGHT',
-		'fHPtLepton3': 'UPLEFT', 'fHPtLepton2': 'UPRIGHT', 'fHPtLepton1': 'UPRIGHT',
-		'fHdRl1Wcand': 'UPLEFT', 'fHEventsPerCut': 'UPRIGHT', 'fHdRl2Wcand': 'UPRIGHT',
+		'fHPtLepton3': 'UPRIGHT', 'fHPtLepton2': 'UPRIGHT', 'fHPtLepton1': 'UPRIGHT',
+		'fHdRl1Wcand': 'UPLEFT', 'fHEventsPerCut': 'UPRIGHT', 'fHdRl2Wcand': 'UPLEFT',
 		'fHEventsPerCut3Lepton': 'UPRIGHT', 'fHLeptonCharge': 'UPLEFT', 
 		'fHMETAfterWCand': 'UPRIGHT', 'fHProcess': 'UPRIGHT',
 		'fHFlavour': 'UPRIGHT'
@@ -292,8 +292,8 @@ class sampleclass(object):
 				number = self.histoname.upper().split("LEPTON")[1]
 				self.variable = self.variable[:-1]+"_{"+str(number)+"}}"
 		else:
-			# FIXME: Doesn't like this patch, redo it for the charge!!
-			if self.histoname.upper().split("LEPTON")[1].find("CHARGE") != 1:
+			# Just a minor check: the fHLeptonCharge 
+			if "CHARGE" in self.histoname.upper():
 				self.unit = ""
 				self.variable = VARDICT["CHARGE"]
 				
@@ -618,7 +618,11 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial=False):
 			#legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
 	legendorder = [ "Data-driven bkg", "ZZ", "Other bkg" ]
 	for legname in legendorder:
-		legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
+		try:
+			legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
+		except KeyError:
+			# Just we are in MC case
+			pass
 
 	# Data
 	hsmax  = 1.1*hs.GetMaximum()
@@ -887,27 +891,37 @@ if __name__ == '__main__':
 		sampledict[i] = sampleclass(i,histoname,lumi=float(opt.luminosity),isdata=isdata,issignal=issignal,channel=opt.channel)
 
 	# Rebining
+	nbins = sampledict[opt.data].histogram.GetNbinsX()
 	if int(opt.rebin) == 0:
-		ndata = sampledict[opt.data].getnormentries()
-		nbins = sampledict[opt.data].histogram.GetNbinsX()
 		### Number of bins following the rule: sqrt(N)+1
-		rule = sqrt(ndata)+1.0
-		kestimatedbins = int(rule)
-		if rule/kestimatedbins >= 0.5:
-			kestimatedbins += 1
-		### Fraction to obtain the number of bins desired
-		frebin = nbins/kestimatedbins
-		if kestimatedbins > 10:
-			rebin = frebin
-		else:
-			rebin = nbins/10
+		ndata = sampledict[opt.data].getnormentries()
+		rule  = int(sqrt(ndata)+1.0)
+		rebin = nbins/rule
+		if rebin == 0:
+			# It means there is not enough data to arrive at minimum
+			# so at least we want 10 bins
+			rebin=nbins/10
 	else:
-		rebin = opt.rebin
-
+		rebin = int(opt.rebin)
+	# -- Just controlling that the rebin number is a divisor of the initial bins
+	#-- Note that:   NbinsInit=rebin*NbinsNew+k,
+	k = nbins % rebin
+	if k != 0:
+		# We want a k=0, so start the algorithm to search it
+		if float(nbins)/float(rebin)-nbins/rebin > 0.5:
+			nearestmult = lambda x: x+1
+		else:
+			nearestmult = lambda x: x-1
+		while( k != 0 ):
+			rebin = nearestmult(rebin)
+			k = nbins % rebin
+		#if rebin == 0:
+		#	rebin = 1
+	
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
 
-	plotallsamples(sampledict,int(opt.plottype),int(rebin),opt.wantratio,opt.isofficial)
+	plotallsamples(sampledict,int(opt.plottype),rebin,opt.wantratio,opt.isofficial)
 
 
 
