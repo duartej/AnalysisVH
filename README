@@ -114,7 +114,6 @@ TODO:
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email) 
   5. Check with the *.sh.e* the good behaviour of the job
-  6. Include the closure test (DDM), the MC and the DDD ---> DONE 
   12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
      runanalysis job (see skimfiles.py script to identify what functions could be used as general funtions
      of an abstract class (clustermanager, for instance) and what ones must be implemented in each concrete
@@ -125,14 +124,12 @@ TODO:
   15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
      should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
      interface methods to use not the SelectWhateverLeptons ... 
-  16.Incorporate for the leptonchannel (so in the merge3fs script) the histogram of channels --> DONE
   18.Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
      the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
      for instance)
-  19.Substitute the plothisto.cpp by a plothisto.py, include the no-dependence of the samples used
+  19.Substitute the plothisto.cpp by a plothisto.py, include the no-dependence of the samples used--->DONE
   20.Add a way to check if a variable has a cut, then the plot should use the min bin edge of that cut
      (see MET plot after all cuts)
-  21.Substitute the FOManager by the WManager (centralized weights class) ---> DONE
   22.Find a way to deal with the control region analysis: now I have to recompile and change the code if
      I want to send a control region.
   23.Change the _selectedWhatever collection just by a _selected collection in the CutManager class.
@@ -143,5 +140,7 @@ TODO:
   26.Find a way to deal with the web conection to extract the PU histogram (PUWeight class). It must
      be used with caution and if there are no answer from the web, then used some per default and
      already downloaded local PU histogram.
+  37.Included a print method in AnalisisBase summarizing what parameters was used (DumpParameters)
+     what fake rate matrix files, what weights files, scale factors, ...
   
 
