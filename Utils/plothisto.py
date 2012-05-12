@@ -903,6 +903,16 @@ if __name__ == '__main__':
 	else:
 		# We are in MC mode, we want all the samples on the legend
 		allsamplesonleg=True
+		# And also its real name and colors all of them
+		LEGENDSDICT["WW"] = "WW" 
+		COLORSDICT["WW"] = kRed+3
+		LEGENDSDICT["WJets_Madgraph"] = "WJets"
+		COLORSDICT["WJets_Madgraph"] = kAzure+3
+		LEGENDSDICT["TW_DR"]="tW"
+		COLORSDICT["TW_DR"] = kGreen-2
+		LEGENDSDICT["TbarW_DR"]="#bar{t}W"
+		COLORSDICT["TbarW_DR"] = kGreen+4
+
 
 	# Dictionary of samples with its sampleclass associated
 	sampledict = {}
