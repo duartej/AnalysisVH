@@ -40,6 +40,18 @@ OPTIONS:
 EOF
 }
 
+# Control number of processes sended
+checkprocs()
+{
+	local NPROCS=$(($1+1))
+	local NCPU=$2
+	if [ $NPROCS -ge $NCPU ]; then
+		echo 0;
+	else
+		echo $NPROCS
+	fi
+}
+
 # Default
 #luminosity=4626.8 # NEW CALCULATION -->
 luminosity=4922.0 
@@ -184,33 +196,57 @@ then
 
 fi
 
-
-
+# Added the use of the cpu's number
+# How many cpus
+NCPU=`cat /proc/cpuinfo|grep processor|wc -l`
 for j in $fsdirectories leptonchannel;
 do
+	NPROC=0
 	cd $j;
 	for i in $HISTOSNOC;
 	do
-		$plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
+		# open a subshell
+		($plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		NPROC=$(checkprocs $NPROC $NCPU)
+		if [ $NPROC -eq 0 ]; then
+			wait;
+		fi
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		$plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
+		($plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) & 
+		NPROC=$(checkprocs $NPROC $NCPU)
+		if [ $NPROC -eq 0 ]; then
+			wait;
+		fi
 	fi
 	
 	for i in $HISTOS4B;
 	do
-		$plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
+		($plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		NPROC=$(checkprocs $NPROC $NCPU)
+		if [ $NPROC -eq 0 ]; then
+			wait;
+		fi
 	done;
 	
 	for i in $HISTOS8B;
 	do
-		$plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o
+		($plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		NPROC=$(checkprocs $NPROC $NCPU)
+		if [ $NPROC -eq 0 ]; then
+			wait;
+		fi
 	done;
-	printtable $signal -d $data $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex;
-	
+	(printtable $signal -d $data $isreduced -f table_$(basename `pwd`).html,table_$(basename `pwd`).tex) &
+	NPROC=$(checkprocs $NPROC $NCPU)
+	if [ $NPROC -eq 0 ]; then
+		wait;
+	fi
+	# Waiting all processed have been finalized before create the tar
+	wait;	
+	echo "+++ plotall INFO: Storing all plots and tables inside a tar.gz file"
 	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`)_large.html table_$(basename `pwd`).tex table_$(basename `pwd`)_large.tex
 	cd ..;
 done;
-
 
