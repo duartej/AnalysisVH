@@ -644,8 +644,8 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 				legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
 	if not allsamplesonleg:
 		# Be careful, this has sense only with the Fakes sample 
-		if not "Fakes" in sampledict.values():
-			message = "\033[31plotallsamples ERROR\033[m Cannot be called this function with"
+		if not "Fakes" in sampledict.keys():
+			message = "\033[31mplotallsamples ERROR\033[m Cannot be called this function with"
 			message += " the argument 'allsamplesonleg=True' and do not have a Fakes sample"
 			raise RuntimeError(message)
 		# Just we want to show 
