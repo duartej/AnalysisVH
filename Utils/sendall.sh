@@ -141,8 +141,6 @@ shift $((OPTIND-1))
 # Checking the signal
 if [ "$1" != "WZ" -a "$1" != "WH" ] ;
 then
-	echo "+++++++++++++++** $1"
-	echo "[$fakeasdata] [$fakeable]"
 	echo "ERROR: the signal argument is mandatory. See the help below"
 	help
 	exit -1;
@@ -224,20 +222,26 @@ do
 		datamanagercreator Fakes -r $runperiod -f $finalstate;
 		fakeoption="-F 3,2"
 	fi
-	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 	#-------------------------------------------------------------
-	# The WZ3LNu and ZZ sample has to be considered for the Fake substraction (-F and no -f options)
-	if [ "X"$fakeable == "Xyes" -a "X"$fakeasdata == "X" ];
+	# The WZ3LNu and ZZ sample has to be considered for the Fake
+	# substraction (-F or -f options)
+	if [ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ];
 	then
 		WZSAMPLE=WZTo3LNu
 		ZZSAMPLE=ZZ
 		cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
 		cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+		# Plus if we are checking the comparation of the Fakes
+		# with the MC using the data driven, not needed the WZ and ZZ 
+		if [ "X"$fakeasdata == "Xyes" ];
+		then
+			rm ${WZSAMPLE}_datanames.dn;
+			rm ${ZZSAMPLE}_datanames.dn;
+		fi
 	fi
 	#-------------------------------------------------------------
+	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
+	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 	cd ../; 
 done
 rm *.dn

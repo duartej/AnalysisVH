@@ -175,6 +175,7 @@ then
 		exit;
 	fi
 	# If everything is fine then renaming
+	#----- OBSOLETE--FIXME
 	signal=${signalarray[0]}
 	data=${signalarray[1]}
 	if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
