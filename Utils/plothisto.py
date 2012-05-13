@@ -828,21 +828,26 @@ if __name__ == '__main__':
 		sys.exit(message)
 	histoname = args[0]
 
-	if not opt.signal:
+	if not opt.isfakeasdata and not opt.signal:
 		message = "\033[31mplothisto ERROR\033[m Missing mandatory option '-s'"
 		sys.exit(message)
-	signal = opt.signal
 
-	if signal.find("WH") == 0:
-		signal = signal.replace("WH","WHToWW2L")
+	signal = opt.signal
+	if opt.signal:
+		if signal.find("WH") == 0:
+			signal = signal.replace("WH","WHToWW2L")
 	
-	if signal.find("WZ") == 0:
-		signal = signal.replace("WZ","WZTo3LNu")
+		if signal.find("WZ") == 0:
+			signal = signal.replace("WZ","WZTo3LNu")
 
 	# Guessing the channel if it wasn't introduced by user
 	if not opt.channel:
 		path=os.getcwd()
-		genericsignal = signal[:2]
+		try:
+			genericsignal = signal[:2]
+		except TypeError:
+			# covering the case when signal = None (isfakeasdata)
+			genericsignal = ""
 		try:
 			opt.channel = filter(lambda x: x.find(genericsignal+"e") != -1 or \
 					x.find(genericsignal+"m") != -1, path.split("/"))[0].replace(genericsignal,"")
@@ -878,6 +883,14 @@ if __name__ == '__main__':
 				samples.remove(realnames)
 			samples.append(metaname)
 
+	# --- Monte Carlo composition of the fake sample
+	if opt.isfakeasdata:
+		# -- Ignoring the user inputs, forcing those
+		opt.data = "Fakes"
+		# -- Using the first background as signal and
+		# -- force the plottype=1
+		signal = filter(lambda x: x != opt.data,samples)[0]
+
 	# --- Checking we have the samples needed:
 	if not opt.data in samples:
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.data)
@@ -886,7 +899,7 @@ if __name__ == '__main__':
 	if not signal in samples:
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
-
+	# -- Superseeded: TO BE DEPRECATED when include the set-up for the ismodefake option
 	if (opt.ismodefake or opt.isfakeasdata) and not "Fakes" in samples:
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
@@ -900,8 +913,9 @@ if __name__ == '__main__':
 			condition += " not '%s' in x and" % nf
 		condition = condition[:-3]
 		swap = eval("filter(lambda x:"+condition+",samples)")
+		samples = swap
 	else:
-		# We are in MC mode, we want all the samples on the legend
+		# We are in MC or in isfakeasdata mode, we want all the samples on the legend
 		allsamplesonleg=True
 		# And also its real name and colors all of them
 		LEGENDSDICT["WW"] = "WW" 
@@ -944,6 +958,9 @@ if __name__ == '__main__':
 		### Number of bins following the rule: sqrt(N)+1
 		ndata = sampledict[opt.data].getnormentries()
 		rule  = int(sqrt(ndata)+1.0)
+		# Forcing to have at least 10 bins
+		if rule < 10:
+			rule = 10
 		rebin = nbins/rule
 		if rebin == 0:
 			# It means there is not enough data to arrive at minimum
