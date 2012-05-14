@@ -358,10 +358,14 @@ class table(object):
 			if i == self.signal or i == self.data:
 				continue
 			self.columntitles.append(i)
+		# -- Adding the other columns
 		self.columntitles.append( "TotBkg" )
 		self.columntitles.append( self.data )
 		self.columntitles.append( "Data-TotBkg" )
 		self.columntitles.append( self.signal )
+		# -- Avoiding repetition (mainly for  DDD-DDM case)
+		dummy = map(lambda x: self.columntitles.remove(x),
+				set(filter(lambda x: self.columntitles.count(x) > 1, self.columntitles)))
 
 		# The datamember samples is superceeded by columntitles
 		self.samples = self.columntitles
@@ -388,15 +392,17 @@ class table(object):
 				continue
 			# Put the title
 			self.columns[metasample].title = metasample
-			# See if the user wants a particular fancy name
-			try:
-				self.columns[metasample].fancytitle = TITLEDICT[metasample]
-			except KeyError:
-				pass
+			# Incorporates the metasample to the global TITLEDICT
+			TITLEDICT[metasample] = metasample
 			# Erase the samples merged 
 			for s2remove in samplestodelete:
 				self.columns.pop(s2remove)
+				index=self.columntitles.index(s2remove)
 				self.columntitles.remove(s2remove)
+
+			# And add to the columntitles data member if not in there
+			if not metasample in self.columntitles:
+				self.columntitles.insert(index,metasample)
 
 		# format specific
 		self.format = format()
@@ -618,7 +624,7 @@ class table(object):
 		"""
 		ncolumns = 4
 		self.format.setformat(format,ncolumns)
-
+		
 		lines = self.format.tablestart+"\n"
 		# Column titles
 		lines += self.format.rowstart+self.format.cellrowitstart+"       "+self.format.cellrowitend
