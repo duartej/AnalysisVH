@@ -843,10 +843,9 @@ if __name__ == '__main__':
 	# Guessing the channel if it wasn't introduced by user
 	if not opt.channel:
 		path=os.getcwd()
-		try:
-			genericsignal = signal[:2]
-		except TypeError:
-			# covering the case when signal = None (isfakeasdata)
+		genericsignal = signal[:2]
+		# covering the case when isfakeasdata
+		if opt.isfakeasdata:
 			genericsignal = ""
 		try:
 			opt.channel = filter(lambda x: x.find(genericsignal+"e") != -1 or \
