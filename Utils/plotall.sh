@@ -154,9 +154,10 @@ fi
 
 plothistoexe=plothisto
 data="Data"
-signalToPlot=$signal
 if [ "X${ctsample}" == "Xyes" ];
 then
+	echo "FIXME!!!"
+	exit;
 	isreduced=""
 	plothistoexe=plotClosureTest
 	testdir=($fsdirectories)
@@ -176,20 +177,19 @@ then
 	fi
 	# If everything is fine then renaming
 	#----- OBSOLETE--FIXME
-	signal=${signalarray[0]}
-	data=${signalarray[1]}
-	if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
-	then
-		signalToPlot="TTbar"
-	else
-		signalToPlot="ZJets"
-	fi
+	#signal=${signalarray[0]}
+	#data=${signalarray[1]}
+	#if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
+	#then
+	#	signalToPlot="TTbar"
+	#else
+	#	signalToPlot="ZJets"
+	#fi
 fi
 
 # Fakes comparation with MC mode
 if [ "X${fakeasdata}" == "Xyes" ];
 then
-	signalToPlot="Fakes"
 	signal="Fakes"
 	data="Fakes"
 	fakeasdata="-f"
@@ -207,7 +207,7 @@ do
 	for i in $HISTOSNOC;
 	do
 		# open a subshell
-		($plothistoexe $i -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -215,7 +215,7 @@ do
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		($plothistoexe fHFlavour -r 1 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) & 
+		($plothistoexe fHFlavour -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) & 
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -224,7 +224,7 @@ do
 	
 	for i in $HISTOS4B;
 	do
-		($plothistoexe $i $rbinoption4 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption4 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -233,7 +233,7 @@ do
 	
 	for i in $HISTOS8B;
 	do
-		($plothistoexe $i $rbinoption8 -s $signalToPlot -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -246,7 +246,7 @@ do
 	fi
 	# Waiting all processed have been finalized before create the tar
 	wait;	
-	echo "+++ plotall INFO: Storing all plots and tables inside a tar.gz file"
+	echo "[plotall] Storing all plots and tables inside a tar.gz file"
 	tar czf PlotsTable_$(basename `pwd`).tar.gz Plots/ table_$(basename `pwd`).html table_$(basename `pwd`)_large.html table_$(basename `pwd`).tex table_$(basename `pwd`)_large.tex
 	cd ..;
 done;
