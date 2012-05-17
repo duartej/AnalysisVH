@@ -67,21 +67,21 @@ Then, assuming you are using two MC samples: S1 and S2,
 2. you need to send the DDM jobs
    $ mkdir TTnT; cd TTnT
    $ cp /fromwhateveryouhave/analysis*.ip .
-   $ for i in eee eem mme mmm; do mkdir WZ$i; cd WZ$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f $\i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip -F 3,2 -k; cd ..; done
+   $ for i in eee eem mme mmm; do mkdir WZ\$i; cd WZ\$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f \$i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip -F 3,2 -k; cd ..; done
 3. and the MC jobs
    $ mkdir TTT; cd TTT;
    $ cp /fromwhateveryouhave/analysis*.ip .
-   $ for i in eee eem mme mmm; do mkdir WZ$i; cd WZ$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f $\i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip; cd ..; done
+   $ for i in eee eem mme mmm; do mkdir WZ\$i; cd WZ\$i; cp ../../*_datanames.dn .; sendcluster submit -a WZ -f \$i -c MUON:../analisiswz_mmm.ip,ELECTRON:../analisiswz_eee.ip; cd ..; done
 
 COLLECTING THE JOBS ------------------------------------------------------
 To check and collect the jobs, go to the initial working folder:
-   $ for i in TTT TTnT; do for j in WZeee WZeem WZmme WZmmm; do echo "$i $j"; for k in \`ls cluster\`; sendcluster harvest -w $i/$j/$k;done; done;done
+   $ for i in TTT TTnT; do for j in WZeee WZeem WZmme WZmmm; do echo "\$i \$j"; for k in \`ls cluster\`; sendcluster harvest -w \$i/\$j/\$k;done; done;done
 
 PLOTTING ----------------------------------------------------------------
 You need to move the names of the fakes samples in order to be accepted
 by the plotall script, and also create the usual structure of folders by
 channel. So, in the working folder:
-   $ for i in eee eem mme mmm; do for samples in S1 S2; do mkdir -p WZ$i/cluster_${samples}/Results; mkdir -p WZ$i/cluster_${samples}_WEIGHTED/Results; cp TTnT/WZ$i/cluster_${samples}/Results/${samples}.root WZ$i/cluster_${samples}_WEIGHTED/Results/${samples}_WEIGHTED.root; cp TTT/WZ${i}/cluster_${samples}/Results/${samples}.root WZ$i/cluster_${samples}/Results/; done;done;
+   $ for i in eee eem mme mmm; do for samples in S1 S2; do mkdir -p WZ\$i/cluster_\${samples}/Results; mkdir -p WZ\$i/cluster_\${samples}_WEIGHTED/Results; cp TTnT/WZ\$i/cluster_\${samples}/Results/\${samples}.root WZ\$i/cluster_\${samples}_WEIGHTED/Results/\${samples}_WEIGHTED.root; cp TTT/WZ\${i}/cluster_\${samples}/Results/\${samples}.root WZ\$i/cluster_\${samples}/Results/; done;done;
    $ plotall -a -c WZ
 
 ============================================

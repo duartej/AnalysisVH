@@ -105,6 +105,13 @@ def xscalc(path,zoutrange):
 		lineSignal = filter(lambda x: x.find("Nobs-Nbkg") != -1,lines)[0]
 		Nsig = lineSignal.split("&")[-1].split("$\\pm$")[0].strip()
 		NsigErr = lineSignal.split("&")[-1].split("$\\pm$")[1].replace("\\","").strip()
+		# ---- ZZ systematics -----------------------------------
+		#lineZZ = filter(lambda x: x.find("ZZ") != -1,lines)[0]
+		#NZZ = lineZZ.split("&")[-1].split("$\\pm$")[0].strip()
+		#addN = float(NZZ)*0.02
+		#Nsig = str(float(Nsig)+addN)# -addN)
+		#-------------------------------------------------------
+
 		# -- Cross-section
 		cs_WZ = xs(Nsig,eff_WZ,Lumi)
 		cserr_WZ = xs(NsigErr,eff_WZ,Lumi)
