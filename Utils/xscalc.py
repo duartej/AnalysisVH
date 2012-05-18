@@ -44,9 +44,45 @@ WZ2tauNoMuNoE=WZ23lnu-WZ2lnu_tau2eORmu
 #print "WZ --> mmm : %.5f   WZ --> mme : %.5f" % (WZ2mmm,WZ2mme)
 #print "Total BR WZ->3lnu going to eee,eem,mme or mmm: %.5f" % (WZ2lnu_tau2eORmu)
 
-# SYSTEMATICS For FAKES
-DDDMC = { "mmm": 1.2, "mme": 1.8, "eem": 1.2, "eee": 0.8, "leptonchannel": 5.0 }
-DDMMC = { "mmm": 0.9, "mme": 1.1, "eem": 0.6, "eee": 0.1, "leptonchannel": 2.7 }
+# SYSTEMATICS For FAKES (in relative error)
+#DDDMC = { "mmm": 1.2, "mme": 1.8, "eem": 1.2, "eee": 0.8, "leptonchannel": 5.0 }
+DDMMC = { "mmm": 0.31, "mme": 0.46, "eem": 0.42, "eee": 0.14, "leptonchannel": 0.35 }
+# -- FIXME: Extract the statistical SAMPLESTAT error for WZ and ZZ from the files
+# In relative error
+SYS = { "Lumi": 2.2, " TriggerEff": 1.5, "LeptonEff": 2.0, "MuonMomentumScale": 1.5,
+		"ElecEnergyScale": 2.5, "METRes": 2.0, "DDMMC": DDMMC, "PILEUP": 2.0,
+		"PDF": 1.4 , "SAMPLESTAT": { "WZ": 0.5, "ZZ": 0.2 } }
+
+
+def systematics(asciirawtable,Nsig,channel):
+	"""
+	"""
+	from math import sqrt
+	# ---- ZZ systematics -----------------------------------
+	zsys2 = 0.0
+	for sysname,val in SYS.iteritems():
+		if sysname == "Lumi":
+			continue
+		elif sysname == "SAMPLESTAT":
+			zsys2 += val["ZZ"]**2.0
+		elif sysname == "DDMMC":
+			zsys2 += val[channel]**2.0
+		else:
+			zsys2 += val**2.0
+	zsys = sqrt(zsys2)
+	# --> Affecting the Yields of the background 
+	lineZZ = filter(lambda x: x.find("ZZ") != -1,asciirawtable)[0]
+	NZZ = lineZZ.split("&")[-1].split("$\\pm$")[0].strip()
+	NZZup  = float(NZZ)*(1.0+zsys)
+	NZZdown= float(NZZ)*(1.0-zsys)
+	Nsigup  = float(Nsig)-NZZup
+	Nsigdown= float(Nsig)-NZZdown
+	#-------------------------------------------------------
+	print zsys
+	print Nsig,Nsigup,Nsigdown
+
+
+
 
 
 def xscalc(path,zoutrange):
@@ -102,28 +138,28 @@ def xscalc(path,zoutrange):
 		f = open(os.path.join(workingpath,tablefile))
 		lines = f.readlines()
 		f.close()
-		lineSignal = filter(lambda x: x.find("Nobs-Nbkg") != -1,lines)[0]
+		try:
+			lineSignal = filter(lambda x: x.find("Data-TotBkg") != -1,lines)[0]
+		except IndexError:
+			# Just for compatibility: TO BE DEPRECATED When all the samples
+			# has updated
+			lineSignal = filter(lambda x: x.find("Nobs-Nbkg") != -1,lines)[0]
 		Nsig = lineSignal.split("&")[-1].split("$\\pm$")[0].strip()
 		NsigErr = lineSignal.split("&")[-1].split("$\\pm$")[1].replace("\\","").strip()
-		# ---- ZZ systematics -----------------------------------
-		#lineZZ = filter(lambda x: x.find("ZZ") != -1,lines)[0]
-		#NZZ = lineZZ.split("&")[-1].split("$\\pm$")[0].strip()
-		#addN = float(NZZ)*0.02
-		#Nsig = str(float(Nsig)+addN)# -addN)
-		#-------------------------------------------------------
 
+		systematics(lines,Nsig,channel)
 		# -- Cross-section
 		cs_WZ = xs(Nsig,eff_WZ,Lumi)
 		cserr_WZ = xs(NsigErr,eff_WZ,Lumi)
 		cssysDDMMC_WZ = xs(DDMMC[channel],eff_WZ,Lumi)
-		cssysDDDMC_WZ = xs(DDDMC[channel],eff_WZ,Lumi)
+		#cssysDDDMC_WZ = xs(DDDMC[channel],eff_WZ,Lumi)
 		cs = cs_WZ*channelBRdict[channel]
 		cserr = cserr_WZ*channelBRdict[channel]
 		cssysDDMMC = cssysDDMMC_WZ*channelBRdict[channel]
-		cssysDDDMC = cssysDDDMC_WZ*channelBRdict[channel]
-		print "Channel %s: %.5f+-%.5f+-%.5f(%.5f) ||  "\
-				"xs_WZ inclusive: %.5f+-%.5f+-%.5f(%.5f)" %\
-				(channel,cs,cserr,cssysDDMMC,cssysDDDMC,cs_WZ,cserr_WZ,cssysDDMMC_WZ,cssysDDDMC_WZ)
+		#cssysDDDMC = cssysDDDMC_WZ*channelBRdict[channel]
+		print "Channel %s: %.5f+-%.5f+-%.5f ||  "\
+				"xs_WZ inclusive: %.5f+-%.5f+-%.5f" %\
+				(channel,cs,cserr,cssysDDMMC,cs_WZ,cserr_WZ,cssysDDMMC_WZ)
 	
 		os.chdir(pwd)
 

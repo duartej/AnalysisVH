@@ -16,9 +16,12 @@ OTHERBKG = [ "WW", "WJets_Madgraph", "TW_DR", "TbarW_DR" ]
 LEGENDSDICT = { "WW": "Other bkg", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": "Other bkg",
 		"ZZ": "ZZ",
 		"TTbar_2L2Nu_Powheg": "t#bar{t}", "TTbar_Madgraph": "t#bar{t} inclusive",
-		"ZJets": "Z+Jets (Powheg)", "ZJets_Madgraph": "Z+Jets (MG)",
+		"ZJets": "Z+Jets", "ZJets_Madgraph": "Z+Jets (MG)",
 		"Data": "Data", "Fakes": "Data-driven bkg",
-		"TW_DR": "Other bkg", "TbarW_DR": "Other bkg"
+		"TW_DR": "Other bkg", "TbarW_DR": "Other bkg",
+		"DDM_ZJets": "DDM Z+Jets",
+		"DDM_TTbar": "DDM t#bar{t}"
+
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -42,7 +45,9 @@ COLORSDICT = { "WW" : kGreen-3, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kGreen-
 		"TTbar_2L2Nu_Powheg": kOrange+5, "TTbar_Madgraph": kOrange+5,
 		"ZZ": kRed+3, "ZJets": kCyan-2, "ZJets_Madgraph": kCyan-2,
 		"Data": kBlack, "Fakes": kAzure-7, 
-		"TW_DR": kGreen-3, "TbarW_DR": kGreen-3
+		"TW_DR": kGreen-3, "TbarW_DR": kGreen-3,
+		"DDM_ZJets": kOrange-3,
+		"DDM_TTbar": kOrange+5
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -268,12 +273,12 @@ class sampleclass(object):
 		# Searching the filename (except when adding):
 		self.filename = os.path.join(os.path.abspath("cluster_"+self.samplename),"Results/"+self.samplename+".root")
 		
-		# -- If the sample is going to be part of a metasample, after the file extraction i
+		# -- If the sample is going to be part of a metasample, after the file extraction 
 		if metaname:
 			self.samplename = metaname
 
 		if not os.path.isfile(self.filename):
-			message  = "\033[31msampleclass ERROR\033[ Filename do not exist: '%s'" % self.filename
+			message  = "\033[31msampleclass ERROR\033[m Filename do not exist: '%s'" % self.filename
 			raise RuntimeError(message)
 		# - Extract the histogram
 		self.histogram = self.__gethistogram__()
@@ -863,13 +868,26 @@ if __name__ == '__main__':
 	# -- Extracting the samples available
 	samples = map(lambda x: x.replace("cluster_",""),glob.glob("cluster_*"))
 	# --- Some manipulations needed for the samples to be merged. DY and ZJets
-	metasamples = { "ZJets": [] }
-	METASAMPLESCOMP = { "ZJets": [ "DYee", "DYmumu", "DYtautau" , "Zmumu","Ztautau","Zee"] }
+	# --- FIXME: High dependence of the MC sample type (Powheg)
+	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\
+			"DYtautau" ,"Zmumu","Ztautau","Zee"])
+	DDMZJETSLIST = map(lambda x : x+"_WEIGHTED", ZJETSLIST)
+	metasamples = { "ZJets": [] ,"DDM_ZJets": [], "DDM_TTbar":[] }
+	METASAMPLESCOMP = { "ZJets":  ZJETSLIST,
+			"DDM_ZJets": DDMZJETSLIST,
+			"DDM_TTbar": ["TTbar_2L2Nu_Powheg_WEIGHTED"] }
+
 	for name in samples:
-		reducedname = name.split("_")[0]
 		for metaname in metasamples.iterkeys():
-			if reducedname in METASAMPLESCOMP[metaname]:
+			if name in METASAMPLESCOMP[metaname]:
 				metasamples[metaname].append(name)
+	# Checking we have built the metasamples, if not deleting the entries
+	popingup = []
+	for key,val in metasamples.iteritems():
+		if len(val) == 0:
+			popingup.append(key)
+	for key in popingup:
+		metasamples.pop(key)
 	if len(filter(lambda xlist: len(xlist) != 0, metasamples.values())) == 0:
 		metasamples = None
 		METASAMPLESCOMP = None
@@ -881,6 +899,7 @@ if __name__ == '__main__':
 			for realnames in realnameslist:
 				samples.remove(realnames)
 			samples.append(metaname)
+
 
 	# --- Monte Carlo composition of the fake sample
 	if opt.isfakeasdata:
@@ -895,9 +914,12 @@ if __name__ == '__main__':
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.data)
 		sys.exit(message)
 	
-	if not signal in samples:
+	if not signal in samples: # and not opt.closuretest:
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
 		sys.exit(message)
+	#if opt.closuretest:
+		# -- Forcing the plotttype 0 (to avoid the explicit use of the signal sample)
+	#	opt.plottype = 0
 	# -- Superseeded: TO BE DEPRECATED when include the set-up for the ismodefake option
 	if (opt.ismodefake or opt.isfakeasdata) and not "Fakes" in samples:
 		message = "\033[31mplothisto ERROR\033[m Missing datasample '%s'" % (opt.signal)
@@ -950,7 +972,6 @@ if __name__ == '__main__':
 			except KeyError:
 				pass
 		sampledict[i] = sampleclass(i,histoname,lumi=float(opt.luminosity),isdata=isdata,issignal=issignal,channel=opt.channel)
-
 	# Rebining
 	nbins = sampledict[opt.data].histogram.GetNbinsX()
 	if int(opt.rebin) == 0:
@@ -982,7 +1003,7 @@ if __name__ == '__main__':
 	
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
-
+	
 	plotallsamples(sampledict,int(opt.plottype),rebin,opt.wantratio,opt.isofficial,allsamplesonleg)
 
 

@@ -32,14 +32,14 @@ class clustermanager(object):
 			self.basedir = os.path.abspath(os.getenv("VHSYS"))
 			self.libsdir = os.path.join(self.basedir,"libs")
 			if not os.path.exists( os.path.join(self.basedir,"CutManager") ):
-				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
+				message = "\033[31;2mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' is not the base directory for the package 'VHAnalysis'\n"
 				raise message 
 		# for the analysis specific package
 		if os.getenv("ANALYSISSYS"):
 			self.pkgpath = os.path.abspath(os.getenv("ANALYSISSYS"))
 			if not os.path.exists( os.path.join(self.pkgpath,"interface/AnalysisBuilder.h") ):
-				message = "\033[31;1mclustermanager: ERROR\033[0m the path introduced '" \
+				message = "\033[31;2mclustermanager: ERROR\033[0m the path introduced '" \
 						+value+"' do not contain the header interface/AnalysisBuilder.h\n"
 				raise message 
 
@@ -144,14 +144,14 @@ class clustermanager(object):
 			# We want some thing quick, the estimation is between 500-1000 e/sec,
 			# so we are trying to send 10minutes-jobs: ~450000 evt per job  (changed to 300000-> New calculations)
 			if self.njobs == 0:
-				message = "\033[34mclustermanager: INFO\033[m Guessing the number of tasks "\
+				message = "\033[34;2mclustermanager: INFO\033[m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
 				self.njobs = self.nevents/300000   #450000 
 				message += str(self.njobs)
 				print message
 			# Checking if has sense the njobs
 			if self.njobs < 1:
-				message = "\033[33mclustermanager: WARNING\033[m the Number of jobs introduced '"\
+				message = "\033[33m;2clustermanager: WARNING\033[m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
 				self.njobs = 1
@@ -189,7 +189,7 @@ class clustermanager(object):
 					havetoprint = True
 					break
 			if havetoprint:
-				getcolor = lambda x,color: "\033["+str(color)+"m"+x+"\033[m"
+				getcolor = lambda x,color: "\033["+str(color)+";1m"+x+"\033[m"
 				outputmessage = ''
 				textstatusdict = { "r": getcolor("Running",32), "qw": getcolor("Queued",30), \
 						"Undefined": getcolor("Undefined",35), "Done": getcolor("Done",34) }
@@ -258,7 +258,7 @@ class clustermanager(object):
 		# Checking if everything was allright
 		totalevts = self.getevents(finalfile,True)
 		if totalevts != self.nevents:
-			message  = "\033[33mclustermanager.gatherfiles: WARNING\033[m the total file"
+			message  = "\033[33;2mclustermanager.gatherfiles: WARNING\033[m the total file"
 			message += "'"+finalfile+"' do not contain all the events:\n"
 			message += "Total events to be processed:"+str(self.nevents)+"\n"
 			message += "Total events in '"+finalfile+"':"+str(totalevts)+"\n"
@@ -282,7 +282,7 @@ class clustermanager(object):
 			for f in filestotar:
 				os.remove(f)
 		else:
-			message  = "\033[33mclustermanager.gatherfiles: WARNING\033[m I can't manage\n"
+			message  = "\033[33;2mclustermanager.gatherfiles: WARNING\033[m I can't manage\n"
 			message += "to create the backup .tar.gz file\n"
 			print message
 

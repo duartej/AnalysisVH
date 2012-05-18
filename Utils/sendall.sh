@@ -75,7 +75,7 @@ Then, assuming you are using two MC samples: S1 and S2,
 
 COLLECTING THE JOBS ------------------------------------------------------
 To check and collect the jobs, go to the initial working folder:
-   $ for i in TTT TTnT; do for j in WZeee WZeem WZmme WZmmm; do echo "\$i \$j"; for k in \`ls cluster\`; sendcluster harvest -w \$i/\$j/\$k;done; done;done
+   $ for i in TTT TTnT; do for j in WZeee WZeem WZmme WZmmm; do echo "\$i \$j"; for k in \`ls \$i/\$j|grep cluster\`; sendcluster harvest -w \$i/\$j/\$k;done; done;done
 
 PLOTTING ----------------------------------------------------------------
 You need to move the names of the fakes samples in order to be accepted

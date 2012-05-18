@@ -156,16 +156,14 @@ plothistoexe=plothisto
 data="Data"
 if [ "X${ctsample}" == "Xyes" ];
 then
-	echo "FIXME!!!"
-	exit;
-	isreduced=""
-	plothistoexe=plotClosureTest
+	#plothistoexe=plotClosureTest
+	plothistoexe=plothisto
 	testdir=($fsdirectories)
 	cd ${testdir[0]};
 	signalarray=(`ls |grep cluster|sed -e 's/cluster_//g'`)
 	cd ..;
 	# Checking consistency
-	if [ ${#signalarray[@]} -ne 2 ]; 
+	if [ ${#signalarray[@]} -lt 2 ]; 
 	then
 		echo "ERROR: Trying to summarize a closure test but there is no"
 		echo "       coherent folder structrure. When option '-c' is activated"
@@ -175,16 +173,23 @@ then
 		echo "                     |- cluster_closureTestSample_WEIGHTED"
 		exit;
 	fi
+	
 	# If everything is fine then renaming
-	#----- OBSOLETE--FIXME
-	#signal=${signalarray[0]}
-	#data=${signalarray[1]}
-	#if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
-	#then
-	#	signalToPlot="TTbar"
-	#else
-	#	signalToPlot="ZJets"
-	#fi
+	signal=${signalarray[0]}
+	data=${signalarray[1]}
+	if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
+	then
+		signal="TTbar_2L2Nu_Powheg"
+		data="DDM_TTbar"
+		isreduced="-j TTbar@TTbar_2L2Nu_Powheg::DDM_TTbar@TTbar_2L2Nu_Powheg_WEIGHTED"
+	else
+		signal="ZJets"
+		data="DDM_ZJets"
+		isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg::DDM_ZJets@Ztautau_Powheg_WEIGHTED,Zee_Powheg_WEIGHTED,Zmumu_Powheg_WEIGHTED,DYtautau_Powheg_WEIGHTED,DYee_Powheg_WEIGHTED,DYmumu_Powheg_WEIGHTED"
+	fi
+	# Plotmode 0 to include the signal at the THStack and patching to allow the -d 
+	plotmode="0 -d $data"
+
 fi
 
 # Fakes comparation with MC mode
@@ -204,6 +209,13 @@ for j in $fsdirectories leptonchannel;
 do
 	NPROC=0
 	cd $j;
+	if [ $j != "leptonchannel" ];
+	then
+		# FIXME: PATCH, now I'm assuming the signal is difined with two letters WZ,WH
+		channel=`echo${j:2:4}`
+		plotmode="$plotmode -c $channel"
+	fi
+
 	for i in $HISTOSNOC;
 	do
 		# open a subshell
