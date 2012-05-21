@@ -31,13 +31,6 @@ WZ2lnu_tau2eORmu = WZ2eee+WZ2mmm+WZ2eem+WZ2mme
 
 WZ2tauNoMuNoE=WZ23lnu-WZ2lnu_tau2eORmu
 
-# The BR w.r.t. the BR(WZ->3lnu)
-#WZ2eee = TotalWZ2eee/WZ23lnu
-#WZ2eem = TotalWZ2eem/WZ23lnu
-#WZ2mme = TotalWZ2mme/WZ23lnu
-#WZ2mmm = TotalWZ2mmm/WZ23lnu
-#WZ2lnu_tau2eORmu = TotalWZ2lnu_tau2eORmu/WZ23lnu
-
 #print "Branching ratios: "
 #print "WZ --> 3lnu: %.5f" % WZ23lnu
 #print "WZ --> eee : %.5f   WZ --> eem : %.5f" % (WZ2eee,WZ2eem)
@@ -49,38 +42,86 @@ WZ2tauNoMuNoE=WZ23lnu-WZ2lnu_tau2eORmu
 DDMMC = { "mmm": 0.31, "mme": 0.46, "eem": 0.42, "eee": 0.14, "leptonchannel": 0.35 }
 # -- FIXME: Extract the statistical SAMPLESTAT error for WZ and ZZ from the files
 # In relative error
-SYS = { "Lumi": 2.2, " TriggerEff": 1.5, "LeptonEff": 2.0, "MuonMomentumScale": 1.5,
-		"ElecEnergyScale": 2.5, "METRes": 2.0, "DDMMC": DDMMC, "PILEUP": 2.0,
-		"PDF": 1.4 , "SAMPLESTAT": { "WZ": 0.5, "ZZ": 0.2 } }
+SYS = { "Lumi": 0.022, " TriggerEff": 0.015, "LeptonEff": 0.020, "MuonMomentumScale": 0.015,
+		"ElecEnergyScale": 0.025, "METRes": 0.020, "DDMMC": DDMMC, "PILEUP": 0.020,
+		"PDF": 0.014 , 
+		"SAMPLESTAT": { "WZ": {"mmm": 0.008 , "mme": 0.008 , "eem":0.010 ,"eee": 0.0096, "leptonchannel": 0.004 },  
+			"ZZ": { "mmm": 0.048, "mme": 0.078, "eem": 0.18 , "eee": 0.105 , "leptonchannel": 0.0367 } 
+			}
+	}
 
 
-def systematics(asciirawtable,Nsig,channel):
-	"""
+def getnsignalsys(asciirawtable,Nsig,channel):
+	"""..function::getnsignalsys(asciirawtable,Nsig,channel) --> (Nsigup,Nsigdown)	
+	
+	Systematics related with the number of signal. Returns the Nsig+sysup,Nsig-sysdown
 	"""
 	from math import sqrt
+	## Systematics affecting Number of signal= N_data- N_bkg.expected
+
 	# ---- ZZ systematics -----------------------------------
 	zsys2 = 0.0
 	for sysname,val in SYS.iteritems():
 		if sysname == "Lumi":
 			continue
-		elif sysname == "SAMPLESTAT":
-			zsys2 += val["ZZ"]**2.0
+		elif sysname == "SAMPLESTAT": # --> ?? I think it is already considered with
+			# the statistical error (when do N_data-N_bkg and err(N_data-N_bkg)
+			#zsys2 += val["ZZ"][channel]**2.0
+			continue
 		elif sysname == "DDMMC":
-			zsys2 += val[channel]**2.0
+			continue
 		else:
 			zsys2 += val**2.0
 	zsys = sqrt(zsys2)
-	# --> Affecting the Yields of the background 
+
 	lineZZ = filter(lambda x: x.find("ZZ") != -1,asciirawtable)[0]
 	NZZ = lineZZ.split("&")[-1].split("$\\pm$")[0].strip()
-	NZZup  = float(NZZ)*(1.0+zsys)
-	NZZdown= float(NZZ)*(1.0-zsys)
-	Nsigup  = float(Nsig)-NZZup
-	Nsigdown= float(Nsig)-NZZdown
-	#-------------------------------------------------------
-	print zsys
-	print Nsig,Nsigup,Nsigdown
+	dNZZup   = float(NZZ)*zsys
+	dNZZdown = -1.0*float(NZZ)*zsys
+	# --- Fakeable Object sample (ttbar + ZJets) systematics ---
+	frsys2 = DDMMC[channel]
+	lineFR = filter(lambda x: x.lower().find("fakes") != -1 or
+			x.lower().find("data-driven") != -1, asciirawtable)[0]
+	Nfr = lineFR.split("&")[-1].split("$\\pm$")[0].strip()
+	dNfrup   = float(Nfr)
+	dNfrdown = -float(Nfr)
 
+	## --> Aplying to N_bkg.expected
+	Nsigup  = float(Nsig)-dNZZup-dNfrup
+	Nsigdown= float(Nsig)-dNZZdown-dNfrdown
+	#-------------------------------------------------------
+	return (Nsigup,Nsigdown)
+	#return (abs(Nsigup-float(Nsig))/float(Nsig),abs(Nsigdown-float(Nsig))/float(Nsig))
+
+
+def getwzsys(Npass,Ngen,channel):
+	"""..function::getwzsys(asciirawtable,Npass,Ngen,channel) --> (effWZ_up,effWZ_down)	
+	
+	Systematics related with the efficiency of the WZ Monte Carlo. Returns the eff+sysup,eff-sysdown
+	"""
+	from math import sqrt
+	## Systematics affecting eff_WZ
+
+	# ---- ZZ systematics -----------------------------------
+	wzsys2 = 0.0
+	for sysname,val in SYS.iteritems():
+		if sysname == "Lumi":
+			continue
+		elif sysname == "SAMPLESTAT":
+			wzsys2 += val["WZ"][channel]**2.0
+		elif sysname == "DDMMC":
+			continue
+		else:
+			wzsys2 += val**2.0
+	wzsys = sqrt(wzsys2)
+
+	Npass_up   = float(Npass)*(1.0+wzsys)
+	Npass_down = float(Npass)*(1.0-wzsys)
+
+	eff_up  = float(Npass_up)/float(Ngen)
+	eff_down= float(Npass_down)/float(Ngen)
+
+	return (eff_up,eff_down)
 
 
 
@@ -111,6 +152,7 @@ def xscalc(path,zoutrange):
 		message =  "\033[31mxscalc ERROR\033[m The '%s' path has not the expected folder structure"
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
 		sys.exit(message)
+	print "Channel name: value+-(stat)+-(sys_up,sys_down)+-(lumi) --- Same as WZ->3lnu"
 	for channel in [ "mmm", "mme", "eem", "eee" , "leptonchannel"]:
 		if channel != "leptonchannel":
 			workingpath=os.path.join(pwd,"WZ"+channel)
@@ -146,20 +188,35 @@ def xscalc(path,zoutrange):
 			lineSignal = filter(lambda x: x.find("Nobs-Nbkg") != -1,lines)[0]
 		Nsig = lineSignal.split("&")[-1].split("$\\pm$")[0].strip()
 		NsigErr = lineSignal.split("&")[-1].split("$\\pm$")[1].replace("\\","").strip()
-
-		systematics(lines,Nsig,channel)
+		
+		# Number of signal up-down due to the systematics applyed to the N-signal (ZZ, FR)
+		NsysUp,NsysDown = getnsignalsys(lines,Nsig,channel)
+		N_sys_list = [ NsysUp, NsysDown ]
+		# Efficiency related systematic (WZ-Monte Carlo)
+		eff_WZUp,eff_WZDown = getwzsys(Npass,(Ngen/WZ23lnu),channel)
+		eff_WZ_sys_list = [ eff_WZUp, eff_WZDown ]
+		# -- Extracting the systematics: maximum and minimum between the Nsig-sys and the 
+		#    eff-sys
+		cs_sys = []
+		for Nsys in N_sys_list:
+			for eff_WZ_sys in eff_WZ_sys_list:
+				cs_sys.append( xs(Nsys,eff_WZ_sys,Lumi) )
 		# -- Cross-section
 		cs_WZ = xs(Nsig,eff_WZ,Lumi)
 		cserr_WZ = xs(NsigErr,eff_WZ,Lumi)
-		cssysDDMMC_WZ = xs(DDMMC[channel],eff_WZ,Lumi)
-		#cssysDDDMC_WZ = xs(DDDMC[channel],eff_WZ,Lumi)
+		cs_WZ_Up = max(cs_sys)
+		cs_WZ_Down = min(cs_sys)
+		cs_sys_WZ_Up = abs(cs_WZ_Up-cs_WZ)
+		cs_sys_WZ_Down = abs(cs_WZ-cs_WZ_Down)
+		cs_sys_WZ_Lumi= abs(xs(Nsig,eff_WZ,Lumi*(1.0+SYS["Lumi"]))-cs_WZ)
 		cs = cs_WZ*channelBRdict[channel]
 		cserr = cserr_WZ*channelBRdict[channel]
-		cssysDDMMC = cssysDDMMC_WZ*channelBRdict[channel]
-		#cssysDDDMC = cssysDDDMC_WZ*channelBRdict[channel]
-		print "Channel %s: %.5f+-%.5f+-%.5f ||  "\
-				"xs_WZ inclusive: %.5f+-%.5f+-%.5f" %\
-				(channel,cs,cserr,cssysDDMMC,cs_WZ,cserr_WZ,cssysDDMMC_WZ)
+		cssys_Up = cs_sys_WZ_Up*channelBRdict[channel]
+		cssys_Down = cs_sys_WZ_Down*channelBRdict[channel]
+		cs_sys_Lumi = cs_sys_WZ_Lumi*channelBRdict[channel]
+		mainstr = "%.5f&plusmn;%.5f(_stat_)<sub>+%.5f</sub><sup>-%.5f</sup>(_sys_)&plusmn;%.5f(_lumi_)"
+		message = "| Channel %s | "+mainstr+" | "+mainstr+" |"
+		print message %	(channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
 	
 		os.chdir(pwd)
 
