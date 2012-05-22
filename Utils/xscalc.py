@@ -147,7 +147,7 @@ def xscalc(path,zoutrange,format):
 	Ngen = 801792.0 
 	print "\033[33;1mxscalc WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 			" Z range mass [60,120]: %d" % Ngen
-	if opt.zoutrange:
+	if zoutrange:
 		# Using the phase space of the WZ Monte Carlo sample
 		Ngen=0
 	pwd=path
@@ -155,17 +155,22 @@ def xscalc(path,zoutrange,format):
 	if not os.path.isdir(os.path.join(path,"leptonchannel")):
 		message =  "\033[31mxscalc ERROR\033[m The '%s' path has not the expected folder structure"
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
-		sys.exit(message)
+		raise RuntimeError(message)
 	
-	if format == "html":
+	hasprint=True
+	if not format:
+		hasprint=False
+	elif format == "html":
 		mainstr    = "%.3f&plusmn;%.3f(_stat_)<sub>+%.3f</sub><sup>-%.3f</sup>(_sys_)&plusmn;%.3f(_lumi_)"
 		channelline= "| %s | "+mainstr+" | "+mainstr+" |\n"
 	elif format == "tex":
 		mainstr = "$%.3f\\pm%.3f(\\text{stat})^{+%.3f}_{-%.5f}(\\text{sys})\\pm%.5f(\\text{lumi})$"
 		channelline = " %s & "+mainstr+" & "+mainstr+"\\\\\n "
 
-	print "Legend: value+-(stat)+-(sys_up,sys_down)+-(lumi)"
-	print "Cross-section for WZ*BR(channel) || Cross-section for WZ "
+	xscalcdict = {}
+	if hasprint:
+		print "Legend: value+-(stat)+-(sys_up,sys_down)+-(lumi)"
+		print "Cross-section for WZ*BR(channel) || Cross-section for WZ "
 	outmessage = ""
 	for channel in [ "mmm", "mme", "eem", "eee" , "leptonchannel"]:
 		if channel != "leptonchannel":
@@ -231,25 +236,31 @@ def xscalc(path,zoutrange,format):
 		cssys_Up = cs_sys_WZ_Up*channelBRdict[channel]
 		cssys_Down = cs_sys_WZ_Down*channelBRdict[channel]
 		cs_sys_Lumi = cs_sys_WZ_Lumi*channelBRdict[channel]
-		mainstr= "%.3f+-%.3f+-%.3f,%.3f+-%.3f"
-		txtout = "| Channel %s : "+mainstr+" || "+mainstr
-		print txtout % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
-		outmessage += channelline % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
+		if hasprint:
+			mainstr= "%.3f+-%.3f+-%.3f,%.3f+-%.3f"
+			txtout = "| Channel %s : "+mainstr+" || "+mainstr
+			print txtout % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
+			outmessage += channelline % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
+		xscalcdict[channel] = {'WZexclusive': (cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi),
+				'WZinclusive': (cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi) }
 	
 		os.chdir(pwd)
 
 	# tex or html output
-	if format == "html":
-		print "\n= HTLM OUTPUT "+"="*90
-		tablestr= "|  | <latex size=\"scriptsize\">\\sigma_{WZ}\\Gamma(channel)</latex> | <latex size=\"scriptsize\"> \\sigma_{WZ} </latex> |\n"
-		print tablestr+outmessage[:-1]
-		print "= HTML OUTPUT "+"="*90
-	elif format == "tex":
-		print "\n= TEX OUTPUT "+"="*90
-		tablestr =  "\\begin{tabular}{l c c }\\hline\\hline\n"
-		tablestr += " & $\\sigma_{WZ}\\Gamma(channel)$ & $\\sigma_{WZ}$ \\\\ \\hline\\hline\n"
-		print tablestr+outmessage+"\\hline\n\\end{tabular}"
-		print "= TEX OUTPUT "+"="*90
+	if hasprint:
+		if format == "html":
+			print "\n= HTLM OUTPUT "+"="*90
+			tablestr= "|  | <latex size=\"scriptsize\">\\sigma_{WZ}\\Gamma(channel)</latex> | <latex size=\"scriptsize\"> \\sigma_{WZ} </latex> |\n"
+			print tablestr+outmessage[:-1]
+			print "= HTML OUTPUT "+"="*90
+		elif format == "tex":
+			print "\n= TEX OUTPUT "+"="*90
+			tablestr =  "\\begin{tabular}{l c c }\\hline\\hline\n"
+			tablestr += " & $\\sigma_{WZ}\\Gamma(channel)$ & $\\sigma_{WZ}$ \\\\ \\hline\\hline\n"
+			print tablestr+outmessage+"\\hline\n\\end{tabular}"
+			print "= TEX OUTPUT "+"="*90
+
+	return xscalcdict
 
 if __name__ == '__main__':
 	from optparse import OptionParser,OptionGroup
@@ -271,7 +282,7 @@ if __name__ == '__main__':
 	(opt,args) = parser.parse_args()
 
 	if opt.format != "html" and opt.format != "tex":
-		message = "\033[31;1mxscalc ERROR\033[m Format %s not recognized. See help for further info."
+		message = "\033[31;1mxscalc ERROR\033[m Format %s not recognized. See help for further info." % opt.format
 		raise RuntimeError(message)
 
 	print "\033[34mxscalc INFO\033[m Evaluating the cross-section at '%s'" % opt.workingpath
