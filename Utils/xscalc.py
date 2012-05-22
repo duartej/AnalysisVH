@@ -1,8 +1,10 @@
 #!/usr/bin/env python
+"""
+Evaluating the cross section given the ouput of the analysis
+"""
 
-
-##-- SOME GLOBALS
-# BRANCHINGS RATIOS
+##################### SOME GLOBALS #################################################################
+#------- BRANCHING RATIOS -----------------
 W2e  =0.1075
 W2mu =0.1057
 W2tau=0.1125
@@ -16,9 +18,11 @@ tau2e = 0.1782
 tau2mu= 0.1739
 
 # When using the madgraph WZ->3lnu, the cross-section of the sample is already 
-# sigma_{WZTo3LNu sample}=sigma_WZ*BR(WZ->3lnu), so if
+# sigma_{WZTo3LNu sample}=sigma_WZ*BR(WZ->3lnu), so we need to take into account
+# these br
 WZ23lnu = 3.0*(Z2ll)*(W2e+W2mu+W2tau)
 
+# Exclusive branching ratios 
 WZ2eee = W2e*Z2ee+W2tau*tau2e*Z2ee+W2tau*tau2e*Z2tautau*tau2e**2.0+W2e*Z2tautau*tau2e**2.0
 WZ2mmm = W2mu*Z2mumu+W2tau*tau2mu*Z2mumu+W2tau*tau2mu*Z2tautau*tau2mu**2.0+W2mu*Z2tautau*tau2mu**2.0
 WZ2eem= W2mu*Z2ee+W2mu*Z2tautau*tau2e**2.0+\
@@ -38,7 +42,6 @@ WZ2tauNoMuNoE=WZ23lnu-WZ2lnu_tau2eORmu
 #print "Total BR WZ->3lnu going to eee,eem,mme or mmm: %.5f" % (WZ2lnu_tau2eORmu)
 
 # SYSTEMATICS For FAKES (in relative error)
-#DDDMC = { "mmm": 1.2, "mme": 1.8, "eem": 1.2, "eee": 0.8, "leptonchannel": 5.0 }
 DDMMC = { "mmm": 0.31, "mme": 0.46, "eem": 0.42, "eee": 0.14, "leptonchannel": 0.35 }
 # -- FIXME: Extract the statistical SAMPLESTAT error for WZ and ZZ from the files
 # In relative error
@@ -100,9 +103,8 @@ def getwzsys(Npass,Ngen,channel):
 	Systematics related with the efficiency of the WZ Monte Carlo. Returns the eff+sysup,eff-sysdown
 	"""
 	from math import sqrt
+	
 	## Systematics affecting eff_WZ
-
-	# ---- ZZ systematics -----------------------------------
 	wzsys2 = 0.0
 	for sysname,val in SYS.iteritems():
 		if sysname == "Lumi":
@@ -126,7 +128,7 @@ def getwzsys(Npass,Ngen,channel):
 
 
 
-def xscalc(path,zoutrange):
+def xscalc(path,zoutrange,format):
 	"""
 	"""
 	import os,sys
@@ -143,16 +145,28 @@ def xscalc(path,zoutrange):
 	signaldn = "WZTo3LNu_datanames.dn"
 	# Z in [60,120]--- HARDCODED WARNING
 	Ngen = 801792.0 
+	print "\033[33;1mxscalc WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
+			" Z range mass [60,120]: %d" % Ngen
 	if opt.zoutrange:
 		# Using the phase space of the WZ Monte Carlo sample
 		Ngen=0
 	pwd=path
-	# Check we have the excepted structure
+	# Check we have the expected folder structure
 	if not os.path.isdir(os.path.join(path,"leptonchannel")):
 		message =  "\033[31mxscalc ERROR\033[m The '%s' path has not the expected folder structure"
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
 		sys.exit(message)
-	print "Channel name: value+-(stat)+-(sys_up,sys_down)+-(lumi) --- Same as WZ->3lnu"
+	
+	if format == "html":
+		mainstr    = "%.3f&plusmn;%.3f(_stat_)<sub>+%.3f</sub><sup>-%.3f</sup>(_sys_)&plusmn;%.3f(_lumi_)"
+		channelline= "| %s | "+mainstr+" | "+mainstr+" |\n"
+	elif format == "tex":
+		mainstr = "$%.3f\\pm%.3f(\\text{stat})^{+%.3f}_{-%.5f}(\\text{sys})\\pm%.5f(\\text{lumi})$"
+		channelline = " %s & "+mainstr+" & "+mainstr+"\\\\\n "
+
+	print "Legend: value+-(stat)+-(sys_up,sys_down)+-(lumi)"
+	print "Cross-section for WZ*BR(channel) || Cross-section for WZ "
+	outmessage = ""
 	for channel in [ "mmm", "mme", "eem", "eee" , "leptonchannel"]:
 		if channel != "leptonchannel":
 			workingpath=os.path.join(pwd,"WZ"+channel)
@@ -200,25 +214,42 @@ def xscalc(path,zoutrange):
 		cs_sys = []
 		for Nsys in N_sys_list:
 			for eff_WZ_sys in eff_WZ_sys_list:
+				# using the Nsys and eff values obtained from the two systematics methods
 				cs_sys.append( xs(Nsys,eff_WZ_sys,Lumi) )
-		# -- Cross-section
+		# -- Cross-section inclusive
 		cs_WZ = xs(Nsig,eff_WZ,Lumi)
 		cserr_WZ = xs(NsigErr,eff_WZ,Lumi)
+		# - systematics and systematics lumi
 		cs_WZ_Up = max(cs_sys)
 		cs_WZ_Down = min(cs_sys)
 		cs_sys_WZ_Up = abs(cs_WZ_Up-cs_WZ)
 		cs_sys_WZ_Down = abs(cs_WZ-cs_WZ_Down)
 		cs_sys_WZ_Lumi= abs(xs(Nsig,eff_WZ,Lumi*(1.0+SYS["Lumi"]))-cs_WZ)
+		# - sigma_{WZ}*BR(channel)
 		cs = cs_WZ*channelBRdict[channel]
 		cserr = cserr_WZ*channelBRdict[channel]
 		cssys_Up = cs_sys_WZ_Up*channelBRdict[channel]
 		cssys_Down = cs_sys_WZ_Down*channelBRdict[channel]
 		cs_sys_Lumi = cs_sys_WZ_Lumi*channelBRdict[channel]
-		mainstr = "%.5f&plusmn;%.5f(_stat_)<sub>+%.5f</sub><sup>-%.5f</sup>(_sys_)&plusmn;%.5f(_lumi_)"
-		message = "| Channel %s | "+mainstr+" | "+mainstr+" |"
-		print message %	(channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
+		mainstr= "%.3f+-%.3f+-%.3f,%.3f+-%.3f"
+		txtout = "| Channel %s : "+mainstr+" || "+mainstr
+		print txtout % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
+		outmessage += channelline % (channel,cs,cserr,cssys_Up,cssys_Down,cs_sys_Lumi,cs_WZ,cserr_WZ,cs_sys_WZ_Up,cs_sys_WZ_Down,cs_sys_WZ_Lumi)
 	
 		os.chdir(pwd)
+
+	# tex or html output
+	if format == "html":
+		print "\n= HTLM OUTPUT "+"="*90
+		tablestr= "|  | <latex size=\"scriptsize\">\\sigma_{WZ}\\Gamma(channel)</latex> | <latex size=\"scriptsize\"> \\sigma_{WZ} </latex> |\n"
+		print tablestr+outmessage[:-1]
+		print "= HTML OUTPUT "+"="*90
+	elif format == "tex":
+		print "\n= TEX OUTPUT "+"="*90
+		tablestr =  "\\begin{tabular}{l c c }\\hline\\hline\n"
+		tablestr += " & $\\sigma_{WZ}\\Gamma(channel)$ & $\\sigma_{WZ}$ \\\\ \\hline\\hline\n"
+		print tablestr+outmessage+"\\hline\n\\end{tabular}"
+		print "= TEX OUTPUT "+"="*90
 
 if __name__ == '__main__':
 	from optparse import OptionParser,OptionGroup
@@ -226,7 +257,7 @@ if __name__ == '__main__':
 	
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False)
+	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,format="tex")
 	parser.add_option( '-w', '--workingdir', action='store', type='string', dest='workingpath',\
 			help="Working directory. It must exist the usual folder structure")
 	parser.add_option( '-z', '--ZrangeasinMC', action='store_true', dest='zoutrange',\
@@ -234,8 +265,14 @@ if __name__ == '__main__':
 			" is calculated using the phase space of M_Z in [60,120]. Activating this option,"\
 			" the script is going to use the phase space used in the WZ Monte Carlo sample"\
 			" creation.")
+	parser.add_option( '-f', '--format', action='store', type='string', dest='format',\
+			help="Output format, it could be 'tex' or 'html'. Per default: 'tex'")
 
 	(opt,args) = parser.parse_args()
 
+	if opt.format != "html" and opt.format != "tex":
+		message = "\033[31;1mxscalc ERROR\033[m Format %s not recognized. See help for further info."
+		raise RuntimeError(message)
+
 	print "\033[34mxscalc INFO\033[m Evaluating the cross-section at '%s'" % opt.workingpath
-	xscalc(opt.workingpath,opt.zoutrange)
+	xscalc(opt.workingpath,opt.zoutrange,opt.format)
