@@ -46,7 +46,7 @@ DDMMC = { "mmm": 0.31, "mme": 0.46, "eem": 0.42, "eee": 0.14, "leptonchannel": 0
 # -- FIXME: Extract the statistical SAMPLESTAT error for WZ and ZZ from the files
 # In relative error
 SYS = { "Lumi": 0.022, " TriggerEff": 0.015, "LeptonEff": 0.020, "MuonMomentumScale": 0.015,
-		"ElecEnergyScale": 0.025, "METRes": 0.020, "DDMMC": DDMMC, "PILEUP": 0.020,
+		"ElecEnergyScale": 0.025, "METres": 0.020, "DDMMC": DDMMC, "PILEUP": 0.020,
 		"PDF": 0.014 , 
 		"SAMPLESTAT": { "WZ": {"mmm": 0.008 , "mme": 0.008 , "eem":0.010 ,"eee": 0.0096, "leptonchannel": 0.004 },  
 			"ZZ": { "mmm": 0.048, "mme": 0.078, "eem": 0.18 , "eee": 0.105 , "leptonchannel": 0.0367 } 
@@ -131,6 +131,7 @@ def getwzsys(Npass,Ngen,channel):
 def xscalc(path,zoutrange,format):
 	"""
 	"""
+	from functionspool import gettablecontent
 	import os,sys
 	import ROOT
 
@@ -193,12 +194,13 @@ def xscalc(path,zoutrange,format):
 		# --- efficiency
 		eff_WZ = Npass/(Ngen/WZ23lnu)
 		# -- Nsignal extraction
-		tablefile = "table_"+channel+".tex"
-		if channel != "leptonchannel":
-			tablefile = tablefile.replace(channel,"WZ"+channel)
-		f = open(os.path.join(workingpath,tablefile))
-		lines = f.readlines()
-		f.close()
+		#tablefile = "table_"+channel+".tex"
+		#if channel != "leptonchannel":
+		#	tablefile = tablefile.replace(channel,"WZ"+channel)
+		#f = open(os.path.join(workingpath,tablefile))
+		#lines = f.readlines()
+		#f.close()
+		lines = gettablecontent(workingpath,channel)
 		try:
 			lineSignal = filter(lambda x: x.find("Data-TotBkg") != -1,lines)[0]
 		except IndexError:
