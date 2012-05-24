@@ -5,6 +5,29 @@
    :platform: Unix
    :synopsis: module containing the raw systematics
 .. moduleauthor:: Jordi Duarte Campderros <duarte@ifca.unican.es>
+
+.. data:: DDMMC The relative error systematic due to the fakeable object method and to be 
+          applied to the yields of the Tight-Tight-noTight sample. The errors are relative
+	  to the yields.
+   :type: dict(str:float)
+
+.. data:: SYSZZ The relative error systematics separated by systematic sources and to be 
+          applied to the yields of the ZZ sample. The errors are relative to the ZZ yields
+	  and they are going to affect the Number of signal
+   :type: dict(dict(str:float))
+
+.. data:: SYSWZ The relative error systematics separated by systematic sources and to be 
+          applied to the yields of the ZZ sample. The errors are relative to the WZ yields
+	  and they are going to affect the efficiency (on cross-section calculation)
+   :type: dict(dict(str:float))
+
+.. data:: STAT The relative error statistic of the signal, i.e. number of data observed minus
+          number of background estimated (so the statistic errors of the data observed and 
+	  background expected are incorporated here). The errors are relative to the yields.
+	  WARNING: the dictionary is just initialized here and must be initialized and filled
+	  using the functionspool_mod.getxserrosrel function, so this data cannot be used before
+	  the call of the functionspool_mod.getxserrosrel
+   :type: dict(str:float)
 """
 # == SYSTEMATICS for WZ analysis ===========================================================
 # Relative error with respect the

@@ -19,7 +19,7 @@ SETUPFILE  := "\#!/bin/bash"  \
 "export LD_LIBRARY_PATH=\$$LD_LIBRARY_PATH:\$$BASEDIR/libs" \
 "export VHSYS=\$$BASEDIR" \
 "export ANALYSISSYS=\$$BASEDIR/WH_Analysis" \
-"export PYTHONPATH=\$$PYTHONPATH:\$$BASEDIR/Utils"
+"export PYTHONPATH=\$$PYTHONPATH:\$$BASEDIR/python"
 
 
 .PHONY: all cleanall linkage compile

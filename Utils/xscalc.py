@@ -131,7 +131,7 @@ def getwzsys(Npass,Ngen,channel):
 def xscalc(path,zoutrange,format):
 	"""
 	"""
-	from functionspool import gettablecontent
+	from functionspool_mod import gettablecontent
 	import os,sys
 	import ROOT
 
