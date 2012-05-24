@@ -48,7 +48,7 @@ def geterrorarray(xs,xserrors):
 	:param xs: dictionary of cross-section values splitted in channels
 	:type xs: dict(str:float)
 	:param xserrors: dictionary of cross-section relative errors splitted in sources of error 
-	                 an in channels. See help in funcitionspool.getxserrorsrel
+	                 an in channels. See help in functionspool_mod.getxserrorsrel
 	:type xserrors: dict(str:dict(str:float))
 
 	:return: absolute errors, just splitted in stat,sys,lumi and total in the first element
