@@ -15,46 +15,67 @@
 """
 
 
-class br:
+class br(object):
 	"""
 	Branching ratios constants
 	"""
 	#------- BRANCHING RATIOS -----------------
 	W2e  =0.1075
-	W2mu =0.1057
+	W2m =0.1057
 	W2tau=0.1125
 	
 	Z2ee    = 0.03363
-	Z2mumu  = 0.03366
+	Z2mm  = 0.03366
 	Z2tautau= 0.03367
 	Z2ll    = 0.033658
 	
 	tau2e = 0.1782
-	tau2mu= 0.1739
+	tau2m= 0.1739
 
 	# When using the madgraph WZ->3lnu, the cross-section of the sample is already 
 	# sigma_{WZTo3LNu sample}=sigma_WZ*BR(WZ->3lnu), so we need to take into account
 	# these br
-	WZ23lnu = 3.0*(Z2ll)*(W2e+W2mu+W2tau)
+	WZ23lnu = 3.0*(Z2ll)*(W2e+W2m+W2tau)
 	
-	# Exclusive branching ratios 
-	WZ2eee = W2e*Z2ee+W2tau*tau2e*Z2ee+W2tau*tau2e*Z2tautau*tau2e**2.0+W2e*Z2tautau*tau2e**2.0
-	WZ2mmm = W2mu*Z2mumu+W2tau*tau2mu*Z2mumu+W2tau*tau2mu*Z2tautau*tau2mu**2.0+W2mu*Z2tautau*tau2mu**2.0
-	WZ2eem= W2mu*Z2ee+W2mu*Z2tautau*tau2e**2.0+\
-			2.0*W2e*Z2tautau*tau2e*tau2mu+2.0*W2tau*tau2e*Z2tautau*tau2e*tau2mu+\
-			W2tau*tau2mu*Z2ee+W2tau*tau2mu*Z2tautau*tau2e**2.0
-	WZ2mme= W2e*Z2mumu+W2e*Z2tautau*tau2mu**2.0+\
-			2.0*W2mu*Z2tautau*tau2mu*tau2e+2.0*W2tau*tau2mu*Z2tautau*tau2mu*tau2e+\
-			W2tau*tau2e*Z2mumu+W2tau*tau2e*Z2tautau*tau2mu**2.0
-	WZ2lnu_tau2eORmu = WZ2eee+WZ2mmm+WZ2eem+WZ2mme
+	# Exclusive branching ratios: just light leptonic (pure), don't accepting taus
+	WZ2eee = W2e*Z2ee
+	WZ2mmm = W2m*Z2mm
+	WZ2eem= W2m*Z2ee
+	WZ2mme= W2e*Z2mm
+	WZ2lightlnu = WZ2eee+WZ2mmm+WZ2eem+WZ2mme
 
-	WZ2tauNoMuNoE=WZ23lnu-WZ2lnu_tau2eORmu
+	def getlightbr(self,channel):
+		""".. method:: getlightbr(channel) --> br
+		Give it a channel, returns the br correspondent to that channel but 
+		just with prompt decays 
+		FIXME: Just a patch up function... I don't like it too much
+		"""
+		# Sorting the split up the flavours
+		flavourlist = sorted(channel)
+		flavourstr  = ''
+		for i in flavourlist:
+			flavourstr += i
+		# Taking the first and look for its partner: 
+		Zpartner = filter(lambda x: x == flavourlist[0],flavourlist[1:])
+		if len(Zpartner) == 0:
+			Zbr = self.__getattribute__("Z2"+flavourstr[1:])
+			Wbr = self.__getattribute__("W2"+flavourstr[0])
+		else:
+			Zbr = self.__getattribute__("Z2"+flavourstr[0]+Zpartner[0])
+			try:
+				Wlepton = filter(lambda x: x!=flavourlist[0],flavourlist)[0]
+			except IndexError:
+				Wlepton = Zpartner[1]
+			Wbr = self.__getattribute__("W2"+Wlepton) 
+
+		return Wbr*Zbr
+
 
 	def __str__(self):
 		message =  "Branching ratios: \n"
-		message += "WZ --> 3lnu: %.5f\n" % WZ23lnu
-		message += "WZ --> eee : %.5f   WZ --> eem : %.5f\n" % (WZ2eee,WZ2eem)
-		message += "WZ --> mmm : %.5f   WZ --> mme : %.5f\n" % (WZ2mmm,WZ2mme)
+		message += "WZ --> 3lnu: %.5f\n" % self.WZ23lnu
+		message += "WZ --> eee : %.5f   WZ --> eem : %.5f\n" % (self.WZ2eee,self.WZ2eem)
+		message += "WZ --> mmm : %.5f   WZ --> mme : %.5f\n" % (self.WZ2mmm,self.WZ2mme)
 		return message
 
 # An instance of this class: this has to be call, not the class
@@ -215,15 +236,21 @@ def getxserrorsrel(workingpath,**keywords):
 		f.close()
 		Ngen = float(filter(lambda x: x.find("NEvents") != -1,lines)[0].replace("NEvents:",""))
 	
-	# Inclusive or exclusive measures
-	branchratio = 1.0
-	if xstype == "inclusive":
-		branchratio = BR.WZ23lnu
 
 	# XS calculation lambda function
-	xs = lambda N,eff,lumi: (float(N)/branchratio)/(float(eff)*float(lumi))
+	xsraw = lambda N,eff,lumi: (float(N)/BR.WZ23lnu)/(float(eff)*float(lumi))
 
 	for channel in channellist:
+		# We have to correct the obtained cross-section per channel by the some factor due
+		# to the fact we want to present a pure light leptonic measures (i.e., W->l and Z->ll but l=e,mu)
+		# Inclusive or exclusive measures
+		if xstype == "inclusive":
+			correct = 1.0
+		else:
+			correct = BR.getlightbr(channel)
+
+		# XS calculation lambda function
+		xs = lambda N,eff,lumi: xsraw(N,eff,lumi)*correct
 		# Previuosly ...
 		pathchannel = signal+channel # Remember standard folder structure 
 		signalroot=os.path.join(os.path.join(workingpath,pathchannel),
