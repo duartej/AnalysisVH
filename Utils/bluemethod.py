@@ -36,9 +36,19 @@ def checkenv():
 				raise RuntimeError(message )
 
 
+def getprobability(S,dof):
+	""".. function:: checkchisquared(S,dof) -> p
+	Knowing that S follows a chi square distribution (with dof degrees of freem), 
+	return the probability that S is fulfill the hypothesis
+	"""
+	from ROOT import Math
+
+	return Math.chisquared_cdf(S,dof)
+
+
+
 def geterrorarray(xs,xserrors):
 	""".. function:: geterrorarray(xs,xserrors) --> (E,Esys)
-
 	Calculate the arrays (to fill later the matrices) of absolute errors and returns
 	two objects, a dictionary with errors separated into sys, stat and lumi (plus the total of them)
 	and another dictionary where all the errors are separated by its sources; this is done
@@ -123,7 +133,6 @@ def geterrorarray(xs,xserrors):
 	return arrayE,arrayEsys
 
 
-
 def bluemethod(workingpath,zoutrange,whatuse,verbose):
 	""" ..function:: bluemethod(workingpath,zoutrange,whatuse) --> 
 	"""
@@ -194,6 +203,10 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 		message = newline+"WEIGHTS:: " 
 		for i,channel in IDCHANNEL.iteritems():
 			message += "%s:%.4f " % (channel,W(i,0))
+		# S estimator
+		message += "\n"
+		message += newline+"S-estimator:: %.2f, i.e., prob. of %.0f%s that our combination"\
+				"is consitent with our measures" % (S,getprobability(S,nchannels-1)*100,"%")
 		# Matrices: E y E_sys
 		print message
 	
@@ -230,7 +243,8 @@ if __name__ == '__main__':
 	print "\033[34mbluemethod INFO\033[m Combining the %s cross-section at '%s'" % (opt.xstype,opt.workingpath)
 	xsmean,xserrors = bluemethod(opt.workingpath,opt.zoutrange,opt.xstype,opt.verbose)
 
-	output = "xs=%.4f" % xsmean
+	output  = "++++ Cross section combined using BLUE method ++++\n"
+	output += "xs=%.4f" % xsmean
 	for errname,val in filter(lambda (x,y): x!="total",xserrors.iteritems()):
 		output+= "+-%.4f(%s)" % (val,errname)
 	output += "  (total:%.4f)" % xserrors["total"]
