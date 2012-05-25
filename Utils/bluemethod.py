@@ -206,7 +206,7 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 		# S estimator
 		message += "\n"
 		message += newline+"S-estimator:: %.2f, i.e., prob. of %.0f%s that our combination"\
-				"is consitent with our measures" % (S,getprobability(S,nchannels-1)*100,"%")
+				" is consistent with our measures" % (S,getprobability(S,nchannels-1)*100,"%")
 		# Matrices: E y E_sys
 		print message
 	
