@@ -278,7 +278,7 @@ def getxserrorsrel(workingpath,**keywords):
 		SYSZZ["Stat"][channel] = Nzzerr/Nzz
 		# -- Fakes:
 		try:
-			Nf,Nferr = extractyields(asciirawtable,"data-driven")
+			Nf,Nferr = extractyields(asciirawtable,"Data-driven")
 		except RuntimeError:
 			# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
 			Nf,Nferr = extractyields(asciirawtable,"Fakes")
