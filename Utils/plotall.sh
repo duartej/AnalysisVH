@@ -212,7 +212,7 @@ do
 	if [ $j != "leptonchannel" ];
 	then
 		# FIXME: PATCH, now I'm assuming the signal is difined with two letters WZ,WH
-		channel=`echo${j:2:4}`
+		channel=`echo ${j:2:4}`
 		plotmode="$plotmode -c $channel"
 	fi
 

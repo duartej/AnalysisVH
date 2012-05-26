@@ -74,6 +74,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 			}
 			else
 			{
+				
 				thefile  += "MuFR_all2011_jet50.root";
 			}
 		}
