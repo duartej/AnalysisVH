@@ -93,13 +93,13 @@ def xscalc(path,zoutrange,format):
 	if hasprint:
 		if format == "html":
 			print "\n= HTLM OUTPUT "+"="*90
-			tablestr= "|  | <latex size=\"scriptsize\">\\sigma_{WZ}\\Gamma(channel)</latex> | <latex size=\"scriptsize\"> \\sigma_{WZ} </latex> |\n"
+			tablestr= "|  | <latex size=\"scriptsize\">\\sigma_{WZ\\rightarrow3\\ell\\nu}\\;(pb^{-1})</latex> | <latex size=\"scriptsize\"> \\sigma_{WZ}\\;(pb_{-1}) </latex> |\n"
 			print tablestr+outmessage[:-1]
 			print "= HTML OUTPUT "+"="*90
 		elif format == "tex":
 			print "\n= TEX OUTPUT "+"="*90
 			tablestr =  "\\begin{tabular}{l c c }\\hline\\hline\n"
-			tablestr += " & $\\sigma_{WZ}\\Gamma(channel)$ & $\\sigma_{WZ}$ \\\\ \\hline\\hline\n"
+			tablestr += " & $\\sigma_{WZ\\rightarrow3\\ell\\nu}\\;(pb^{-1})$ & $\\sigma_{WZ}$ \\\\ \\hline\\hline\n"
 			print tablestr+outmessage+"\\hline\n\\end{tabular}"
 			print "= TEX OUTPUT "+"="*90
 
