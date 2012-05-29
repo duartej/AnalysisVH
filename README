@@ -142,5 +142,9 @@ TODO:
      already downloaded local PU histogram.
   37.Included a print method in AnalisisBase summarizing what parameters was used (DumpParameters)
      what fake rate matrix files, what weights files, scale factors, ...
+  38.TO BE FIXED: Minor bug in python scripts. When rounding, there is no propagation in values far 
+     away from the last significant number-- example: 0.3545  --> print "%.2f" % 0.3545 --> "0.35" 
+     instead of "0.36" which is the correct rounding because 0.3545 --> 0.355 --> 0.36, So it is 
+     necessary to build a function which round in a correct way
   
 
