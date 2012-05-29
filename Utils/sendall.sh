@@ -196,7 +196,8 @@ else
 		rm WJets_Madgraph_datanames.dn;
 		rm WW_datanames.dn;
 	else
-		echo "[sendall] Info: not needed the Z+Jets, DY and TTbar samples, removing";
+		echo "[sendall] Info: not needed the Z+Jets, DY, PhotonVJets and TTbar samples, removing";
+		rm PhotonVJets_Madgraph_dataname.dn;
 		rm Z*_Powheg_datanames.dn;
 		rm DY*_Powheg_datanames.dn;
 		rm ${TTBAR}_datanames.dn;
