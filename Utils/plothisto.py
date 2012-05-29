@@ -20,8 +20,8 @@ LEGENDSDICT = { "WW": "Other bkg", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madg
 		"Data": "Data", "Fakes": "Data-driven bkg",
 		"TW_DR": "Other bkg", "TbarW_DR": "Other bkg",
 		"DDM_ZJets": "DDM Z+Jets",
-		"DDM_TTbar": "DDM t#bar{t}"
-
+		"DDM_TTbar": "DDM t#bar{t}",
+		"PhotonVJets_Madgraph": "V#gamma +Jets"
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -47,7 +47,8 @@ COLORSDICT = { "WW" : kGreen-3, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kGreen-
 		"Data": kBlack, "Fakes": kAzure-7, 
 		"TW_DR": kGreen-3, "TbarW_DR": kGreen-3,
 		"DDM_ZJets": kOrange-3,
-		"DDM_TTbar": kOrange+5
+		"DDM_TTbar": kOrange+5,
+		"PhotonVJets_Madgraph": kGreen-5 
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -632,8 +633,17 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	hs = ROOT.THStack("hs","hstack")
 	mcratio = ratio.Clone("mcratio")
 	leginfodict = {}
+	# Just assuring the signal is the last one when using the stacked plot type
+	try:
+		signalname = (filter(lambda (x,y): y.issignal, sampledict.iteritems())[0])[0]
+		orderingstack = filter(lambda x: x != signalname, sampledict.keys())+[signalname]
+	except IndexError:
+		orderingstack = sampledict.keys()
+
 	# Two different behaviours if the user ask for
-	for sample in sampledict.itervalues():
+	#for sample in sampledict.itervalues():
+	for namesample in orderingstack:
+		sample = sampledict[namesample]
 		if sample.isdata or (plottype == 1 and sample.issignal):
 			continue
 		# If there are no contribution, skip
