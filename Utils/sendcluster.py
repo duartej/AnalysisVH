@@ -151,7 +151,7 @@ class clustermanager(object):
 				print message
 			# Checking if has sense the njobs
 			if self.njobs < 1:
-				message = "\033[33m;2clustermanager: WARNING\033[m the Number of jobs introduced '"\
+				message = "\033[33;2mclustermanager: WARNING\033[m the Number of jobs introduced '"\
 						+str(self.njobs)+"' make no sense: changing to 1 "
 				print message
 				self.njobs = 1
