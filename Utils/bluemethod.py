@@ -138,7 +138,7 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 	"""
 	from array import array
 	from math import sqrt
-	from functionspool_mod import getxserrorsrel
+	from functionspool_mod import getxserrorsrel,BR
 	import ROOT
 	
 	nchannels = len(IDCHANNEL.keys())
@@ -197,6 +197,10 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 	for errname,Ematrix in E_types.iteritems():
 		variances[errname] = (W_T*Ematrix*W)(0,0)
 	errors = dict(map(lambda (key,x): (key,sqrt(x)), variances.iteritems()))
+		
+	
+	if whatuse == "inclusive":
+		print "\033[33;1mbluemethod WARNING\033[m Inclusive cross-section calculation is not well-understood. See 'bluemethod -v'"
 
 	if verbose:
 		newline = "\033[32;2mbluemethod VERBOSE\033[m "
@@ -207,6 +211,16 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 		message += "\n"
 		message += newline+"S-estimator:: %.2f, i.e., prob. of %.0f%s that our combination"\
 				" is consistent with our measures" % (S,getprobability(S,nchannels-1)*100,"%")
+		if whatuse == "exclusive":
+			message += "\n"
+			BRprompt = ((BR.W2e+BR.W2m+BR.W2tau)/3.0*BR.Z2ll)
+			xswz  = xsmean/BRprompt
+			syswz = errors["sys"]/BRprompt
+			statwz= errors["stat"]/BRprompt
+			lumiwz= errors["lumi"]/BRprompt
+			totalwz = sqrt(syswz**2.+statwz**2.+lumiwz**2.)
+			message += newline+"Inclusive XS using just the exclusive values: %.2f+-%.2f(stat)+-%.2f(sys)+-%.2f(lumi)  (total=%.2f)" % \
+					(xswz,statwz,syswz,lumiwz,totalwz)
 		# Matrices: E y E_sys
 		print message
 	
