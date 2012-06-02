@@ -189,17 +189,17 @@ then
 else
 	if [ "X"$fakeasdata == "Xyes" ];
 	then
-		echo "[sendall] Info: not needed the Data, TbarW_DR, TW_DR, WJets_Madgraph and WW, removing";
-		rm Data_datanames.dn
-		rm TbarW_DR_datanames.dn;
-		rm TW_DR_datanames.dn;
+		echo "[sendall] Info: not needed the Data, PhotonVjets, WJets_Madgraph and WW, removing";
+		rm Data_datanames.dn;
+		rm PhotonVJets_Madgraph_datanames.dn;
 		rm WJets_Madgraph_datanames.dn;
 		rm WW_datanames.dn;
 	else
-		echo "[sendall] Info: not needed the Z+Jets, DY, PhotonVJets and TTbar samples, removing";
-		rm PhotonVJets_Madgraph_dataname.dn;
+		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar and single top samples, removing";
 		rm Z*_Powheg_datanames.dn;
 		rm DY*_Powheg_datanames.dn;
+		rm TbarW_DR_datanames.dn;
+		rm TW_DR_datanames.dn;
 		rm ${TTBAR}_datanames.dn;
 	fi
 fi
@@ -224,6 +224,9 @@ do
 		fakeoption="-F 3,2"
 	fi
 	#-------------------------------------------------------------
+	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
+	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
+	#-------------------------------------------------------------
 	# The WZ3LNu and ZZ sample has to be considered for the Fake
 	# substraction (-F or -f options)
 	if [ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ];
@@ -239,10 +242,9 @@ do
 			rm ${WZSAMPLE}_datanames.dn;
 			rm ${ZZSAMPLE}_datanames.dn;
 		fi
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes_datanames.dn;
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes_datanames.dn;
 	fi
-	#-------------------------------------------------------------
-	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 	cd ../; 
 done
 rm *.dn
