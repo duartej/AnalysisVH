@@ -131,7 +131,7 @@ def psi(predicted,observed):
 	Function which evaluate the amount of plausability a hypothesis has (i.e., predicted) when it is found a
 	particular set of observed data (i.e. observed). The unit are decibels, and more close to 0 implies a better
 	reliability of the hypothesis. On the other hand, getting a psi_B = X db implies that there is another hypothesis
-	that it is X db better than B. So, psi function is useful to compare to hypothesis with respect the same observed
+	that it is X db better than B. So, psi function is useful to compare two hypothesis with respect the same observed
 	and see which of them has a psi nearest zero.
 
 	:param predicted: the set of values which are predicted. Usually a MC histogram 
@@ -231,7 +231,7 @@ if __name__ == '__main__':
 	nearestzero = (None,1.0e10)
 	psiBoutput = {}
 	for i in sampleslist:
-		psiBoutput[i] = psiB(arrdict[i],arrdata)
+		psiBoutput[i] = psi(arrdict[i],arrdata)
 		if nearestzero[1] > abs(psiBoutput[i]):
 			nearestzero = (i,psiBoutput[i])
 		print "     |-- '%s' psi_B=%.3f db " % (i,psiBoutput[i])
