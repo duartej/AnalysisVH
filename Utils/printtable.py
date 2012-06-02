@@ -97,10 +97,10 @@ class column(object):
 		self.title = None
 		wildcardfiles = "*.root" # Per default in the current working directory
 		for key,value in keywords.iteritems():
-			if not key in keywords.keys():
-				message  = "\033[31mcolumn ERROR\033[m Incorrect instantiation of 'column'"
+			if not key in validkeywords:
+				message  = "\033[31;1mcolumn ERROR\033[m Incorrect instantiation of 'column'"
 				message += " class. Valid keywords are: "+str(validkeywords)
-				raise message
+				raise RuntimeError(message)
 			if key == 'title':
 				self.title = value
 			if key == 'nobuilt':
