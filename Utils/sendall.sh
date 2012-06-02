@@ -179,6 +179,11 @@ if [ "$1" == "WZ" ]; then
 	rm WHTo*.dn;
 fi
 
+echo "[sendall] Info: Removing WJets because doesn't have impact after 3leptons"
+if [ -f WJets_Madgraph_datanames.dn ]; then
+	rm WJets_Madgraph_datanames.dn;
+fi
+
 if [ "X"$fakeable == "X" ];
 then
 	if [ "X"$fakeasdata == "X" ];
@@ -192,7 +197,6 @@ else
 		echo "[sendall] Info: not needed the Data, PhotonVjets, WJets_Madgraph and WW, removing";
 		rm Data_datanames.dn;
 		rm PhotonVJets_Madgraph_datanames.dn;
-		rm WJets_Madgraph_datanames.dn;
 		rm WW_datanames.dn;
 	else
 		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar and single top samples, removing";
@@ -242,8 +246,8 @@ do
 			rm ${WZSAMPLE}_datanames.dn;
 			rm ${ZZSAMPLE}_datanames.dn;
 		fi
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes_datanames.dn;
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes_datanames.dn;
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
 	fi
 	cd ../; 
 done
