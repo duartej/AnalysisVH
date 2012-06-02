@@ -13,12 +13,12 @@ TEXTSIZE=0.03
 
 OTHERBKG = [ "WW", "WJets_Madgraph", "TW_DR", "TbarW_DR" ]
 
-LEGENDSDICT = { "WW": "Other bkg", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": "Other bkg",
+LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": "W+Jets",
 		"ZZ": "ZZ",
 		"TTbar_2L2Nu_Powheg": "t#bar{t}", "TTbar_Madgraph": "t#bar{t} inclusive",
 		"ZJets": "Z+Jets", "ZJets_Madgraph": "Z+Jets (MG)",
 		"Data": "Data", "Fakes": "Data-driven bkg",
-		"TW_DR": "Other bkg", "TbarW_DR": "Other bkg",
+		"TW_DR": "tW", "TbarW_DR": "#bar{t}W",
 		"DDM_ZJets": "DDM Z+Jets",
 		"DDM_TTbar": "DDM t#bar{t}",
 		"PhotonVJets_Madgraph": "V#gamma +Jets"
@@ -41,11 +41,11 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHFlavour': 'UPRIGHT'
 		}
 
-COLORSDICT = { "WW" : kGreen-3, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kGreen-3,
+COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"TTbar_2L2Nu_Powheg": kOrange+5, "TTbar_Madgraph": kOrange+5,
 		"ZZ": kRed+3, "ZJets": kCyan-2, "ZJets_Madgraph": kCyan-2,
 		"Data": kBlack, "Fakes": kAzure-7, 
-		"TW_DR": kGreen-3, "TbarW_DR": kGreen-3,
+		"TW_DR": kGreen-2, "TbarW_DR": kGreen+4,
 		"DDM_ZJets": kOrange-3,
 		"DDM_TTbar": kOrange+5,
 		"PhotonVJets_Madgraph": kGreen-5 
@@ -383,13 +383,15 @@ class sampleclass(object):
 		if not self.variable:
 			self.variable = self.histogram.GetTitle()
 
+		# It is needed a rebin
+		self.histogram.Rebin(rebin)
+		
 		# Titles
 		self.xtitle = self.variable+" "+self.unit
 		self.ytitle = "Events/(%.1f %s)" % (self.histogram.GetBinWidth(1),self.unit)
 		self.title  = "CMS Preliminary\n#sqrt{s}=7 TeV,  L=%.1f fb^{-1}" % (self.lumi/1000.0)
 
-		# It is needed a rebin
-		self.histogram.Rebin(rebin)
+		
 		# Colors
 		if self.isdata:
 			self.histogram.SetMarkerStyle(20)
@@ -535,28 +537,31 @@ def getinfotext(sampledict,datasample,signalsample,isofficial):
 
 
 
-def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg=False):
-	"""..function::plotallsamples(sampledict,plottype,rebin,hasratio,isofficial[,allsamplesonleg]) -> None
+def plotallsamples(sampledict,**keywords):
+	"""..function::plotallsamples(sampledict,plottype=plottype,rebin=rebin,hasratio=hasratio,\
+			isofficial=isofficial[,plotsuffix=suf,allsamplesonleg=allsamplesonleg]) -> None
 
 	Main function where the plot are actually done
 
 	:param sampledict: dictionary of sampleclass instances containing all the sample to
 	                   be plotted
 	:type sampledict: dictionary formed with pairs (str,sampleclass)
-	:param plottype: The way how the plot is going to be done. The accepted values are:
+	:keyword plottype: The way how the plot is going to be done. The accepted values are:
 			 - 0: All samples are being plotted stacked
 			 - 1: All background stacked, signal alone
 			 - 2: All samples alone
 	:type plottype: int
-	:param rebin: The number which the histograms are going to be re-grouped
+	:keyword rebin: The number which the histograms are going to be re-grouped
 	:type rebin: int
-	:param hasratio: Whether or not want the below ratio Data/MC plot
+	:keyword hasratio: Whether or not want the below ratio Data/MC plot
 	:type hasratio: bool
-	:param isofficial: If it is true, above the legend is going to be placed the 
+	:keyword isofficial: If it is true, above the legend is going to be placed the 
 	                   'CMS preliminary ....' string. Otherwise, there will be
 			   a statistic pave
 	:type isofficial: bool
-	:param allsamplesonleg: If it is true, all samples in the 'sampledict' are put in the 
+	:keyword plotsuffix: the suffix of the plot output. Default: '.pdf'
+	:type plotsuffix: str
+	:keyword allsamplesonleg: If it is true, all samples in the 'sampledict' are put in the 
 	                        legend. Otherwise, just the Fakes, ZZ and a metaname Other.
 				Note that a true value has only sense for the pure Monte Carlo
 				samples case.
@@ -566,6 +571,33 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	import os
 	import ROOT
 
+	validkeys = [ "plottype", "rebin", "hasratio", "isofficial", "plotsuffix", "allsamplesonleg" ]
+	# Dictionary of arguments
+	arguments = dict( [ (x,None) for x in validkeys ] )
+	# default values
+	arguments["plotsuffix"] = ".pdf"
+	arguments["allsamplesonleg"] = False
+	for key,val in keywords.iteritems():
+		if not key in validkeys:
+			message  = "\033[31;1mplotallsamples ERROR\033[m Keyword '%s' not defined" % key
+			message += ". Valid keywords are: "+str(validkeys)
+			raise RuntimeError(message)
+		arguments[key] = val
+
+	# Check we have all the necessary arguments
+	for key,value in filter(lambda (x,y): y == None, arguments.iteritems()):
+		message  = "\033[31;1mplotallsamples ERROR\033[m Mandatory keyword not introduced '%s'" % key
+		raise TypeError(message)
+	
+	# Convert to variables ---> Just for convenience, this is going to be deprecated
+	plottype  = arguments["plottype"]
+	rebin     = arguments["rebin"]
+	hasratio  = arguments["hasratio"]
+	isofficial= arguments["isofficial"]
+	plotsuffix= arguments["plotsuffix"]
+	allsamplesonleg = arguments["allsamplesonleg"]
+	# ----	
+
 	ROOT.gROOT.SetBatch()
 	ROOT.gStyle.SetLegendBorderSize(0)
 
@@ -574,15 +606,6 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	lstyle.cd()
 	ROOT.gROOT.ForceStyle()
 	ROOT.gStyle.SetOptStat(0)
-
-	#-- 
-	#ROOT.gStyle.SetPadBorderMode(0)
-	#ROOT.gStyle.SetPadBorderSize(10)
-	#ROOT.gStyle.SetPadColor(0)
-	#ROOT.gStyle.SetPadBottomMargin(0.20)
-	#ROOT.gStyle.SetPadTopMargin(0.08)
-	#ROOT.gStyle.SetPadLeftMargin(0.18)
-	#ROOT.gStyle.SetPadRightMargin(0.05)
 
 	# Create the folder structure
 	try:
@@ -607,8 +630,6 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	ratio = ROOT.TH1F("ratio","",datasample.histogram.GetNbinsX(),
 			datasample.histogram.GetXaxis().GetXmin(),datasample.histogram.GetXaxis().GetXmax())
 	ratio.Sumw2()
-	#ratio.SetMaximum(2.0)
-	#ratio.SetMinimum(0.0)
 	ratio.SetLineColor(datasample.histogram.GetMarkerColor())
 	# And the ratio-error for MC histogram
 	errors = ROOT.TH1F("errorsratio","",datasample.histogram.GetNbinsX(),
@@ -641,7 +662,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 		orderingstack = sampledict.keys()
 
 	# Two different behaviours if the user ask for
-	#for sample in sampledict.itervalues():
+	s2add = []
 	for namesample in orderingstack:
 		sample = sampledict[namesample]
 		if sample.isdata or (plottype == 1 and sample.issignal):
@@ -657,14 +678,20 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 			leginfodict[LEGENDSDICT[sample.samplename]] = (sample.histogram,format)
 			if allsamplesonleg:
 				legend.AddEntry(sample.histogram,LEGENDSDICT[sample.samplename],format)
-	if not allsamplesonleg:
+			else:
+				s2add.append(sample.samplename)
+	if not allsamplesonleg:  # FIXME---- PROBABLY TO BE DEPRECATED
 		# Be careful, this has sense only with the Fakes sample 
 		if not "Fakes" in sampledict.keys():
 			message = "\033[31mplotallsamples ERROR\033[m Cannot be called this function with"
 			message += " the argument 'allsamplesonleg=True' and do not have a Fakes sample"
 			raise RuntimeError(message)
 		# Just we want to show 
-		legendorder = [ "Data-driven bkg", "ZZ", "Other bkg" ]
+		legendorder = [ "Data-driven bkg", "ZZ" ] #, "Other bkg" ]
+		for sname in s2add:
+			legendname = LEGENDSDICT[sname]
+			if not legendname in legendorder:
+				legendorder.append(legendname)
 		for legname in legendorder:
 			legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
 	# Data
@@ -777,7 +804,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	legend.Draw()
 	
 	# Plotting
-	canvas.SaveAs("Plots/"+datasample.histoname+".pdf")
+	canvas.SaveAs("Plots/"+datasample.histoname+plotsuffix)
 
 	# Logarithmic scale
 	if hasratio:
@@ -786,7 +813,7 @@ def plotallsamples(sampledict,plottype,rebin,hasratio,isofficial,allsamplesonleg
 	else:
 		canvas.SetLogy()
 		canvas.Update()
-	canvas.SaveAs("Plots/"+datasample.histoname+"_log.pdf")
+	canvas.SaveAs("Plots/"+datasample.histoname+"_log"+plotsuffix)
 	
 	#if wantroot:
 	#	canvas.SaveAs("Plots/"+datasample.histoname+".root")  
@@ -815,6 +842,7 @@ if __name__ == '__main__':
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(rebin=0,plottype=1,luminosity=4922.0,data="Data",ismodefake=False,\
 			isfakeasdata=False,wantratio=False,\
+			plotsuffix="PDF",\
 			isofficial=False) #wantroot=FAlse
 	parser.add_option( "-s",action='store',dest='signal', metavar="WZ|WH#", help="Signal name, for Higgs subsituing # for mass")
 	parser.add_option( "-d",action='store',dest='data', help="Data name [default: 'Data']")
@@ -828,7 +856,7 @@ if __name__ == '__main__':
 	parser.add_option( "-f",action='store_true',dest='isfakeasdata', help="Mode Fakes: Comparing fake sample with the MC-samples which can generate it. "\
 			"In this mode, the Fake sample is used as Data and it will be compared with "\
 			"some MC samples which could create this Fake sample: WZ, ZZ, Z+Jets, ttbar")
-	#parser.add_option( "-w",action='store_true',dest='wantroot',help="Want root output files plus the pdf plot files")
+	parser.add_option( "-x", "--suffix", action='store',dest='plotsuffix',help="Output format for the plots, possibilities: PDF, ROOT, PNG, ... [default: PDF]")
 	parser.add_option( "-u",action='store_true',dest='wantratio',help="Want ratio plot under the actual plot")
 	parser.add_option( "-c",action='store',dest='channel',help="Auxiliary option to introduce the channel in case it cannot be "\
 			"possible to guess it (example: when the folder structure is not the usual one)")
@@ -854,6 +882,15 @@ if __name__ == '__main__':
 	
 		if signal.find("WZ") == 0:
 			signal = signal.replace("WZ","WZTo3LNu")
+	
+	# Output format
+	validoutput = [ "PDF", "PNG", "ROOT" ]
+	if not opt.plotsuffix.upper() in validoutput:
+		message = "\033[31mplothisto ERROR\033[m Format not valid '%s'" % opt.plotsuffix.upper()
+		message += " Accepted format are '%s'" % str(validoutput)
+		sys.exit(message)
+	else:
+		plotsuffix = "."+opt.plotsuffix.lower()
 
 	# Guessing the channel if it wasn't introduced by user
 	if not opt.channel:
@@ -938,7 +975,7 @@ if __name__ == '__main__':
 	allsamplesonleg=False
 	# Just we don't want some samples when deal with fake mode
 	if opt.ismodefake:
-		nofakessamples = [ "WJets","TTbar","DY","ZJets" ]
+		nofakessamples = [ "WJets","TTbar","DY","ZJets","TW_DR","TbarW_DR" ]
 		condition = ""
 		for nf in nofakessamples:
 			condition += " not '%s' in x and" % nf
@@ -950,7 +987,7 @@ if __name__ == '__main__':
 		allsamplesonleg=True
 		# And also its real name and colors all of them
 		LEGENDSDICT["WW"] = "WW" 
-		COLORSDICT["WW"] = kRed+3
+		COLORSDICT["WW"] = kRed+4
 		LEGENDSDICT["WJets_Madgraph"] = "WJets"
 		COLORSDICT["WJets_Madgraph"] = kAzure+3
 		LEGENDSDICT["TW_DR"]="tW"
@@ -1014,7 +1051,8 @@ if __name__ == '__main__':
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
 	
-	plotallsamples(sampledict,int(opt.plottype),rebin,opt.wantratio,opt.isofficial,allsamplesonleg)
+	plotallsamples(sampledict,plottype=int(opt.plottype),rebin=rebin,hasratio=opt.wantratio,
+			isofficial=opt.isofficial,plotsuffix=plotsuffix,allsamplesonleg=allsamplesonleg)
 
 
 
