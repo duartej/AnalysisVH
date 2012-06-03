@@ -209,12 +209,14 @@ for j in $fsdirectories leptonchannel;
 do
 	NPROC=0
 	cd $j;
-	if [ $j != "leptonchannel" ];
-	then
-		# FIXME: PATCH, now I'm assuming the signal is difined with two letters WZ,WH
-		channel=`echo ${j:2:4}`
-		plotmode="$plotmode -c $channel"
-	fi
+	# --- FIXME:: Below lines not needed--< the plothisto.py already have a mechanism to 
+	#             extract the channel, if we have the standard structure
+	#if [ $j != "leptonchannel" ];
+	#then
+	#	# FIXME: PATCH, now I'm assuming the signal is difined with two letters WZ,WH
+	#	channel=`echo ${j:2:4}`
+	#	plotmode="$plotmode -c $channel"
+	#fi
 
 	for i in $HISTOSNOC;
 	do
