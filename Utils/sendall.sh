@@ -184,6 +184,17 @@ if [ -f WJets_Madgraph_datanames.dn ]; then
 	rm WJets_Madgraph_datanames.dn;
 fi
 
+OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
+VGamma="PhotonVJets_Madgraph"
+echo "[sendall] Info (TO BE DEPRECATED): Considering VGamma as $VGamma"
+echo "[sendall] Info (TO BE DEPRECATED): So removing $OtherVGamma"
+for vgammafiles in $OtherVGamma; 
+do
+	if [ -f ${vgammafiles}_datanames.dn ]; then
+		rm ${vgammafiles}_datanames.dn;
+	fi
+done
+
 if [ "X"$fakeable == "X" ];
 then
 	if [ "X"$fakeasdata == "X" ];
@@ -194,9 +205,12 @@ then
 else
 	if [ "X"$fakeasdata == "Xyes" ];
 	then
-		echo "[sendall] Info: not needed the Data, PhotonVjets, WJets_Madgraph and WW, removing";
+		echo "[sendall] Info: not needed the Data, VGamma, WJets_Madgraph and WW, removing";
 		rm Data_datanames.dn;
-		rm PhotonVJets_Madgraph_datanames.dn;
+		for vgamma in $VGamma;
+		do
+			rm ${vgamma}_datanames.dn;
+		done
 		rm WW_datanames.dn;
 	else
 		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar and single top samples, removing";
