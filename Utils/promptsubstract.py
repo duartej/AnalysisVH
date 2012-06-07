@@ -58,7 +58,10 @@ def extractyields(sample,lumi=None):
 
 
 def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
-	"""
+	""".. function:: substractprompt(filefakes,filepromptsdict,outfile[,lumi=None]) --> eventhistos
+
+	Returns a dict with a dict containing the name of the cut vs. the yield (fHEventsPerCut)
+	in order to print the number of events	substracted by each PPP sample
 	"""
 	import ROOT
 
@@ -76,6 +79,15 @@ def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
 			except KeyError:
 				hnamedict[hname] = [ hdict[hname] ]
 
+	# fill the substracted yields to a dict
+	yieldsppp = {}
+	for namesample,histodict in prompthistodict.iteritems():
+		h = histodict["fHEventsPerCut"]
+		yieldsppp[namesample] = {}
+		for i in xrange(1,h.GetNbinsX()+1):
+			yieldsppp[namesample][h.GetXaxis().GetBinLabel(i)] = h.GetBinContent(i)
+	
+	# Do the actual substruction
 	fsubstracted = ROOT.TFile(outfilename,"RECREATE")
 	fwithPPP = ROOT.TFile(filefakes)
 	for hname,histolist in hnamedict.iteritems():
@@ -89,10 +101,12 @@ def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
 	
 	fsubstracted.Close()
 	fwithPPP.Close()
-
+	
 	for histodict in prompthistodict.itervalues():
 		for histo in histodict.itervalues():
 			histo.Delete()
+
+	return yieldsppp
 
 if __name__ == '__main__':
 	import sys
@@ -186,7 +200,7 @@ a loop for each channel subfolder."""
 				"(%s subfolder)" % os.path.basename(folder)
 		sys.stdout.flush()
 		fakesubstractedfile = "fsubsprov.root"
-		substractprompt(fakesample,pppsamples,fakesubstractedfile)
+		yieldsdict = substractprompt(fakesample,pppsamples,fakesubstractedfile)
 
 		print "\033[34mpromptsubstract INFO\033[m Generating backup fake folders (fakespool.tar.gz) "\
 				"(%s subfolder)" % os.path.basename(folder)
@@ -219,6 +233,19 @@ a loop for each channel subfolder."""
 		warningfile+= "         script. You can find the original file inside the 'fakespool.tar.gz' file.\n"
 		warningfile+= "WARNING: do not untar the fakespool file at the same level you found it because you will\n"
 		warningfile+= "        destroy the fake substracted folder\n"
+		warningfile+= "="*60+"\n"
+		# Including some useful info: yields PPP substracted to the Fakes
+		pppnameslist = yieldsdict.keys()
+		warningfile += "%20s ||" % ( "" )
+		for pppname in pppnameslist:
+			warningfile += " %10s ||" % pppname
+		warningfile = warningfile[:-2]+"\n"
+		for cutname in yieldsdict[pppnameslist[0]].iterkeys():
+			warningfile += "%20s  " % cutname
+			for pppname in pppnameslist:
+				warningfile += " %10.2f  " % yieldsdict[pppname][cutname]
+			warningfile = warningfile[:-2]+"\n"
+		warningfile+= "="*60+"\n"
 		fw = open("cluster_Fakes/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
 		fw.writelines(warningfile)
 		fw.close()
