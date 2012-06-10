@@ -348,6 +348,7 @@ void display_usage()
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee_Powheg DYmumu_Powheg Dytautau_Powheg Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 	std::cout << "    VGamma + Jets  :   PhotonVJets_Madgraph" << std::endl;
+	std::cout << "    VGamma         :   ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
 	std::cout << "    Other backgrounds: -WZ --> PYTHIA SAMPLE TO BE DEPRECATED-\n" 
 		<<   "                       WZTo3LNu ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
@@ -448,6 +449,13 @@ int main(int argc, char *argv[])
 	knowndata.insert("Ztautau_Powheg");
 	// VGamma + Jets
 	knowndata.insert("PhotonVJets_Madgraph");
+	// VGamma 
+	knowndata.insert("ZgammaToMuMuMad");
+	knowndata.insert("ZgammaToElElMad");
+	knowndata.insert("ZgammaToTauTauMad");
+	knowndata.insert("WgammaToMuNuMad");
+	knowndata.insert("WgammaToElNuMad");
+	knowndata.insert("WgammaToTauNuMad");
 	// Zbb+jets
 	knowndata.insert("Zbb");
 	// Other background
