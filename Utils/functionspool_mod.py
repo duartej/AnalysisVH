@@ -223,10 +223,11 @@ def getxserrorsrel(workingpath,**keywords):
 	# is refering to the usual STATistics
 	xserrors["STATS"] = {}
 
-	# Using the Zrange [60,120] or not
+	# Using the Zrange [60,120] or [71,111] or not
 	Ngen = 0.0
 	if not allzrange:
-		Ngen = 801792.0 
+		#Ngen = 801792.0 # [60,120]
+		Ngen = 787195.0 # [71,111]
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 				" Z range mass [60,120]: %d" % Ngen
 	else:
