@@ -6,6 +6,8 @@
 TITLEDICT = { "Fakes": "Data-driven bkg", 
 		"Other": "Other bkg", 
 		"WZTo3LNu": "WZ#rightarrow3l#nu", 
+		"PhotonVJets_Madgraph": "V#gamma+Jets",
+		"VGamma": "V#gamma"
 	    }
 ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
 
@@ -428,8 +430,12 @@ class table(object):
 			components = [ "DYee_Powheg", "DYmumu_Powheg", "DYtautau_Powheg" ]
 		elif metasample == "Z+Jets":
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
+		elif metasample == "VGamma":
+			components = [ "ZgammaToElElMad", "ZgammaToMuMuMad", "ZgammaToTauTauMad",\
+					"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
 		elif metasample == "Other":
-			components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
+			#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
+			components = [ "WW", "WJets_Madgraph" ]
 		elif metasample in self.usermetasample.keys():
 			components = self.usermetasample[metasample]
 		else:
