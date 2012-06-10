@@ -158,9 +158,9 @@ void AnalysisWZ::Initialise()
 	_histos[fHLeptonCharge] = CreateH1D("fHLeptonCharge", "#Sum q_{#mu}", 7, -3.5, 3.5);
 		
 	// Invariant mass of leptons in/out of Z peak after all cuts
-	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",120, 60, 120);
-	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#mu#mu}",120, 60, 120);
-	_histos[fHZInvMassAfterWCand] = CreateH1D("fHZInvMassAfterWCand", "M^{inv.}_{#mu#mu}",120, 60, 120);
+	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",80, 71, 111);
+	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#mu#mu}",80, 71, 111);
+	_histos[fHZInvMassAfterWCand] = CreateH1D("fHZInvMassAfterWCand", "M^{inv.}_{#mu#mu}",80, 71, 111);
 	
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",120, 0, 300);
@@ -239,7 +239,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	if(fDataName.Contains("WZ")) // fIsWH --> Cambiar por fIsSignal) 
 	{
 		float masszcand = 0.0;
-		// Finding the events generated between 60-120 GeV/c
+		// Finding the events generated between 71-111 GeV/c
 		// --- 
 		// Tau case: (the Latino's tree doesn't have the MC information)
 		const unsigned int ntauSt3 = fData->GetSize<int>("T_Gen_TauSt3_PID");
@@ -323,7 +323,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		}
 
 		// Accepting only generated events inside the range
-		if( masszcand < 60.0 || masszcand > 120.0 )
+		if( masszcand < 71.0 || masszcand > 111.0 )
 		{
 			return std::pair<unsigned int,float>(WZCuts::_iIsWZ,puw);
 		}
@@ -877,7 +877,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		unsigned int i1 = it->first;
 		unsigned int i2 = it->second;
 		const double invMass= (lepton[i1]+lepton[i2]).M();
-		if( invMass > 120.0 || invMass < 60.0 )
+		if( invMass > 111.0 || invMass < 71.0 )
 		{
 			continue;
 		}
