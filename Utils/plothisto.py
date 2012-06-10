@@ -21,7 +21,8 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"TW_DR": "tW", "TbarW_DR": "#bar{t}W",
 		"DDM_ZJets": "DDM Z+Jets",
 		"DDM_TTbar": "DDM t#bar{t}",
-		"PhotonVJets_Madgraph": "V#gamma +Jets"
+		"PhotonVJets_Madgraph": "V#gamma +Jets",
+		"VGamma": "V#gamma",
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -48,7 +49,8 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"TW_DR": kGreen-2, "TbarW_DR": kGreen+4,
 		"DDM_ZJets": kOrange-3,
 		"DDM_TTbar": kOrange+5,
-		"PhotonVJets_Madgraph": kGreen-5 
+		"PhotonVJets_Madgraph": kGreen-5,
+		"VGamma": kGreen-5,
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -415,6 +417,8 @@ class sampleclass(object):
 		self.lumi, entries of an histogram, taking into account
 		the underflow and overflow bins
 		"""
+		# FIXME: It depends if sethisto was call or not. you can fix it using
+		# a status flag and apply a different behaviour depending the status
 		return self.histogram.Integral()+self.histogram.GetBinContent(0)+\
 				self.histogram.GetBinContent(self.histogram.GetNbinsX()+1)
 
@@ -423,6 +427,8 @@ class sampleclass(object):
 
 		Return the number of real entries in the histogram
 		"""
+		# FIXME: It depends if sethisto was call or not. you can fix it using
+		# a status flag and apply a different behaviour depending the status
 		return self.getnormentries()/self.weight
 
 def getcoord(where,xwidth,ywidth,ystart=-1):
@@ -656,10 +662,28 @@ def plotallsamples(sampledict,**keywords):
 	leginfodict = {}
 	# Just assuring the signal is the last one when using the stacked plot type
 	try:
-		signalname = (filter(lambda (x,y): y.issignal, sampledict.iteritems())[0])[0]
+		signalname = (filter(lambda (x,y): y.issignal, sampledict.iteritems())[0])[0] # signalsample.samplename ?? mejor, no?
 		orderingstack = filter(lambda x: x != signalname, sampledict.keys())+[signalname]
 	except IndexError:
 		orderingstack = sampledict.keys()
+	# -- Reordering algorithm 
+	# Checking the index of the first one not being data nor signal
+	indiceslist = map(lambda x: orderingstack.index(x), \
+			filter(lambda y: y != datasample.samplename and y!=signalsample.samplename, orderingstack))
+	# And change the order to be 
+	orderbkglist = [ "Fakes", "ZZ" ] # Put here whatever you want to order (bkg only)
+	for i in xrange(len(orderbkglist)):
+		try: 
+			# Get the index
+			index_i = orderingstack.index(orderbkglist[i])
+		except ValueError:
+			continue
+		# swap the values
+		orderingstack[index_i],orderingstack[indiceslist[i]] = orderingstack[indiceslist[i]],orderingstack[index_i]
+		# Re-evaluate the indiceslist
+		indiceslist = map(lambda x: orderingstack.index(x), \
+				filter(lambda y: y != datasample.samplename and y!=signalsample.samplename, orderingstack))
+	# -- End reordering algorithm
 
 	# Two different behaviours if the user ask for
 	s2add = []
@@ -918,9 +942,11 @@ if __name__ == '__main__':
 	# --- FIXME: High dependence of the MC sample type (Powheg)
 	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\
 			"DYtautau" ,"Zmumu","Ztautau","Zee"])
+	VGAMMALIST= map(lambda x: x.replace("cluster_",""),glob.glob("cluster_Zgamma*")+glob.glob("cluster_Wgamma*"))
 	DDMZJETSLIST = map(lambda x : x+"_WEIGHTED", ZJETSLIST)
-	metasamples = { "ZJets": [] ,"DDM_ZJets": [], "DDM_TTbar":[] }
+	metasamples = { "ZJets": [] ,"DDM_ZJets": [], "DDM_TTbar":[], "VGamma": [] }
 	METASAMPLESCOMP = { "ZJets":  ZJETSLIST,
+			"VGamma": VGAMMALIST,
 			"DDM_ZJets": DDMZJETSLIST,
 			"DDM_TTbar": ["TTbar_2L2Nu_Powheg_WEIGHTED"] }
 
@@ -946,7 +972,6 @@ if __name__ == '__main__':
 			for realnames in realnameslist:
 				samples.remove(realnames)
 			samples.append(metaname)
-
 
 	# --- Monte Carlo composition of the fake sample
 	if opt.isfakeasdata:
