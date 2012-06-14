@@ -74,8 +74,8 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 			}
 			else
 			{
-				
 				thefile  += "MuFR_all2011_jet50.root";
+				//thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root"; ZJets
 			}
 		}
 		else if( lepton == ELECTRON )
@@ -83,10 +83,13 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 			if( isSystematics )
 			{
 				thefile  += "ElecFR_all2011_jet15.root";
+				//thefile  += "MuFR_All2011_LPcuts_AND_kink_jet35.root"; 
 			}
 			else
 			{
-				thefile += "ElecFR_all2011_jet35.root";
+				thefile  += "ElecFR_all2011_jet50.root";
+				//thefile  += "MuFR_All2011_LPcuts_AND_kink_jet35.root"; ZJets
+
 			}
 		}
 	}
