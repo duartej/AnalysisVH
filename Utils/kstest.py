@@ -1,8 +1,5 @@
 #!/usr/bin/env
 
-import ROOT
-import sys,os
-
 NINSTANCE = 0 
 
 def addstack(thstack):
