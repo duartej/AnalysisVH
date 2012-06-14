@@ -75,6 +75,8 @@ def LatinosStyle():
         LatinosStyle.SetTitleOffset(  1.2,   "y")
         LatinosStyle.SetPadTickX   (           1)  # Tick marks on the opposite side of the frame
         LatinosStyle.SetPadTickY   (           1)  # Tick marks on the opposite side of the frame
+
+	return LatinosStyle
       
       
         #----------------------------------------------------------------------------
