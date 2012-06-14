@@ -203,8 +203,9 @@ void AnalysisWZ::Initialise()
 		delete hprov;
 	}*/
 
-	_histos[fHIsoLepton] = CreateH1D("fHIsoLepton","#sum Iso_{total}/p_{t}",100,0,0.4);
-	_histos[fHD0Lepton] = CreateH1D("fHD0Lepton","d_{0}",100,0,0.2);
+	//_histos[fHIsoLepton] = CreateH1D("fHIsoLepton","#sum Iso_{total}/p_{t}",100,0,0.4);
+	//_histos[fHD0Lepton] = CreateH1D("fHD0Lepton","d_{0}",100,0,0.2);
+	//_histos[fHEtJetnoTightLepton] = CreateH1D("fHEtJetnoTightLepton","Jet E_{T}",200,0,100);
 	
 }
 
@@ -641,25 +642,25 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	{
 		const unsigned int i = (*theLeptons)[k];
 		LeptonTypes ileptontype = fLeptonSelection->GetLeptonType(k);
-		std::string lepton;
-		std::string laux;
+		//std::string lepton;
+		//std::string laux;
 		if( ileptontype == MUON )
 		{
-			lepton = "Muon";
-			laux = "_mu";
+		//	lepton = "Muon";
+		//	laux = "_mu";
 			++howmanyMuons;
 		}
 		else
 		{
-			lepton = "Elec";
-			laux = "_ele";
+		//	lepton = "Elec";
+		//	laux = "_ele";
 			++howmanyElecs;
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(lepton.c_str(),i);
-		std::string Isostr("T_"+lepton+laux+"SmurfPF");
-		std::string IPstr("T_"+lepton+"_IP2DBiasedPV");
-		_histos[fHIsoLepton]->Fill(fData->Get<float>(Isostr.c_str(),i)/lvec.Pt(),puw);
-		_histos[fHD0Lepton]->Fill(fData->Get<float>(IPstr.c_str(),i),puw);
+		//TLorentzVector lvec = this->GetTLorentzVector(lepton.c_str(),i);
+		//std::string Isostr("T_"+lepton+laux+"SmurfPF");
+		//std::string IPstr("T_"+lepton+"_IP2DBiasedPV");
+		//_histos[fHIsoLepton]->Fill(fData->Get<float>(Isostr.c_str(),i)/lvec.Pt(),puw);
+		//_histos[fHD0Lepton]->Fill(fData->Get<float>(IPstr.c_str(),i),puw);
 	}
 	
 	//The signature has to be fulfilled
@@ -726,6 +727,18 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 				++_nTElecs;
 			}
 			TLorentzVector lvec = this->GetTLorentzVector(name,i);
+			// Provisional --- TO BE DELETED --- FIXME
+			/*for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+			{
+				TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+				// Lepton inside the Jets
+				if( fabs(Jet.DeltaR(lvec)) <= 1.0 )
+				{
+					_histos[fHEtJetnoTightLepton]->Fill(Jet.Et(),puw);
+					return std::pair<unsigned int,float>(WZCuts::_iOppositeCharge,puw);
+				}
+			}*/
+			// ----------- FIXME: TO BE DELETED
 			const double pt  = lvec.Pt();
 			const double eta = lvec.Eta();
 			puw *= fFO->GetWeight(ileptontype,pt,eta);

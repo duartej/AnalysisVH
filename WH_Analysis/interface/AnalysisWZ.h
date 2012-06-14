@@ -50,9 +50,10 @@ class AnalysisWZ : public AnalysisBase
 			fHNJets,                   // Number of jets after all cuts
 			fHTransversMass,
 			fHdRl1Wcand,
-			fHdRl2Wcand,
-			fHIsoLepton,
-			fHD0Lepton
+			fHdRl2Wcand
+			//fHIsoLepton,
+			//fHD0Lepton
+			//,fHEtJetnoTightLepton
 		};
 		
 		//! Constructor
