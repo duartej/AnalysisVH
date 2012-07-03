@@ -141,6 +141,12 @@ if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
 	promptsubstract -s ${signal:0:2};
 fi
 #-------------------------------------------------------------
+# --- PROVISIONAL Up to the spreadsheet is modified
+echo "[plotall] PROVISIONAL (Up to spreadsheet modification): Correcting xs for VGamma"
+for j in $fsdirectories;
+do
+	setZgammaXS -d $j
+done
 
 echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`

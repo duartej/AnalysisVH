@@ -1,180 +1,38 @@
 #!/usr/bin/env python
+"""
+Script to extract the systematics associated to the yields (normalized to
+a given luminosity) or acceptance. The procedure is as following: 
+	1. Evaluate the yields using the central value (usual repository) and sendall, plotall, ...
+	2. Evaluate the yields using some systematic effect incorporated in the code (using some
+	   systematic specific branch in the repository) and sendall, plotall, ...
+	3. Launch this script per channels
+"""
 
+from functionspool_mod import processedsample
 
-class events(object):
+def getsystwofiles(file1,file2,verbose):
 	"""
-	A events has a file where to extract the information
-	Also it is assumed than the values are extracted from
-	an TH1F histogram (at least in this __builddict__ 
-	implementation)
 	"""
-	def __init__(self,file,**keywords):
-		""".. class:: column(file[,title=title,nobuilt=True|False]) 
+	import sys
 
-		A events is associated with a file containing the information. The 
-		file has to get an TH1F histogram (see __builddict__ method) defining
-		the rows (the x-axis of the histogram) and the values of the rows
-		(the bin content of the histogram). So a column is formed by 
-		(rows,values).
-		Also, if it is called with 'nobuilt=True' it is created a instance
-		without fill any of its datamember, so the user must do that.
-		"""
-		import os
+	if file1 == file2:
+		message = "\033[1;31mgetsystematics ERROR\033[1;m Cannot evaluate differences"\
+				" between the same files arguments '%s'. See usage." % (file1)
+		sys.exit(message)
+	if verbose:
+		print "\033[1;34mgetsystematics INFO\033[1;m Extracting systematics using files %s and %s" % (file1,file2)
+		sys.stdout.flush()
+	
+	evt = processedsample(file1,showall=verbose)-processedsample(file2,showall=verbose)
 
-		validkeywords = [ "title", "nobuilt" ]
-		self.title = None
-		for key,value in keywords.iteritems():
-			if not key in keywords.keys():
-				message  = "\033[1;31mcolumn ERROR\033 Incorrect instantiation of 'events'"
-				message += " class. Valid keywords are: "+str(validkeywords)
-				raise message
-			if key == 'title':
-				self.title = value
-			if key == 'nobuilt':
-				self.title = None
-				self.filename = None
-				self.cutordered = None
-				self.rowvaldict = None
-				self.rowvaldictReferenced = None
-				return
-
-		self.filename = file
-		# FIXME: Must be a root file, checks missing
-		# Define the title of the events as the last word 
-		# before the .root (if the client doesn't provided it)
-		if not self.title:
-			self.title = os.path.basename(self.filename).split(".")[0]
-
-		# Extract the values and stores to a dict
-		self.rowvaldict = self.__builddict__()
-
-		# The referenced values in order to extract the percentage when report
-		# the systematic
-		self.rowvalditReferenced = self.rowvaldict.copy()
-
-	def __builddict__(self):
-		"""..method: __builddict__() -> { 'cutname1': (val,err), ... } 
-		This could be a pure virtual, in order to be used by anyone
-		and  any storage method (not just a histo). So this is concrete
-		for my analysis: fHEventsPerCut histogram
-		Build a dict containing the values already weighted by its luminosity
-		"""
-		import ROOT
-		from array import array
-		import os
-
-		f = ROOT.TFile(self.filename)
-		# Including the luminosity, efficiency weights,,...
-		if "Data.root" in self.filename:
-			weight = 1.0
-		elif "Fakes.root" in self.filename:
-			weight = 1.0
-		else:
-			# 1) Load the InputParameters
-			ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
-			ROOT.gSystem.Load("libInputParameters.so")
-
-			weight = 1.0
-			xs = array('d',[0.0])
-			luminosity = array('d',[0.0])
-			neventsample = array('i',[0])
-			neventsskim  = array('i',[0])
-			ip = f.Get("Set Of Parameters")
-			ip.TheNamedDouble("CrossSection",xs)
-			ip.TheNamedInt("NEventsSample",neventsample)
-			ip.TheNamedInt("NEventsTotal",neventsskim)
-			ip.TheNamedDouble("Luminosity",luminosity)
-			weight  = xs[0]*luminosity[0]/neventsample[0]
-		
-		h = f.Get("fHEventsPerCut")
-		self.cutordered = []
-		valdict = {}
-		#FIXME: Control de errores: histo esta
-		for i in xrange(h.GetNbinsX()):
-			self.cutordered.append( h.GetXaxis().GetBinLabel(i+1) )
-			#Initialization of the bin content dict
-			valdict[self.cutordered[-1]] = (weight*h.GetBinContent(i+1),weight*h.GetBinError(i+1))
-		f.Close()
-
-		return valdict	
-
-	def __str__(self):
-		""".. __str__ -> str
-
-		Prints the abs(rowvaldict)/rowvaldictReferenced*100
-		"""
-
-		maxlenstr = max(map(len,self.rowvaldict.keys()))
-		formattitle = "%"+str(maxlenstr)+"s   %s\n"
-		formatcolumn= "%"+str(maxlenstr)+"s   %.2f%s\n"
-		strout = formattitle % ("cut","systematics")
-		strout+= "==================================\n" 
-		for cut in self.cutordered:
-			value = (self.rowvaldict[cut][0])/self.rowvaldictReferenced[cut][0]*100.0
-			strout += formatcolumn % (cut,value,"%")
-
-		return strout
-
-
-	def __sub__(self,other):
-		""".. operator-(other) -> events
-
-		Substracting up the rowvaldict, so the two columns have to contain the
-		same rows. Note that
-
-		:param other: a eventsn instance
-		:type other: events
-
-		:return: a events instance
-		:rtype:  events
-
-		"""
-		from math import sqrt
-		# Checks
-		# Allowing the a += b operation (when a was instantied using
-		# the 'nobuilt=True' argument, in this case rowvaldict=None
-		try:
-			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
-				raise TypeError,"Cannot be added because they don't have the same"+\
-						" row composition"
-			hasdict=True
-		except AttributeError:
-			hasdict=False
-
-		# Case when self was called as a += b
-		if not hasdict:
-			self.rowvaldict = other.rowvaldict
-			self.cutordered = other.cutordered
-			return self			
-		
-		addeddict = {}
-		for cutname,(val,err) in self.rowvaldict.iteritems():
-			val  -= other.rowvaldict[cutname][0]
-			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
-			addeddict[cutname] = (val,swap)
-
-		result = events("",nobuilt=True)
-		result.rowvaldict = addeddict
-		result.cutordered = self.cutordered
-		result.rowvaldictReferenced = self.rowvaldict.copy()
-
-		return result
-
-	def getvalerr(self,cutname):
-		""".. method:: getvalerr(cutname) -> (val,err)
-		"""
-		try:
-			return self.rowvaldict[cutname]
-		except KeyError:
-			raise RuntimeError,"column.getvalerr:: the cut '"+cutname+"' is not "+\
-					"defined"
-
-
+	return evt
+	
 
 if __name__ == '__main__':
 	import sys
 	import os
 	import glob
+	from math import sqrt
 	from optparse import OptionParser
 	
 	#Comprobando la version (minimo 2.4)
@@ -186,17 +44,33 @@ if __name__ == '__main__':
 		message = '\033[1;31getsystematics ERROR\033[1;m I need python version >= 2.4'
 		sys.exit( message )
 	
-	usage  ="usage: getsystematics filename1.root filename2.root [options]"
-	usage +="\nExtracts the difference between the two 'fHEventsPerCut' histograms of "
-	usage +="filename1.root and filename2.root. It is assumed the filename1 is the one "
-	usage +="be compared with"
+	usage  ="usage: getsystematics filename1 filename2 [options]"
+	usage +="\nExtracts the yield differences in percentage between the two 'fHEventsPerCut'\n"
+	usage +="histograms of 'filename1' and 'filename2'. Also it is possible to launch the\n"
+	usage +="script without arguments but with the mandatory options '-p' and '-s'; then it\n"
+	usage +="will be evaluate each channel inside the '-p' introduced folder for the sample\n"
+	usage +="introduced with '-s' option"
 	parser = OptionParser(usage=usage)
-	#parser.set_defaults(tput="table.tex")
-	parser.add_option( '-s', action='store', type='string', dest='signal', 
-			help="<WZ|WH> it describes what subdirectories to search when '-i' option was called" )
-	parser.add_option( '-i', action='store', dest='wildcardfiles', help='Paths where to find the root '\
-			'filenames to extract the differences, it could be wildcards. \033[1;33mWARNING:\033[1;m'\
-			' if uses wildcards, be sure to be included between quotes: "whatever*"' )
+	parser.set_defaults(samplename="Fakes",verbose=False)
+	parser.add_option( '-p', '--parentfolder', action='store', dest='parentfolder', help='Paths'\
+			' where to find the standard folder structure. It must be two paths, comma'\
+			' separated, one for the central yields, the other for the sytematics yields.'\
+			' Incompatible option with the arguments \'filename1\' and \'filename2\'')
+	parser.add_option( '-s', '--sample', dest='samplename',help='Sample to evaluate the systematics.'\
+			' This option, apart fo the stricly sample name (as it going to be found in the'\
+			' channel folders "cluster_samplename"), can take the '\
+			' specific values "yields" and "acceptance". The "yields" keyword is going to'\
+			' extract the differences between all the samples but the Monte Carlo signal'\
+			' (WZ or WH)'\
+			' and return the relative differences for the signal, i.e.'\
+			' N_S = N_Data-N_bkg <-- This is goiing to be deprecated .'\
+			'The "acceptance" keyword is going to return the'\
+			' relative difference for the yields of the Monte Carlo signal (WZ or WH)'\
+			' which can be used for the A*eff cross-section term.'\
+			' Incompatible option with the arguments \'filename1\' and \'filename2\'')
+	parser.add_option( '-n', '--namesignal', dest='namesignal', help='Name of the signal')
+	parser.add_option( '-v', '--verbose', action='store_true', dest='verbose',help='Show all the'\
+			' differences by cut')
 
 
 	( opt, args ) = parser.parse_args()
@@ -209,85 +83,135 @@ if __name__ == '__main__':
 		message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory arguments files, see usage."
 		sys.exit(message)
 
-	# Using two concrete files
+	# Using two concrete files and exit
 	if not allchannels:
-		
 		file1 = args[0]
 		file2 = args[1]
-		
-		if file1 == file2:
-			if not opt.wildcardfiles:
-				message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-i' when"\
-						" you not using relative or complete paths in filenames"
-				sys.exit(message)
-			# available filenames
-			path1 = opt.wildcardfiles.split(",")[0]
-			try:
-				path2 = opt.wildcardfiles.split(",")[1]
-			except IndexError:
-				message = "\033[1;31mgetsystematics ERROR\033[1;m Option '-i' needs two"\
-						" paths, one for each file argument, comma separated"
-				sys.exit(message)
-	
-			file1 = glob.glob(os.path.join(path1,file1))
-			file2 = glob.glob(os.path.join(path2,file2))
-			if not os.isfile(file1):
-				message = "\033[1;31mgetsystematics ERROR\033[1;m File '%s' not found!" % file1
-				sys.exit(message)
-			if not os.isfile(file2):
-				message = "\033[1;31mgetsystematics ERROR\033[1;m File '%s' not found!" % file2
-				sys.exit(message)
-	
-		print "\033[1;34mgetsystematics INFO\033[1;m Extracting systematics using files %s and %s" % (file1,file2)
-		sys.stdout.flush()
-		
-		evt = events(file1)-events(file2)
-	
-		print evt
+		diffsample = getsystwofiles(file1,file2,opt.verbose)
+		print diffsample
 		sys.exit(0)
 	
-	# Using all the channels in within a directory
-	if not opt.wildcardfiles:
-		message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-i' when"\
-				" you not using relative or complete paths in filenames"
+	# Using all the channels within a parent directory
+	if not opt.parentfolder:
+		message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-p' when"\
+				" you are using the 'per channel' modality"
 		sys.exit(message)
-	if not opt.signal:
+	if not opt.samplename:
 		message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-s' when"\
-				" also was called the '-i' option"
+				" you are using the 'per channel' modality"
 		sys.exit(message)
+
+
 	# available filenames
-	path1 = opt.wildcardfiles.split(",")[0]
+	path1 = opt.parentfolder.split(",")[0]
 	try:
-		path2 = opt.wildcardfiles.split(",")[1]
+		path2 = opt.parentfolder.split(",")[1]
 	except IndexError:
 		message = "\033[1;31mgetsystematics ERROR\033[1;m Option '-i' needs two"\
-				" paths, one for each file argument, comma separated"
+				" paths, one for the central yields, the other for the"\
+				" systematics, comma separated"
 		sys.exit(message)
 
-	# extract the directories
-	thechannelfolders1 = glob.glob(os.path.join(path1,opt.signal+"*"))
-	thechannelfolders2 = glob.glob(os.path.join(path2,opt.signal+"*"))
-	# extract the files, and joining as couples
-	thefiles = {}
-	for folder1 in thechannelfolders1:
-		channel = os.path.basename(folder1).strip(opt.signal)
-		folder2 = filter(lambda x: os.path.basename(folder1) == os.path.basename(x), thechannelfolders2)[0]
-		thefiles[channel] = (os.path.join(folder1,"cluster_Fakes/Results/Fakes.root"), 
-			os.path.join(folder2,"cluster_Fakes/Results/Fakes.root")) 
-	# Add the added-up channel
-	thefiles["all"] = (os.path.join(path1,"leptonchannel/cluster_Fakes/Results/Fakes.root"),
-			os.path.join(path2,"leptonchannel/cluster_Fakes/Results/Fakes.root"))
+	# extract the channels directories
+	thechannelfolders1 = filter(lambda x: os.path.isdir(x), glob.glob(os.path.join(path1,"*")))
+	thechannelfolders2 = filter(lambda x: os.path.isdir(x), glob.glob(os.path.join(path2,"*")))
+	
+	# Case we want to get the acceptance systematic
+	if opt.samplename.lower() == "acceptance":
+		if not opt.namesignal:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-n' when"\
+					" using the '-s acceptance'"
+			sys.exit(message)
+		# Extract the name of the signal
+		try:
+			signalname = os.path.basename(glob.glob(thechannelfolders1[0]+"/cluster_"+opt.namesignal+"*")[0]).replace("cluster_","")
+		except IndexError:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-s' when"\
+				" you are using the 'per channel' modality"
+			sys.exit(message)
+		print "\033[1;34mgetsystematics INFO\033[1;m Systematics for acceptance*efficiency term. You can get the values below directly as %"
+		for folder1 in sorted(thechannelfolders1):
+			channel = os.path.basename(folder1)
+			print "\033[1;34mgetsystematics INFO\033[1;m Channel %s" % channel
+			folder2 = filter(lambda x: os.path.basename(folder1) == os.path.basename(x), thechannelfolders2)[0]
+			file1 = os.path.join(folder1,"cluster_"+signalname+"/Results/"+signalname+".root")
+			file2 = os.path.join(folder2,"cluster_"+signalname+"/Results/"+signalname+".root") 
+			diffsample = getsystwofiles(file1,file2,opt.verbose)
+			cutlist = [ "MET" ]
+			if opt.verbose:
+				cutlist = diffsample.getcutlist()
+			for cut in cutlist:
+				print "\033[1;34mgetsystematics INFO\033[1;m ---- MC %s Yield relative diff. at %s cut: %.3f%s" % \
+						(signalname,cut,diffsample.getsysrelative(cut)*100.0,"%")
 
-	print "\033[1;34mgetsystematics INFO\033[1;m Extracting systematics for the Fake Method"
-	sys.stdout.flush()
-	# Extract the systematics for all channesl
-	for channel,(file1,file2) in thefiles.iteritems():
-		evt = events(file1)-events(file2)
-		print "Channel: %s +++++++++++++++++++" % channel
-		print evt
+	elif opt.samplename.lower() == "yields":
+		if not opt.namesignal:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-n' when"\
+					" using the '-s acceptance'"
+			sys.exit(message)
+		# Extract the name of the signal
+		try:
+			signalname = os.path.basename(glob.glob(thechannelfolders1[0]+"/cluster_"+opt.namesignal+"*")[0]).replace("cluster_","")
+		except IndexError:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Missing mandatory option '-s' when"\
+				" you are using the 'per channel' modality"
+			sys.exit(message)
+		try:
+			dataname = os.path.basename(glob.glob(thechannelfolders1[0]+"/cluster_Data*")[0]).replace("cluster_","")
+		except IndexError:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Not found Data folder! Check the folder structure..."
+			raise RuntimeError(message)
+		# Build all the files but signal: dN_S = sqrt(dN_D**2+dN_bkg**2), where dN_bkg**2 = sum_{i=all bkg} dN_i**2
+		samplesname = filter(lambda x: x != signalname, \
+				map(lambda x: os.path.basename(x).replace("cluster_",""),glob.glob(thechannelfolders1[0]+"/cluster_"+"*")) )
+	
+		print "\033[1;34mgetsystematics INFO\033[1;m Systematics for WZ signal yields (N_S=N_D-N_BKG) term. You can get the values below directly as %"
+		for folder1 in sorted(thechannelfolders1):
+			channel = os.path.basename(folder1)
+			print "\033[1;34mgetsystematics INFO\033[1;m Channel %s" % channel
+			folder2 = filter(lambda x: os.path.basename(folder1) == os.path.basename(x), thechannelfolders2)[0]
+			dN_S2 = 0.0
+			N_S = 0.0
+			for sample in samplesname:
+				file1 = os.path.join(folder1,"cluster_"+sample+"/Results/"+sample+".root")
+				file2 = os.path.join(folder2,"cluster_"+sample+"/Results/"+sample+".root") 
+				diffsample = getsystwofiles(file1,file2,opt.verbose)
+				cut = diffsample.getcutlist()[-1]
+				dN_S2 += diffsample.getvalue(cut)[0]**2.
+				# Extracting the signal
+				sp = processedsample(file1)
+				value = sp.getvalue(cut)[0]
+				del sp
+				if sample == dataname:
+					N_S += value
+				else:
+					N_S -= value
+			dN_S = sqrt(dN_S2)
+			print "\033[1;34mgetsystematics INFO\033[1;m ---- Total WZ yield relative difference at %s cut: %.3f%s" % (cut,dN_S/N_S*100.0,"%")
+	# Introduced a regular sample name
+	else:
+		# first check: the sample exists
+		knownsamples = map(lambda x: os.path.basename(x).replace("cluster_",""),glob.glob(thechannelfolders1[0]+"/cluster_"+"*")) 
+		if not opt.samplename in knownsamples:
+			message = "\033[1;31mgetsystematics ERROR\033[1;m Sample not found '%s' in the channel folders"
+			sys.exit(message)
+		print "\033[1;34mgetsystematics INFO\033[1;m Systematics for the '%s' sample. You "\
+				"can get the values below directly as %s" % (opt.samplename,"%")
+		for folder1 in sorted(thechannelfolders1):
+			channel = os.path.basename(folder1)
+			print "\033[1;34mgetsystematics INFO\033[1;m Channel %s" % channel
+			folder2 = filter(lambda x: os.path.basename(folder1) == os.path.basename(x), thechannelfolders2)[0]
+			file1 = os.path.join(folder1,"cluster_"+opt.samplename+"/Results/"+opt.samplename+".root")
+			file2 = os.path.join(folder2,"cluster_"+opt.samplename+"/Results/"+opt.samplename+".root") 
+			diffsample = getsystwofiles(file1,file2,opt.verbose)
+			cutlist = [ "MET" ]
+			if opt.verbose:
+				cutlist = diffsample.getcutlist()
+			for cut in cutlist:
+				print "\033[1;34mgetsystematics INFO\033[1;m ---- MC %s Yield relative diff. at %s cut: %.3f%s" % \
+						(opt.samplename,cut,diffsample.getsysrelative(cut)*100.0,"%")
+
+
+
 
 	
-
-
-
-

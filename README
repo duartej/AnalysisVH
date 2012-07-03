@@ -142,8 +142,6 @@ TODO:
      DO NOW For VH 
   A001. Add the fakes to the VH. IMPORTANT!!
   A03. FIX BUG in printtable: the rounding is not done appropiately. Check it
-  A1.Include an algorithm to extract the WZ and ZZ contribution to the Fake estimation (the PPP contribution)
-     ---> DONE, but pending of validation
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
      to avoid doble counting, see Ana's email) 
   5. Check with the *.sh.e* the good behaviour of the job
@@ -154,13 +152,13 @@ TODO:
      but each user who wants to send her/his code must to implement some concrete class which implement
      some user specific methods, the createbash method for instance.
   14.Include a 'resubmit' argument to sendcluster
+  14a.Use the 'qmod -cj list_of_jobs' when the jobs have the status Eqw in order to resubmit them
   15.In order to control how must be called the CutManager::SelectWhateverLeptons methods, these methods
      should be protected to avoid the direct call by any user, the GetNWhateverLepton methods are the 
      interface methods to use not the SelectWhateverLeptons ... 
   18.Store the kind of lepton in the histograms in order to be coherent when plot them. Also store
      the variable name and unit (in the title and with a detailed format: lepton@variablename@unit 
      for instance)
-  19.Substitute the plothisto.cpp by a plothisto.py, include the no-dependence of the samples used--->DONE
   20.Add a way to check if a variable has a cut, then the plot should use the min bin edge of that cut
      (see MET plot after all cuts)
   22.Find a way to deal with the control region analysis: now I have to recompile and change the code if
@@ -178,6 +176,8 @@ TODO:
   38.TO BE FIXED: Minor bug in python scripts. When rounding, there is no propagation in values far 
      away from the last significant number-- example: 0.3545  --> print "%.2f" % 0.3545 --> "0.35" 
      instead of "0.36" which is the correct rounding because 0.3545 --> 0.355 --> 0.36, So it is 
-     necessary to build a function which round in a correct way
+     necessary to build a function which round in a correct way ---> DONE
+  39.Document the complete process to generate results (from the processament of latinos to 
+     cross-section extraction)
   
 

@@ -74,7 +74,7 @@ class format(object):
 
 		self.format = format
 
-
+# FIXME: Has to be superseeded by the processedsample class from functionspool_mod module
 class column(object):
 	"""
 	A column has a file where to extract the information
@@ -135,6 +135,8 @@ class column(object):
 		import os
 
 		f = ROOT.TFile(self.filename)
+		# FIXME: USE THe getweight function of plothisto which
+		#        has to be put at functionspool_mod
 		# Including the luminosity, efficiency weights,,...
 		if "Data.root" in self.filename:
 			weight = 1.0
@@ -453,7 +455,7 @@ class table(object):
 
 		Extract the value and the error, given the cut and the sample name. 
 		The function will find the format to return the value using only the most 
-		significant decimal numbers depending on how is its errror. The 
+		significant decimal numbers depending on how is its error. The 
 		error will be modified following the below rules:
 		 - if the error is >= 1.5, then the error is an integer, same as
 		 the value
@@ -469,8 +471,8 @@ class table(object):
 		:return: the value and its error 
 		:rtype : (str,str)
 		"""
-		# FIXME: TO BE MODIFIED: IT NEEDS SOME IMPROVEMENTS (THERE ARE MINOR BUGS)
 		from math import sqrt
+		from functionspool_mod import getrounded
 
 		# Dealing with the TotBkg sample which has to be built 
 		if sample == "TotBkg":
@@ -510,18 +512,18 @@ class table(object):
 		nafterpoint = 0 
 		# Case > 1.5
 		if abs(err) < 1e-30:
-			return ("%i" % val)
+			return getrounded(val,1000)
 		elif err >= 1.5 and err < 2.0:
-			errstr = "%.1f" % err
-			valstr = "%.1f" % val
+			errstr = getrounded(err,1)
+			valstr = getrounded(val,1)
 			nafterpoint = 1
 		# Case 1 > err > 1.5
-		elif err >= 1.0 and err < 1.5 :
-			errstr = "%.2f" % err
-			valstr = "%.2f" % val
+		elif err >= 1.0 and err < 1.5:
+			errstr = getrounded(err,2)
+			valstr = getrounded(val,2)
 			nafterpoint = 2
 		elif err >= 2.0:
-			errstr = "%i" % round(err)
+			errstr = getrounded(err,0)
 			valstr = "%i" % round(val)
 			nafterpoint = 0
 		elif err < 1.0 and err > 0.0:

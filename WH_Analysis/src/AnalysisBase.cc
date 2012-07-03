@@ -45,6 +45,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_cutvalue(-1),
 	_eventnumber(-1),
 	_runnumber(-1),
+	_wcharge(0),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -226,9 +227,7 @@ void AnalysisBase::SaveOutput( const char * outputname )
 		}
 		std::string finalname = almostfinalname.substr(prefix);;
 
-		outputfile = "Results/"+std::string(//fInputParameters->TheNamedString("MyAnalysis"))+"_"
-			//+
-			finalname+".root");
+		outputfile = "Results/"+std::string(finalname+".root");
 	}
 	else
 	{
@@ -303,7 +302,12 @@ void AnalysisBase::InitialiseParameters()
 	//fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
 	// --> FIXME: PONER EN el Input parameters una nueva variable str con el anyo??
 	std::string year = ip->TheNamedString("RunPeriod"); //FIXME, Check it is there
+	//fPUWeight = new PUWeight(fLuminosity, Fall11, year.c_str());
 	fPUWeight = new PUWeight(fLuminosity, Fall11True, year.c_str());
+
+	// The W-charge if needed (if there are anything is going to return -1 but without
+	// touching the initial value 0
+	ip->TheNamedInt("WCharge",_wcharge);
 }
 
 

@@ -9,7 +9,6 @@ kCyan=432
 kOrange=800
 
 TEXTSIZE=0.03
-#TEXTSIZE=0.04
 
 OTHERBKG = [ "WW", "WJets_Madgraph", "TW_DR", "TbarW_DR" ]
 
@@ -63,7 +62,9 @@ VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"D0": "d_{0}", "CHARGE": "#Sigma q" 
 		}
 
+HISTOSWITHBINWIDTH = { "fHMET": 10 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
 
+#FIXME: TO BE DEPRECATED: USE the function from LatinosStyle_mod module
 def LatinosStyle():
 	"""
 	Latinos style
@@ -763,9 +764,6 @@ def plotallsamples(sampledict,**keywords):
 		ratio.SetLineColor(kBlack)
 		ratio.SetMarkerStyle(20)
 		ratio.SetMarkerSize(0.70)
-		#ratio.SetFillColor(38)
-		#ratio.SetLineColor(38)
-		#ratio.SetFillStyle(3144)
 		errors.SetFillColor(38)
 		errors.SetLineColor(38)
 		errors.SetFillStyle(3144)
@@ -774,7 +772,7 @@ def plotallsamples(sampledict,**keywords):
 		errors.GetXaxis().SetTitleSize(0.14)
 		errors.GetXaxis().SetLabelSize(0.14)
 		errors.GetYaxis().SetNdivisions(205);
-		errors.GetYaxis().SetTitle("N_{data}/N_{MC}");
+		errors.GetYaxis().SetTitle("N_{data}/N_{est}");
 		errors.GetYaxis().SetTitleSize(0.14);
 		errors.GetYaxis().SetTitleOffset(0.2);
 		errors.GetYaxis().SetLabelSize(0.14);
@@ -786,7 +784,6 @@ def plotallsamples(sampledict,**keywords):
 		paddown.Draw()
 		paddown.cd()
 
-		#ratio.Draw("E4")
 		errors.Draw("E2")
 		ratio.Draw("PESAME")
 		line = ROOT.TLine(ratio.GetXaxis().GetXmin(),1.0,ratio.GetXaxis().GetXmax(),1.0)
@@ -1060,18 +1057,31 @@ if __name__ == '__main__':
 			rebin=nbins/10
 	else:
 		rebin = int(opt.rebin)
-	# -- Just controlling that the rebin number is a divisor of the initial bins
-	#-- Note that:   NbinsInit=rebin*NbinsNew+k,
-	k = nbins % rebin
-	if k != 0:
-		# We want a k=0, so start the algorithm to search it
-		if float(nbins)/float(rebin)-nbins/rebin > 0.5:
-			nearestmult = lambda x: x+1
-		else:
-			nearestmult = lambda x: x-1
-		while( k != 0 ):
-			rebin = nearestmult(rebin)
-			k = nbins % rebin
+	# Checking that the new rebinning fulfill the requirement of cut:
+	# a bin has to begin just in the cut (not after or before), so forcing
+	# to have the bin width we assing it, no matters if it is divisor or not
+	# from the original binning
+	try:
+		binwidth = HISTOSWITHBINWIDTH[histoname]
+		if "PtLepton" in histoname and opt.channel == "lll":
+			binwidth /= 2
+		# Forcing to have the binwidth
+		totalX = sampledict[opt.data].histogram.GetBinLowEdge(nbins+1)-sampledict[opt.data].histogram.GetBinLowEdge(1)
+		newnumberofbins = totalX/binwidth
+		rebin = nbins/int(newnumberofbins)
+	except KeyError:
+		# -- Just controlling that the rebin number is a divisor of the initial bins
+		#-- Note that:   NbinsInit=rebin*NbinsNew+k,
+		k = nbins % rebin
+		if k != 0:
+			# We want a k=0, so start the algorithm to search it
+			if float(nbins)/float(rebin)-nbins/rebin > 0.5:
+				nearestmult = lambda x: x+1
+			else:
+				nearestmult = lambda x: x-1
+			while( k != 0 ):
+				rebin = nearestmult(rebin)
+				k = nbins % rebin
 	
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"

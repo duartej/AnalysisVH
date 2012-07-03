@@ -8,10 +8,13 @@
 .. moduleauthor:: Jordi Duarte Campderros <duarte@ifca.unican.es>
 
    + br
+   + processedsample
+   + getweight
    + gettablecontent
    + extractyields
    + getpassevts
    + getxserrorsrel
+   + getrounded
    + psitest
 """
 
@@ -83,6 +86,344 @@ class br(object):
 BR = br()
 
 
+class processedsample(object):
+	"""
+	A processedsample is build using the processed rootfile resulting from the analysis. So it
+	need a file where to extract the information. It is assumed than the values are extracted 
+	from an TH1F histogram (at least in this __builddict__ implementation). In principle that 
+	class could generalize to any other output just defining the __builddict__ method specific
+	for each analysis format output
+	"""
+	def __init__(self,filename,**keywords):
+		""".. class:: column(filename[,title=title,showall=True|False]) 
+
+		A processedsample is associated with a file containing the information. The 
+		file has to get an TH1F histogram (see __builddict__ method) defining
+		the rows (the x-axis of the histogram) and the values of the rows (the bin content
+		of the histogram). So a column is formed by (rows,values).
+		
+		Technical info: when it is called with 'nobuilt=True' it is created a instance
+		without	fill any of its datamember. This keyword is for internal use, it should be
+		avoided unless you know what are you doing.
+
+		:param filename: the name of the root file where to extract the information
+		:type filename: str
+		:keyword title: the title of the processedsample
+		:type title: str
+		:keyword showall: verbose mode when use the print
+		:type showall: bool
+		:keyword lumi: to force the luminosity (not using the one stored in the file) [pb]
+		:type lumi: float
+		"""
+		import os
+
+		validkeywords = [ "title", "nobuilt", "showall" ,"lumi" ]
+		self.title = None
+		self.showall = None
+		for key,value in keywords.iteritems():
+			if not key in keywords.keys():
+				message  = "\033[1;31mcolumn ERROR\033 Incorrect instantiation of 'events'"
+				message += " class. Valid keywords are: "+str(validkeywords)
+				raise message
+			if key == 'title':
+				self.title = value
+			if key == 'showall':
+				self.showall = value
+			if key == 'lumi':
+				self.luminosity = value
+			if key == 'nobuilt':
+				self.title = None
+				self.filename = None
+				self.cutordered = None
+				self.rowvaldict = None
+				self.rowvaldictReferenced = None
+				return
+
+		self.filename = filename
+		# FIXME: Must be a root file, checks missing
+		# Define the title of the events as the last word 
+		# before the .root (if the client doesn't provided it)
+		if not self.title:
+			self.title = os.path.basename(self.filename).split(".")[0]
+
+		# Extract the values and stores to a dict
+		self.rowvaldict = self.__builddict__()
+
+		# The referenced values in order to extract the percentage when report
+		# the systematic
+		self.rowvaldictReferenced = self.rowvaldict.copy()
+
+	def __builddict__(self):
+		"""..method: __builddict__() -> { 'cutname1': (val,err), ... } 
+		This could be a pure virtual, in order to be used by anyone
+		and  any storage method (not just a histo). So this is concrete
+		for my analysis: fHEventsPerCut histogram
+		Build a dict containing the values already weighted by its luminosity
+		"""
+		import ROOT
+		from array import array
+		import os
+
+		f = ROOT.TFile(self.filename)
+		# Including the luminosity, efficiency weights,,...
+		if "Data.root" in self.filename:
+			weight = 1.0
+		elif "Fakes.root" in self.filename:
+			weight = 1.0
+		else:
+			# 1) Load the InputParameters
+			ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
+			ROOT.gSystem.Load("libInputParameters.so")
+
+			weight = 1.0
+			xs = array('d',[0.0])
+			luminosity = array('d',[0.0])
+			neventsample = array('i',[0])
+			neventsskim  = array('i',[0])
+			ip = f.Get("Set Of Parameters")
+			ip.TheNamedDouble("CrossSection",xs)
+			ip.TheNamedInt("NEventsSample",neventsample)
+			ip.TheNamedInt("NEventsTotal",neventsskim)
+			ip.TheNamedDouble("Luminosity",luminosity)
+			try: 
+				# Forcing the lumi inputed by the user (if any)
+				luminosity = [ self.luminosity ]
+			except AttributeError:
+				pass
+			weight  = xs[0]*luminosity[0]/neventsample[0]
+
+		self.weight = weight
+		try:
+			self.luminosity = luminosity[0]
+		except NameError:
+			self.luminosity = None
+		
+		h = f.Get("fHEventsPerCut")
+		self.cutordered = []
+		valdict = {}
+		#FIXME: Control de errores: histo esta
+		for i in xrange(h.GetNbinsX()):
+			self.cutordered.append( h.GetXaxis().GetBinLabel(i+1) )
+			#Initialization of the bin content dict
+			valdict[self.cutordered[-1]] = (weight*h.GetBinContent(i+1),weight*h.GetBinError(i+1))
+		f.Close()
+
+		return valdict	
+
+	def __str__(self):
+		""".. __str__ -> str
+
+		Prints the abs(rowvaldict)/rowvaldictReferenced*100 which is the relative
+		error: [central-(central+-somesys))/central] and the absolute error, i.e.
+		central-(central+-somesys)
+		"""
+
+		maxlenstr = max(map(len,self.rowvaldict.keys()))
+		formattitle = "%"+str(maxlenstr)+"s   %6s    %6s\n"
+		formatcolumn= "%"+str(maxlenstr)+"s   %6.2f%s    %9.4f\n"
+		strout = formattitle % ("cut","rel. err.","abs. err.")
+		strout+= "===========================================\n" 
+		listshow = self.cutordered
+		if not self.showall:
+			listshow = [ self.cutordered[-1] ]
+		for cut in listshow:
+			try:
+				value = (self.rowvaldict[cut][0])/self.rowvaldictReferenced[cut][0]*100.0
+			except ZeroDivisionError:
+				value = 0.0
+			abserr = self.rowvaldict[cut][0]
+			strout += formatcolumn % (cut,value,"%",abserr)
+
+		return strout
+
+
+	def __sub__(self,other):
+		""".. operator-(other) -> events
+
+		Substracting up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a eventsn instance
+		:type other: events
+
+		:return: a events instance
+		:rtype:  events
+
+		"""
+		from math import sqrt
+		# Checks
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise(TypeError,"Cannot be added because they don't have the same"+\
+						" row composition")
+			hasdict=True
+		except AttributeError:
+			hasdict=False
+
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
+		
+		addeddict = {}
+		for cutname,(val,err) in self.rowvaldict.iteritems():
+			val  -= other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
+			addeddict[cutname] = (val,swap)
+
+		result = processedsample("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+		result.rowvaldictReferenced = self.rowvaldict.copy()
+		result.showall = self.showall
+		result.weight = self.weight
+		result.luminosity = self.luminosity
+
+		return result
+
+	def getvalue(self,cutname):
+		""".. method:: getvalue(cutname) -> (val,err)
+
+		Returns the yield and its error for a given cut, normalized
+		at the luminosity obtained in the file
+
+		:param cutname: the name of the cut where to extract the yield
+		:type cutname: str
+
+		:return: the yield and its error at the cutname level (normalized to lumi)
+		:rtype: tuple of floats
+		"""
+		try:
+			return self.rowvaldict[cutname]
+		except KeyError:
+			raise RuntimeError,"column.getvalue:: the cut '"+cutname+"' is not "+\
+					"defined"
+
+	def getrealvalue(self,cutname):
+		""".. method:: getrealvalue(cutname) -> (val,err)
+		
+		Returns the yield and its error for a given cut, without normalize to
+		the luminosity
+
+		:param cutname: the name of the cut where to extract the yield
+		:type cutname: str
+
+		:return: the yield and its error at the cutname level
+		:rtype: tuple of floats
+		"""
+		try:
+			return tuple(map(lambda x: x/self.weight,self.rowvaldict[cutname]))
+		except KeyError:
+			raise RuntimeError,"column.getrealvalue:: the cut '"+cutname+"' is not "+\
+					"defined"
+	
+	def getsysrelative(self,cutname):
+		""".. method:: getsysrelative(cutname) -> sys
+		
+		Just when the instance was called using the difference of two instances, the data
+		member self.rowvaldictReferenced was populated with the yield of the first instance,
+		whilst the self.rowvaldict is populated with the difference between the yields of
+		the two instances, i.e. the systematics. This function returns the difference
+		over the initial yield. If this instance was not called in the systematics mode,
+		then return None
+
+		:param cutname: the name of the cut where to extract the yield
+		:type cutname: str
+
+		:return: the differnce of yields over the first instance yield
+		:rtype: float or None
+		"""
+		yieldrel = None
+		if self.rowvaldict != self.rowvaldictReferenced:
+			try:
+				yieldrel = self.rowvaldict[cutname][0]/self.rowvaldictReferenced[cutname][0]
+			except ZeroDivisionError:
+				yieldrel = 0.0
+			except KeyError:
+				raise RuntimeError,"processedsample.getsysrelative:: the cut '"+\
+						cutname+"' is not defined"
+		return yieldrel
+
+	def getcutlist(self):
+		""".. method::getcutlist() -> [ 'cut1', 'cut2',...] 
+		Return the list of ordered cuts
+
+		:return: list of ordered cuts
+		:rtype: list of str
+		"""
+		return self.cutordered
+
+	def getlumi(self):
+		""".. method::getlumi() -> lumi
+		Return the luminosity associated to this file. If the file is not MC, return None
+
+		:return: luminosity
+		:rtype: float or None
+		"""
+		return self.luminosity
+
+	def getweight(self):
+		""".. method::getweight() -> weight
+		Return the weight to be used to normalize the yields to luminosity getlumi(). Return
+		1 if it not a MC sample
+		
+		:return: weight
+		:rtype: float
+		"""
+		return self.weight
+
+
+def getweight(f,lumi=None):
+	"""..function::getweight(f,[lumi=None]) -> float
+	Get the weight of a sample set
+
+	:param f: root filename to be used
+	:type f: str
+	:param lumi: luminosity, if need
+	:type lumi: float (or None)
+
+	:return: the weigth needed to apply to the sample to match the luminosity
+	:rtype: float
+	"""
+#	import ROOT 
+#	from array import array
+#	import os
+#
+	# Extracting the luminosity, efficiency weights,,...
+#	filename = f.GetName()
+#	if "Data.root" in filename:
+#		weight = 1.0
+#	elif "Fakes.root" in filename and not "_Fakes.root" in filename:
+#		weight = 1.0
+#	else:
+#		# 1) Load the InputParameters
+#		ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
+#		ROOT.gSystem.Load("libInputParameters.so")
+#
+#		weight = 1.0
+#		xs = array('d',[0.0])
+#		luminosity = array('d',[0.0])
+#		neventsample = array('i',[0])
+#		neventsskim  = array('i',[0])
+#		ip = f.Get("Set Of Parameters")
+#		ip.TheNamedDouble("CrossSection",xs)
+#		ip.TheNamedInt("NEventsSample",neventsample)
+#		ip.TheNamedInt("NEventsTotal",neventsskim)
+#		ip.TheNamedDouble("Luminosity",luminosity)
+#		# Using the introduced by the user
+#		if lumi:
+#			luminosity[0] = lumi
+#		weight  = xs[0]*luminosity[0]/neventsample[0]
+	ps = processedsample(f)
+	weight = ps.getweight()
+	del ps
+
+	return weight
+
+
 def gettablecontent(workingpath,channel,signal="WZ"):
 	""".. function:: gettablecontent(workingpath,channel) --> lines
 	Extract the content of the standard tex table which should exist
@@ -133,10 +474,30 @@ def extractyields(asciirawtable,titlerow):
 	return (N,Nerrstat)
 
 
-def getpassevts(rootfile,cutlevel=-1):
-	""".. function:: getpassevts(rootfile,cutlevel) --> evts
+def getpassevts(rootfile,cutlevel=-1,histoname="fHEventsPerCut"):
+	""".. function:: getpassevts(rootfile[,cutlevel,histoname]) --> evts
 	
-	Given a cutlevel and the rootfile, extract the number of passed events at that cut level
+	Given a cutlevel and the rootfile (or alternatively the name of an histogram),
+	extract the number of passed events at that cut level using the histogram passed.
+
+	Note that the histogram 'fHEventsPerCut' could be used to extract the
+	number of events at each cut stage, and this is done using the equivalence bin-cutlevel
+	you can found at the 'CutLevel' class. This is the behaviour described by above.
+	There is allowed another behaviour: it is possible to extract from the histogram 'histoname'
+	the content of the bin 'cutlevel' but is the user job to discern what is the meaning
+	of the output.	
+
+	:param rootfile: the name of the root file where to extract the histogram
+	:type rootfile: str
+	:param cutlevel: the number of bin where to extract the info. The convention 
+	                 -1 is equivalent to use the last bin [default: -1]
+	:type cutlevel: int
+	:param histoname: the name of histogram where to extract the number of events 
+			  [default: "fHEventsPerCut"]
+	:param histoname: str
+
+	:return: the content of the bin cutlevel
+	:rtype: float
 	"""
 	import ROOT
 
@@ -144,7 +505,7 @@ def getpassevts(rootfile,cutlevel=-1):
 	if f.IsZombie():
 		message="\033[31;1mgetpassevts ERROR\033[m File '%s' not found." % rootfile
 		raise OSError(message)
-	histo = f.Get("fHEventsPerCut")
+	histo = f.Get(histoname)
 	if cutlevel == -1:
 		cutlevel = histo.GetNbinsX()
 	else:
@@ -230,7 +591,7 @@ def getxserrorsrel(workingpath,**keywords):
 		#Ngen = 801792.0 # [60,120]
 		Ngen = 787195.0 # [71,111]
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
-				" Z range mass [60,120]: %d" % Ngen
+				" Z range mass [71,111]: %d" % Ngen
 	else:
 		# Number of generated events (if not extracted yet)
 		f = open(signaldn)
@@ -351,7 +712,7 @@ def getxserrorsrel(workingpath,**keywords):
 		# affecting to the signal yield
 		Nsigdown = Nsig-dNf
 		Nsigup   = Nsig+dNf
-		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xs(Nsigdown,eff,Lumi)-xsmean)/xsmean)
+		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 
 		# 4. Statistics: using signal statistical errors (already included here the ZZ Stat)
 		xserrors["STATS"][channel] = (abs(xs(Nsig+Nsigerr,eff,Lumi)-xsmean)/xsmean,
@@ -361,6 +722,73 @@ def getxserrorsrel(workingpath,**keywords):
 		#    note that N propto Lumi, so getting the lumi sys is equivalent to the yield
 		
 	return (xsmeasure,xserrors)
+
+
+def getrounded(n,nsig):
+	""".. function getrounded(val,roundval) -> roundedval
+	
+	Given a 'val', the function returns an str which is the
+	the 'val' rounded up to 'roundval' decimals
+
+	:param val: number to be rounded
+	:type val: str or float
+	:param roundval: nomber of significant decimals to be rounded
+	:type roundval: int
+
+	:return: the 'val' number rounded up to 'roundval' decimals
+	:rtype: str
+	"""
+	nsignoriginal = nsig
+	nstr = str(n)
+	# Just extracting the decimals 
+	decimallist = list(nstr.split(".")[-1])
+	ndecimals = len(decimallist)
+	
+	# Nothing to do (or do you want padded with zeros?)
+	if ndecimals <= nsig:
+		return nstr
+
+	output = ""
+	lastwrapup = 0
+	for i in xrange(ndecimals-1,-1,-1):
+		# Propagate last value and initialize it
+		decimallist[i] = int(int(decimallist[i])+lastwrapup)
+		lastwrapup = 0
+		# Already finish the job
+		if nsig-1 == i:
+			value = int(int(decimallist[i]))
+			# Just checking the particular case if we have
+			# to propagate to the next one: note that
+			# you are not entering this if again
+			if value >= 10:
+				value = str(value)[-1]
+				lastwrapup += 1
+				output = decimallist[:i]+[str(value)]
+				nsig -= 1
+				continue
+			output = decimallist[:i]+[str(value)]
+			break
+		# Not rounding yet, but propagate if it is >= 5, so rounding to 1
+		if int(decimallist[i]) >= 5:
+			lastwrapup += 1
+	
+	# if the propagation go out of the decimal scope, go for the integer part
+	intpart = str(int(int(nstr.split(".")[0])+lastwrapup))
+
+	# Preparing to output
+	outputstr = intpart
+	if len(output) != 0:
+		outputstr += '.'
+	for i in output:
+		outputstr += i
+
+	# Finally padding with zeros if needed (cases when rounding 9)
+	if len(outputstr.split(".")[-1]) < nsignoriginal:
+		nmiss =nsignoriginal-len(outputstr.split(".")[-1])
+		for i in xrange(nmiss):
+			outputstr += '0'
+	
+	return outputstr
 
 
 def psitest(predicted,observed):

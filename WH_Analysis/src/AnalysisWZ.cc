@@ -964,6 +964,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		{
 			continue;
 		}
+		// when searching W+ or W- --> correct sign 
+		// if not, then _wcharge = 0, so do not enter here
+		if( _wcharge != 0 && leptonCharge[i] != _wcharge )
+		{
+			continue;
+		}
 		// Must be the correct flavour
 		if( leptontypes[i] != wcandflavour )
 		{

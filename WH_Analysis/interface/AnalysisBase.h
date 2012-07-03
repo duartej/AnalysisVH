@@ -145,8 +145,6 @@ class AnalysisBase : public CMSAnalysisSelector
 		virtual void FillGenPlots(const unsigned int & cut, double puw); 
 
 
-
-
 		// Number of final state leptons
 		unsigned int _nLeptons;
 		
@@ -198,6 +196,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		unsigned int _cutvalue;
 		int _eventnumber;
 		int _runnumber;
+
+		// W Charge sign, when want to distinguish between them. 
+		int _wcharge;
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }

@@ -87,8 +87,8 @@ def geterrorarray(xs,xserrors):
 		arrayEsys["LeptonEff"][id] = evalsyserr("LeptonEff",lval,rval)
 		# - 2. Trigger eff.: fully correlated when Z->ll channels, i.e., eee with eee and eem (and viceversa)
 		#                    and mmm with mmm and mme. 
-		if lval[:-1] == rval[:-1]:
-			arrayEsys["TriggerEff"][id] = evalsyserr("TriggerEff",lval,rval)
+		#if lval[:-1] == rval[:-1]:
+		#	arrayEsys["TriggerEff"][id] = evalsyserr("TriggerEff",lval,rval)
 		# - 3. Electron Energy Scale: assuming fully correlation between electronic channels (contains at least an electron)
 		if lval.find('e') != -1 and rval.find('e') != -1:
 			arrayEsys["ElecEnergyScale"][id] = evalsyserr("ElecEnergyScale",lval,rval)
