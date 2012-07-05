@@ -18,6 +18,7 @@ class clustermanager(object):
 		"""
 		import os
 		import sys
+		import socket
 		
 		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile', 'pkgdir',\
 				'workingdir', 'basedir', 'finalstate', 'analysistype',
@@ -26,6 +27,7 @@ class clustermanager(object):
 		self.outputfiles= {}
 		self.leptoncfgfilemap = {}
 		self.fakeable = False
+		self.hostname = socket.gethostname()
 		# Trying to extract the env variables to define 
 		# the path of the General package
 		if os.getenv("VHSYS"):
@@ -523,8 +525,12 @@ class clustermanager(object):
 			f = open( newcfgname, "w" )
 			f.writelines( newlines )
 			f.close()
+                        if self.hostname.find("uniovi") != -1:
+                                arrayvariable = "PBS_ARRAYID"
+			else:
+                                arrayvariable = "SGE_TASK_ID"
 			# We want return the general name, using the environment variable
-			cfgnontaskdepPROV = newcfgnamePROV.replace( ".", "_${SGE_TASK_ID}." )
+			cfgnontaskdepPROV = newcfgnamePROV.replace( ".", "_${"+arrayvariable+"}." )
 			cfgnontaskdep     += lepton+":"+cfgnontaskdepPROV+","
 
 		cfgnontaskdep = cfgnontaskdep[:-1]
@@ -537,7 +543,16 @@ class clustermanager(object):
 		import os
 		import stat
 
-		outputname = os.path.join("Results",self.dataname+"_${SGE_TASK_ID}.root")
+                if self.hostname.find("uniovi") != -1:
+                        arrayvariable = "PBS_ARRAYID"
+                        # PATCH TO BE FIXED
+                        redictout = " 1> "+self.dataname+".sh.o-${"+arrayvariable+"}"
+                        redicterr = " 2> "+self.dataname+".sh.e-${"+arrayvariable+"}"
+                        PROVoutputfile = redictout+redicterr
+		else:
+                        arrayvariable = "SGE_TASK_ID"
+                        PROVoutputfile = "" 
+		outputname = os.path.join("Results",self.dataname+"_${"+arrayvariable+"}.root")
 		#self.outputfiles[tasknumber] = outputname # ?
 
 		lines  = "#!/bin/bash\n"
@@ -546,7 +561,7 @@ class clustermanager(object):
 		lines += "export PATH=$PATH:"+os.path.join(self.basedir,"bin")+":"+os.path.join(self.pkgpath,"bin")+"\n"
 		lines += "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:"+self.libsdir+"\n"
 		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+self.cfgnames+\
-				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+"\n"
+				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+PROVoutputfile+"\n"
 		if self.fakeable:
 			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights+"\n"
 	
@@ -569,8 +584,13 @@ class clustermanager(object):
 		taskidend  = self.jobidevt[-1][0]
 		# OJO NO HE PUESTO REQUERIMIENTOS DE MEMORIA, CPU...
 		print "Sending to cluster: "+bashscript
-		command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
-				'-t',str(taskidinit)+"-"+str(taskidend),\
+		if self.hostname.find("uniovi") != -1:
+                        import os
+			command = [ 'qsub','-V','-d',os.getcwd(), \
+                                 '-t',str(taskidinit)+"-"+str(taskidend),bashscript ]
+		else:
+			command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
+			        '-t',str(taskidinit)+"-"+str(taskidend),\
 				'-P','l.gaes','-l', 'immediate', '-l','h_rt=02:00:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 		if p[1] != "":
@@ -581,11 +601,15 @@ class clustermanager(object):
 		#Extract id
 		id = None
 		outputline = p[0].split(' ')
-		for i in outputline:
-			if i.isdigit():
-				id = i
-			if len(i.split(":")) == 2:
-				id = i.split(".")[0]
+		# Depending the host
+		if self.hostname.find("uniovi") != -1:
+                        id = outputline[0].split('.')[0].replace("[]","")
+		else:
+			for i in outputline:
+				if i.isdigit():
+					id = i
+				if len(i.split(":")) == 2:
+					id = i.split(".")[0]
 		return id
 		
 	
