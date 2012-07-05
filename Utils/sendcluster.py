@@ -302,7 +302,10 @@ class clustermanager(object):
 			p = self.qstatoutput
 		except:
 			#command = [ 'qstat','-j',id ]
-			command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
+                        if self.hostname.find("uniovi") != -1:
+			        command = [ 'qstat','-t','-u',os.getenv("USER") ]
+			else:
+			        command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
 			p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 			self.qstatoutput = p
 
@@ -318,6 +321,10 @@ class clustermanager(object):
 			except IndexError:
 				# Implies it is still waiting
 				task  = int(parseline[8])
+			except ValueError:
+                                # Working on fanae
+                                task   = parseline[0].split(".")[0].split("[")[1].replace("]","")
+                                status = parseline[9] 
 			taskstatus[task] = status
 			isincluster = True
 
@@ -342,6 +349,16 @@ class clustermanager(object):
 				self.taskstatus["r"].append(task)
 			elif status == "qw":
 				self.taskstatus["qw"].append(task)
+                        # UNIOVI
+                        elif status == "R":
+				self.taskstatus["r"].append(task)
+			elif status == "Q":
+				self.taskstatus["qw"].append(task)                  
+                        elif status == "C" or status == "E":
+                                # The C -- DONE but E is error. ANyway the error
+                                # is due to the imposibility of copy the stderr and out   
+				self.taskstatus["Done"].append(taskid)
+				return self.outputfiles[taskid]
 			else:
 				self.taskstatus["Undefined"].append(task)
 
