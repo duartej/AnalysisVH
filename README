@@ -143,7 +143,7 @@ TODO:
   A001. Add the fakes to the VH. IMPORTANT!!
   A03. FIX BUG in printtable: the rounding is not done appropiately. Check it
   B. Include the Z+Jets madgraph (including also the needed modifications in the code
-     to avoid doble counting, see Ana's email) 
+     to avoid doble counting, see Ana's email) --> NEEDED?
   5. Check with the *.sh.e* the good behaviour of the job
   12.Generalize the sendcluster script such a way it was able to send any kind of cluster job, not only the 
      runanalysis job (see skimfiles.py script to identify what functions could be used as general funtions
