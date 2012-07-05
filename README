@@ -110,7 +110,7 @@ Jun. 14th 2012-- Tag release v04.03: Changed default FR matrices. Cosmethics imp
       - Included the VGamma (Zgamma + Wgamma) sample 
       - Changed to the [71,111] mass range of Z (PDG-mass +-20)
       - Using BLUE method to calculate a combined cross-section
-   * Management imporvements:
+   * Management improvements:
       - WManager class manage all kind of factors to be weighted in an event (scale factors, fake
         rates, ...). Deprecated the FOManager
       - Almost all post-processors scripts moved to python 
@@ -179,5 +179,6 @@ TODO:
      necessary to build a function which round in a correct way ---> DONE
   39.Document the complete process to generate results (from the processament of latinos to 
      cross-section extraction)
+  40.Adapt the script to be used at fanaeui
   
 
