@@ -640,27 +640,15 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	int howmanyElecs = 0;
 	for(unsigned int k=0; k < theLeptons->size(); ++k)
 	{
-		const unsigned int i = (*theLeptons)[k];
 		LeptonTypes ileptontype = fLeptonSelection->GetLeptonType(k);
-		//std::string lepton;
-		//std::string laux;
 		if( ileptontype == MUON )
 		{
-		//	lepton = "Muon";
-		//	laux = "_mu";
 			++howmanyMuons;
 		}
 		else
 		{
-		//	lepton = "Elec";
-		//	laux = "_ele";
 			++howmanyElecs;
 		}
-		//TLorentzVector lvec = this->GetTLorentzVector(lepton.c_str(),i);
-		//std::string Isostr("T_"+lepton+laux+"SmurfPF");
-		//std::string IPstr("T_"+lepton+"_IP2DBiasedPV");
-		//_histos[fHIsoLepton]->Fill(fData->Get<float>(Isostr.c_str(),i)/lvec.Pt(),puw);
-		//_histos[fHD0Lepton]->Fill(fData->Get<float>(IPstr.c_str(),i),puw);
 	}
 	
 	//The signature has to be fulfilled
