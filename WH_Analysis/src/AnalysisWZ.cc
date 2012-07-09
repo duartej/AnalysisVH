@@ -813,6 +813,11 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
 	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 	
+	// CAVEAT =================================================
+	// Note that from here on, the indices used are the ones of
+	// lepton, leptonCharge and leptontypes vectors
+	// ========================================================
+		
 	// Storing the charge
 	int charge = 0;
 	for(unsigned int k = 0; k < leptonCharge.size(); ++k)
