@@ -770,8 +770,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			++k;
 		}
 	}
-	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
-	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 
 	// N-primary vertices
 	_histos[fHNPrimaryVerticesAfter3Leptons]->Fill(nPV,puw);
@@ -812,7 +810,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		leptontypes.push_back( ileptontype );
 		++k;
 	}
-	
+	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
+	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
 	
 	// Storing the charge
 	int charge = 0;
