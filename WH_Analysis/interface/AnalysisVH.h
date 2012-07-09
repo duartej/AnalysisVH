@@ -57,7 +57,7 @@ class AnalysisVH : public AnalysisBase
 			fHHTAfterWCand            //HT after jet veto
 		};
 
-		//! Constructor (TO BE DEPRECATED: tree)
+		//! Constructor
 		AnalysisVH( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 				CutManager * selectorcuts, const unsigned int & finalstate );
 		//! Destructor
@@ -66,10 +66,12 @@ class AnalysisVH : public AnalysisBase
 
 	protected:
 		virtual void Initialise();
-		virtual std::pair<unsigned int,float> InsideLoop(); // = 0;
+		virtual std::pair<unsigned int,float> InsideLoop();
 
 	private:
 		AnalysisVH();
+		int _nTMuons;
+		int _nTElecs;
 		
 		ClassDef(AnalysisVH,0);
 
