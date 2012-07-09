@@ -546,7 +546,6 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	int howmanyElecs = 0;
 	for(unsigned int k=0; k < theLeptons->size(); ++k)
 	{
-		const unsigned int i = (*theLeptons)[k];
 		LeptonTypes ileptontype = fLeptonSelection->GetLeptonType(k);
 		if( ileptontype == MUON )
 		{
@@ -559,16 +558,12 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	}
 	
 	//The signature has to be fulfilled
-	bool fulfillSignature = false;
 	const int nMuonsNeeded =  SignatureFS::GetNMuons( fFS );
 	const int nElecsNeeded =  SignatureFS::GetNElecs( fFS );
-	if( nMuonsNeeded == howmanyMuons && nElecsNeeded == howmanyElecs )
-	{
-		fulfillSignature = true;
-	}
+	const bool fulfillSignature = (nMuonsNeeded == howmanyMuons && nElecsNeeded == howmanyElecs);
 	// We want at least one of the 2 same flavor leptons a pt higher than the 
 	// trigger threshold
-	const double triggerthreshold = 20.0;
+	const double triggerthreshold = 20.0;  // FIXME: HARDCODED--> TO BE ENTERED BY THE CONFIG
 	bool passtriggerthresholdpt = false;
 	for(unsigned int k=0; k < theLeptons->size();++k)
 	{
@@ -628,7 +623,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 			puw *= fFO->GetWeight(ileptontype,pt,eta);
 		}
 	}
-	
+
 	// Including the scale factors if proceed
 	if( !fIsData )
 	{
@@ -723,11 +718,10 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	
 	FillHistoPerCut(WHCuts::_iNotSameSign, puw, fsNTau);
 	
-	// Jet Veto:
+	// Jets
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
 	double sumEtJets = 0;
-	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
 	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
 	{
 		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
@@ -754,61 +748,57 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		nJets++;
 		sumEtJets += Jet.Et();
 	}
-	// - Number of Jets before the cut
+	// - Number of Jets 
 	_histos[fHNJets]->Fill(nJets,puw);
-
-	//if(nJets > 0)
-	//{
-	//	return std::pair<unsigned int,float>(WHCuts::_iJetVeto;
-	//}
-	//FillHistoPerCut(WHCuts::_iJetVeto, puw, fsNTau);
-
 	
-	// Find muons with opposite charges and calculate DeltaR, invMass...
-	// Keep the pair with DeltaR minimum
+	// Build Z candidates: same flavour opposite charge
 	// ------------------------------------------------------------------
-	// 
-	// + Store the real vector index of the opposite charge muons in pairs
-	//   (for the lepton and leptonCharge vectors: 0,...,nLeptons)
-	std::vector<std::pair<int,int> > leptonPair;
-	// + Also storing the potential Z candidates: opp. sign and same flavour
 	LeptonTypes zcandflavour;
-	std::vector<int> zcandindxpair;  // Index of the leptonPair vector candidate
-	                                 // with lepton Z candidate
+	std::vector<double> ptcutv;
 	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
 	{
 		zcandflavour = MUON;
+		ptcutv.push_back(20.0);
+		ptcutv.push_back(10.0);
 	}
 	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
 	{
 		zcandflavour = ELECTRON;
+		ptcutv.push_back(20.0);
+		ptcutv.push_back(10.0);
 	}
 
-	int indexPair = -1;  
-	bool wasstoredpair = false;
+	// Find muons with opposite charges and the ptcut requirement
+	// ------------------------------------------------------------------
+	std::vector<std::pair<int,int> > leptonPair;
+	std::vector<std::pair<int,int> > zleptoPair;
 	for(unsigned int kbegin = 0; kbegin < leptonCharge.size(); ++kbegin)
 	{
 		for(unsigned int kfromend = leptonCharge.size()-1; kfromend > kbegin; --kfromend) 
 		{
-			// Opposite charge
-			if( leptonCharge[kbegin]*leptonCharge[kfromend] < 0 )
+			// Check pass the pt (recall PT[kbegin] > PT[kfromend])
+			if( ptcutv[0] > lepton[kbegin].Pt() || ptcutv[1] > lepton[kfromend].Pt() )
 			{
-				leptonPair.push_back( std::pair<int,int>(kbegin,kfromend) );
-				++indexPair;
-				wasstoredpair = true;
+				continue;
 			}
-			// Checking if the pair stored could be a Z candidate
-			if( wasstoredpair && 
-					leptontypes[kbegin] == zcandflavour &&
-					( leptontypes[kbegin] == leptontypes[kfromend] ) )
+			
+			// opposite charge
+			if( leptonCharge[kbegin]*leptonCharge[kfromend] >= 0 )
 			{
-				zcandindxpair.push_back(indexPair);
-				// Resetting
-				wasstoredpair = false;
+				continue;
 			}
+			const std::pair<int,int> ip = std::pair<int,int>(kbegin,kfromend);
+			leptonPair.push_back( ip );
+
+			// Same flavour (and specifically the flavour of the channel) could be a Z
+			if( leptontypes[kbegin] != zcandflavour 
+				 || ( leptontypes[kbegin] != leptontypes[kfromend] ) )
+			{
+				continue;
+			}
+			zleptoPair.push_back( ip );
 		}
 	}
-
 	// At least a pair with opposite charge (Note: this cut is almost superfluous, it
 	// is defined for the same sign control region... For the other regions there will
 	// be no difference w.r.t. the last cut)
@@ -833,7 +823,6 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		const double deltaPhi = TMath::Abs(lepton[i1].DeltaPhi(lepton[i2]));
 		deltaPhiMuMu[deltaPhi] = *it;
 	}
-	
 	double minDeltaRMuMu   = (deltaRMuMu.begin())->first;
 	double maxDeltaRMuMu   = (deltaRMuMu.rbegin())->first;
 	double minDeltaPhiMuMu = (deltaPhiMuMu.begin())->first;
@@ -865,10 +854,11 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	std::vector<double> * auxVar= new std::vector<double>;  // Auxiliar variable to be 
 	                                                        // used in the cuts
 	auxVar->push_back(0.0);
-	for(unsigned int i = 0; i < zcandindxpair.size(); ++i)
+	for(std::vector<std::pair<int,int> >::iterator it = zleptoPair.begin(); 
+			it != zleptoPair.end(); ++it)
 	{
-		const unsigned iZ1 = leptonPair[zcandindxpair[i]].first;
-		const unsigned iZ2 = leptonPair[zcandindxpair[i]].second;
+		const unsigned iZ1 = it->first;
+		const unsigned iZ2 = it->second;
 		const double invMass = (lepton[iZ1] + lepton[iZ2]).M();
 		// Check invariant mass of muons with opposite charge (outside Z)
 		//------------------------------------------------------------------
