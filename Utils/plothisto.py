@@ -20,8 +20,10 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"TW_DR": "tW", "TbarW_DR": "#bar{t}W",
 		"DDM_ZJets": "DDM Z+Jets",
 		"DDM_TTbar": "DDM t#bar{t}",
-		"PhotonVJets_Madgraph": "V#gamma +Jets",
+		"PhotonVJets_Madgraph": "V#gamma",
 		"VGamma": "V#gamma",
+		"WHToWW2L120": "WH#rightarrow2l#nu (M_{H}=120#;GeV/c)",
+		"WHToWW2L130": "WH#rightarrow2l#nu (M_{H}=130#;GeV/c)" 
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -50,6 +52,8 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"DDM_TTbar": kOrange+5,
 		"PhotonVJets_Madgraph": kGreen-5,
 		"VGamma": kGreen-5,
+		"WHToWW2L120": kRed-4,
+		"WHToWW2L130": kRed-3
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -651,7 +655,7 @@ def plotallsamples(sampledict,**keywords):
 	legend.AddEntry(datasample.histogram,LEGENDSDICT[datasample.samplename],"P")
 	signalegstr = LEGENDSDICT[signalsample.samplename]
 	if signalsample.SIGNALFACTOR != 1:
-		signallegstr = str(signalsample.SIGNALFACTOR)+" #times "+signallegstr
+		signalegstr = str(signalsample.SIGNALFACTOR)+" #times "+signalegstr
 	format = "F"
 	if plottype == 2:
 		format = "L"
