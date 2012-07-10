@@ -322,9 +322,25 @@ class clustermanager(object):
 				# Implies it is still waiting
 				task  = int(parseline[8])
 			except ValueError:
-                                # Working on fanae
+                                # Working at fanae 
                                 task   = parseline[0].split(".")[0].split("[")[1].replace("]","")
                                 status = parseline[9] 
+			# ----- Working at fanae ---------
+			if self.hostname.find("uniovi") != -1:
+				equivisdone = (status == "C" or status == "E")
+				# It's already done but it's still in cluster (remnant)
+				# and it was also bookkept
+				if task in self.taskstatus["Done"]:
+					continue
+				# Not interested yet and it is ignored
+				elif task != taskid and equivisdone:
+					continue
+				# Store the info if we are dealing with the proper taskid
+				# and it wasn't stored yet
+				# So, break the loop to fill the self.taskstatus dict
+				elif task == taskid and equivisdone:
+					break
+			# ----- END Working at fanae -----
 			taskstatus[task] = status
 			isincluster = True
 
@@ -354,11 +370,11 @@ class clustermanager(object):
 				self.taskstatus["r"].append(task)
 			elif status == "Q":
 				self.taskstatus["qw"].append(task)                  
-                        elif status == "C" or status == "E":
-                                # The C -- DONE but E is error. ANyway the error
-                                # is due to the imposibility of copy the stderr and out   
-				self.taskstatus["Done"].append(taskid)
-				return self.outputfiles[taskid]
+                        #elif status == "C" or status == "E":
+                        #        # The C -- DONE but E is error. ANyway the error
+                        #        # is due to the imposibility of copy the stderr and out   
+			#	self.taskstatus["Done"].append(taskid)
+			#	return self.outputfiles[taskid]
 			else:
 				self.taskstatus["Undefined"].append(task)
 
