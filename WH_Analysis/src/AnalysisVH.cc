@@ -22,8 +22,6 @@ const unsigned int kNMuons = 2;
 const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParticle("W+")->PdgCode()
 const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()
 
-
-
 // Prepare analysis Constructor
 AnalysisVH::AnalysisVH(TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 		CutManager * selectorcuts, const unsigned int & finalstate ) :
@@ -556,6 +554,31 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 			++howmanyElecs;
 		}
 	}
+        std::vector<double> * nLeptons= new std::vector<double>;
+        // Describe the number of leptons we want to cut in order: 
+        // --- nLeptons[0] = mmuons
+        // --- nLeptons[1] = electrons 
+        // Just needed for the mixing (and total?) case
+        // FIXME: I don't like this patch but... 
+        if( fFS == SignatureFS::_iFSmme )
+        {
+                nLeptons->push_back(2);
+                nLeptons->push_back(1);
+        }
+        else if( fFS == SignatureFS::_iFSeem )
+        {
+                nLeptons->push_back(1);
+                nLeptons->push_back(2);
+        }
+
+        if( ! fLeptonSelection->IsPass("PtMuonsCuts",nLeptons) )
+        {
+                return std::pair<unsigned int,float>(WHCuts::_iMuPTPattern,puw);
+        }
+        FillHistoPerCut(WHCuts::_iMuPTPattern, puw, fsNTau);
+        delete nLeptons;
+        nLeptons = 0;
+
 	
 	//The signature has to be fulfilled
 	const int nMuonsNeeded =  SignatureFS::GetNMuons( fFS );
@@ -687,6 +710,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		++k;
 	}
 	FillGenPlots(WHCuts::_iHasExactly3Leptons,puw);
+
 	FillHistoPerCut(WHCuts::_iHasExactly3Leptons, puw, fsNTau);
 	
 	// N-primary vertices
