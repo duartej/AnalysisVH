@@ -22,8 +22,8 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"DDM_TTbar": "DDM t#bar{t}",
 		"PhotonVJets_Madgraph": "V#gamma",
 		"VGamma": "V#gamma",
-		"WHToWW2L120": "WH#rightarrow2l#nu (M_{H}=120#;GeV/c)",
-		"WHToWW2L130": "WH#rightarrow2l#nu (M_{H}=130#;GeV/c)" 
+		"WHToWW2L120": "WH#rightarrow3l#nu (M_{H}=120#;GeV/c)",
+		"WHToWW2L130": "WH#rightarrow3l#nu (M_{H}=130#;GeV/c)" 
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -903,7 +903,7 @@ if __name__ == '__main__':
 	signal = opt.signal
 	if opt.signal:
 		if signal.find("WH") == 0:
-			signal = signal.replace("WH","WHToWW2L")
+			signal = signal.replace(signal,"WHToWW2L"+signal.replace("WH",""))
 	
 		if signal.find("WZ") == 0:
 			signal = signal.replace("WZ","WZTo3LNu")
@@ -939,6 +939,9 @@ if __name__ == '__main__':
 	
 	# -- Extracting the samples available
 	samples = map(lambda x: x.replace("cluster_",""),glob.glob("cluster_*"))
+	# -- If we are dealing with WH, be sure not using another Higgs mass sample as background
+	if signal.find("WH") == 0:
+		samples = filter(lambda x: x.find("WH") != 0 or (x.find("WH") == 0 and x == signal), samples)
 	# --- Some manipulations needed for the samples to be merged. DY and ZJets
 	# --- FIXME: High dependence of the MC sample type (Powheg)
 	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\
