@@ -22,8 +22,8 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"DDM_TTbar": "DDM t#bar{t}",
 		"PhotonVJets_Madgraph": "V#gamma",
 		"VGamma": "V#gamma",
-		"WHToWW2L120": "WH#rightarrow3l#nu (M_{H}=120#;GeV/c)",
-		"WHToWW2L130": "WH#rightarrow3l#nu (M_{H}=130#;GeV/c)" 
+		"WHToWW2L120": "WH, M_{H}=120",
+		"WHToWW2L130": "WH, M_{H}=130", 
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -442,7 +442,7 @@ def getcoord(where,xwidth,ywidth,ystart=-1):
 	if where == "UPLEFT":
 		x1 = 0.22 
 	elif where == "UPRIGHT":
-		x1 = 0.60  
+		x1 = 0.56#0.60  
 	else:
 		message = "\033[31mgetcoord ERROR\033[m Not defined coordinates at '%s'" % where
 		raise RuntimeError(message)
@@ -655,7 +655,7 @@ def plotallsamples(sampledict,**keywords):
 	legend.AddEntry(datasample.histogram,LEGENDSDICT[datasample.samplename],"P")
 	signalegstr = LEGENDSDICT[signalsample.samplename]
 	if signalsample.SIGNALFACTOR != 1:
-		signalegstr = str(signalsample.SIGNALFACTOR)+" #times "+signalegstr
+		signalegstr = str(int(signalsample.SIGNALFACTOR))+"#times"+signalegstr
 	format = "F"
 	if plottype == 2:
 		format = "L"
@@ -725,7 +725,8 @@ def plotallsamples(sampledict,**keywords):
 			legend.AddEntry(leginfodict[legname][0],legname,leginfodict[legname][1])
 	# Data
 	hsmax  = 1.1*hs.GetMaximum()
-	hsdata = 1.1*datasample.histogram.GetMaximum()
+	binmax = datasample.histogram.GetMaximumBin()
+	hsdata = 1.1*(datasample.histogram.GetMaximum()+datasample.histogram.GetBinError(binmax))
 	hs.SetMaximum(max(hsmax,hsdata))
 	# Create canvas
 	canvas = ROOT.TCanvas("canvas")
@@ -818,6 +819,8 @@ def plotallsamples(sampledict,**keywords):
 		legend.SetNColumns(2)
 		textwidth=0.02
 		textlength=0.15
+		if signal.find("WH") != -1:
+			textlength = 0.19
 		legend.SetTextSize(textwidth)
 	y1width = textwidth*legend.GetNRows()
 	xwidth  = textlength*legend.GetNColumns()
