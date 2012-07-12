@@ -142,6 +142,7 @@ void ElecSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 	for(std::map<std::string,double>::iterator cut = _cuts->begin(); 
 			cut != _cuts->end();++cut)
 	{
+		this->SetCut(cut->first,cut->second);
 		if( cut->first == "MinMuPt1" )
 		{
 			kMinMuPt1 = cut->second;

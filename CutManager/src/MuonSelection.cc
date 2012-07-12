@@ -49,7 +49,7 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 	if( ipmap.find(MUON) == ipmap.end() )
 	{
 		std::cerr << "\033[1;31mElecSelection::LockCuts ERROR:\033[1;m "
-			<< "The InputParameter introduced is not for electrons!"
+			<< "The InputParameter introduced is not for Muons!"
 			<< " Some incoherence found, check your initialization code."
 			<< std::endl;
 		exit(-1);
@@ -76,6 +76,8 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 	for(std::map<std::string,double>::iterator cut = _cuts->begin(); 
 			cut != _cuts->end();++cut)
 	{
+		// Just to store
+		this->SetCut(cut->first,cut->second);
 		if( cut->first == "MinMuPt1" )
 		{
 			kMinMuPt1 = cut->second;
@@ -191,6 +193,8 @@ std::vector<std::string> MuonSelection::GetCodenames() const
 	return std::vector<std::string>(_codenames.begin(),_codenames.end());
 }
 
+
+// Proxy function to capture the client petitions and return the correct parameter related cut
 bool MuonSelection::IsPass(const std::string & codename, const std::vector<double> * varAux ) const
 {
 	// Checking
@@ -299,7 +303,6 @@ bool MuonSelection::IsPassMETCut(const double & MET) const
 {	
 	return ( MET > kMinMET );
 }
-
 
 // Specific muon pt-cuts (for the good identified-isolated muons)
 bool MuonSelection::IsPassPtCuts() const

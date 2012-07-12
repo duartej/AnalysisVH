@@ -128,6 +128,9 @@ class CutManager
 		inline const unsigned int GetNAnalysisTightLeptons() { return _nTights; }
 		//! Get the number of total No-Tight leptons which are considered in this analysis
 		inline const unsigned int GetNAnalysisNoTightLeptons() { return _nFails; }
+		
+		//! Get the value for the input parameters entered by the user via the InputParameters
+		inline const double GetCut(const std::string & cutname) const { return (*_cuts)[cutname]; }
 
 		//-- Setters
 		//! Set the operational MODE

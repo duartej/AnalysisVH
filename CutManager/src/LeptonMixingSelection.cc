@@ -135,6 +135,17 @@ void LeptonMixingSelection::LockCuts(const std::map<LeptonTypes,InputParameters*
 {
 	fMuonSelection->LockCuts(ipmap,cuts);
 	fElecSelection->LockCuts(ipmap,cuts);
+	// Updating the dict (based in Muon and ...
+	this->_cuts = fMuonSelection->_cuts;
+	// .. what it is missing from electrons
+	for(std::map<std::string,double>::iterator it = fElecSelection->_cuts->begin(); 
+		it != fElecSelection->_cuts->end(); ++it)
+	{
+		if( this->_cuts->find(it->first) != this->_cuts->end() )
+		{
+			(*this->_cuts)[it->first] = it->second;
+		}
+	}
 }
 
 //---  Helper functions

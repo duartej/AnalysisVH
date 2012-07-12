@@ -262,6 +262,7 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	return size;
 }
 
+
 // Setters
 void CutManager::SetCut(const std::string & cutname, const double & value)
 {
