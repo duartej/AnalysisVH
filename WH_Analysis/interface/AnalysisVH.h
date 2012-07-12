@@ -40,11 +40,12 @@ class AnalysisVH : public AnalysisBase
 			fHNSelectedIsoLeptons,    //Selected Isolated leptons
 			fHNSelectedIsoGoodLeptons,//Selected Isolated Good Leptons
 			fHMinDeltaRLp1Lp2,        //Smallest DeltaR between 2 opp. sign leptons    |
-			fHMaxDeltaRLp1Lp2,         //Largest DeltaR between 2 opp. sign leptons    |_ After JetVeto cut
+			fHMaxDeltaRLp1Lp2,         //Largest DeltaR between 2 opp. sign leptons    |_ After opp. sign cut
 			fHMinDeltaPhiLp1Lp2,      //Smallest Delta phi between 2 opp. sign leptons |
 			fHMaxDeltaPhiLp1Lp2,      //Largest Delta phi between 2 opp. sign leptons  |
 			fHLeptonCharge,           //Sum charges of leptons before 2 opp. sign leptons cut
-			fHHInvMassAfterJetVeto,   //Invariant mass of leptons from H after JetVeto cut
+			fHHInvMassAfterOppSign,   //Invariant mass of leptons from H before Z Veto
+			fHHInvMassAfterZVeto,     //Invariant mass of leptons from H after Z Veto
 			fHHInvMass,               //Invariant mass of leptons supposedly from H after all cuts
 			fHMET,                    //Missing ET after all cuts
 			fHMETAfterWCand,        // MET after jet veto cut

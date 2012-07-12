@@ -625,6 +625,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Note that nSelectedIsoGoodMuons are tight+noTights leptons (when proceed, so
 	// I cannot use the CutManager::IspassAtLeastN(howmany,nTights) because the 
 	// second argument are the number of  tight leptons
+	// FIXME: CREATE A method dealing with this:
+	//             +  CutManager::IspassAtLeastNLoose
+	//             +  CutManager::IspassAtLeastNnoTight
+	//             +  CutManager::IspassAtLeastNTight
 	if( kNMuons > nSelectedIsoGoodMuons )
 	{
 		return std::pair<unsigned int,float>(WZCuts::_iHas2IsoGoodLeptons,puw);
