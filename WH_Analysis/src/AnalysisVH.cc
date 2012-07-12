@@ -184,20 +184,30 @@ void AnalysisVH::Initialise()
 	// Number of jets before jet veto cut
 	_histos[fHNJets] = CreateH1D("fHNJets", "Number of Jets", 10, 0, 10);
 
+	// Some Transverse mass:
 	// Transverse Mass of all leptons and MET after all cuts
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass", "M_{t}^{#ell#ell#ell}",300, 0, 400);
 	// Transverse Mass of all leptons and MET after het veto cut
 	_histos[fHTransversMassAfterWCand] = CreateH1D("fHTransversMassAfterWCand", "M_{t}^{#ell#ell#ell}",400, 0, 400);
 
+	// Some Invariant Mass:
 	// Invariant Mass of the 3 leptons after all cuts
 	_histos[fHTrileptonMass] = CreateH1D("fHTrileptonMass", "M_{#ell#ell#ell}",400, 0, 400);
 	// Invariant Mass of the 3 leptons after Jet veto cut
 	_histos[fHTrileptonMassAfterWCand] = CreateH1D("fHTrileptonMassAfterWCand", "M_{#ell#ell#ell}",400, 0, 400);
 	
 	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after all cuts
-	_histos[fHHT] = CreateH1D("fHHT", "H_{T}",400, 0, 400);
+	_histos[fHHT] = CreateH1D("fHHT", "H_{T}",500, 0, 1000);
 	// Ht: Sum of all transverse energy of the event (Jets+leptons+MET) after Jet Veto cut
-	_histos[fHHTAfterWCand] = CreateH1D("fHHTAfterWCand", "H_{T}",400, 0, 400);
+	_histos[fHHTAfterWCand] = CreateH1D("fHHTAfterWCand", "H_{T}",500, 0, 1000);
+
+	// DeltaPhi(2lepton,MET)
+	_histos[fHDeltaPhiWMET] = CreateH1D("fHDeltaPhiWMET", "#Delta#Phi(#ell_{2},MET)",100, 0, 3.1416);
+
+	// Leading Jet ET after Opp. sign cut
+	_histos[fHLeadingJetET] = CreateH1D("fHLeadingJetET", "E_T, Leading Jet",150, 0, 150);
+
+
 	
 }
 
@@ -743,39 +753,6 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		return std::pair<unsigned int,float>(WHCuts::_iOppositeCharge,puw);
 	}
 	
-	// Jets
-	//------------------------------------------------------------------
-	unsigned int nJets = 0;
-	double sumPtJets = 0;
-	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
-	{
-		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
-		//FIXME: Add the cuts to the config file
-		// Kinematics
-		if(Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5)
-		{
-			continue;
-		}
-		// Leptons not inside the Jets
-		bool leptoninsideJet = false;
-		for(unsigned int j = 0; j < lepton.size(); ++j)
-		{
-			if( Jet.DeltaR(lepton[j]) <= 0.3 )
-			{
-				leptoninsideJet = true;
-				break;
-			}
-		}
-		if( leptoninsideJet )
-		{
-			continue;
-		}
-		nJets++;
-		sumPtJets += Jet.Pt();
-	}
-	// - Number of Jets 
-	_histos[fHNJets]->Fill(nJets,puw);
-	
 	// Build Z candidates: same flavour opposite charge
 	// ------------------------------------------------------------------
 	LeptonTypes zcandflavour;
@@ -832,6 +809,46 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		return std::pair<unsigned int,float>(WHCuts::_iOppositeCharge,puw);
 	} 
 	FillHistoPerCut(WHCuts::_iOppositeCharge, puw, fsNTau);
+	
+	// Jets
+	//------------------------------------------------------------------
+	unsigned int nJets = 0;
+	double sumtotaljetsEt = 0.0;
+	double leadingjetEt = 0.0;
+	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+	{
+		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+		//FIXME: Add the cuts to the config file
+		// Kinematics
+		if(Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5)
+		{
+			continue;
+		}
+		// Leptons not inside the Jets
+		bool leptoninsideJet = false;
+		for(unsigned int j = 0; j < lepton.size(); ++j)
+		{
+			if( Jet.DeltaR(lepton[j]) <= 0.3 )
+			{
+				leptoninsideJet = true;
+				break;
+			}
+		}
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		nJets++;
+		sumtotaljetsEt += Jet.Et();
+		if( k == 0)
+		{
+			leadingjetEt = Jet.Et();
+		}
+	}
+	// - Number of Jets 
+	_histos[fHNJets]->Fill(nJets,puw);
+	_histos[fHLeadingJetET]->Fill(leadingjetEt);
+	
 
 	// + Find Min/Max DeltaR and DeltaPhi
 	// Using ordering from maps (from lower to higher)
@@ -951,7 +968,12 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	const double invMass3leptons = allleptons.M();
 
 	//+ Ht: Sum of transverse energy of all the 3 leptons, Jets and MET
-	const double Ht = lPt + met + sumPtJets;
+	double sumPtleptons = lepton[i1].Pt()+lepton[i2].Pt()+lepton[iWcand].Pt();
+	//     HT = \sum_{i-leptons}P_T^i+\sum_{i-jets}P_T^i+\MET
+	const double Ht = sumPtleptons+sumtotaljetsEt+met;
+
+	//+ DeltaPhi between METvect and Wcand lepton
+	const double DeltaPhiWMET = lepton[iWcand].DeltaPhi(METV);
 
 	// + And fill the histo all histos after jet veto cut
 	_histos[fHTrileptonMassAfterWCand]->Fill(invMass3leptons,puw);
@@ -978,6 +1000,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	_histos[fHTransversMass]->Fill(tMass,puw);
 	_histos[fHHInvMass]->Fill(invMassLLH,puw);
 	_histos[fHHT]->Fill(Ht,puw);
+	_histos[fHDeltaPhiWMET]->Fill(DeltaPhiWMET,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
 
 	return std::pair<unsigned int,float>(WHCuts::_iNCuts,puw);
