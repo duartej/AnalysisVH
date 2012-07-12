@@ -35,12 +35,21 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHNSelectedPVLeptons': 'UPRIGHT', 'fHNSelectedIsoGoodLeptons': 'UPRIGHT',
 		'fHEtaLepton1': 'UPLEFT', 'fHEtaLepton2': 'UPLEFT', 'fHEtaLepton3': 'UPLEFT',
 		'fHZInvMassAfterZCand': 'UPLEFT', 'fHTransversMass': 'UPLEFT', 
+		'fHTransversMassAfterWCand': 'UPLEFT',
 		'fHNPrimaryVertices': 'UPRIGHT', 'fHNSelectedIsoLeptons': 'UPRIGHT',
 		'fHPtLepton3': 'UPRIGHT', 'fHPtLepton2': 'UPRIGHT', 'fHPtLepton1': 'UPRIGHT',
 		'fHdRl1Wcand': 'UPLEFT', 'fHEventsPerCut': 'UPRIGHT', 'fHdRl2Wcand': 'UPLEFT',
 		'fHEventsPerCut3Lepton': 'UPRIGHT', 'fHLeptonCharge': 'UPLEFT', 
 		'fHMETAfterWCand': 'UPRIGHT', 'fHProcess': 'UPRIGHT',
-		'fHFlavour': 'UPRIGHT'
+		'fHFlavour': 'UPRIGHT',
+		'fHHInvMass': 'UPLEFT', 'fHHInvMassAfterOppSign': 'UPLEFT', \
+			'fHHInvMassAfterZVeto': 'UPLEFT',
+		'fHMinDeltaRLp1Lp2': 'UPRIGHT', 'fHMaxDeltaRLp1Lp2': 'UPLEFT',
+		'fHMinDeltaPhiLp1Lp2': 'UPRIGHT', 'fHMaxDeltaPhiLp1Lp2':'UPLEFT',
+		'fHTrileptonMass': 'UPRIGHT', 'fHTrileptonMassAfterWCand': 'UPRIGHT',
+		'fHHT': 'UPRIGHT', 'fHHTAfterWCand':'UPRIGHT',
+		'fHLeadingJetET': 'UPRIGHT',
+		'fHDeltaPhiWMET': 'UPRIGHT'
 		}
 
 COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
@@ -58,12 +67,25 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
 		"ZINVMASS": "(GeV/c^{2})", "TRANSVERSMASS": "(GeV/c^{2})",
-		"D0": "(cm)"
+		"D0": "(cm)",
+		"HINVMASS": "(GeV/c^{2})",
+		"TRILEPTONMASS": "(GeV/c^{2})",
+		"HT" : "(GeV/c)",
+		"LEADINGJETET": "(GeV/c)"
 		}
 
 VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"ZINVMASS": "M_{ll}", "TRANSVERSMASS": "M_{T}",
-		"D0": "d_{0}", "CHARGE": "#Sigma q" 
+		"D0": "d_{0}", "CHARGE": "#Sigma q",
+		"HINVMASS": "M_{l^{+}l^{-}}", 
+		"MINDELTARLP1LP2" : "#DeltaR(l^{+},l^{-}) closest",
+		"MAXDELTARLP1LP2" : "#DeltaR(l^{+},l^{-}) farest",
+		"MINDELTAPHILP1LP2" : "#Delta#Phi(l^{+},l^{-}) closest",
+		"MAXDELTAPHILP1LP2" : "#Delta#Phi(l^{+},l^{-}) farest",
+		"TRILEPTONMASS": "M_{l_{1}l_{2}l_{3}}",
+		"HT": "H_{T}",
+		"LEADINGJETET": "E_{T} lead. jet",
+		"DELTAPHIWMET": "#Delta#Phi(l_{W},MET)"
 		}
 
 HISTOSWITHBINWIDTH = { "fHMET": 10 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
