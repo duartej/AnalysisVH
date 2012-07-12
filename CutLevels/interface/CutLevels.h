@@ -12,20 +12,17 @@ struct WHCuts
 		_iAllEvents,          //  0
 		_iIsWH,               //  1 For WH samples get the number of WH events
 		_iHLT,                //  2
-		//_iGoodVertex,         //  3
-		_iHas2Leptons,        //  4
-		_iHas2PVLeptons,      //  5
-		_iHas2IsoLeptons,     //  6
-		_iHas2IsoGoodLeptons, //  7
-		_iMuPTPattern,        //  8 Ask for Pt(H->WW->mumu)> 20,10 Pt(W->mu) > 20
-		_iHasExactly3Leptons, //  9 Exactly 3 leptons
-		_iNotSameSign,        // 10  
-		_iOppositeCharge,     // 11 At least a pair of opposite charge muons
-		//_iJetVeto,            // 11 Reject events with a jet
-		_iZMuMuInvMass,       // 12 A pair of mu with inv mass compatible with Z
-		_iWCandidate,         // 13 A W lepton candidate (just dR bremsstrahlung cut)
-		_iDeltaR,             // 14 Check on DeltaR between closest muons
-		_iMET,                // 15 Missing ET cut
+		_iHas2Leptons,        //  3
+		_iHas2PVLeptons,      //  4
+		_iHas2IsoLeptons,     //  5
+		_iHas2IsoGoodLeptons, //  6
+		_iHasExactly3Leptons, //  8 Exactly 3 leptons (Pt(H->WW->mumu)> 20,10 Pt(W->mu) > 20)
+		_iOppositeCharge,     //  9 At least a pair of opposite charge muons
+		//_iJetVeto,            // 10 Reject events with a jet
+		_iDeltaR,             // 13 Check on DeltaR between closest muons
+		_iZVeto,              // 11 A pair of (same flavour) leptons with inv mass compatible with Z
+		_iWCandidate,         // 12 A W lepton candidate (just dR bremsstrahlung cut)
+		_iMET,                // 14 Missing ET cut
 		_iNCuts               //  N
 	};
 
