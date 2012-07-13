@@ -6,8 +6,10 @@
 TITLEDICT = { "Fakes": "Data-driven bkg", 
 		"Other": "Other bkg", 
 		"WZTo3LNu": "WZ#rightarrow3l#nu", 
-		"PhotonVJets_Madgraph": "V#gamma+Jets",
-		"VGamma": "V#gamma"
+		"PhotonVJets_Madgraph": "V#gamma",
+		"VGamma": "V#gamma",
+		"WHToWW2L120": "WH#rightarrow3l#nu, M_{H}=120",
+		"WHToWW2L130": "WH#rightarrow3l#nu, M_{H}=130"
 	    }
 ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
 
@@ -313,8 +315,9 @@ class table(object):
 			for f in nonsignalfiles:
 				self.filenames.remove(f)
 			# Added the important cuts to be used in the reduced table case
-			self.importantcutsdict = { } # FIXME: TO BE DONE!!
-			self.importantcutslist = []
+			self.importantcutsdict = { 'Pre-selection': 'Exactly3Leptons', \
+					'DeltaR': 'DeltaR', 'MET': 'MET'}
+			self.importantcutslist = [ 'Pre-selection', 'DeltaR', 'MET']
 		else:
 			# Added the important cuts to be used in the reduced table case
 			# FIXME WARNING HARDCODED!! --> THis is a temporal patch...
