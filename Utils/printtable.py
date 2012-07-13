@@ -9,7 +9,9 @@ TITLEDICT = { "Fakes": "Data-driven bkg",
 		"PhotonVJets_Madgraph": "V#gamma",
 		"VGamma": "V#gamma",
 		"WHToWW2L120": "WH#rightarrow3l#nu, M_{H}=120",
-		"WHToWW2L130": "WH#rightarrow3l#nu, M_{H}=130"
+		"WHToWW2L130": "WH#rightarrow3l#nu, M_{H}=130",
+		"TotBkg": "Total Bkg.",
+		"Data-TotBkg": "Data-Total Bkg."		
 	    }
 ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
 
@@ -41,7 +43,7 @@ class format(object):
 			self.tablestart = '\\begin{tabular}{ r | '
 			for i in xrange(ncolumns):
 				self.tablestart += ' l ' 
-			self.tablestart += '}'	        	
+			self.tablestart += '}\\hline'	        	
 			self.tableend   = '\\end{tabular}'
 			self.rowstart = ''
 			self.rowend   = '\\\\'
