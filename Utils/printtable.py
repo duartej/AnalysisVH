@@ -318,8 +318,8 @@ class table(object):
 				self.filenames.remove(f)
 			# Added the important cuts to be used in the reduced table case
 			self.importantcutsdict = { 'Pre-selection': 'Exactly3Leptons', \
-					'DeltaR': 'DeltaR', 'MET': 'MET'}
-			self.importantcutslist = [ 'Pre-selection', 'DeltaR', 'MET']
+					'DeltaR': 'DeltaR', 'ZVeto':'ZVeto', 'MET': 'MET'}
+			self.importantcutslist = [ 'Pre-selection', 'DeltaR','ZVeto', 'MET']
 		else:
 			# Added the important cuts to be used in the reduced table case
 			# FIXME WARNING HARDCODED!! --> THis is a temporal patch...
