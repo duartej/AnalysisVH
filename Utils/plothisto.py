@@ -336,7 +336,10 @@ class sampleclass(object):
 			self.variable = VARDICT[unitguess]
 			if unitguess == "PT" or unitguess == "ETA":
 				number = self.histoname.upper().split("LEPTON")[1]
-				self.variable = self.variable[:-1]+"_{"+str(number)+"}}"
+				if unitguess == "PT":
+					self.variable = self.variable[:-1]+"_{"+str(number)+"}}"
+				else:
+					self.variable = self.variable+"_{"+str(number)+"}"
 		else:
 			# Just a minor check: the fHLeptonCharge 
 			if "CHARGE" in self.histoname.upper():
@@ -1117,14 +1120,34 @@ if __name__ == '__main__':
 		#-- Note that:   NbinsInit=rebin*NbinsNew+k,
 		k = nbins % rebin
 		if k != 0:
-			# We want a k=0, so start the algorithm to search it
-			if float(nbins)/float(rebin)-nbins/rebin > 0.5:
-				nearestmult = lambda x: x+1
-			else:
-				nearestmult = lambda x: x-1
+			# New algorith, going right and left simultaneously and take the 
+			# the first one which accomplish k=0
+			nearestleft = lambda x: x-1
+			nearestright = lambda x: x+1
+			rebinleft = rebin
+			kleft = k
+			rebinright= rebin
+			kright = k
 			while( k != 0 ):
-				rebin = nearestmult(rebin)
-				k = nbins % rebin
+				rebinleft = nearestleft(rebinleft)
+				kleft = nbins % rebinleft
+				if kleft == 0:
+					k = kleft
+					winner = rebinleft
+				rebinright= nearestright(rebinright)
+				kright = nbins % rebinright
+				if kright == 0:
+					k = kright
+					winner = rebinright
+			rebin = winner
+			# We want a k=0, so start the algorithm to search it
+#			if float(nbins)/float(rebin)-nbins/rebin > 0.5:
+#				nearestmult = lambda x: x+1
+#			else:
+#				nearestmult = lambda x: x-1
+#			while( k != 0 ):
+#				rebin = nearestmult(rebin)
+#				k = nbins % rebin
 	
 	if int(opt.plottype) == 2:
 		print "\033[33mplothisto WARNING\033[m Not validated YET plottype==2"
