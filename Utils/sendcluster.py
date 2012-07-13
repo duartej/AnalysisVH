@@ -703,6 +703,10 @@ def showresults(textresultfiles):
 			format = "[%.1f%s]"
 		else:
 			format = "[%4i%s]"
+
+		if format % (percent,"%") == "[0.00%]":
+			format = "[%s%s]"
+			percent= "<.01"
 		
 		totalformat = str(maxlenght)+".1f"
 		if str(totaldict[cut]).split(".")[-1] == '0':
