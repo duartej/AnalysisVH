@@ -184,8 +184,8 @@ if [ -f WJets_Madgraph_datanames.dn ]; then
 	rm WJets_Madgraph_datanames.dn;
 fi
 
-VGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
-OtherVGamma="PhotonVJets_Madgraph"
+OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
+VGamma="PhotonVJets_Madgraph"
 echo "[sendall] Info (TO BE DEPRECATED): Considering VGamma as $VGamma"
 echo "[sendall] Info (TO BE DEPRECATED): So removing $OtherVGamma"
 for vgammafiles in $OtherVGamma; 

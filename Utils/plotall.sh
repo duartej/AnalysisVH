@@ -91,7 +91,8 @@ while getopts l:Ffach opt;
 			a)	autobin="yes";;
 			F)	fakemode="-F";
 				#isreduced="-j Other@TbarW_DR,TW_DR,WJets_Madgraph,WW";;
-				isreduced="-j VGamma";;
+				#isreduced="-j VGamma";;
+				isreduced="";;
 			f) 	fakeasdata="yes";
 			        isreduced="";;
 			c)	ctsample="yes";;
@@ -121,7 +122,7 @@ HISTOSGEN="fHGenFinalState fHGenFinalStateNoTaus fHGenWElectrons fHGenWMuons fHG
 fHGenPtLepton_1_0 fHGenPtLepton_2_0 fHGenPtLepton_3_0"
 HISTOSLEP="fHNRecoLeptons fHNSelectedLeptons"
 
-HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNRecoLeptons fHNJets fHNPrimaryVertices fHNPrimaryVerticesAfter3Leptons"
+HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNJets fHNPrimaryVertices fHNPrimaryVerticesAfter3Leptons"
 HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3 fHEtaLepton1 fHEtaLepton2 fHEtaLepton3"
 if [ "$1" == "WZ" ];
 then
@@ -129,7 +130,7 @@ then
 	HISTOS8B=""
 	plotmode=0
 else
-	HISTOS4B="$HISTOS4B fHMinDeltaRLp1Lp2 fHMaxDeltaRLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMETAfterWCand fHTransversMassAfterWCand fHHInvMass fHHInvMassAfterJetVeto" 
+	HISTOS4B="$HISTOS4B fHMinDeltaRLp1Lp2 fHMaxDeltaRLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMinDeltaPhiLp1Lp2 fHMETAfterWCand fHTransversMassAfterWCand fHHInvMass fHHInvMassAfterZVeto fHHInvMassAfterOppSign fHLeadingJetET fHDeltaPhiWMET" 
 	HISTOS8B="fHTrileptonMass fHTrileptonMassAfterWCand fHHT fHHTAfterWCand" 
 fi;
 
@@ -142,11 +143,11 @@ if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
 fi
 #-------------------------------------------------------------
 # --- PROVISIONAL Up to the spreadsheet is modified
-echo "[plotall] PROVISIONAL (Up to spreadsheet modification): Correcting xs for VGamma"
-for j in $fsdirectories;
-do
-	setZgammaXS -d $j
-done
+#echo "[plotall] PROVISIONAL (Up to spreadsheet modification): Correcting xs for VGamma"
+#for j in $fsdirectories;
+#do
+#	setZgammaXS -d $j
+#done
 
 echo "Creating lepton final state"
 dircommasep=`echo $fsdirectories|tr " " ","`
