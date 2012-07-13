@@ -53,16 +53,6 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// Initialize the cuts for the cut manager
 	fLeptonSelection->InitialiseCuts(ipmap);
 
-	// Initialize the scale factors // FIXME: Para el InitializeParameters
-	fSF = new WManager( WManager::SF );
-
-	// Are in fake sample mode?  // FIXME: Para el InitializeParameters
-	if( fLeptonSelection->IsInFakeableMode() ) 
-	{
-		fFO = new WManager( WManager::FR );
-	}
-
-	
 	// Just to use the general values fLuminosity, cross section and so on....
 	// it doesn't matters which one pick up
 	// The others already can be deleted as they have already used to input the cuts
@@ -83,6 +73,21 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		}
 		--ksize;
 	}
+	
+	// Initialize the scale factors
+	fSF = new WManager( WManager::SF );
+
+	// Are in fake sample mode?
+	if( fLeptonSelection->IsInFakeableMode() ) 
+	{
+		// Fake rate Matrix for Z Jets, when proceed
+		int iszjetsFRMatrixint = 0;
+		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
+		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
+		fFO = new WManager( WManager::FR, iszjetsFRMatrix );
+	}
+
+	
 
 	// The Inputparameters have to be initialized before, just to complete it
 	// introducing the set of datasets: 
@@ -355,7 +360,23 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 
 void AnalysisBase::Summary()
 {
-	std::cout << std::endl << "[ Analisys::Sumary ]" << std::endl << std::endl;
+	std::cout << std::endl << "[ Analisys::Summary ]" << std::endl << std::endl;
+	if( fLeptonSelection->IsInFakeableMode() ) 
+	{
+		std::cout << std::endl << "FAKEABLE MODE: [Fake Rate matrix used: ";
+		int iszjetsFRMatrixint = 0;
+		// Fake rate Matrix for Z Jets, when proceed
+		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
+		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
+		if( iszjetsFRMatrix ) 
+		{
+			std::cout << "Z+Jets Region]" << std::endl << std::endl;
+		}
+		else
+		{
+			std::cout << "ttbar Region]" << std::endl << std::endl;
+		}
+	}
   
 	std::cout << "N. events by process ID:" << std::endl;
 	std::cout << "------------------------" << std::endl;

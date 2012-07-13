@@ -13,15 +13,15 @@
 #include "TROOT.h"
 
 
-WManager::WManager(const unsigned int & weighttype, const bool & isSystematics ) :
+WManager::WManager(const unsigned int & weighttype, const bool & isZJetsRegion ) :
 	_wtype(weighttype)
 {
 	_weights[MUON] = 0;
 	_weights[ELECTRON] = 0;
 
 
-	std::string mufile( this->getfile(MUON,isSystematics) );
-	std::string elecfile( this->getfile(ELECTRON,isSystematics) ); 
+	std::string mufile( this->getfile(MUON,isZJetsRegion) );
+	std::string elecfile( this->getfile(ELECTRON,isZJetsRegion) ); 
 
 	this->setweightfile(MUON,mufile.c_str());
 	this->setweightfile(ELECTRON,elecfile.c_str());
@@ -39,7 +39,7 @@ WManager::~WManager()
 	}	
 }
 
-std::string WManager::getfile(const unsigned int & lepton, const bool & isSystematics)
+std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsRegion)
 {
 	char * pkgpath = 0;
 	pkgpath = getenv("VHSYS");
@@ -68,26 +68,24 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isSystem
 	{
 		if( lepton == MUON )
 		{
-			if( isSystematics )
+			if( isZJetsRegion )
 			{
 				thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root";
 			}
 			else
 			{
 				thefile  += "MuFR_all2011_jet50.root";
-				//thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root"; //ZJets
 			}
 		}
 		else if( lepton == ELECTRON )
 		{
-			if( isSystematics )
+			if( isZJetsRegion )
 			{
-				thefile  += "ElecFR_all2011_jet15.root";
+				thefile  += "ElecFR_all2011_jet35.root";
 			}
 			else
 			{
 				thefile  += "ElecFR_all2011_jet50.root";
-				//thefile  += "ElecFR_all2011_jet35.root"; //ZJets
 
 			}
 		}

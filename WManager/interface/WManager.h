@@ -42,7 +42,7 @@ class WManager
 		};
 
 		//! Constructor
-		WManager(const unsigned int & weighttype, const bool & isSystematics = false); 
+		WManager(const unsigned int & weighttype, const bool & isZJetsRegionFRMatrix = false); 
 
 		//! Destructor
 		virtual ~WManager();
@@ -60,7 +60,7 @@ class WManager
 		void setweightfile(const LeptonTypes & lt, const char * filename);
 		
 		//! get the complete path to the weight maps
-		std::string getfile(const unsigned int & lepton, const bool & isSystematics);
+		std::string getfile(const unsigned int & lepton, const bool & isZJetsRegionFRMatrix = false);
 
 		//! Weight type
 		unsigned int _wtype;
