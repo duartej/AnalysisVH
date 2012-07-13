@@ -34,7 +34,7 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHNPrimaryVerticesAfter3Leptons': 'UPRIGHT', 
 		'fHNSelectedPVLeptons': 'UPRIGHT', 'fHNSelectedIsoGoodLeptons': 'UPRIGHT',
 		'fHEtaLepton1': 'UPLEFT', 'fHEtaLepton2': 'UPLEFT', 'fHEtaLepton3': 'UPLEFT',
-		'fHZInvMassAfterZCand': 'UPLEFT', 'fHTransversMass': 'UPLEFT', 
+		'fHZInvMassAfterZCand': 'UPRIGHT', 'fHTransversMass': 'UPRIGHT', 
 		'fHTransversMassAfterWCand': 'UPLEFT',
 		'fHNPrimaryVertices': 'UPRIGHT', 'fHNSelectedIsoLeptons': 'UPRIGHT',
 		'fHPtLepton3': 'UPRIGHT', 'fHPtLepton2': 'UPRIGHT', 'fHPtLepton1': 'UPRIGHT',
@@ -42,8 +42,8 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHEventsPerCut3Lepton': 'UPRIGHT', 'fHLeptonCharge': 'UPLEFT', 
 		'fHMETAfterWCand': 'UPRIGHT', 'fHProcess': 'UPRIGHT',
 		'fHFlavour': 'UPRIGHT',
-		'fHHInvMass': 'UPLEFT', 'fHHInvMassAfterOppSign': 'UPLEFT', \
-			'fHHInvMassAfterZVeto': 'UPLEFT',
+		'fHHInvMass': 'UPRIGHT', 'fHHInvMassAfterOppSign': 'UPRIGHT', \
+			'fHHInvMassAfterZVeto': 'UPRIGHT',
 		'fHMinDeltaRLp1Lp2': 'UPRIGHT', 'fHMaxDeltaRLp1Lp2': 'UPLEFT',
 		'fHMinDeltaPhiLp1Lp2': 'UPRIGHT', 'fHMaxDeltaPhiLp1Lp2':'UPLEFT',
 		'fHTrileptonMass': 'UPRIGHT', 'fHTrileptonMassAfterWCand': 'UPRIGHT',
@@ -69,23 +69,26 @@ UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
 		"ZINVMASS": "(GeV/c^{2})", "TRANSVERSMASS": "(GeV/c^{2})",
 		"D0": "(cm)",
 		"HINVMASS": "(GeV/c^{2})",
-		"TRILEPTONMASS": "(GeV/c^{2})",
+		"TRI": "(GeV/c^{2})", # TRILEPTONMASS
 		"HT" : "(GeV/c)",
-		"LEADINGJETET": "(GeV/c)"
+		"LEADINGJETET": "(GeV/c)",
+		"DELTAPHIWMET": "",
+		"MAXDELTAPHILP1LP2": "", "MINDELTAPHILP1LP2": "",
+		"MAXDELTARLP1LP2":"", "MINDELTARLP1LP2":""
 		}
 
 VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
-		"ZINVMASS": "M_{ll}", "TRANSVERSMASS": "M_{T}",
+		"ZINVMASS": "M_{ll}", "TRANSVERSMASS": "m_{T}",
 		"D0": "d_{0}", "CHARGE": "#Sigma q",
 		"HINVMASS": "M_{l^{+}l^{-}}", 
 		"MINDELTARLP1LP2" : "#DeltaR(l^{+},l^{-}) closest",
 		"MAXDELTARLP1LP2" : "#DeltaR(l^{+},l^{-}) farest",
 		"MINDELTAPHILP1LP2" : "#Delta#Phi(l^{+},l^{-}) closest",
 		"MAXDELTAPHILP1LP2" : "#Delta#Phi(l^{+},l^{-}) farest",
-		"TRILEPTONMASS": "M_{l_{1}l_{2}l_{3}}",
+		"TRI": "M_{lll}", # TRILEPTONMASS
 		"HT": "H_{T}",
 		"LEADINGJETET": "E_{T} lead. jet",
-		"DELTAPHIWMET": "#Delta#Phi(l_{W},MET)"
+		"DELTAPHIWMET": "#Delta#phi(l_{W},MET)"
 		}
 
 HISTOSWITHBINWIDTH = { "fHMET": 10 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
@@ -318,12 +321,20 @@ class sampleclass(object):
 		# The Legend
 		self.legend = LEGENDSDICT[self.samplename]
 		# The variable and unit (guessing)
-		unitguess = filter(lambda x: self.histoname.upper().split("LEPTON")[0].find(x) != -1, UNITDICT.keys())
-		if len(unitguess) > 0:
-			# Taking the first one
-			self.unit = UNITDICT[unitguess[0]]
-			self.variable = VARDICT[unitguess[0]]
-			if unitguess[0] == "PT" or unitguess[0] == "ETA":
+		try:
+			# Trying exact name
+			unitguess = filter(lambda x: self.histoname.upper().split("LEPTON")[0] == "FH"+x, UNITDICT.keys())[0]
+		except IndexError:
+			# guessing 
+			unitguesslist = filter(lambda x: self.histoname.upper().split("LEPTON")[0].find(x) != -1, UNITDICT.keys())
+			if len(unitguesslist) > 0:
+				unitguess = unitguesslist[0]
+			else:
+				unitguess = ""
+		if unitguess != "":
+			self.unit = UNITDICT[unitguess]
+			self.variable = VARDICT[unitguess]
+			if unitguess == "PT" or unitguess == "ETA":
 				number = self.histoname.upper().split("LEPTON")[1]
 				self.variable = self.variable[:-1]+"_{"+str(number)+"}}"
 		else:
