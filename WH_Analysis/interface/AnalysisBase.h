@@ -155,9 +155,13 @@ class AnalysisBase : public CMSAnalysisSelector
 		bool    fIsWH;     // True if it should be treated as signal (WH)
 		std::vector<std::string> _datafiles; // Complete path to the files
 		
-		// Luminosity: FIXME: Possibly to the mother since has to be used for each
+		//! Luminosity: 
+		//! FIXME: Possibly to the mother since has to be used for each
 		//----------------------------------------------------------------------------
 		double fLuminosity;
+
+		//! Run Period 
+		std::string fRunPeriod;
 
 		//! Signature of the analysis (giving by Signature::EFS enum)
 		unsigned int fFS;
@@ -178,26 +182,26 @@ class AnalysisBase : public CMSAnalysisSelector
 		std::vector<TLorentzVector> fGenLepton;//TLorentzVector with the 3 muons from W or tau
 		std::vector<std::string> fGenLeptonName;
 
-		// PU Weight utility
+		//! PU Weight utility
 		//----------------------------------------------------------------------------
 		PUWeight* fPUWeight;		
 
-		// Fake Rate weights
+		//! Fake Rate weights
 		WManager * fFO;
 
-		// Scale factors
+		//! Scale factors
 		WManager * fSF;
 
-		// Tree containing the last cut used in a given event
+		//! Tree containing the last cut used in a given event
 		TTree * _cuttree;
-		// Weight of a given event
+		//! Weight of a given event
 		float _cutweight;
-		// Value of the cut
+		//! Value of the cut
 		unsigned int _cutvalue;
 		int _eventnumber;
 		int _runnumber;
 
-		// W Charge sign, when want to distinguish between them. 
+		//! W Charge sign, when want to distinguish between them. 
 		int _wcharge;
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
@@ -210,10 +214,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		TH1D * fHEtaLepton[3];              //Eta of 1st/2nd/3rd good isolated muon
 		TH1D * fHDeltaRGenRecoLepton[3];    //DeltaR between reco and gen muons
 
-		// -- Histograms
+		//! Histograms
 		std::map<int,TH1D*> _histos;
 
-		// -- It is was stored the ouput
+		// ! if it was stored the ouput
 		bool fWasStored;
 
 		// FIXME: Provisional

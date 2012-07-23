@@ -32,6 +32,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fIsData(false),
 	fIsWH(false),
 	fLuminosity(0),
+	fRunPeriod(""),
 	fFS(999),
 	//fLeptonName(0),
 	fNGenElectrons(0),
@@ -52,7 +53,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fLeptonSelection = selectioncuts;
 	// Initialize the cuts for the cut manager
 	fLeptonSelection->InitialiseCuts(ipmap);
-
+	
 	// Just to use the general values fLuminosity, cross section and so on....
 	// it doesn't matters which one pick up
 	// The others already can be deleted as they have already used to input the cuts
@@ -74,6 +75,9 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		--ksize;
 	}
 	
+	// Extract the run period
+	fRunPeriod = fInputParameters->TheNamedString("RunPeriod");
+	
 	// Initialize the scale factors
 	fSF = new WManager( WManager::SF );
 
@@ -86,8 +90,6 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
 		fFO = new WManager( WManager::FR, iszjetsFRMatrix );
 	}
-
-	
 
 	// The Inputparameters have to be initialized before, just to complete it
 	// introducing the set of datasets: 
@@ -304,11 +306,41 @@ void AnalysisBase::InitialiseParameters()
 	
 	// PU Weight
 	//----------------------------------------------------------------------------
-	//fPUWeight = new PUWeight(fLuminosity, Summer11InTime); //EMCDistribution enum
-	// --> FIXME: PONER EN el Input parameters una nueva variable str con el anyo??
-	std::string year = ip->TheNamedString("RunPeriod"); //FIXME, Check it is there
-	//fPUWeight = new PUWeight(fLuminosity, Fall11, year.c_str());
-	fPUWeight = new PUWeight(fLuminosity, Fall11True, year.c_str());
+	EMCDistribution MCdist; 
+	if( fRunPeriod == "2011A" )
+	{
+		MCdist = Summer11;
+	}
+	else if( fRunPeriod == "2011B" )
+	{
+		MCdist = Summer11;
+	}
+	else if( fRunPeriod == "2011" )
+	{
+		MCdist = Fall11True;
+	}
+	else if( fRunPeriod == "2012A" )
+	{
+		MCdist = Fall11True;
+		//MCdist = Summer12;  FIXME
+	}
+	else if( fRunPeriod == "2012B" )
+	{
+		MCdist = Fall11True;
+		//MCdist = Summer12;  FIXME
+	}
+	else if( fRunPeriod == "2012" )
+	{
+		MCdist = Fall11True;
+		//MCdist = Summer12;  FIXME
+	}
+	else
+	{
+		std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m The Run Period '"
+			<< fRunPeriod << "' is not recognized" << std::endl;
+		exit(-1);
+	}
+	fPUWeight = new PUWeight(fLuminosity, MCdist, fRunPeriod.c_str());
 
 	// The W-charge if needed (if there are anything is going to return -1 but without
 	// touching the initial value 0
