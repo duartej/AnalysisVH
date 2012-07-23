@@ -138,6 +138,12 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 		else if( cut->first == "MinNValidHitsSATrk" )
 		{
 			kMinNValidHitsSATrk = (int)cut->second;
+			// Forcing to be null in the 2012
+			if( std::string(ip->TheNamedString("RunPeriod")).find("2012") 
+					!= std::string::npos )
+			{
+				kMinNValidHitsSATrk = -1;
+			}
 		}
 		else if( cut->first == "MaxNormChi2GTrk" )
 		{
@@ -150,10 +156,22 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 		else if( cut->first == "MinNValidPixelHitsInTrk" )
 		{
 			kMinNValidPixelHitsInTrk = (int)cut->second;
+			// Forcing to be null in the 2012
+			if( std::string(ip->TheNamedString("RunPeriod")).find("2012") 
+					!= std::string::npos )
+			{
+				kMinNValidPixelHitsInTrk = -1;
+			}
 		}
 		else if( cut->first == "MinNValidHitsInTrk" )
 		{
 			kMinNValidHitsInTrk = (int)cut->second;
+			// Forcing to be null in the 2012
+			if( std::string(ip->TheNamedString("RunPeriod")).find("2012") 
+					!= std::string::npos )
+			{
+				kMinNValidHitsInTrk = -1;
+			}
 		}
 		else if( cut->first == "MinNLayers" )
 		{
