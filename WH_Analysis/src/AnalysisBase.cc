@@ -47,6 +47,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_eventnumber(-1),
 	_runnumber(-1),
 	_wcharge(0),
+	_jetname(""),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -77,6 +78,17 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	
 	// Extract the run period
 	fRunPeriod = fInputParameters->TheNamedString("RunPeriod");
+
+	// Set jet name
+	_jetname = "JetAKPFNoPU";
+	if( fRunPeriod.find("2012") != std::string::npos )
+	{
+		_jetname = "JetAKCHS";
+	}
+
+	// Set run period to cut manager selector (to take into account the
+	// different branch names of some variables and different behaviour)
+	fLeptonSelection->SetRunPeriod(fRunPeriod);
 	
 	// Initialize the scale factors
 	fSF = new WManager( WManager::SF );

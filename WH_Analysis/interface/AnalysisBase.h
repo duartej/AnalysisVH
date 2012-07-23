@@ -203,6 +203,10 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! W Charge sign, when want to distinguish between them. 
 		int _wcharge;
+		
+		//! Jet name (it depends of the run period)
+		std::string _jetname;
+
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
 		//                         y map: { #id : { # corte: TH1D } }

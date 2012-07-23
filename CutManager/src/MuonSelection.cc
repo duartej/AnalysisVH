@@ -31,6 +31,7 @@ MuonSelection::MuonSelection( TreeManager * data, const int & nTights, const int
 	kMinNumOfMatches(-1),
 	kMinNValidPixelHitsInTrk(-1),
 	kMinNValidHitsInTrk(-1),
+	kMinNLayers(-1),
 	kMaxDeltaPtMuOverPtMu(-1),
 	kMaxLoosed0(-1),
 	kMaxLooseIso(-1)
@@ -153,6 +154,10 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 		else if( cut->first == "MinNValidHitsInTrk" )
 		{
 			kMinNValidHitsInTrk = (int)cut->second;
+		}
+		else if( cut->first == "MinNLayers" )
+		{
+			kMinNLayers = (int)cut->second;
 		}
 		else if( cut->first == "MaxDeltaPtMuOverPtMu" )
 		{
@@ -451,28 +456,13 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 				_data->Get<float>("T_Muon_Pz",i), 
 				_data->Get<float>("T_Muon_Energy",i)).Pt();
 
-		//[Require muons to be close to PV] --> FIXME: MiniTRees, buscar forma de cambiarlo...
+		//[Require muons to be close to PV] 
 		//-------------------
-//#ifdef MINITREES
-//		// Next two lines for pure minitrees
-//		double deltaZMu = _data->GetMuonvz()->at(i) - _data->GetVertexz()->at(iGoodVertex);
-//		double IPMu     = _data->GetMuonIP2DInTrack()->at(i);
-//#endif
-//#ifdef LATINOTREES
 		// Next two lines for latinos
 		double deltaZMu = 0;
 		double IPMu = 0;
-		// + Lara
-//		if (fUseBiased) {
 		deltaZMu = _data->Get<float>("T_Muon_dzPVBiasedPV",i);
 		IPMu     = _data->Get<float>("T_Muon_IP2DBiasedPV",i);
-//		}
-		// + Jonatan
-//		else {
-//			deltaZMu = _data->GetMuondzPVUnBiasedPV()->at(i);
-//			IPMu     = _data->GetMuonIP2DUnBiasedPV()->at(i);
-//		}
-//#endif
 		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
 			continue;
@@ -543,13 +533,16 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		
 		//[Require muons to be isolated]
 		//-------------------
-//#ifdef MINITREES
-//		double isolation = (_data->GetMuonSumIsoTrack()->at(i) + 
-//				_data->GetMuonSumIsoCalo()->at(i)) / Mu.Pt();
-//#endif
-//#ifdef LATINOTREES
-		double isolation =(_data->Get<float>("T_Muon_muSmurfPF",i) )/Mu.Pt();
-//#endif
+		const char * isonamestr = "T_Muon_muSmurfPF";
+		double mupt_foriso = Mu.Pt();
+		bool reversecmp = false;
+		if( _runperiod.find("2012") != std::string::npos )
+		{
+			isonamestr = "T_Muon_MVARings";
+			reversecmp = true;
+			mupt_foriso = 1.0;
+		}
+		const double isolation =_data->Get<float>(isonamestr,i)/mupt_foriso;
 		
 		//WARNING: HARDCODED limit of the eta regions and Pt
 		//The eta/pt plane is divided in 4 regions and the cut on isolation
@@ -598,7 +591,13 @@ unsigned int MuonSelection::SelectIsoLeptons()
 			}
 		}
 		
-		const bool isolatedMuon = (isolation < IsoCut);
+		// Note that when deal with the 2012 iso variable the cut is 
+		// reversed, the condition to be satisfied is mva > IsoCut
+		bool isolatedMuon = (isolation < IsoCut);
+		if( reversecmp )
+		{
+			isolatedMuon = !isolatedMuon;
+		}
 		
 		if( !isolatedMuon )
 		{
@@ -675,14 +674,16 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 		}
 
 		bool Idcuts = _data->Get<int>("T_Muon_NValidPixelHitsInTrk",i) > kMinNValidPixelHitsInTrk 
-//#ifdef MINITREES
-//		    && _data->GetMuonNValidHitsInTrk()->at(i) > kMinNValidHitsInTrk 
-//#endif
-//#ifdef LATINOTREES
  	            && _data->Get<int>("T_Muon_InnerTrackFound",i) > kMinNValidHitsInTrk 
-//#endif
 	           && fabs(ptResolution) < kMaxDeltaPtMuOverPtMu;
 
+		// Finally new cuts for 2012
+		if( _runperiod.find("2012") != std::string::npos )
+		{
+			Idcuts = Idcuts && _data->Get<int>("T_Muon_isPFMuon",i) && 
+				_data->Get<int>("T_Muon_NLayers") > kMinNLayers;
+		}
+		
 		// Remember, if you are here, passSpecific=true
 		if( ! Idcuts )
 		{
@@ -727,9 +728,7 @@ unsigned int MuonSelection::SelectLooseLeptons()
 				_data->Get<float>("T_Muon_Energy",i)).Pt();
 
 		//[ID d0 Cut] 
-		double deltaZMu = 0;
 		double IPMu = 0;
-		deltaZMu = _data->Get<float>("T_Muon_dzPVBiasedPV",i);
 		IPMu     = _data->Get<float>("T_Muon_IP2DBiasedPV",i);
 		// Apply cut on d0
 		if( fabs(IPMu) > kMaxLoosed0 )
@@ -738,7 +737,13 @@ unsigned int MuonSelection::SelectLooseLeptons()
 		}
 
 		//[ISO cut]
-		double isolation =(_data->Get<float>("T_Muon_muSmurfPF",i) )/ptMu;
+		const char * isonamestr = "T_Muon_muSmurfPF";
+		if( _runperiod.find("2012") != std::string::npos )
+		{
+			isonamestr = "T_Muon_MVARings";
+			ptMu = 1.0; // Just to not being 
+		}
+		double isolation =(_data->Get<float>(isonamestr,i) )/ptMu;
 
 		if( isolation > kMaxLooseIso )
 		{

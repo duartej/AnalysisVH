@@ -7,6 +7,7 @@
 
 CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons  ) :
 	_data(data), 
+	_runperiod(""),
 	_cuts(0),
 	_nLeptons(nLeptons),
 	_samplemode(CutManager::NORMALSAMPLE),

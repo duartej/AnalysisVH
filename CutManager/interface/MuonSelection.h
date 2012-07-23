@@ -125,6 +125,7 @@ class MuonSelection : public CutManager
 		int    kMinNumOfMatches        ;
 		int    kMinNValidPixelHitsInTrk;
 		int    kMinNValidHitsInTrk     ;
+		int    kMinNLayers	       ;
 		double kMaxDeltaPtMuOverPtMu   ;
 
 		// Loose leptons

@@ -720,9 +720,9 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			}
 			TLorentzVector lvec = this->GetTLorentzVector(name,i);
 			// Provisional --- TO BE DELETED --- FIXME
-			/*for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+			/*for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
 			{
-				TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+				TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
 				// Lepton inside the Jets
 				if( fabs(Jet.DeltaR(lvec)) <= 1.0 )
 				{
@@ -1009,10 +1009,9 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Jet Veto:
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
-	//for(unsigned int k = 0; k < fData->GetJetAKPFNoPUEnergy()->size(); ++k) 
-	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
 	{
-		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
 		//FIXME: Add the pt,eta and deltaR cuts in the config file
 		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
 		{

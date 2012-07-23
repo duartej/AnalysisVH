@@ -490,8 +490,13 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 			&& trkIso03/pt < 0.2 && emIso03/pt < 0.2 && hadIso03/pt < 0.2;
 	}
 	
-	// Conversion and number of expected hits/
-	const bool passconversion = _data->Get<bool>("T_Elec_passesNewConversion",index);
+	// Conversion and number of expected hits
+	const char * conversionstr = "T_Elec_passesNewConversion";
+	if( _runperiod.find("2012") != std::string::npos )
+	{
+		conversionstr = "T_Elec_passConversionVeto";
+	}
+	const bool passconversion = _data->Get<bool>(conversionstr,index);
 	const bool passExpectedHits = _data->Get<int>("T_Elec_nHits",index) <= 0; 
 	
 	return ispass && passconversion && passExpectedHits;

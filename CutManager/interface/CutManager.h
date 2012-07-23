@@ -64,6 +64,10 @@ class CutManager
 		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip, 
 				const std::vector<std::string> & cuts) = 0;
 
+		//! Setter to put the run period being analysed to take into account the
+		//! different branch names and behavior 
+		inline void SetRunPeriod(const std::string & runperiod) { _runperiod = runperiod; }
+		
 		//! Return whether a serie of cuts encoded as 'codename' has been passed
 		virtual bool IsPass(const std::string & codename, 
 			       const std::vector<double> * auxVar = 0 ) const = 0;
@@ -167,6 +171,9 @@ class CutManager
 
 		//! Container of the data:  FIXME: IT is needed?
 		TreeManager * _data;
+
+		//! The run period of the data being analysed
+		std::string _runperiod;
 
 		//! Mapping name of the cut with its value (must be a double)
 		std::map<std::string,double> * _cuts;
