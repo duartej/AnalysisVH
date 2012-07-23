@@ -756,14 +756,25 @@ unsigned int MuonSelection::SelectLooseLeptons()
 
 		//[ISO cut]
 		const char * isonamestr = "T_Muon_muSmurfPF";
+		bool reversecmp = false;
 		if( _runperiod.find("2012") != std::string::npos )
 		{
 			isonamestr = "T_Muon_MVARings";
 			ptMu = 1.0; // Just to not being 
+			reversecmp = true;
 		}
 		double isolation =(_data->Get<float>(isonamestr,i) )/ptMu;
 
-		if( isolation > kMaxLooseIso )
+		bool isIsolated = (isolation < kMaxLooseIso);
+		
+		// If 2012 data, reverse the previous cut in order to accomplish
+		// correct condition MVA_output > kMaxLooseIso
+		if( reversecmp )
+		{
+			isIsolated = !isIsolated;
+		}
+
+		if( ! isIsolated )
 		{
 			continue;
 		}
