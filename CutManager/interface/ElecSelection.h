@@ -39,9 +39,11 @@ class ElecSelection : public CutManager
 	public:
 		//! Constructor for Cut based electrons
 		ElecSelection( TreeManager * data, const int & WPlowpt, const int & WPhighpt,
-				const int & nTights, const int & nLeptons);
+				const int & nTights, const int & nLeptons,
+				const char * runperiod);
 		//! Constructor for BDT electrons
-		ElecSelection( TreeManager * data, const int & nTights, const int & nLeptons);
+		ElecSelection( TreeManager * data, const int & nTights, const int & nLeptons, 
+				const char * runperiod);
 		//! Destructor
 		virtual ~ElecSelection();
 

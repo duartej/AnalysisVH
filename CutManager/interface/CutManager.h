@@ -48,7 +48,7 @@ class CutManager
 	public:
 		//! Constructor: nTights = -1 to enter in NORMALSAMPLE mode
 		//!              nTights >= 0 to enter in FAKEABLESAMPLE mode
-		CutManager(TreeManager * data, const int & nTights, const int & nLeptons); 
+		CutManager(TreeManager * data, const int & nTights, const int & nLeptons, const char * runperiod); 
 		//! Destructor
 		virtual ~CutManager();
 
@@ -64,10 +64,6 @@ class CutManager
 		virtual void LockCuts(const std::map<LeptonTypes,InputParameters*> & ip, 
 				const std::vector<std::string> & cuts) = 0;
 
-		//! Setter to put the run period being analysed to take into account the
-		//! different branch names and behavior 
-		inline void SetRunPeriod(const std::string & runperiod) { _runperiod = runperiod; }
-		
 		//! Return whether a serie of cuts encoded as 'codename' has been passed
 		virtual bool IsPass(const std::string & codename, 
 			       const std::vector<double> * auxVar = 0 ) const = 0;

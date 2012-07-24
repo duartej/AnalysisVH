@@ -25,7 +25,6 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 		const char * finalstateStr, std::map<LeptonTypes,InputParameters *> ipmap,
 		const std::vector<int> * fakeablenumbers )
 {
-
 	CutManager * selectioncuts = 0;
 
 	// Signature of the analysis:
@@ -68,23 +67,26 @@ AnalysisBase * AnalysisBuilder::Build( const char * analysistype, treeTypes thet
 			exit(-2);
 		}
 	}
+
+	// Extract the run period
+	const char * runperiod = ipmap.begin()->second->TheNamedString("RunPeriod");
 	
 	TreeManager * data = new TreeManager();
 	if( finalstate == SignatureFS::_iFSmmm )
 	{
 		// The selector
-		selectioncuts = new MuonSelection(data,nTights,nLeptons);
+		selectioncuts = new MuonSelection(data,nTights,nLeptons,runperiod);
 	}
 	else if( finalstate == SignatureFS::_iFSeee )
 	{
 		//selectioncuts = new ElecSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
-		selectioncuts = new ElecSelection(data,nTights,nLeptons);
+		selectioncuts = new ElecSelection(data,nTights,nLeptons,runperiod);
 	}
 	else if( finalstate == SignatureFS::_iFSeem ||
 			finalstate == SignatureFS::_iFSmme )
 	{
 		//selectioncuts = new LeptonMixingSelection(data,WPlowPt,WPhighPt,nTights,nLeptons);
-		selectioncuts = new LeptonMixingSelection(data,nTights,nLeptons);
+		selectioncuts = new LeptonMixingSelection(data,nTights,nLeptons,runperiod);
 	}
 	else
 	{

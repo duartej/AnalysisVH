@@ -85,10 +85,6 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	{
 		_jetname = "JetAKCHS";
 	}
-
-	// Set run period to cut manager selector (to take into account the
-	// different branch names of some variables and different behaviour)
-	fLeptonSelection->SetRunPeriod(fRunPeriod);
 	
 	// Initialize the scale factors
 	fSF = new WManager( WManager::SF );

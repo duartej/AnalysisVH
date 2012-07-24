@@ -8,8 +8,9 @@
 const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 // Constructor
-MuonSelection::MuonSelection( TreeManager * data, const int & nTights, const int & nLeptons) : 
-	CutManager(data,nTights,nLeptons),
+MuonSelection::MuonSelection( TreeManager * data, const int & nTights, const int & nLeptons,
+		const char * runperiod) : 
+	CutManager(data,nTights,nLeptons,runperiod),
 	kMinMuPt1(-1),
 	kMinMuPt2(-1),      
 	kMinMuPt3(-1),          

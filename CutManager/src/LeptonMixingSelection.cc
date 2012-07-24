@@ -11,8 +11,9 @@
 
 //Constructor cut-based electrons: 
 LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WPlowpt,
-		const int & WPhighpt, const int & nTights, const int & nLeptons) : 
-	CutManager(data,nTights,nLeptons),
+		const int & WPhighpt, const int & nTights, const int & nLeptons,
+		const char  * runperiod) : 
+	CutManager(data,nTights,nLeptons,runperiod),
 	fMuonSelection(0),
 	fElecSelection(0),
 	_leptontypebasicLeptons(0),
@@ -22,14 +23,15 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 	_tightLeptonTypes(0),
 	_notightLeptonTypes(0)
 { 
-	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
-	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons);
+	fMuonSelection = new MuonSelection(data,nTights,nLeptons,runperiod);
+	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons,runperiod);
 }
 
 //Constructor BDT-based electrons: 
 LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, 
-		const int & nTights, const int & nLeptons) : 
-	CutManager(data,nTights,nLeptons),
+		const int & nTights, const int & nLeptons,
+		const char * runperiod) : 
+	CutManager(data,nTights,nLeptons,runperiod),
 	fMuonSelection(0),
 	fElecSelection(0),
 	_leptontypebasicLeptons(0),
@@ -39,8 +41,8 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data,
 	_tightLeptonTypes(0),
 	_notightLeptonTypes(0)
 { 
-	fMuonSelection = new MuonSelection(data,nTights,nLeptons);
-	fElecSelection = new ElecSelection(data,nTights,nLeptons);
+	fMuonSelection = new MuonSelection(data,nTights,nLeptons,runperiod);
+	fElecSelection = new ElecSelection(data,nTights,nLeptons,runperiod);
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()

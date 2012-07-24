@@ -5,9 +5,10 @@
 #include "CutManager.h"
 #include "TreeManager.h"
 
-CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons  ) :
+CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLeptons,
+		const char * runperiod  ) :
 	_data(data), 
-	_runperiod(""),
+	_runperiod(runperiod),
 	_cuts(0),
 	_nLeptons(nLeptons),
 	_samplemode(CutManager::NORMALSAMPLE),

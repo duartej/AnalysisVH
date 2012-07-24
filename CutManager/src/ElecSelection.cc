@@ -11,8 +11,9 @@ const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 
 // CONSTRUCTOR
 ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
-		const int & WPhighpt, const int & nTights, const int & nLeptons) : 
-	CutManager(data,nTights,nLeptons),
+		const int & WPhighpt, const int & nTights, const int & nLeptons,
+		const char * runperiod) : 
+	CutManager(data,nTights,nLeptons,runperiod),
 	pWP_lowPt(0),   
 	pWP_highPt(0),
 	_ElecType(ElecSelection::CUTBASED),
@@ -62,8 +63,9 @@ ElecSelection::ElecSelection( TreeManager * data, const int & WPlowpt,
 	pWP_highPt = new WPElecID( WPhighpt );
 }
 
-ElecSelection::ElecSelection( TreeManager * data, const int & nTights, const int & nLeptons) : 
-	CutManager(data,nTights,nLeptons),
+ElecSelection::ElecSelection( TreeManager * data, const int & nTights, const int & nLeptons,
+		const char * runperiod) : 
+	CutManager(data,nTights,nLeptons,runperiod),
 	pWP_lowPt(0),   
 	pWP_highPt(0),
 	_ElecType(ElecSelection::BDTBASED),

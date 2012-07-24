@@ -37,7 +37,7 @@ class MuonSelection : public CutManager
 
 	public:
 		//! Constructor
-		MuonSelection( TreeManager * data, const int & opmode, const int & nLeptons);
+		MuonSelection( TreeManager * data, const int & opmode, const int & nLeptons, const char * runperiod);
 		virtual ~MuonSelection() { }
 
 		// Initialization of datamembers

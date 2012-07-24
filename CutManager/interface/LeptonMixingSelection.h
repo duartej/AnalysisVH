@@ -35,10 +35,12 @@ class LeptonMixingSelection : public CutManager
 		//! Constructor using cut-based electrons
 		LeptonMixingSelection( TreeManager * data, const int & WPlowpt, 
 				const int & WPhighpt, 
-				const int & nTights, const int & nLeptons);
+				const int & nTights, const int & nLeptons,
+				const char * runperiod);
 		//! Constructor using BDT-based electrons
 		LeptonMixingSelection( TreeManager * data,
-				const int & nTights, const int & nLeptons);
+				const int & nTights, const int & nLeptons,
+				const char * runperiod);
 		//! Destructor
 		virtual ~LeptonMixingSelection();
 		
