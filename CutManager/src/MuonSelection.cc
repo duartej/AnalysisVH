@@ -569,9 +569,9 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		// PT ^
 		//   /|\ |
 		//    |  |
-		//    |R1|R2
-		// 20-+--+---
 		//    |R3|R4
+		// 20-+--+---
+		//    |R1|R2
 		//    +--+---> eta
 		//       |
 		//      1.479 
@@ -581,8 +581,8 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		double IsoCut = -1;
 		const double mupt = Mu.Pt();
 		const double mueta= Mu.Eta();
-		// High Pt Region:
-		if( mupt > ptLimit )
+		// Low Pt Region:
+		if( mupt <= ptLimit )
 		{
 			// Low eta region: R1
 			if( fabs(mueta) < etaLimit ) 
@@ -595,7 +595,7 @@ unsigned int MuonSelection::SelectIsoLeptons()
 				IsoCut = kMaxPTIsolationR2;
 			}
 		}
-		else  // Low Pt Region:
+		else  // High Pt Region:
 		{
 			// Low eta region: R3
 			if( fabs(mueta) < etaLimit )

@@ -98,14 +98,34 @@ void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & i
 	cuts.push_back("MaxPTIsolationR2");
 	cuts.push_back("MaxPTIsolationR3");
 	cuts.push_back("MaxPTIsolationR4");
-	cuts.push_back("MaxIsoMu");  // OBSOLETE--> Now in regions
 	//   - Quality and Identification
 	cuts.push_back("MinNValidHitsSATrk");
 	cuts.push_back("MaxNormChi2GTrk");
 	cuts.push_back("MinNumOfMatches");
 	cuts.push_back("MinNValidPixelHitsInTrk");
 	cuts.push_back("MinNValidHitsInTrk");
+	cuts.push_back("MinNLayers");
 	cuts.push_back("MaxDeltaPtMuOverPtMu");
+	//   - BDT electron
+	cuts.push_back("MinMVAValueR1");
+	cuts.push_back("MinMVAValueR2");
+	cuts.push_back("MinMVAValueR3");
+	cuts.push_back("MinMVAValueR4");
+	cuts.push_back("MinMVAValueR5");
+	cuts.push_back("MinMVAValueR6");
+	// Loose electrons (trigger id and iso)
+	cuts.push_back("MaxSigmaietaietaR1");  
+	cuts.push_back("MaxdeltaPhiInR1"); 
+	cuts.push_back("MaxdeltaEtaInR1"); 
+	cuts.push_back("MaxHtoER1"); 
+	cuts.push_back("MaxSigmaietaietaR2"); 
+	cuts.push_back("MaxdeltaPhiInR2"); 
+	cuts.push_back("MaxdeltaEtaInR2"); 
+	cuts.push_back("MaxHtoER2"); 
+	cuts.push_back("Maxdr03TkSumPtOverPt"); 
+	cuts.push_back("Maxdr03EcalSumPtOverPt"); 
+	cuts.push_back("Maxdr03HcalSumPtOverPt"); 
+
 	//   - Max DeltaR between muons
 	cuts.push_back("MaxDeltaRMuMu");
   	//   - Min MET of the event

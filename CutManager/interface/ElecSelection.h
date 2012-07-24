@@ -135,18 +135,27 @@ class ElecSelection : public CutManager
 		double kMaxPTIsolationR2  ;
 		double kMaxPTIsolationR3  ;
 		double kMaxPTIsolationR4  ;
+
+                double kMinMVAValueR1     ;
+                double kMinMVAValueR2     ;
+                double kMinMVAValueR3     ;
+                double kMinMVAValueR4     ;
+                double kMinMVAValueR5     ;
+                double kMinMVAValueR6     ;
 		
-		int    kMinNValidHitsSATrk     ;
-		double kMaxNormChi2GTrk        ;
-		int    kMinNumOfMatches        ;
-		int    kMinNValidPixelHitsInTrk;
-		int    kMinNValidHitsInTrk     ;
-		double kMaxDeltaPtMuOverPtMu   ;
-
-		// Loose
-		double kMaxLoosed0;
-		double kMaxLooseIso;
-
+		//! Id related var
+	        double kMaxSigmaietaietaR1;
+	       	double kMaxdeltaPhiInR1; 
+	       	double kMaxdeltaEtaInR1;
+	       	double kMaxHtoER1;       
+	       	double kMaxSigmaietaietaR2;
+	       	double kMaxdeltaPhiInR2; 
+	       	double kMaxdeltaEtaInR2;
+	       	double kMaxHtoER2;  
+	       	double kMaxdr03TkSumPtOverPt;
+	       	double kMaxdr03EcalSumPtOverPt;
+	       	double kMaxdr03HcalSumPtOverPt;
+		
 	ClassDef(ElecSelection,0);
 };
 #endif
