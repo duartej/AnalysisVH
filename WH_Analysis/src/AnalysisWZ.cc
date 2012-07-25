@@ -220,11 +220,16 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 #endif
 	// Get PU Weight
 	//----------------------------------------------------------------------
+	std::string npuname = "T_Event_nPU";
+	if( fRunPeriod.find("2012") != std::string::npos )
+	{
+		npuname = "T_Event_nTruePU";
+	}
 	double puw(1);
 	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
+		puw = fPUWeight->GetWeight(fData->Get<int>(npuname.c_str()));
 	}
 	
 	// Filling the npv to see how was weighted

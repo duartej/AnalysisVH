@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////
 //
-//    FILE: PUWeight.cc   $CVS_TAG: V3_2_1
+//    FILE: PUWeight.cc   $CVS_TAG: V6_0_0
 //   CLASS: PUWeight
 // AUTHORS: I. Gonzalez Caballero
 //    DATE: 09/03/2011
@@ -15,6 +15,7 @@
 
 // C++ includes
 #include <iostream>
+#include <math.h>
 using namespace std;
 
 
@@ -30,7 +31,14 @@ using namespace std;
 PUWeight::PUWeight(float luminosity, EMCDistribution mcdistr, const char* year):
   fData(0),
   fMC(0),
-  fWeight(0) {
+  fWeight(0),
+  fWeight3D(0),
+  fIs3D(false) {
+
+
+  //Set 3D to true if using 3D weight
+  if (mcdistr == Summer113D)
+    fIs3D = true;
 
   //Load Data histogram
   if (!LoadDataHistogram(luminosity, year))
@@ -41,28 +49,10 @@ PUWeight::PUWeight(float luminosity, EMCDistribution mcdistr, const char* year):
 
 
   //Calculate Weight
-  CalculateWeight();
-}
-
-
-PUWeight::PUWeight(const char* mcfolder, const char* mcproccess, 
-		   float luminosity, const char* year):
-  fData(0),
-  fMC(0),
-  fWeight(0) {
-
-  //Load Data histogram
-  if (!LoadDataHistogram(luminosity, year))
-    return;
-  
-  //Load MC Histogram
-  if (!LoadMCHistogram(mcfolder, mcproccess))
-    return;
-
-
-
-  //Calculate Weight
-  CalculateWeight();
+  if (fIs3D)
+    CalculateWeight3D();
+  else
+    CalculateWeight();
 }
 
 
@@ -124,8 +114,12 @@ TH1F* PUWeight::LoadDataHistogram(float luminosity, const char* year) {
   TString dtfile;
   TFile* fdt = 0;
   if (luminosity > 0) {
-    dtfile.Form("http://www.hep.uniovi.es/jfernan/PUhistos/Data%s/PUdata_%.1f.root", 
-		year, luminosity);
+    if (fIs3D)
+      dtfile.Form("http://www.hep.uniovi.es/jfernan/PUhistos/Data%s/3D/PUdata_%.1f.root", 
+		  year, luminosity);
+    else
+      dtfile.Form("http://www.hep.uniovi.es/jfernan/PUhistos/Data%s/PUdata_%.1f.root", 
+		  year, luminosity);
 
   
 #if (DEBUGPUWEIGHT > 1)
@@ -235,16 +229,16 @@ TH1F* PUWeight::IdealMCHistogram(EMCDistribution mcdistr) {
 
   unsigned int nbins = 25;
   
-  if (mcdistr == Spring11) {
+  if (mcdistr == Spring11 || mcdistr == Summer113D) {
     double idealpu[] = {0.0698146584, 0.0698146584, 0.0698146584, 
-		       0.0698146584, 0.0698146584, 0.0698146584,
-		       0.0698146584, 0.0698146584, 0.0698146584,
-		       0.0698146584, 0.0698146584, 0.0630151648,
-		       0.0526654164, 0.0402754482, 0.0292988928,
-		       0.0194384503, 0.0122016783, 0.007207042,
-		       0.004003637,  0.0020278322, 0.0010739954,
-		       0.0004595759, 0.0002229748, 0.0001028162,
-		       4.58337152809607E-05};
+			0.0698146584, 0.0698146584, 0.0698146584,
+			0.0698146584, 0.0698146584, 0.0698146584,
+			0.0698146584, 0.0698146584, 0.0630151648,
+			0.0526654164, 0.0402754482, 0.0292988928,
+			0.0194384503, 0.0122016783, 0.007207042,
+			0.004003637,  0.0020278322, 0.0010739954,
+			0.0004595759, 0.0002229748, 0.0001028162,
+			4.58337152809607E-05};
     fMC->FillN(nbins, bins, idealpu);
   }
   else if (mcdistr == Summer11) {
@@ -489,11 +483,250 @@ TH1F* PUWeight::IdealMCHistogram(EMCDistribution mcdistr) {
 	4.23623e-05,
 	2.74678e-05,
 	1.73125e-05
-//	1.39273e-05
+	//	1.39273e-05
+     };
+     fMC->FillN(nbins, bins, idealpu);
+  }
+  else if (mcdistr == Summer12){
+    nbins =60;
+    double idealpu[]= {
+                                  2.344E-05,
+                                  2.344E-05,
+                                  2.344E-05,
+                                  2.344E-05,
+                                  4.687E-04,
+                                  4.687E-04,
+                                  7.032E-04,
+                                  9.414E-04,
+                                  1.234E-03,
+                                  1.603E-03,
+                                  2.464E-03,
+                                  3.250E-03,
+                                  5.021E-03,
+                                  6.644E-03,
+                                  8.502E-03,
+                                  1.121E-02,
+                                  1.518E-02,
+                                  2.033E-02,
+                                  2.608E-02,
+                                  3.171E-02,
+                                  3.667E-02,
+                                  4.060E-02,
+                                  4.338E-02,
+                                  4.520E-02,
+                                  4.641E-02,
+                                  4.735E-02,
+                                  4.816E-02,
+                                  4.881E-02,
+                                  4.917E-02,
+                                  4.909E-02,
+                                  4.842E-02,
+                                  4.707E-02,
+                                  4.501E-02,
+                                  4.228E-02,
+                                  3.896E-02,
+                                  3.521E-02,
+                                  3.118E-02,
+                                  2.702E-02,
+                                  2.287E-02,
+                                  1.885E-02,
+                                  1.508E-02,
+                                  1.166E-02,
+                                  8.673E-03,
+                                  6.190E-03,
+                                  4.222E-03,
+                                  2.746E-03,
+                                  1.698E-03,
+                                  9.971E-04,
+                                  5.549E-04,
+                                  2.924E-04,
+                                  1.457E-04,
+                                  6.864E-05,
+                                  3.054E-05,
+                                  1.282E-05,
+                                  5.081E-06,
+                                  1.898E-06,
+                                  6.688E-07,
+                                  2.221E-07,
+                                  6.947E-08,
+                                  2.047E-08
     };
     fMC->FillN(nbins, bins, idealpu);
   }
 
-
+  
   return fMC;
+}
+
+
+// Build 3D histogram with weights
+TH3F* PUWeight::CalculateWeight3D(float ScaleFactor) {
+  if (fWeight3D)
+    delete fWeight3D;
+
+  fWeight3D = new TH3F("fWeight3D","3D weights",50,-.5,49.5,50,-.5,49.5,50,-.5,49.5 );
+
+  //////////////
+  // From http://cmssw.cvs.cern.ch/cgi-bin/cmssw.cgi/CMSSW/PhysicsTools/Utilities/src/Lumi3DReWeighting.cc?view=markup
+
+  TH3F* DHist = new TH3F("DHist","3D weights",50,-.5,49.5,50,-.5,49.5,50,-.5,49.5 );
+  TH3F* MHist = new TH3F("MHist","3D weights",50,-.5,49.5,50,-.5,49.5,50,-.5,49.5 );
+
+  // arrays for storing number of interactions
+
+  double MC_ints[50][50][50];
+  double Data_ints[50][50][50];
+  double Weight3D_[50][50][50];
+
+  for (int i=0; i<50; i++) {
+    for(int j=0; j<50; j++) {
+      for(int k=0; k<50; k++) {
+	MC_ints[i][j][k] = 0.;
+	Data_ints[i][j][k] = 0.;
+      }
+    }
+  }
+
+  double factorial[50];
+  double PowerSer[50];
+  double base = 1.;
+
+  factorial[0] = 1.;
+  PowerSer[0]  = 1.;
+
+  for (int i = 1; i<50; i++) {
+    base = base*i;
+    factorial[i] = base;
+  }
+
+  double x;
+  double xweight;
+  double probi, probj, probk;
+  double Expval, mean;
+  int xi;
+
+  // Get entries for Data, MC, fill arrays:
+  
+  int NMCbin = fMC->GetNbinsX();
+  
+  for (int jbin=1;jbin<NMCbin+1;jbin++) {       
+    x =  fMC->GetBinCenter(jbin);
+    xweight = fMC->GetBinContent(jbin); //use as weight for matrix
+    
+    //for Summer 11, we have this int feature:
+    xi = int(x);
+    
+    // Generate Poisson distribution for each value of the mean
+    
+    mean = double(xi);
+    
+    if(mean<0.) {
+      cerr << " Your histogram generates MC luminosity values less than zero!"
+	   << " Please Check.  Terminating." << endl;
+      return 0;
+    }
+    
+    
+    if(mean==0.){
+      Expval = 1.;
+    }
+    else {
+      Expval = exp(-1.*mean);
+    }
+    
+    base = 1.;
+    
+    for (int i = 1; i<50; ++i) {
+      base = base*mean;
+      PowerSer[i] = base; // PowerSer is mean^i
+    }
+    
+    // compute poisson probability for each Nvtx in weight matrix
+    
+    for (int i=0; i<50; i++) {
+      probi = PowerSer[i]/factorial[i]*Expval;
+      for(int j=0; j<50; j++) {
+	probj = PowerSer[j]/factorial[j]*Expval;
+	for(int k=0; k<50; k++) {
+	  probk = PowerSer[k]/factorial[k]*Expval;
+	  // joint probability is product of event weights multiplied by weight of input distribution bin
+	  MC_ints[i][j][k] = MC_ints[i][j][k]+probi*probj*probk*xweight;
+	}
+      }
+    }
+    
+  }
+  
+
+  int NDatabin = fData->GetNbinsX();
+  
+  for (int jbin=1;jbin<NDatabin+1;jbin++) {       
+    mean =  (fData->GetBinCenter(jbin))*ScaleFactor;
+    xweight = fData->GetBinContent(jbin);
+    
+    // Generate poisson distribution for each value of the mean
+    
+    if(mean<0.) {
+      cerr << "ERROR: Your histogram generates Data luminosity values less than zero!"
+	   << " Please Check.  Terminating." << std::endl;
+      return 0;
+    }
+    
+    if(mean==0.){
+      Expval = 1.;
+    }
+    else {
+      Expval = exp(-1.*mean);
+    }
+    
+    base = 1.;
+    
+    for (int i = 1; i<50; ++i) {
+      base = base*mean;
+      PowerSer[i] = base;
+    }
+    
+    // compute poisson probability for each Nvtx in weight matrix                                                                  
+    
+    for (int i=0; i<50; i++) {
+      probi = PowerSer[i]/factorial[i]*Expval;
+      for(int j=0; j<50; j++) {
+	probj = PowerSer[j]/factorial[j]*Expval;
+	for(int k=0; k<50; k++) {
+	  probk = PowerSer[k]/factorial[k]*Expval;
+	  // joint probability is product of event weights multiplied by weight of input distribution bin
+	  Data_ints[i][j][k] = Data_ints[i][j][k]+probi*probj*probk*xweight;
+	}
+      }
+    }
+    
+  }
+
+  
+  for (int i=0; i<50; i++) {  
+    //if(i<5) std::cout << "i = " << i << std::endl;
+    for(int j=0; j<50; j++) {
+      for(int k=0; k<50; k++) {
+	if( (MC_ints[i][j][k])>0.) {
+	  Weight3D_[i][j][k]  =  Data_ints[i][j][k]/MC_ints[i][j][k];
+	}
+	else {
+	  Weight3D_[i][j][k]  = 0.;
+	}
+	fWeight3D->SetBinContent( i+1,j+1,k+1,Weight3D_[i][j][k] );
+	DHist->SetBinContent( i+1,j+1,k+1,Data_ints[i][j][k] );
+	MHist->SetBinContent( i+1,j+1,k+1,MC_ints[i][j][k] );
+	//	if(i<5 && j<5 && k<5) std::cout << Weight3D_[i][j][k] << " " ;
+      }
+      //      if(i<5 && j<5) std::cout << std::endl;
+    }
+  }
+  
+  
+  //
+  /////////////
+
+
+
+  return fWeight3D;
 }

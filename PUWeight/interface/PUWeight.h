@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////
 //
-//    FILE: PUWeight.h  $CVS_TAG: V3_2_1
+//    FILE: PUWeight.h  $CVS_TAG: V6_0_0
 //   CLASS: PUWeight
 // AUTHORS: I. Gonzalez Caballero
 //    DATE: 09/03/2011
@@ -18,24 +18,31 @@
 
 
 #include "TH1F.h"
-#include "TNamed.h"
+#include "TH3F.h"
 
 enum EMCDistribution {
   Spring11,       /*Flat10+Tail*/ 
+
   Summer11,       /*PU_S4 averaging the number of interactions in each beam
 		   * crossing
 		   */
+  Summer113D,     /*Using Flat10 + tail since this is the "true" input for all
+		   * Summer11 samples.
+		   */
   Summer11InTime, /*PU_S4 obtained by only looking at the in-time crossing*/
+  
   Summer11ITSmear,/*PU_S4 obtained by only looking at the in-time crossing.
 		   *This is the "spike+smear" distribution. RECOMENDED!
 		   */
   Summer11True,   /*PU_S4 obtained by averaging the number of interactions in
 		   * each beam crossing to estimate the true mean.
 		   */
+  
+  Fall11,         /*Fall11*/
 
-  Fall11,          /*Fall11*/
-
-  Fall11True	   /*Fall11 True from TTbar 2l2Nu Powheg sample by Matt*/
+  Fall11True,     /*Fall11 True from TTbar 2l2Nu Powheg sample by Matt*/
+  
+  Summer12        /*Summer12 MC*/
 };
 
 class PUWeight {
@@ -59,13 +66,6 @@ class PUWeight {
 	   EMCDistribution mcdistr = Spring11,
 	   const char* year="2011A");
 
-  /**************************************
-   * Old constructor kept here for backward compatibility. It may be used if
-   * at some point we have different reweighting for each MC process.
-   */
-  PUWeight(const char* mcfolder, const char* mcproccess,
-	   float luminosity = -1, const char* year="2011A");
-
 
   /**************************************
    * Destructor
@@ -86,6 +86,15 @@ class PUWeight {
     return (fWeight? fWeight->GetBinContent(pu+1):0);
   }
 
+  // Returns the weights for a given PU value using 3D algorithm
+  float GetWeight3D(unsigned int puminus, 
+		    unsigned int pu0, 
+		    unsigned int puplus) {
+    if (!fWeight3D)
+      CalculateWeight3D();
+    return fWeight3D->GetBinContent(puminus+1, pu0+1, puplus+1);
+  }
+
   // Returns the MC only weight for a given PU value
   float GetPUMC(unsigned int pu) const {
     return (fMC? fMC->GetBinContent(pu+1):0);
@@ -98,11 +107,21 @@ class PUWeight {
   // Get the histogram with the weights
   TH1F* GetWeightsHisto() const {return (TH1F*)fWeight->Clone();}
 
+  // Get the histogram with the weights in 3D
+  TH3F* GetWeightsHisto3D() {
+    if (!fWeight3D)
+      CalculateWeight3D();
+    return (TH3F*)fWeight3D->Clone();
+  }
+
   // Get the histogram with the profile for Data
   TH1F* GetDataHisto() const {return (TH1F*)fData->Clone();}
 
   // Get the histogram with the profile for MC
   TH1F* GetMCHisto() const {return (TH1F*)fMC->Clone();}
+
+  // Rescale the 3D weight to study systematic errors
+  TH3F* RescaleWeights3D(float ScaleFactor = 1.0) {return CalculateWeight3D(ScaleFactor);}
 
  protected:
   // Build the PU ideal profile for MC
@@ -117,11 +136,15 @@ class PUWeight {
   // Divide the Data profile by the MC profile
   TH1F* CalculateWeight();
 
+  // Build 3D histogram with weights
+  TH3F* CalculateWeight3D(float ScaleFactor = 1.0);
+
  protected:
   TH1F* fData;   //PU profile for data
   TH1F* fMC;     //PU profile for MC
   TH1F* fWeight; //Histogram with the weight content
-
+  TH3F* fWeight3D; //The 3D weights
+  bool  fIs3D;     //True if 3D should be used  
 };
 
 

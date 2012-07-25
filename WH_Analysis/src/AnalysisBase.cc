@@ -329,18 +329,15 @@ void AnalysisBase::InitialiseParameters()
 	}
 	else if( fRunPeriod == "2012A" )
 	{
-		MCdist = Fall11True;
-		//MCdist = Summer12;  FIXME
+		MCdist = Summer12; 
 	}
 	else if( fRunPeriod == "2012B" )
 	{
-		MCdist = Fall11True;
-		//MCdist = Summer12;  FIXME
+		MCdist = Summer12;
 	}
 	else if( fRunPeriod == "2012" )
 	{
-		MCdist = Fall11True;
-		//MCdist = Summer12;  FIXME
+		MCdist = Summer12;
 	}
 	else
 	{
