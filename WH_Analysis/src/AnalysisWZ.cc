@@ -39,8 +39,11 @@ AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters
 
 AnalysisWZ::~AnalysisWZ()
 {
-	std::cout << "======= Number of no Tight Muons: " << _nTMuons << std::endl;
-	std::cout << "======= Number of no Tight Elecs: " << _nTElecs << std::endl;
+	if( fLeptonSelection->IsInFakeableMode() != 0 )
+	{
+		std::cout << "======= Number of no Tight Muons: " << _nTMuons << std::endl;
+		std::cout << "======= Number of no Tight Elecs: " << _nTElecs << std::endl;
+	}
 }
 
 
@@ -698,7 +701,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
-	if( fFO != 0 && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
+	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
 		// As we are using the approximation PromptRate=1, then
 		// PPF (3,2) = fF0->GetWeight

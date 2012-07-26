@@ -130,25 +130,20 @@ class AnalysisBase : public CMSAnalysisSelector
 
 	protected: 
 		bool IspassHLT() const;
-		//! Extract the 4-momenta of the good leptons. WARNING only can be used with
-		//! the good leptons
-		//const TLorentzVector GetTLorentzVector( const int & index ) const;
-		// Overloaded for other objects than leptons
+		//! Extract the 4-momenta of object "namep".
 		const TLorentzVector GetTLorentzVector( const char * namep, 
 				const int & index ) const;
 
-		//unsigned int GetFSID( const unsigned int & nelecs, const unsigned int & nmuons,
-		//		const unsigned int & ntaus ) const ;
 		//! Methods to fill histograms
 		virtual void FillHistoPerCut(const unsigned int & cut,const double & puw, 
 				const unsigned int & fs); // = 0;  //FIXME de momento
 		virtual void FillGenPlots(const unsigned int & cut, double puw); 
 
 
-		// Number of final state leptons
+		//! Number of final state leptons
 		unsigned int _nLeptons;
 		
-		// Variables describing dataset
+		//! Variables describing dataset
 		// -----------------------------------------------------------------------
 		TString fDataName; // Dataset Name
 		bool    fIsData;   // True if it should be treated as data
