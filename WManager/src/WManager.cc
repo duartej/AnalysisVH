@@ -18,13 +18,14 @@ WManager::WManager(const unsigned int & weighttype, const bool & isZJetsRegion )
 {
 	_weights[MUON] = 0;
 	_weights[ELECTRON] = 0;
+	_filesnames[MUON] = "";
+	_filesnames[ELECTRON] = "";
 
+	_filesnames[MUON] = this->getfile(MUON,isZJetsRegion);
+	_filesnames[ELECTRON] = this->getfile(ELECTRON,isZJetsRegion);
 
-	std::string mufile( this->getfile(MUON,isZJetsRegion) );
-	std::string elecfile( this->getfile(ELECTRON,isZJetsRegion) ); 
-
-	this->setweightfile(MUON,mufile.c_str());
-	this->setweightfile(ELECTRON,elecfile.c_str());
+	this->setweightfile(MUON,_filesnames[MUON].c_str());
+	this->setweightfile(ELECTRON,_filesnames[ELECTRON].c_str());
 }
 
 WManager::~WManager()

@@ -21,6 +21,7 @@
 #define WMANAGER_H
 
 #include<map>
+#include<cstring>
 #include<iostream>
 
 #include "LeptonTypes.h"
@@ -54,6 +55,10 @@ class WManager
 
 		//! Get the name of the weight type introduced as an  enum
 		const char * GetWTStr(const unsigned int & wt) const;
+
+		//! Get the file name used 
+		inline const std::string GetFilename(const LeptonTypes & lt) { return _filesnames[lt]; } 
+
 	
 	private:
 		//! Set the root file where to find the TH2F with the weights
@@ -66,6 +71,9 @@ class WManager
 		unsigned int _wtype;
 		//! Weight map
 		std::map<LeptonTypes,TH2F*> _weights;
+
+		//! Informational file names
+		std::map<LeptonTypes,std::string> _filesnames;
 };
 
 #endif

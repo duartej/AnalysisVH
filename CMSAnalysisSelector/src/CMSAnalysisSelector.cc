@@ -174,14 +174,16 @@ void CMSAnalysisSelector::Terminate()
    std::cout << "===================================================" << std::endl;
    std::cout << "||                    SUMMARY                    ||" << std::endl;
    std::cout << "===================================================" << std::endl;
-
-   if (fInputParameters) 
-     fInputParameters->DumpParms();
-
+   std::cout << "[ Analisys::Summary:  INPUT PARAMETERS ]" << std::endl << std::endl;
+   if( this->fInputParameters )
+   {
+	   fInputParameters->DumpParms();
+   }
+   std::cout << std::endl << "[ Analisys::Summary: RESULTS ]" << std::endl << std::endl;
    std::cout << " ------------------------------------------------- " << std::endl;
-   std::cout << " + " << *fNEventsProcessed << " events processed" << std::endl;
-   std::cout << " ------------------------------------------------- " << std::endl;
+   std::cout << " + Events processed: " << *fNEventsProcessed << std::endl;
    
+   // AnalysisBase summary 
    Summary();
 #ifdef DEBUGCMSANALYSISSELECTOR
    std::cout << "DEBUG: <== CMSAnalysisSelector::Terminate()" << std::endl;

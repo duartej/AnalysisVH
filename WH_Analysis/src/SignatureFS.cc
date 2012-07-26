@@ -113,6 +113,20 @@ unsigned int SignatureFS::GetFSID(const unsigned int & nel,
         return fs;
 }
 
+const char * SignatureFS::GetFSID(const unsigned int & efs)
+{
+	if( efs >= SignatureFS::_iFStotal )
+	{
+		std::cerr << "SignatureFS::SignatureFS ERROR Not Implemented"
+			<< " final state: '" << efs << "'" 
+			<< std::endl;
+		return "(?)";
+	}
+
+	return SignatureFS::kFinalStates[efs];
+
+}
+
 // Get N muons given the EFS enum final state
 unsigned int SignatureFS::GetNMuons(const unsigned int & fs)
 {

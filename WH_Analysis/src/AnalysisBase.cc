@@ -353,33 +353,7 @@ void AnalysisBase::InitialiseParameters()
 }
 
 
-/*const TLorentzVector AnalysisBase::GetTLorentzVector( const int & index) const
-{
-	std::string name;
-	// FIXME: WARNING, Not implemented
-	if( fLeptonSelection->GetLeptonType(index) == MUON )
-	{
-		name = "Muon";
-	}
-	else
-	{
-		name = "Elec";
-	}
-
-	const std::string px("T_"+name+"_Px");
-	const std::string py("T_"+name+"_Py");
-	const std::string pz("T_"+name+"_Pz");
-	const std::string energy("T_"+name+"_Energy");
-std::cout << "ADIOS CARACOLA" << std::endl;
-
-	return TLorentzVector( fData->Get<float>(px.c_str(),index),
-			fData->Get<float>(py.c_str(),index),
-			fData->Get<float>(pz.c_str(),index),
-			fData->Get<float>(energy.c_str(),index)
-			);
-}*/
-
-// Overloaded function to extract 4-moments of other than leptons
+// Function to extract 4-moments of objects
 const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const int & index) const
 {
 	std::string namestr = name;
@@ -397,23 +371,41 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 
 void AnalysisBase::Summary()
 {
-	std::cout << std::endl << "[ Analisys::Summary ]" << std::endl << std::endl;
+	std::cout << " + Channel evaluated: " << SignatureFS::GetFSID(fFS) << std::endl;
+	if( ! fIsData )
+	{
+		std::cout << " + Scale Factors used: |" << std::endl;
+		if( fFS == SignatureFS::_iFSmmm ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
+		{
+			std::cout << "                       + MUON: " << fSF->GetFilename(MUON) << std::endl;
+		}
+		
+		if( fFS == SignatureFS::_iFSeee ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
+		{
+			std::cout << "                       + ELECTRON: " << fSF->GetFilename(ELECTRON) << std::endl;
+		}
+	}
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
-		std::cout << std::endl << "FAKEABLE MODE: [Fake Rate matrix used: ";
+		std::cout << " + FAKEABLE MODE ENABLED: ";
 		int iszjetsFRMatrixint = 0;
 		// Fake rate Matrix for Z Jets, when proceed
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
 		if( iszjetsFRMatrix ) 
 		{
-			std::cout << "Z+Jets Region]" << std::endl << std::endl;
+			std::cout << "Z+Jets Region" << std::endl;
 		}
 		else
 		{
-			std::cout << "ttbar Region]" << std::endl << std::endl;
+			std::cout << "ttbar Region" << std::endl;
 		}
 	}
+	// FIXME---> SYSTEMATICS MODE ?? -> IsSystematicMode() ??
+	std::cout << " ------------------------------------------------- " << std::endl;
+	std::cout << std::endl;
   
 	std::cout << "N. events by process ID:" << std::endl;
 	std::cout << "------------------------" << std::endl;
