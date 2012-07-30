@@ -389,12 +389,21 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		}
 		TString skim("/");
 
-		if (dataName.Contains("WH")) 
+		if( dataName.Contains("WH") )
 		{
-			folder = std::string("HWW "+std::string(folder)).c_str();
-			skim = "/";
-			dataName.Replace(0,2, "WHToWW2L");
+			if( strncmp(runperiod,"2011",4) == 0 ) 
+			{
+				folder = std::string("HWW "+std::string(folder)).c_str();
+				skim = "/";
+				dataName.Replace(0,2, "WHToWW2L");
+			}
+			else if(strncmp(runperiod,"2012",4) == 0 )
+			{
+				dataName.Replace(0,2,"wzttH");
+				dataName += "ToWW";
+			}
 		}
+		
 		
 		// 1) Load DatasetManager
 		DatasetManager* dm = 0;
@@ -504,13 +513,14 @@ void display_usage()
 		<< " in the list will be extracted" << std::endl;
 	std::cout << "List of known dataname:" << std::endl;
 	std::cout << "    Higgs:             WH# (#: Higgs Mass hypothesis)" << std::endl;
-	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph" << std::endl;
+	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph DYJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee_Powheg DYmumu_Powheg Dytautau_Powheg Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
-	std::cout << "    VGamma + Jets  :   PhotonVJets_Madgraph" << std::endl;
-	std::cout << "    VGamma         :   ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad" << std::endl;
+	std::cout << "    VGamma + Jets  :   [2011] PhotonVJets_Madgraph" << std::endl;
+	std::cout << "                       [2012] WgammaToLNuG ZgammaToLLG" << std::endl;
+	std::cout << " ---> DEPRECATED   VGamma         :   ZgammaToMuMuMad ZgammaToElElMad"
+		  << " ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad <--- DEPRECATED" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
-	std::cout << "    Other backgrounds: -WZ --> PYTHIA SAMPLE TO BE DEPRECATED-\n" 
-		<<   "                       WZTo3LNu ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
+	std::cout << "    Other backgrounds: WZTo3LNu ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
 }
 
 int main(int argc, char *argv[])
@@ -603,34 +613,64 @@ int main(int argc, char *argv[])
         knowndata.insert("WH120");
         knowndata.insert("WH130");
 	// Z+jets
-	knowndata.insert("ZJets_Madgraph");
-	knowndata.insert("DYee_Powheg");
-	knowndata.insert("DYmumu_Powheg");
-	knowndata.insert("DYtautau_Powheg");
-	knowndata.insert("Zee_Powheg");
-	knowndata.insert("Zmumu_Powheg");
-	knowndata.insert("Ztautau_Powheg");
+	if(  strncmp(runperiod,"2012",4) == 0 )
+	{
+		knowndata.insert("ZJets");
+	}
+	else if( strncmp(runperiod,"2011",4) == 0 )
+	{
+		knowndata.insert("ZJets_Madgraph");
+        	knowndata.insert("DYee_Powheg");
+        	knowndata.insert("DYmumu_Powheg");
+        	knowndata.insert("DYtautau_Powheg");
+        	knowndata.insert("Zee_Powheg");
+        	knowndata.insert("Zmumu_Powheg");
+        	knowndata.insert("Ztautau_Powheg");
+	}
 	// VGamma + Jets
-	knowndata.insert("PhotonVJets_Madgraph");
-	// VGamma 
-	knowndata.insert("ZgammaToMuMuMad");
+	if( strncmp(runperiod,"2012",4) == 0 )
+	{
+		knowndata.insert("WgammaToLNuG");
+		knowndata.insert("ZgammaToLLG");
+	}
+	else if( strncmp(runperiod,"2011",4) == 0 )
+	{
+		knowndata.insert("PhotonVJets_Madgraph");
+	}
+	// VGamma---> DEPRECATED
+	/*knowndata.insert("ZgammaToMuMuMad");
 	knowndata.insert("ZgammaToElElMad");
 	knowndata.insert("ZgammaToTauTauMad");
 	knowndata.insert("WgammaToMuNuMad");
 	knowndata.insert("WgammaToElNuMad");
-	knowndata.insert("WgammaToTauNuMad");
+	knowndata.insert("WgammaToTauNuMad");*/
 	// Zbb+jets
 	knowndata.insert("Zbb");
 	// Other background
 	// knowndata.insert("WZ"); --> Pythia sample to be deprecated
 	knowndata.insert("WZTo3LNu");
 	knowndata.insert("ZZ");
-	knowndata.insert("WW");
-	//knowndata.insert("TTbar_Madgraph");
-	knowndata.insert("TTbar_2L2Nu_Powheg");
+	knowndata.insert("WW"); // FIXME Use WWTo2L2Nu_MAdgraph ???
+	if( strncmp(runperiod,"2012",4) == 0 )
+	{
+		// FIXME:: Sure ???
+		knowndata.insert("TTbar_Madgraph");
+	}
+	else if( strncmp(runperiod,"2011",4) == 0 )
+	{
+		knowndata.insert("TTbar_2L2Nu_Powheg");
+	}
 	knowndata.insert("WJets_Madgraph");
-	knowndata.insert("TW_DR");
-	knowndata.insert("TbarW_DR");
+	if( strncmp(runperiod,"2012",4) == 0 )
+	{
+		knowndata.insert("TW");
+		knowndata.insert("TbarW");
+	}
+	else if( strncmp(runperiod,"2011",4) == 0 )
+	{
+		knowndata.insert("TW_DR");
+		knowndata.insert("TbarW_DR");
+	}
 	knowndata.insert("Fakes");
 
 	//Data 
