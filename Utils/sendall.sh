@@ -29,7 +29,8 @@ SYNTAX:
 
 OPTIONS:
 
-   [-r]: Set the Run period: 2011, 2011A, 2011B. Default: 2011
+   [-r]: Set the Run period: 2011, 2011A, 2011B 
+                             2012, 2012A, 2012B  [Default: 2012]
    [-F]: Activate fakeable mode: the Fakes data sample will be send
          in substitution of Z+Jets, Drell-Yan and ttbar MC samples.
 	 Also, it is sended a WZ3LNu and ZZ sample in fakeable mode
@@ -92,11 +93,7 @@ EOF
 }
 
 # Default
-runperiod=2011
-
-# TTbar sample and WZ
-TTBAR=TTbar_2L2Nu_Powheg
-#TTBAR=TTbar_Madgraph
+runperiod=2012
 
 
 #
@@ -163,6 +160,16 @@ then
 	exit -1;
 fi;
 
+# Some stuff related with period and samples
+# TTbar sample and WZ
+if [ "X$runperiod" == "X2011" -o "X$runperiod" == "X2011A" -o "X$runperiod" == "X2011B" ];
+then
+	TTBAR=TTbar_2L2Nu_Powheg;
+else
+	TTBAR=TTbar_Madgraph;
+fi;
+
+
 # Go to the working directory
 cd $PWD
 
@@ -170,13 +177,15 @@ signal=$1
 
 echo "[sendall] Info: Creating data files to extract root files"
 datamanagercreator -r $runperiod -f mmm;
-if [ -f ZJets_Madgraph_datanames.dn ]; then
-	echo "[sendall] Warning: the ZJets_Madgraph sample is not yet implemented. Removing it";
-	rm ZJets_Madgraph_datanames.dn;
-fi 
+# DEPRECATED: taken into account in the datamanagercreator
+# if [ -f ZJets_Madgraph_datanames.dn ]; then
+#	echo "[sendall] Warning: the ZJets_Madgraph sample is not yet implemented. Removing it";
+#	rm ZJets_Madgraph_datanames.dn;
+#fi 
 if [ "$1" == "WZ" ]; then
 	echo "[sendall] Info: not needed the WH samples, removing";
-	rm WHTo*.dn;
+	rm -f WHTo*.dn;
+	rm -f wzttH*.dn
 fi
 
 echo "[sendall] Info: Removing WJets because doesn't have impact after 3leptons"
@@ -184,16 +193,21 @@ if [ -f WJets_Madgraph_datanames.dn ]; then
 	rm WJets_Madgraph_datanames.dn;
 fi
 
-OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
 VGamma="PhotonVJets_Madgraph"
-echo "[sendall] Info (TO BE DEPRECATED): Considering VGamma as $VGamma"
-echo "[sendall] Info (TO BE DEPRECATED): So removing $OtherVGamma"
-for vgammafiles in $OtherVGamma; 
-do
-	if [ -f ${vgammafiles}_datanames.dn ]; then
-		rm ${vgammafiles}_datanames.dn;
-	fi
-done
+if [ "X$runperiod" == "X2012" -o "X$runperiod" == "X2012A" -o "X$runperiod" == "X2012B" ]; 
+then
+	VGamma = "WgammaToLNu ZgammaToLNu";
+fi;
+# DEPRECATED OtherVGamma:
+#OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
+#echo "[sendall] Info (TO BE DEPRECATED): Considering VGamma as $VGamma"
+#echo "[sendall] Info (TO BE DEPRECATED): So removing $OtherVGamma"
+#for vgammafiles in $OtherVGamma; 
+#do
+#	if [ -f ${vgammafiles}_datanames.dn ]; then
+#		rm ${vgammafiles}_datanames.dn;
+#	fi
+#done
 
 if [ "X"$fakeable == "X" ];
 then
@@ -214,10 +228,14 @@ else
 		rm WW_datanames.dn;
 	else
 		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar and single top samples, removing";
-		rm Z*_Powheg_datanames.dn;
-		rm DY*_Powheg_datanames.dn;
-		rm TbarW_DR_datanames.dn;
-		rm TW_DR_datanames.dn;
+		rm -f Z*_Powheg_datanames.dn;
+		rm -f DY*_Powheg_datanames.dn;
+		rm -f ZJets_Madgraph_datanames.dn;
+		rm -f DYJets_Madgraph_datanames.dn;
+		rm -f TbarW_DR_datanames.dn;
+		rm -f TbarW_datanames.dn;
+		rm -f TW_DR_datanames.dn;
+		rm -f TW_datanames.dn;
 		rm ${TTBAR}_datanames.dn;
 	fi
 fi

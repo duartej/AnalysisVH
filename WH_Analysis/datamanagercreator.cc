@@ -615,11 +615,10 @@ int main(int argc, char *argv[])
 	// Z+jets
 	if(  strncmp(runperiod,"2012",4) == 0 )
 	{
-		knowndata.insert("ZJets");
+		knowndata.insert("ZJets_Madgraph");
 	}
 	else if( strncmp(runperiod,"2011",4) == 0 )
 	{
-		knowndata.insert("ZJets_Madgraph");
         	knowndata.insert("DYee_Powheg");
         	knowndata.insert("DYmumu_Powheg");
         	knowndata.insert("DYtautau_Powheg");
