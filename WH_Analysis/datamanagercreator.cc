@@ -47,6 +47,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		exit(-1);
 	}
 	std::string production = "LatinosSkims";
+	std::string production2012 = "MC_Summer12/WH";
 	std::string runpath;
 	std::vector<std::string> filenames;
 	std::map<std::string,std::vector<std::string> > mappathfiles;
@@ -184,21 +185,15 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 	}
 	else if( strcmp(runperiod,"2012A") == 0 )
 	{
-		runpath = "../"+production+"/Data7TeVRun2012A";
+		runpath = "../"+production2012;
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuMay10_Latinos_211.4");
-			filenames.push_back("Tree_DoubleMuV4_Latinos_929.7");
-			filenames.push_back("Tree_DoubleMuAug5_Latinos_317.8");
-			filenames.push_back("Tree_DoubleMuV6_Latinos_658.9");
+			filenames.push_back("Tree_DoubleMuonA");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronMay10_Latinos_211.4");
-			filenames.push_back("Tree_DoubleElectronV4_Latinos_929.7"); // OJO hay dos, lo hara el DM
-			filenames.push_back("Tree_DoubleElectronAug5_Latinos_317.8"); 
-			filenames.push_back("Tree_DoubleElectronV6_Latinos_658.9");
+			filenames.push_back("Tree_DoubleElectronA");
 		}
 		else if( strcmp(finalstate,"mme") == 0  ) 
 		{
@@ -241,15 +236,15 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 	}
 	else if( strcmp(runperiod,"2012B") == 0 )
 	{
-		runpath = "../"+production+"/Data8TeVRun2012B";
+		runpath = "../"+production2012;
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuV1_Latinos_2509");
+			filenames.push_back("Tree_DoubleMuB_24X");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronV1_Latinos_2509");
+			filenames.push_back("Tree_DoubleElectronB");
 		}
 		else if( strcmp(finalstate,"mme") == 0  )
 		{
@@ -475,9 +470,9 @@ void display_usage()
 	std::cout << "usage: datamanagercreator [dataname] [options]" << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "Options:" << std::endl;
-	std::cout << "    -r <2011A|2011B|2011>       Run period to extract datafiles" << std::endl;
-	std::cout << "    -f <mmm|mme|eee|eem>        Final state to be used in the data case" << std::endl;
-	std::cout << "    -h                          Displays this help message and exits " << std::endl;
+	std::cout << "    -r <201*A|201*B|201*> *=1,2  Run period to extract datafiles" << std::endl;
+	std::cout << "    -f <mmm|mme|eee|eem>         Final state to be used in the data case" << std::endl;
+	std::cout << "    -h                           Displays this help message and exits " << std::endl;
 	std::cout << "" << std::endl;
 	std::cout << "The 'dataname' must be one of the shown below. If 'dataname' is not used, all the dataname"
 		<< " in the list will be extracted" << std::endl;

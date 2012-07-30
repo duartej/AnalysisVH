@@ -24,15 +24,18 @@ class br(object):
 	Branching ratios constants
 	"""
 	#------- BRANCHING RATIOS -----------------
+	# W leptonic decays
 	W2e  =0.1075
 	W2m =0.1057
 	W2tau=0.1125
 	
+	# Z leptonic decay
 	Z2ee    = 0.03363
 	Z2mm  = 0.03366
 	Z2tautau= 0.03367
 	Z2ll    = 0.033658
 	
+	# tau to light leptons decay
 	tau2e = 0.1782
 	tau2m= 0.1739
 

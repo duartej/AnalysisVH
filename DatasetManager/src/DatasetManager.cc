@@ -709,7 +709,7 @@ vector<TString> DatasetManager::GetRealDataFiles(const char* relativepath,
   {
 	  fullpath = DatasetManager::GuessLocalBasePath() + "/Data/" + relativepath + "/";
   } 
-  
+
   TString command("ls ");
   command += 
     fullpath + "/" + basefile + ".root " +
