@@ -189,7 +189,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuonA");
+			filenames.push_back("Tree_DoubleMuA");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
@@ -240,11 +240,17 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
+			filenames.push_back("Tree_DoubleMuB_20X");
+			filenames.push_back("Tree_DoubleMuB_22X");
+			filenames.push_back("Tree_DoubleMuB_23X");
 			filenames.push_back("Tree_DoubleMuB_24X");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronB");
+			filenames.push_back("Tree_DoubleElectronB_20X");
+			filenames.push_back("Tree_DoubleElectronB_22X");
+			filenames.push_back("Tree_DoubleElectronB_23X");
+			filenames.push_back("Tree_DoubleElectronB_24X");
 		}
 		else if( strcmp(finalstate,"mme") == 0  )
 		{
@@ -288,20 +294,33 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 	}
 	else if( strcmp(runperiod,"2012") == 0 )
 	{
-		std::map<std::string,std::vector<std::string> > map2011A = 
+		std::map<std::string,std::vector<std::string> > map2012A = 
 			getdatapathfiles("2012A",finalstate);
-		std::map<std::string,std::vector<std::string> > map2011B = 
+		std::map<std::string,std::vector<std::string> > map2012B = 
 			getdatapathfiles("2012B",finalstate);
 		// Just checking things are consistent
-		if( map2011A.size() != 1 and map2011B.size() != 1)
+		if( map2012A.size() != 1 and map2012B.size() != 1)
 		{
 			std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 				<< " this shows some inconsistency in the code. Contact the developer"
 				<< std::endl;
 			exit(-4);
 		}
-		mappathfiles[map2011A.begin()->first] = map2011A.begin()->second;
-		mappathfiles[map2011B.begin()->first] = map2011B.begin()->second;
+		mappathfiles[map2012A.begin()->first] = map2012A.begin()->second;
+		if( map2012A.begin()->first == map2012B.begin()->first )
+		{
+			// We can't use the same structure than 2011 because the directory was different 
+			// for each period:  Must be appendded 
+			const std::string labelname = map2012B.begin()->first;
+			std::vector<std::string>::iterator lastit = mappathfiles[labelname].end();
+			std::vector<std::string> v2012B = map2012B.begin()->second;
+			mappathfiles[labelname].insert(lastit,v2012B.begin(),v2012B.end());
+		}
+		else
+		{
+			// As 2011
+			mappathfiles[map2012B.begin()->first] = map2012B.begin()->second;
+		}
 	}
 	else
 	{
