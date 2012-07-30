@@ -382,6 +382,13 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		dm = new DatasetManager(folder, skim);
 		
 		dm->LoadDataset(dataName);  // Load information about a given dataset
+		if( strncmp(runperiod,"2012",4) == 0 )
+		{
+			// The MC_Summer12 datafiles are not following the standard
+			// notation of the 2011 files (the rush of production...), so
+			// I'm patching everywhere to deal with it. This is another patch...
+			dm->SetSkim("WH");
+		}
 		AddDataFiles(dm->GetFiles(),*datafiles); //Find files
 		
 		xsection = dm->GetCrossSection();
