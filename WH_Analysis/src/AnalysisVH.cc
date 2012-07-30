@@ -48,6 +48,12 @@ AnalysisVH::~AnalysisVH()
 
 void AnalysisVH::Initialise()
 {
+	// Signal ? 
+	if( fIsWH )
+	{
+		fIsSignal = true;
+	}
+
 	// Histograms
 	//----------------------------------------------------------------------------
 	// Process ID
@@ -239,7 +245,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	fNGenElectrons = 0; //Number of generated electrons from W or tau
 	fNGenMuons = 0;     //Number of generated muons from W or tau
 	fNGenLeptons = 0;   //Number of generated leptons from W or tau
-	if(fIsWH) 
+	if(fIsSignal) 
 	{
 		// + Classify by leptonic final state (taus undecayed)
 		unsigned int nelecsfromW = fData->GetSize<int>("T_Gen_ElecSt3_PID");
@@ -255,9 +261,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 			{
 				elecsfromtaus.push_back(
                                      TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i) ) );
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Py",i),
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Pz",i),
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i) ) );
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG: Elec from tau (from W) "
 					<< " E: " << fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i)
@@ -269,9 +275,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 			{
 				muonsfromtaus.push_back(
                                      TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i) ) );
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Py",i),
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Pz",i),
+					     fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i) ) );
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG: Muon from tau (from W) "
 					<< " E: " << fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i)
@@ -389,19 +395,17 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 				++fNGenMuons;
 			}
 		}
-		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
+		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons, 0);
 		_histos[fHGenFinalStateNoTaus]->Fill(fsNTau, puw);
 		
 #ifdef DEBUGANALYSIS
-		std::cout << "DEBUG: W->e/mu/tau " <<  fNGenElectrons
-			<< "/" << fNGenMuons << "/" << (3-fNGenMuons-fNGenElectrons) << std::endl;
 		std::cout << "DEBUG: fsNTau --> " << fsNTau << std::endl;
 #endif
 		// Initialize generation vector
 		fGenLepton.clear();
 		fGenLeptonName.clear();
 		//   Sort by energy (? or by pt?)
-		if(fNGenLeptons == 3)  // FIXME:: PORQUE SOLO 3?? --> cAMBIAR POR nLeptons
+		if(fNGenLeptons == _nLeptons)
 		{
 			std::map<double,std::pair<TLorentzVector,std::string> > vOrder;
 			std::vector<TLorentzVector> * vGenMuon = new std::vector<TLorentzVector>;
@@ -443,7 +447,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	//------------------------------------------------------------------
 	int procn = _iOther;
 	const int processID = fData->Get<int>("T_Event_processID");//GetEventprocessID();
-	if(processID >= 0 && processID <= 4)  //ZJets
+	if(processID >= 0 && processID <= 5)  //ZJets WJets WZJets
 	{
 		procn = _iVarious;
 	}
@@ -473,7 +477,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	}
 	_histos[fHProcess]->Fill(procn);
 
-	if(fIsWH && (procn != _iWH || fsNTau != fFS))
+	if(fIsSignal && (procn != _iWH || fsNTau != fFS))
 	{
 		return std::pair<unsigned int,float>(WHCuts::_iIsWH,puw);
 	}

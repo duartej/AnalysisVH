@@ -72,7 +72,7 @@ const TString kProcesses[] = { "WH",
                          "ZZ",
                          "WZ",
                          "WW",
-                         "Z/W+Jets and ttbar",
+                         "Z/W+Jets, WZ+Jets and ttbar",
                          "Other" };
 
 /*const TString kFinalStates[] = {
@@ -147,7 +147,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		// -----------------------------------------------------------------------
 		TString fDataName; // Dataset Name
 		bool    fIsData;   // True if it should be treated as data
-		bool    fIsWH;     // True if it should be treated as signal (WH)
+		bool    fIsWH;     // True if it is WH MC sample
+		bool    fIsWZ;     // True if it is WZ MC sample
+		bool    fIsSignal; // True if it should be treated as signal (MC-like)
 		std::vector<std::string> _datafiles; // Complete path to the files
 		
 		//! Luminosity: 

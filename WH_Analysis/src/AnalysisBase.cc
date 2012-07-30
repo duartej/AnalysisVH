@@ -31,6 +31,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_nLeptons(3), //FIXME: argumento de entrada ? --> No dependera de la SignatureFS
 	fIsData(false),
 	fIsWH(false),
+	fIsWZ(false),
+	fIsSignal(false),
 	fLuminosity(0),
 	fRunPeriod(""),
 	fFS(999),
@@ -288,11 +290,13 @@ void AnalysisBase::InitialiseParameters()
 	// Variables describing dataset...
 	//--------------------------------
 	fDataName = ip->TheNamedString("DataName");
-	fIsWH = false;
-	fIsData = false;
 	if(fDataName.Contains("WH"))
 	{
 		fIsWH = true;
+	}
+	else if(fDataName.Contains("WZ"))
+	{
+		fIsWZ  = true;
 	}
 	else if(fDataName.Contains("Data"))
 	{
@@ -309,6 +313,7 @@ void AnalysisBase::InitialiseParameters()
 	
 #ifdef DEBUGANALYSIS
 	std::cout << "DEBUG: IsWH   = " << fIsWH << std::endl;
+	std::cout << "DEBUG: IsWZ   = " << fIsWZ << std::endl;
 	std::cout << "DEBUG: IsData = " << fIsData << std::endl;
 #endif
 	
@@ -500,7 +505,7 @@ void AnalysisBase::FillHistoPerCut(const unsigned int & cut,const double & puw, 
 
 void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw) 
 {
-	if(fIsWH && fNGenLeptons == _nLeptons) 
+	if(fIsSignal && fNGenLeptons == _nLeptons) 
 	{
 		for(unsigned int i = 0; i < fNGenLeptons; i++) 
 		{

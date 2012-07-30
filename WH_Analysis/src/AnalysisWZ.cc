@@ -20,6 +20,7 @@ const double kZMass = 91.1876;
 //const unsigned int kNMuons = 3; 
 const unsigned int kNMuons = 2; 
 const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParticle("W+")->PdgCode()
+const unsigned int kZPID   = 23; //Found with TDatabasePDG::Instance()->GetParticle("Z")->PdgCode()
 const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()
 		
 
@@ -28,7 +29,7 @@ AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters
 	AnalysisBase(data,ipmap,selectorcuts,finalstate ),
 	_nTMuons(0),
 	_nTElecs(0)
-{ 
+{
 	// Number of cuts
 	fNCuts = WZCuts::_iNCuts;
 	for(unsigned int i = 0; i < fNCuts; ++i)
@@ -49,6 +50,11 @@ AnalysisWZ::~AnalysisWZ()
 
 void AnalysisWZ::Initialise()
 {
+	// Signal ? Recall, this function is called after InitialiseParameters from base class 
+	if( fIsWZ )
+	{
+		fIsSignal = true;
+	}
 	// Selection cuts
   	//----------------------------------------------------------------------------
   
@@ -240,12 +246,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 
 	// Generation studies
 	//----------------------------------------------------------------------
-	//unsigned int fsTaus = SignatureFS::_iFSunknown;
+	unsigned int fsTaus = SignatureFS::_iFSunknown;
 	unsigned int fsNTau = SignatureFS::_iFSunknown;
 	fNGenElectrons = 0; //Number of generated electrons from W or tau
 	fNGenMuons = 0;     //Number of generated muons from W or tau
 	fNGenLeptons = 0;   //Number of generated leptons from W or tau
-	if(fDataName.Contains("WZ")) // fIsWH --> Cambiar por fIsSignal) 
+	if(fIsSignal)
 	{
 		float masszcand = 0.0;
 		// Finding the events generated between 71-111 GeV/c
@@ -336,8 +342,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		{
 			return std::pair<unsigned int,float>(WZCuts::_iIsWZ,puw);
 		}
-	}
-	/*{
 		// + Classify by leptonic final state (taus undecayed)
 		unsigned int nelecsfromW = fData->GetSize<int>("T_Gen_ElecSt3_PID");
 		unsigned int nmusfromW = fData->GetSize<int>("T_Gen_MuonSt3_PID");
@@ -351,10 +355,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			if( abs(fData->Get<int>("T_Gen_TauSt3_LepDec_PID",i)) == 11 )
 			{
 				elecsfromtaus.push_back(
-                                     TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i) ) );
+						TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Py",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Pz",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i) ) );
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG: Elec from tau (from W) "
 					<< " E: " << fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i)
@@ -365,10 +369,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			else if( abs(fData->Get<int>("T_Gen_TauSt3_LepDec_PID",i)) == 13 )
 			{
 				muonsfromtaus.push_back(
-                                     TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
-					     fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i) ) );
+						TLorentzVector( fData->Get<float>("T_Gen_TauSt3_LepDec_Px",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Py",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Pz",i),
+							fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i) ) );
 #ifdef DEBUGANALYSIS
 				std::cout << "DEBUG: Muon from tau (from W) "
 					<< " E: " << fData->Get<float>("T_Gen_TauSt3_LepDec_Energy",i)
@@ -377,8 +381,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 #endif
 			}
 		}
-
-
+	
 		unsigned int ngenfromW;
 		if( fFS  == SignatureFS::_iFSmmm )
 		{
@@ -392,7 +395,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		{
 			ngenfromW = nelecsfromW+nmusfromW;
 		}
-		
 		_histos[fHNGenWElectrons]->Fill(nelecsfromW,puw);
 		_histos[fHNGenWMuons]->Fill(nmusfromW,puw);
 		_histos[fHNGenWLeptons]->Fill(ngenfromW,puw);
@@ -401,7 +403,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		
 #ifdef DEBUGANALYSIS
 		std::cout << "DEBUG: W->e/mu/tau " << nelecsfromW 
-			<< "/" << nmusfromW << "/" << ntausfromW << std::endl;
+				<< "/" << nmusfromW << "/" << ntausfromW << std::endl;
 		std::cout << "DEBUG: fsTaus --> " << fsTaus << std::endl;
 #endif
 		int igen[3] = {-1, -1, -1};
@@ -420,7 +422,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			//I have seen that electrons from taus have status 2 and are not replicated
 			// also I have to be sure the mother tau has decayed from the W
 			unsigned int mpidel  = TMath::Abs(fData->Get<int>("T_Gen_Elec_MPID",i));
-			if( mpidel == kWPID || ( mpidel == kTauPID && elecsfromtaus.size() != 0) ) 
+			if( (mpidel == kWPID || mpidel == kZPID) || ( mpidel == kTauPID && elecsfromtaus.size() != 0) ) 
 			{
 				// Checking that the electron really decay from the W->tau (st3)
 				if( mpidel == kTauPID )
@@ -437,7 +439,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 					}
 				}
 				if( fLeptonType == ELECTRON 
-	        			|| fLeptonType == MIX2MU1ELE || fLeptonType == MIX2ELE1MU )
+						|| fLeptonType == MIX2MU1ELE || fLeptonType == MIX2ELE1MU )
 				{
 					igen[fNGenLeptons] = i;
 					iname[fNGenLeptons] = "Elec";
@@ -460,7 +462,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			//I have seen that muons from taus have status 2 and are not replicated
 			// also I have to be sure the mother tau has decayed from the W
 			unsigned int mpid  = TMath::Abs(fData->Get<int>("T_Gen_Muon_MPID",i));
-			if ( mpid == kWPID || (mpid == kTauPID && muonsfromtaus.size() != 0) ) 
+			if( (mpid == kWPID || mpid == kZPID) || (mpid == kTauPID && muonsfromtaus.size() != 0) ) 
 			{
 				// Checking that the muon really decay from the W->tau (st3)
 				if( mpid == kTauPID )
@@ -469,7 +471,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 							fData->Get<float>("T_Gen_Muon_Py",i),
 							fData->Get<float>("T_Gen_Muon_Pz",i),
 							fData->Get<float>("T_Gen_Muon_Energy",i) );
-					int neq = std::count_if(elecsfromtaus.begin(), 	elecsfromtaus.end(), 
+					int neq = std::count_if(muonsfromtaus.begin(),muonsfromtaus.end(), 
 							std::bind1st(std::equal_to<TLorentzVector>(),muon) );
 					if( neq == 0 )
 					{
@@ -477,7 +479,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 					}
 				}
 				if( fLeptonType == MUON 
-	        			|| fLeptonType == MIX2MU1ELE || fLeptonType == MIX2ELE1MU )
+						|| fLeptonType == MIX2MU1ELE || fLeptonType == MIX2ELE1MU )
 				{
 					igen[fNGenLeptons] = i;
 					iname[fNGenLeptons] = "Muon";
@@ -486,12 +488,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 				++fNGenMuons;
 			}
 		}
-		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons, 3-fNGenMuons-fNGenElectrons);
+		// Extract the number of leptons taking into account that the taus already decay into light 
+		// leptons
+		fsNTau = SignatureFS::GetFSID(fNGenElectrons, fNGenMuons,0);
 		_histos[fHGenFinalStateNoTaus]->Fill(fsNTau, puw);
 		
 #ifdef DEBUGANALYSIS
-		std::cout << "DEBUG: W->e/mu/tau " <<  fNGenElectrons
-			<< "/" << fNGenMuons << "/" << (3-fNGenMuons-fNGenElectrons) << std::endl;
 		std::cout << "DEBUG: fsNTau --> " << fsNTau << std::endl;
 #endif
 		// Initialize generation vector
@@ -530,17 +532,18 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 #endif
 			FillGenPlots(WZCuts::_iAllEvents,puw);
 		}
-	}*/
+	}
 	
 	// All events
 	//------------------------------------------------------------------
-	FillHistoPerCut(WZCuts::_iAllEvents, puw, fsNTau);
+	FillHistoPerCut(WHCuts::_iAllEvents, puw, fsNTau);
+
   
 	// Proccess ID
 	//------------------------------------------------------------------
 	int procn = _iOther;
 	const int processID = fData->Get<int>("T_Event_processID");
-	if(processID >= 0 && processID <= 4)  //ZJets
+	if(processID >= 0 && processID <= 5)  //ZJets, WJets, WZJets
 	{
 		procn = _iVarious;
 	}
