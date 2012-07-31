@@ -516,7 +516,7 @@ void display_usage()
 	std::cout << "    Z + Jets Madgraph: ZJets_Madgraph DYJets_Madgraph" << std::endl;
 	std::cout << "    Z + Jets Powheg:   DYee_Powheg DYmumu_Powheg Dytautau_Powheg Zee_Powheg Zmumu_Powheg Ztautau_Powheg" << std::endl;
 	std::cout << "    VGamma + Jets  :   [2011] PhotonVJets_Madgraph" << std::endl;
-	std::cout << "                       [2012] WgammaToLNuG ZgammaToLLG" << std::endl;
+	std::cout << "                       [2012] WgammaToLNuG ZGToLL" << std::endl;
 	std::cout << " ---> DEPRECATED   VGamma         :   ZgammaToMuMuMad ZgammaToElElMad"
 		  << " ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad <--- DEPRECATED" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
@@ -630,7 +630,7 @@ int main(int argc, char *argv[])
 	if( strncmp(runperiod,"2012",4) == 0 )
 	{
 		knowndata.insert("WgammaToLNuG");
-		knowndata.insert("ZgammaToLLG");
+		knowndata.insert("ZGToLL");
 	}
 	else if( strncmp(runperiod,"2011",4) == 0 )
 	{

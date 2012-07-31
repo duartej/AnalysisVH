@@ -196,7 +196,7 @@ fi
 VGamma="PhotonVJets_Madgraph"
 if [ "X$runperiod" == "X2012" -o "X$runperiod" == "X2012A" -o "X$runperiod" == "X2012B" ]; 
 then
-	VGamma = "WgammaToLNu ZgammaToLNu";
+	VGamma = "WgammaToLNu ZGToLL";
 fi;
 # DEPRECATED OtherVGamma:
 #OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
