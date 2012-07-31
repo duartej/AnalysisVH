@@ -133,7 +133,7 @@ def geterrorarray(xs,xserrors):
 	return arrayE,arrayEsys
 
 
-def bluemethod(workingpath,zoutrange,whatuse,verbose):
+def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 	""" ..function:: bluemethod(workingpath,zoutrange,whatuse) --> 
 	"""
 	from array import array
@@ -143,7 +143,7 @@ def bluemethod(workingpath,zoutrange,whatuse,verbose):
 	
 	nchannels = len(IDCHANNEL.keys())
 	# Get cross-section and its relative-errors
-	xs,xserrors = getxserrorsrel(workingpath,xstype=whatuse)
+	xs,xserrors = getxserrorsrel(workingpath,xstype=whatuse,mcprod=mcprod)
 	### ========== INITIALIZATIONS =============================
 	### Arrays to be used to fill the matrices: arrayName  
 	### --- U: link between observable and measure 
@@ -233,7 +233,7 @@ if __name__ == '__main__':
 	
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,xstype="exclusive",verbose=False)
+	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,xstype="exclusive",mcprod="Summer12",verbose=False)
 	parser.add_option( '-w', '--workingdir', action='store', type='string', dest='workingpath',\
 			help="Working directory. It must exist the usual folder structure")
 	parser.add_option( '-z', '--ZrangeasinMC', action='store_true', dest='zoutrange',\
@@ -244,6 +244,9 @@ if __name__ == '__main__':
 	parser.add_option( '-x', '--xs', action='store', dest='xstype',\
 			help="The type of cross-section to be combined. Valid keywords: 'WZinclusive' 'WZexclusive'."\
 			" [Default 'exclusive']")
+	parser.add_option( '-m', '--mcprod', action='store', type='string', dest='mcprod',\
+			help="The MC production to be used as signal. This affects the number of"\
+			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
 	parser.add_option( '-v', '--verbose', action='store_true', dest='verbose',\
 			help="Activing the flag more information is printed [Default: False]")
 	
@@ -255,7 +258,7 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	print "\033[34mbluemethod INFO\033[m Combining the %s cross-section at '%s'" % (opt.xstype,opt.workingpath)
-	xsmean,xserrors = bluemethod(opt.workingpath,opt.zoutrange,opt.xstype,opt.verbose)
+	xsmean,xserrors = bluemethod(opt.workingpath,opt.zoutrange,opt.xstype,opt.mcprod,opt.verbose)
 
 	output  = "++++ Cross section combined using BLUE method ++++\n"
 	output += "xs=%.4f" % xsmean

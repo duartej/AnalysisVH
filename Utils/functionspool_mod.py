@@ -595,11 +595,10 @@ def getxserrorsrel(workingpath,**keywords):
 	Ngen = 0.0
 	if not allzrange:
 		# [71,111]
-		#Ngen = 801792.0 # [60,120] --> TO BE DEPRECATED
 		if mcprod == "Fall11":
-			Ngen = 787195.0
+			Ngen = 784391.0  # 0.64 extrapolated from total sample calculation
 		elif mcprod == "Summer12":
-			Ngen =1448913.0
+			Ngen = 946258.0  # 0.72 idem
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 				" Z range mass [71,111]: %d" % Ngen
 	else:
