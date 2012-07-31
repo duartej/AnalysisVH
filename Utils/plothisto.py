@@ -34,8 +34,8 @@ PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
 		'fHNPrimaryVerticesAfter3Leptons': 'UPRIGHT', 
 		'fHNSelectedPVLeptons': 'UPRIGHT', 'fHNSelectedIsoGoodLeptons': 'UPRIGHT',
 		'fHEtaLepton1': 'UPLEFT', 'fHEtaLepton2': 'UPLEFT', 'fHEtaLepton3': 'UPLEFT',
-		'fHZInvMassAfterZCand': 'UPRIGHT', 'fHTransversMass': 'UPRIGHT', 
-		'fHTransversMassAfterWCand': 'UPRIGHT',
+		'fHZInvMassAfterZCand': 'UPLEFT', 'fHTransversMass': 'UPRIGHT', 
+		'fHTransversMassAfterWCand': 'UPLEFT',
 		'fHNPrimaryVertices': 'UPRIGHT', 'fHNSelectedIsoLeptons': 'UPRIGHT',
 		'fHPtLepton3': 'UPRIGHT', 'fHPtLepton2': 'UPRIGHT', 'fHPtLepton1': 'UPRIGHT',
 		'fHdRl1Wcand': 'UPLEFT', 'fHEventsPerCut': 'UPRIGHT', 'fHdRl2Wcand': 'UPLEFT',
@@ -962,7 +962,8 @@ if __name__ == '__main__':
 		genericsignal = signal[:2]
 		# covering the case when isfakeasdata
 		if opt.isfakeasdata:
-			genericsignal = ""
+			# FIXME: WARNING TOO MUCH HARDCODED PATCH...
+			genericsignal = os.path.basename(os.getcwd())[:2]
 		try:
 			opt.channel = filter(lambda x: x.find(genericsignal+"e") != -1 or \
 					x.find(genericsignal+"m") != -1, path.split("/"))[0].replace(genericsignal,"")

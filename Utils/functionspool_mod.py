@@ -552,13 +552,14 @@ def getxserrorsrel(workingpath,**keywords):
 	from math import sqrt
 
 	# ===== Get some inputs OR/AND Defaults  ==================
-	validkeywords = [ "channels", "signal", "lumi", "allzrange", "xstype" ]
+	validkeywords = [ "channels", "signal", "lumi", "allzrange", "xstype", "mcprod" ]
 	
 	channellist = [ "eee", "eem", "mme", "mmm" ] 
 	signal="WZ"
 	Lumi= 4922.0 #pb-1
 	allzrange = False 
 	xstype = "exclusive"
+	mcprod = "Fall11" 
 	for key,value in keywords.iteritems():
 		if not key in validkeywords:
 			message = "\033[33;1mgetxserrosrel ERROR\033[m Not valid keyword argument '%s' " % key
@@ -573,6 +574,8 @@ def getxserrorsrel(workingpath,**keywords):
 			allzrange = value
 		elif key == "xstype":
 			xstype = value
+		elif key == "mcprod":
+			mcprod = value
 	# =========================================================
 	# Note that the sys is going to absorb the WZ, ZZ and Fakes,
 	# so there will be the union of systematics of each 
@@ -588,11 +591,15 @@ def getxserrorsrel(workingpath,**keywords):
 	# is refering to the usual STATistics
 	xserrors["STATS"] = {}
 
-	# Using the Zrange [60,120] or [71,111] or not
+	# Using the Zrange [71,111] or not
 	Ngen = 0.0
 	if not allzrange:
-		#Ngen = 801792.0 # [60,120]
-		Ngen = 787195.0 # [71,111]
+		# [71,111]
+		#Ngen = 801792.0 # [60,120] --> TO BE DEPRECATED
+		if mcprod == "Fall11":
+			Ngen = 787195.0
+		elif mcprod == "Summer12":
+			Ngen =1448913.0
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 				" Z range mass [71,111]: %d" % Ngen
 	else:

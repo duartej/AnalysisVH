@@ -38,7 +38,7 @@ def adduperrors(xserror,xs):
 	
 	return xsabserror
 
-def xscalc(path,zoutrange,format):
+def xscalc(path,zoutrange,format,mcprod):
 	"""
 	"""
 	from functionspool_mod import getxserrorsrel
@@ -50,8 +50,8 @@ def xscalc(path,zoutrange,format):
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
 		raise RuntimeError(message)
 	
-	xsWZ,xsWZrelerrors = getxserrorsrel(path,xstype="inclusive")
-	xs,xsrelerrors = getxserrorsrel(path,xstype="exclusive")
+	xsWZ,xsWZrelerrors = getxserrorsrel(path,xstype="inclusive",mcprod=mcprod)
+	xs,xsrelerrors = getxserrorsrel(path,xstype="exclusive",mcprod=mcprod)
 	# -- 
 	hasprint=True
 	if not format:
@@ -111,14 +111,17 @@ if __name__ == '__main__':
 	
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,format="tex")
+	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,format="tex",mcprod="Summer12")
 	parser.add_option( '-w', '--workingdir', action='store', type='string', dest='workingpath',\
 			help="Working directory. It must exist the usual folder structure")
 	parser.add_option( '-z', '--ZrangeasinMC', action='store_true', dest='zoutrange',\
 			help="Per default, the number of generated events to calculate the efficiency"\
-			" is calculated using the phase space of M_Z in [60,120]. Activating this option,"\
+			" is calculated using the phase space of M_Z in [71,111]. Activating this option,"\
 			" the script is going to use the phase space used in the WZ Monte Carlo sample"\
-			" creation.")
+			" creation. See '-m' to decide what MC-production has to be used")
+	parser.add_option( '-m', '--mcprod', action='store', type='string', dest='mcprod',\
+			help="The MC production to be used as signal. This affects the number of"\
+			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
 	parser.add_option( '-f', '--format', action='store', type='string', dest='format',\
 			help="Output format, it could be 'tex' or 'html'. Per default: 'tex'")
 
@@ -129,4 +132,4 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	print "\033[34mxscalc INFO\033[m Evaluating the cross-section at '%s'" % opt.workingpath
-	xscalc(opt.workingpath,opt.zoutrange,opt.format)
+	xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod)
