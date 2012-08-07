@@ -15,7 +15,7 @@ Generate the plots and tables of each final state
 
 SYNTAX:
 
-   $0 [-l luminosity] [-a] [ [-F|-f] | [-c] ] <WZ|WHnnn>
+   $0 [-r runperiod] [-l luminosity] [-a] [ [-F|-f] | [-c] ] <WZ|WHnnn>
 
 
    Note that the signal is a mandatory argument. WHnnn must be
@@ -25,7 +25,9 @@ SYNTAX:
 
 OPTIONS:
 
-   [-l]: Set the luminosity. Default: 4922.0 (full 2011 period- UPDATED at March-2012)
+   [-r]: Run period: 2011 or 2012 [Default: 2011]
+   [-l]: Set the luminosity. [Default: 4922.0 (for 2011 run period)
+                                       5064.0 (for 2012 run period)]
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
@@ -53,8 +55,8 @@ checkprocs()
 }
 
 # Default
-#luminosity=4626.8 # NEW CALCULATION -->
-luminosity=4922.0 
+runperiod=2011
+luminosity=""
 
 
 #
@@ -84,9 +86,10 @@ isreduced="-j DY,Z+Jets,Other"
 fakeasdata=""
 ctsample=""
 
-while getopts l:Ffach opt;
+while getopts l:r:Ffach opt;
 	do
 		case "$opt" in
+			r)	runperiod=$OPTARG;;
 			l)	luminosity=$OPTARG;;
 			a)	autobin="yes";;
 			F)	fakemode="-F";
@@ -110,6 +113,23 @@ then
 	help
 	exit -1;
 fi;
+
+# Checking the luminosity period, if not set we are putting the default depending the run period
+if [ "X$luminosity" == "X" ];
+then 
+	if [ "$runperiod" == "2011" ];
+	then
+		luminosity=4922.0;
+	elif [ "$runperiod" == "2012" ];
+	then
+		luminosity=5064.0
+		isreduced="-j VGamma@WgammaToLNuG,ZGToLL"
+	else
+		echo "[plotall] WARNING: the run period introduced is not supported. Changing to '2011'"
+		luminosity=4922.0
+	fi;
+fi
+
 
 # Go to the working directory
 cd $PWD
@@ -185,6 +205,7 @@ then
 	# If everything is fine then renaming
 	signal=${signalarray[0]}
 	data=${signalarray[1]}
+	# FIXME --- WHAT ABOUT 2012 ??
 	if [ `echo $signal|cut -d_ -f1` == "TTbar" ];
 	then
 		signal="TTbar_2L2Nu_Powheg"
@@ -229,7 +250,7 @@ do
 	for i in $HISTOSNOC;
 	do
 		# open a subshell
-		($plothistoexe $i -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -237,7 +258,7 @@ do
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		($plothistoexe fHFlavour -r 1 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) & 
+		($plothistoexe fHFlavour -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) & 
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -246,7 +267,7 @@ do
 	
 	for i in $HISTOS4B;
 	do
-		($plothistoexe $i $rbinoption4 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption4 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -255,7 +276,7 @@ do
 	
 	for i in $HISTOS8B;
 	do
-		($plothistoexe $i $rbinoption8 -s $signal -p $plotmode -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption8 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;

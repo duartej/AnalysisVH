@@ -278,7 +278,9 @@ class sampleclass(object):
 		
 		metaname = None
 
-		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "metaname", "add" ]
+		self.cm      = 7   # Center of mass per default
+
+		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "metaname", "add", "cm" ]
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
 				message  = "\033[31msampleclass ERROR\033[m Incorrect instantiation of 'class'"
@@ -302,6 +304,8 @@ class sampleclass(object):
 				self.channel = value
 				if self.channel != "lll":
 					self.latexchannel = self.channel.replace("m","#mu")
+			if key == 'cm':
+				self.cm = value
 
 		# Searching the filename (except when adding):
 		self.filename = os.path.join(os.path.abspath("cluster_"+self.samplename),"Results/"+self.samplename+".root")
@@ -432,7 +436,7 @@ class sampleclass(object):
 		# Titles
 		self.xtitle = self.variable+" "+self.unit
 		self.ytitle = "Events/(%.1f %s)" % (self.histogram.GetBinWidth(1),self.unit)
-		self.title  = "CMS Preliminary\n#sqrt{s}=7 TeV,  L=%.1f fb^{-1}" % (self.lumi/1000.0)
+		self.title  = "CMS Preliminary\n#sqrt{s}=%i TeV,  L=%.1f fb^{-1}" % (self.cm,self.lumi/1000.0)
 
 		
 		# Colors
@@ -907,7 +911,7 @@ if __name__ == '__main__':
 	parser.set_defaults(rebin=0,plottype=1,luminosity=4922.0,data="Data",ismodefake=False,\
 			isfakeasdata=False,wantratio=False,\
 			plotsuffix="PDF",\
-			isofficial=False) #wantroot=FAlse
+			isofficial=False, runperiod="2011") #wantroot=FAlse
 	parser.add_option( "-s",action='store',dest='signal', metavar="WZ|WH#", help="Signal name, for Higgs subsituing # for mass")
 	parser.add_option( "-d",action='store',dest='data', help="Data name [default: 'Data']")
 	parser.add_option( "-r",action='store',dest='rebin',  help="Rebin the histos a factor N [default: 0]")
@@ -915,7 +919,8 @@ if __name__ == '__main__':
 			"0: All backgrounds and signal stacked --- " \
 			"1: All backgrounds stacked, signal alone [default] --- "\
 			"2: No stacking at all")
-	parser.add_option( "-l",action='store',dest='luminosity', help="Luminosity in pb^-1 [default: 4922.0 pb^-1]")
+	parser.add_option( "-R",action='store',dest='runperiod', help="Run period: 2011, 2012  [default: 2011]")
+	parser.add_option( "-l",action='store',dest='luminosity', help="Luminosity in pb^-1 [default: 4922.0 pb^-1 if -R 2011]")
 	parser.add_option( "-F",action='store_true',dest='ismodefake', help="Mode Fakes: deactivating DrellYan and Z+Jets MC samples. Incompatible with '-f' option")
 	parser.add_option( "-f",action='store_true',dest='isfakeasdata', help="Mode Fakes: Comparing fake sample with the MC-samples which can generate it. "\
 			"In this mode, the Fake sample is used as Data and it will be compared with "\
@@ -986,7 +991,11 @@ if __name__ == '__main__':
 	# --- FIXME: High dependence of the MC sample type (Powheg)
 	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\
 			"DYtautau" ,"Zmumu","Ztautau","Zee"])
-	VGAMMALIST= map(lambda x: x.replace("cluster_",""),glob.glob("cluster_Zgamma*")+glob.glob("cluster_Wgamma*"))
+	if opt.runperiod == "2011":
+		zgammaname = "Zgamma"
+	elif opt.runperiod == "2012":
+		zgammaname = "ZGToLL"
+	VGAMMALIST= map(lambda x: x.replace("cluster_",""),glob.glob("cluster_"+zgammaname+"*")+glob.glob("cluster_Wgamma*"))
 	DDMZJETSLIST = map(lambda x : x+"_WEIGHTED", ZJETSLIST)
 	metasamples = { "ZJets": [] ,"DDM_ZJets": [], "DDM_TTbar":[], "VGamma": [] }
 	METASAMPLESCOMP = { "ZJets":  ZJETSLIST,
@@ -1064,6 +1073,15 @@ if __name__ == '__main__':
 		LEGENDSDICT["TbarW_DR"]="#bar{t}W"
 		COLORSDICT["TbarW_DR"] = kGreen+4
 
+	# Convert run period to center of mass
+	if opt.runperiod == "2011":
+		cm = 7
+	elif opt.runperiod == "2012":
+		cm = 8
+	else:
+		message = "\033[31mplothisto ERROR\033[m Run period (option '-R') '%s' not considered. See help" % (opt.runperiod)
+		sys.exit(message)
+
 
 	# Dictionary of samples with its sampleclass associated
 	sampledict = {}
@@ -1078,7 +1096,7 @@ if __name__ == '__main__':
 				sc =  []
 				for realname in realsampleslist:
 					sc.append( sampleclass(realname, histoname,lumi=float(opt.luminosity),\
-							isdata=isdata,issignal=issignal,channel=opt.channel,metaname=i) )
+							isdata=isdata,issignal=issignal,channel=opt.channel,metaname=i,cm=cm) )
 				# Adding
 				sampledict[i] = sc[0]
 				for k in xrange(1,len(sc)):
@@ -1087,7 +1105,7 @@ if __name__ == '__main__':
 				continue
 			except KeyError:
 				pass
-		sampledict[i] = sampleclass(i,histoname,lumi=float(opt.luminosity),isdata=isdata,issignal=issignal,channel=opt.channel)
+		sampledict[i] = sampleclass(i,histoname,lumi=float(opt.luminosity),isdata=isdata,issignal=issignal,channel=opt.channel,cm=cm)
 	# Rebining
 	nbins = sampledict[opt.data].histogram.GetNbinsX()
 	if int(opt.rebin) == 0:
