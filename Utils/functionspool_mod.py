@@ -190,7 +190,7 @@ class processedsample(object):
 			ip.TheNamedDouble("Luminosity",luminosity)
 			try: 
 				# Forcing the lumi inputed by the user (if any)
-				luminosity = [ self.luminosity ]
+				luminosity = [ float(self.luminosity) ]
 			except AttributeError:
 				pass
 			weight  = xs[0]*luminosity[0]/neventsample[0]
@@ -377,6 +377,27 @@ class processedsample(object):
 		:rtype: float
 		"""
 		return self.weight
+	
+	def gethistogram(self,histoname):
+		"""..method: gethistogram(histoname) -> ROOT.TH1F 
+		
+		Extracts the TH1 histogram already scaled to the working
+		luminosity
+		"""
+		import ROOT
+
+		f = ROOT.TFile(self.filename)
+		# Extract the histo
+		histogram = f.Get(histoname)
+		histogram.Scale(self.weight)
+		if not histogram:
+			message  = "\033[31msampleclass ERROR\033[m Histogram not found: '%s'" % histoname
+			raise RuntimeError(message)
+		
+		histogram.SetDirectory(0)
+		f.Close()
+
+		return histogram
 
 
 def getweight(f,lumi=None):
@@ -612,14 +633,17 @@ def getxserrorsrel(workingpath,**keywords):
 	# XS calculation lambda function
 	xsraw = lambda N,eff,lumi: (float(N)/BR.WZ23lnu)/(float(eff)*float(lumi))
 
+	# -----
+	#---> taufrac = { "mmm": 0.0694, "mme": 0.0687, "eem": 0.069, "eee": 0.0700 }
+	# ----
 	for channel in channellist:
 		# We have to correct the obtained cross-section per channel by the some factor due
 		# to the fact we want to present a pure light leptonic measures (i.e., W->l and Z->ll but l=e,mu)
 		# Inclusive or exclusive measures
 		if xstype == "inclusive":
-			correct = 1.0
+			correct = 1.0#*(1.-taufrac[channel])
 		else:
-			correct = BR.getlightbr(channel)
+			correct = BR.getlightbr(channel)#*(1.0-taufrac[channel])
 
 		# XS calculation lambda function
 		xs = lambda N,eff,lumi: xsraw(N,eff,lumi)*correct
