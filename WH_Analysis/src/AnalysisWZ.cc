@@ -1000,7 +1000,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		}
 		// Stores transverse mass (W cand., MET)
 		const double lWEt = lepton[i].Et();
-		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(lepton[i].DeltaPhi(METV)));
+		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(lepton[i].Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi --> Angle
 		wcandidate[pt] = i;
 		transverseMassW[i] = tMassW;
 	}
