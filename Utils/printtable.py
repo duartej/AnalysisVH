@@ -433,14 +433,16 @@ class table(object):
 		:rtype:  [ str, str, ... ] 
 		"""
 		components = []
-		if metasample == "DY":
+		# The user has preference
+		isusersrequest = metasample in self.usermetasample.keys()
+		if metasample == "DY" and not isusersrequest:
 			components = [ "DYee_Powheg", "DYmumu_Powheg", "DYtautau_Powheg" ]
-		elif metasample == "Z+Jets":
+		elif metasample == "Z+Jets" and not isusersrequest:
 			components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
-		elif metasample == "VGamma":
+		elif metasample == "VGamma" and not isusersrequest:
 			components = [ "ZgammaToElElMad", "ZgammaToMuMuMad", "ZgammaToTauTauMad",\
 					"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
-		elif metasample == "Other":
+		elif metasample == "Other" and not isuserrequest:
 			#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
 			components = [ "WW", "WJets_Madgraph" ]
 		elif metasample in self.usermetasample.keys():
