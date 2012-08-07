@@ -48,6 +48,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_cutvalue(-1),
 	_eventnumber(-1),
 	_runnumber(-1),
+	_evtlisttree(0),
 	_wcharge(0),
 	_jetname(""),
 	fWasStored(false)
@@ -171,6 +172,10 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_cuttree->Branch("weight",&_cutweight);
 	_cuttree->Branch("EventNumber",&_eventnumber);
 	_cuttree->Branch("RunNumber",&_runnumber);
+
+	// The tree for Event info
+	_evtlisttree = new TTree("evtlist","Event selected info");
+	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zmass/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
 }
 
 AnalysisBase::~AnalysisBase()
@@ -200,6 +205,11 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete _cuttree;
 		_cuttree = 0;
+	}
+	if( _evtlisttree != 0)
+	{
+		delete _evtlisttree;
+		_evtlisttree = 0;
 	}
 
 	if( fFO != 0 )
@@ -272,6 +282,8 @@ void AnalysisBase::SaveOutput( const char * outputname )
 		lo->Write();
 		// And the tree for cuts
 		_cuttree->Write();
+		// Also the event info tree
+		_evtlisttree->Write();
 
 		histoAnalysis.Close();
 	}
@@ -330,7 +342,8 @@ void AnalysisBase::InitialiseParameters()
 	}
 	else if( fRunPeriod == "2011" )
 	{
-		MCdist = Fall11True;
+		//MCdist = Fall11True;
+		MCdist = Fall11;
 	}
 	else if( fRunPeriod == "2012A" )
 	{
@@ -491,6 +504,35 @@ void AnalysisBase::StoresCut(const unsigned int & cut, const float & weight)
 	_cuttree->Fill();
 	_cutvalue = -1;
 	_cutweight = 1;
+}
+
+void AnalysisBase::StoresEvtInf(const std::vector<TLorentzVector> & lepton, 
+		const int & iZ1, const int & iZ2,
+		const int & iW, const double & transversmass, const TLorentzVector & METV)
+{
+        _evtinfo.run = fData->Get<int>("T_Event_RunNumber");
+        _evtinfo.lumi = fData->Get<int>("T_Event_LuminosityBlock");
+        _evtinfo.evt  = fData->Get<int>("T_Event_EventNumber");
+        _evtinfo.channel = fFS;
+
+        _evtinfo.zmass = (lepton[iZ1]+lepton[iZ2]).M();
+        _evtinfo.zlep1pt = lepton[iZ1].Pt();
+        _evtinfo.zlep1eta = lepton[iZ1].Eta();
+        _evtinfo.zlep1phi = lepton[iZ1].Phi();
+
+        _evtinfo.zlep2pt = lepton[iZ2].Pt();
+        _evtinfo.zlep2eta = lepton[iZ2].Eta();
+        _evtinfo.zlep2phi = lepton[iZ2].Phi();
+
+        _evtinfo.wmt = transversmass;
+        _evtinfo.wleppt = lepton[iW].Pt();
+        _evtinfo.wlepeta = lepton[iW].Eta();
+        _evtinfo.wlepphi = lepton[iW].Phi();
+
+        _evtinfo.metet = METV.Pt();
+        _evtinfo.metphi= METV.Phi();
+
+	_evtlisttree->Fill();
 }
 
 

@@ -89,6 +89,33 @@ const TString kProcesses[] = { "WH",
   "Unknown"
 };
 */
+struct EvtInfo
+{
+        int run;
+        int lumi;
+        int evt;
+        int channel;
+
+        double zmass;
+        double zlep1pt;
+        double zlep1eta;
+        double zlep1phi;
+        double zlep2pt;
+        double zlep2eta;
+        double zlep2phi;
+
+        double wmt;
+        double wleppt;
+        double wlepeta;
+        double wlepphi;
+
+        double metet;
+        double metphi;
+};
+
+
+
+
 
 class AnalysisBase : public CMSAnalysisSelector 
 {
@@ -122,6 +149,11 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! (to be fill with the return value of InsideLoop method and inside the
 		//! parent method Process)
 		virtual void StoresCut(const unsigned int & cut,const float & weight);
+		//! Method to fill the tree containing relevant event information for the 
+		//! selected events
+		virtual void StoresEvtInf(const std::vector<TLorentzVector> & lepton, 
+				const int & iZ1, const int & iZ2,
+				const int & iW, const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
 
 	private:
@@ -197,6 +229,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		unsigned int _cutvalue;
 		int _eventnumber;
 		int _runnumber;
+
+		//! Tree to store some useful info for the selected events
+		TTree * _evtlisttree;
+		EvtInfo _evtinfo;
 
 		//! W Charge sign, when want to distinguish between them. 
 		int _wcharge;

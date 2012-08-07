@@ -53,7 +53,7 @@ class AnalysisWZ : public AnalysisBase
 			fHdRl2Wcand
 			//fHIsoLepton,
 			//fHD0Lepton
-			//,fHEtJetnoTightLepton
+			,fHEtJetnoTightLepton
 		};
 		
 		//! Constructor

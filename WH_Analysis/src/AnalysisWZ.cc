@@ -214,7 +214,7 @@ void AnalysisWZ::Initialise()
 
 	//_histos[fHIsoLepton] = CreateH1D("fHIsoLepton","#sum Iso_{total}/p_{t}",100,0,0.4);
 	//_histos[fHD0Lepton] = CreateH1D("fHD0Lepton","d_{0}",100,0,0.2);
-	//_histos[fHEtJetnoTightLepton] = CreateH1D("fHEtJetnoTightLepton","Jet E_{T}",200,0,100);
+	_histos[fHEtJetnoTightLepton] = CreateH1D("fHEtJetnoTightLepton","Jet E_{T}",200,0,100);
 	
 }
 
@@ -735,7 +735,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			{
 				TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
 				// Lepton inside the Jets
-				if( fabs(Jet.DeltaR(lvec)) <= 1.0 )
+				if( fabs(Jet.DeltaR(lvec)) <= 0.3 )
 				{
 					_histos[fHEtJetnoTightLepton]->Fill(Jet.Et(),puw);
 					return std::pair<unsigned int,float>(WZCuts::_iOppositeCharge,puw);
@@ -1064,6 +1064,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Filling histos -------------------------------------
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
+
+	//Store event info 
+	this->StoresEvtInf(lepton,i1Z,i2Z,iWcand,transverseMassW[iWcand],METV);
+
 
 	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);
 	
