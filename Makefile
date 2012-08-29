@@ -5,7 +5,7 @@ PACKAGE   := $(shell basename `pwd`)
 ### Dependencies
 DEPPKG     := VectorUtils TResultsTable TCounterUI PUWeight \
 	DatasetManager InputParameters TreeManager CutLevels CutManager \
-	CMSAnalysisSelector WManager WH_Analysis Utils
+	CMSAnalysisSelector WManager WH_Analysis
 BASEDIR    := $(shell pwd)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 
@@ -24,7 +24,7 @@ SETUPFILE  := "\#!/bin/bash"  \
 
 .PHONY: all cleanall linkage compile
  
-all: compile linkage setup.sh
+all: compile linkage utils setup.sh
 
 compile:
 	@# Checking if it is necessary to compile the dependency libraries
@@ -42,6 +42,11 @@ linkage:
 		fi; \
 	done
 	@rm -f $(BASEDIR)/libs/libUtils.so
+
+utils:
+	@# Compiling the executables
+	@echo "======= $(PACKAGE): Compiling Utilities ======"
+	@$(MAKE) -C Utils
 
 setup.sh: cleansetup
 	@echo "======= $(PACKAGE): Creating setup script ======"
