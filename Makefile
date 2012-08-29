@@ -22,7 +22,7 @@ SETUPFILE  := "\#!/bin/bash"  \
 "export PYTHONPATH=\$$PYTHONPATH:\$$BASEDIR/python"
 
 
-.PHONY: all cleanall linkage compile
+.PHONY: all cleanall utils linkage compile
  
 all: compile linkage utils setup.sh
 
