@@ -180,8 +180,8 @@ void CMSAnalysisSelector::Terminate()
 	   fInputParameters->DumpParms();
    }
    std::cout << std::endl << "[ Analisys::Summary: RESULTS ]" << std::endl << std::endl;
-   std::cout << " ------------------------------------------------- " << std::endl;
-   std::cout << " + Events processed: " << *fNEventsProcessed << std::endl;
+   std::cout << "------------------------------------------------- " << std::endl;
+   std::cout << "+ Events processed: " << *fNEventsProcessed << std::endl;
    
    // AnalysisBase summary 
    Summary();
