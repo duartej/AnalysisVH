@@ -27,8 +27,17 @@
 
 #include<set>
 
-// Codenames of the selection cuts:
-//   -- 
+//! Auxiliary enum
+namespace MuonID
+{
+	enum identifiers
+	{
+		VBTF,
+		HWWID,
+	};
+}
+
+
 
 class MuonSelection : public CutManager
 {
@@ -64,11 +73,17 @@ class MuonSelection : public CutManager
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 
-
-		// Get the code names of the selection cuts
+		//! Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;
 
 	private:
+		// Check if the muon-i pass the Vector Boson Task Force tight muon ID
+		bool PassVBTFTightID(const int & i) const;
+		// Check if the muon-i pass the HWW (WW) 2011 analysis muon ID
+		bool PassHWWMuonID(const int & i) const;
+		// Return the muon-i isolation variable (depending of the ID) over pt
+		std::pair<double,bool> GetMuonIsolationOverPt(const int & i) const;
+
 		//-- The effective cuts whose would be called by IsPass
 		//   method
 		bool IsPassPtCuts() const;
@@ -98,6 +113,8 @@ class MuonSelection : public CutManager
 
 		// The list of the selection chain codenames 
 		std::set<std::string> _codenames;
+		// The MuonID used
+		int _muonID;
 		// The cuts
 		double kMinMuPt1          ;
 		double kMinMuPt2          ;
