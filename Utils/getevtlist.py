@@ -2,7 +2,9 @@
 """
 Extract the Event info tree from a root file
 """
-
+# Maximum short int (in 64b c++ compiler), to fix
+# the negative event number bug
+MAXINT = 4294967295
 
 class evtinfo(object):
 	def __init__(self):
@@ -54,6 +56,11 @@ class evtinfo(object):
 					value = 2
 				elif value == 1:
 					value = 3
+			# Fix negative event number bug
+			if attrname == "evt" and value < 0:
+		#		print value,
+				value = MAXINT+value+1
+		#		print value
 			message += formatdm % value
 		message += "\n"
 
@@ -135,10 +142,10 @@ if __name__ == '__main__':
 
 	
 	# Extract the data/mc folders
-	print "\033[1:34mgetevtlist INFO\033]1;m Extracting event relevant info from '%s'" % args[0]
+	print "\033[1;34mgetevtlist INFO\033[1;m Extracting event relevant info from '%s'" % args[0],
 	print "and printing-out to '%s'" % outputname
 	totalent = evtinfowrite(args[0],outputname)
-	print "\033[1:34mgetevtlist INFO\033]1;m Processed a total %i events" % totalent
+	print "\033[1;34mgetevtlist INFO\033[1;m Processed a total %i events" % totalent
 
 
 

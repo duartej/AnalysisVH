@@ -41,7 +41,6 @@ linkage:
 		       ln -s $$libdir/lib/lib`basename $$libdir`.so libs/lib`basename $$libdir`.so; \
 		fi; \
 	done
-	@rm -f $(BASEDIR)/libs/libUtils.so
 
 utils:
 	@# Compiling the executables
