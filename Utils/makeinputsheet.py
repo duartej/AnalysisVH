@@ -20,6 +20,7 @@ CONFIGORDER = { 10 : "NameTree",
 		130 : 'MaxDeltaRMuMu',         
 		140 : 'MinMET',                
 		150 : 'DeltaZMass',            
+		155 : 'MuonID',
 		160 : 'MaxPTIsolationR1',      
 		170 : 'MaxPTIsolationR2',      
 		180 : 'MaxPTIsolationR3',      
@@ -70,6 +71,7 @@ CONFIGTYPES = { "NameTree":              "TString",
 		'MaxDeltaRMuMu':         "double",
 		'MinMET':                "double",
 		'DeltaZMass':            "double",
+		'MuonID':                "TString",
 		'MaxPTIsolationR1':      "double",
 		'MaxPTIsolationR2':      "double",
 		'MaxPTIsolationR3':      "double",
@@ -123,6 +125,7 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'MaxDeltaRMuMu': (1.2,),
 	      'MinMET':        (30.0,),
 	      'DeltaZMass':    (20.0,),
+	      'MuonID':        (None,"HWWID"),
 	      'MaxPTIsolationR1': ({"2011": 0.13,"2012":0.15},{"2011":0.06,"2012":0.82}),
 	      'MaxPTIsolationR2': ({"2011": 0.09,"2012":0.15},{"2011":0.05,"2012":0.86}),
 	      'MaxPTIsolationR3': ({"2011": 0.13,"2012":0.15},{"2011":0.13,"2012":0.86}),
@@ -171,6 +174,10 @@ class configvar:
 					self.name+"' configuration value'. This script should be"+\
 					" updated with this new configuration issue")
 	def __call__(self,leptontype,runperiod):
+		""" .. configvar.__call__(leptontype,runperiod,value=None)
+		Getting the values
+		"""
+
 		if leptontype != ELEC and leptontype != MUON:
 			raise RuntimeError("\033[1;31mconfigvar instance\033[1;m: not recognized the'"+\
 					" lepton type '"+str(leptontype)+"'")
@@ -237,9 +244,12 @@ if __name__ == '__main__':
 			help="Signal name [WZ<-default> WH]")
 	parser.add_option( '-o', '--outputname', action='store', dest='outputname',\
 			help="The ouput filename [Default: analisis[signal]_*.ip]")
+	parser.add_option( '--muonid', action="store", dest="muonid",\
+			help="The ID and Iso to be used for the muon."\
+			" Valid values are HWWID and VBTF. [Default: HWWID]")
 	parser.add_option( '-f', '--forcevalues', action='store', dest='forcelist',\
-			metavar="cfgname:value,...",
-			help="List of configuration values with their values introduced here [NOT IMPLEMENTED YET]")
+			metavar="cfgname:valueElectron@valueMuon,...",
+			help="List of configuration values with their values introduced here")
 
 	( opt, args ) = parser.parse_args()
 
@@ -249,6 +259,42 @@ if __name__ == '__main__':
 		filename = "analisis"+opt.signal.lower()
 	else:
 		filename = opt.outputname.split(".")[0]
+
+	if opt.muonid:
+		if opt.muonid != "HWWID" and opt.muonid != "VBTF":
+			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
+					" for '--muonid' option")
+		try:
+			opt.forcelist += "MuonID:None@"+opt.muonid
+		except TypeError:
+			opt.forcelist = "MuonID:None@"+opt.muonid
+	
+	# The user forces to put the value
+	if opt.forcelist:
+		namevallist = opt.forcelist.split(",")
+		if len(namevallist) == 0:
+			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: '-f' option not parsed"+\
+					" correctly. See the help")
+		namevaldir = dict( map(lambda x: (x.split(":")[0],x.split(":")[-1]), namevallist) )
+		for cfgname,valuetuple in namevaldir.iteritems():
+			try:
+				electronval = valuetuple.split("@")[0]
+				muonval     = valuetuple.split("@")[-1]
+			except:
+				raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: '-f' option not parsed"+\
+						" correctly. See the help")
+			# The None key
+			try:
+				electronval =eval(electronval)
+			except NameError:
+				pass
+			try:
+				muonval = eval(muonval)
+			except NameError:
+				pass
+			CONFIGVAL[cfgname] = (electronval,muonval)
+
+
 
 	for lt in [ ELEC,MUON ]:
 		print "\033[1;34mmakeinputsheet INFO\033[1;m Created the input sheet configuration file for",
