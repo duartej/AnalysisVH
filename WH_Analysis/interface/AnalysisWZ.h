@@ -68,8 +68,10 @@ class AnalysisWZ : public AnalysisBase
 
 	private:
 		AnalysisWZ();
+		// Number of no tight muons, electrons and events (Nti)
 		int _nTMuons;
 		int _nTElecs;
+		int _nTEvents;
 
 		ClassDef(AnalysisWZ,0);
 

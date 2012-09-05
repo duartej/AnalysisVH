@@ -664,6 +664,9 @@ def showresults(textresultfiles):
 	# N muons and electrons no tight (in the Fake case)
 	nmuons = 0
 	nelecs = 0
+	nevents= 0
+	retevts = re.compile("======= Nt(?P<tights>\d): (?P<total>\d*) =======")
+	ntights = -1
 
 	for file in textresultfiles:
 		f = open(file)
@@ -679,6 +682,11 @@ def showresults(textresultfiles):
 				try:
 					nelecs += int(line.split("======= Number of no Tight Elecs:")[-1].strip())
 				except ValueError:
+					pass
+				try:
+					ntights,total = retevts.search(line).groups()
+					nevents += int(total)
+				except AttributeError:
 					pass
 				continue
 			try:
@@ -716,10 +724,11 @@ def showresults(textresultfiles):
 
 		print formatstr % (totaldict[cut],percent,"%",cut)
 
-	print "---------------------------------"
+	print "-------------------------------------------------"
 	print "N of muons and electrons no Tight (when proceed)"
 	print "nMuons = %d    nElecs = %d" % (nmuons,nelecs)
-	print "---------------------------------"
+	print "Number of Nt%s events passing all selection: %d" % (ntights,nevents)
+	print "-------------------------------------------------"
 
 
 

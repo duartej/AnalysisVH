@@ -28,7 +28,8 @@ AnalysisWZ::AnalysisWZ( TreeManager * data, std::map<LeptonTypes,InputParameters
 				CutManager * selectorcuts, const unsigned int & finalstate ) :
 	AnalysisBase(data,ipmap,selectorcuts,finalstate ),
 	_nTMuons(0),
-	_nTElecs(0)
+	_nTElecs(0),
+	_nTEvents(0)
 {
 	// Number of cuts
 	fNCuts = WZCuts::_iNCuts;
@@ -44,6 +45,8 @@ AnalysisWZ::~AnalysisWZ()
 	{
 		std::cout << "======= Number of no Tight Muons: " << _nTMuons << std::endl;
 		std::cout << "======= Number of no Tight Elecs: " << _nTElecs << std::endl;
+		std::cout << "======= Nt" << fLeptonSelection->GetNAnalysisTightLeptons() << 
+			": " << _nTEvents << " =======" << std::endl;
 	}
 }
 
@@ -1068,6 +1071,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//Store event info 
 	this->StoresEvtInf(lepton,i1Z,i2Z,iWcand,transverseMassW[iWcand],METV);
 
+	if( fLeptonSelection->IsInFakeableMode() )
+	{
+		++_nTEvents;
+	}
 
 	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);
 	

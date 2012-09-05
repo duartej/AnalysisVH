@@ -13,7 +13,8 @@ MuonSelection::MuonSelection( TreeManager * data, const int & nTights, const int
 		const char * runperiod) : 
 	CutManager(data,nTights,nLeptons,runperiod),
 	//_muonID(MuonID::VBTF),  // FIXME: Entered via argument?? or is good to be hardcoded?
-	_muonID(MuonID::HWWID),  // FIXME: Entered via argument?? or is good to be hardcoded?
+	//_muonID(MuonID::HWWID),  // FIXME: Entered via argument?? or is good to be hardcoded?
+	_muonID(-1),
 	kMinMuPt1(-1),
 	kMinMuPt2(-1),      
 	kMinMuPt3(-1),          
@@ -60,6 +61,24 @@ void MuonSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 		exit(-1);
 	}
 	InputParameters * ip = (*(ipmap.find(MUON))).second;
+
+	// MuonId 
+	std::string muonid( ip->TheNamedString("MuonID") );
+	if( muonid == "HWWID" )
+	{
+		_muonID = MuonID::HWWID;
+	}
+	else if( muonid == "VBTF" )
+	{
+		_muonID = MuonID::VBTF;
+	}
+	else
+	{
+		std::cerr << "\033[1;31mElecSelection::LockCuts ERROR:\033[1;m "
+			<< "The 'MuonID' parameter introduced is not recognized: '"
+			<< _muonID << "'" << std::endl;
+		exit(-1);
+	}
 
 	double dummy = 0;
 	// Putting all the cuts (received from InitialiseCuts)
