@@ -120,6 +120,8 @@ class CutManager
 		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const = 0;
 		//! Get The lepton type for the i-esim no Tight lepton 
 		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const = 0;
+		//! Get the i-essim index of the Tight lepton
+		const unsigned int GetTightIndex(const unsigned int & i) const;
 		//! Get the i-essim index of the NoTight lepton
 		const unsigned int GetNoTightIndex(const unsigned int & i) const;
 		//! Get the number of total leptons which are considered in this analysis

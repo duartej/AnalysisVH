@@ -396,12 +396,35 @@ void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
 	delete notight;
 }
 
+// Extract the Index (in the data) of the i-essim Tight lepton
+const unsigned int CutManager::GetTightIndex(const unsigned int & i) const
+{
+	if( _samplemode != CutManager::FAKEABLESAMPLE )
+	{
+		std::cerr << "\033[1;31mCutManager::GetTightIndex ERROR\033[1;m Incoherent use of"
+			<< " this function because it cannot be called in NORMALSAMPLE mode."
+			<< " Check the client of this function why has been made this call"
+			<< std::endl;
+		exit(-1);
+	}
+
+	if( _tightLeptons->size() <= i )
+	{
+		std::cerr << "\033[1;31mCutManager::GetTightIndex ERROR\033[1;m Overbounded, "
+			<< "there are '" << _notightLeptons->size() << "' noTight leptons."
+			<< std::endl;
+		exit(-1);
+	}
+
+	return (*_tightLeptons)[i];
+}
+
 // Extract the Index (in the data) of the i-essim no Tight lepton
 const unsigned int CutManager::GetNoTightIndex(const unsigned int & i) const
 {
 	if( _samplemode != CutManager::FAKEABLESAMPLE )
 	{
-		std::cerr << "\033[1;31mCutManager::GetNoTightPt ERROR\033[1;m Incoherent use of"
+		std::cerr << "\033[1;31mCutManager::GetNoTightIndex ERROR\033[1;m Incoherent use of"
 			<< " this function because it cannot be called in NORMALSAMPLE mode."
 			<< " Check the client of this function why has been made this call"
 			<< std::endl;
@@ -410,7 +433,7 @@ const unsigned int CutManager::GetNoTightIndex(const unsigned int & i) const
 
 	if( _notightLeptons->size() <= i )
 	{
-		std::cerr << "\033[1;31mCutManager::GetNoTightPt ERROR\033[1;m Overbounded, "
+		std::cerr << "\033[1;31mCutManager::GetNoTightIndex ERROR\033[1;m Overbounded, "
 			<< "there are '" << _notightLeptons->size() << "' noTight leptons."
 			<< std::endl;
 		exit(-1);
