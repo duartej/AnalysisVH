@@ -159,40 +159,54 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 		exit(-1);
 	}
 
-	// Some arrangements in order to avoid the calculation inside the loop
-	// for the fake rate case the weight per event is f/(1-f)
-	if( _wtype == WManager::FR )
+	// Get the Overflow bin in pt in order to assign any lepton
+	// higher than the maximum
+	TH2F * prov = (TH2F*)_weights[leptontype]->Clone("prov");
+	// Get the Overflow bin in pt in order to assign any lepton
+	// higher than the maximum 
+	// Extract the maximum pt
+	const double ptMax = prov->GetXaxis()->GetBinLowEdge(prov->GetNbinsX()+1);
+	const double ptLowMax = prov->GetXaxis()->GetBinCenter(prov->GetNbinsX());
+	for(int i = 1; i <= prov->GetNbinsX()+1; ++i)
 	{
-		TH2F * prov = (TH2F*)_weights[leptontype]->Clone("prov");
-		// Get the Overflow bin in pt in order to assign any lepton
-		// higher than the maximum (50)
-		for(int i = 1; i <= prov->GetNbinsX()+1; ++i)
+		double ptIn = prov->GetXaxis()->GetBinCenter(i);
+		const double ptOut = ptIn;
+		if( ptIn >= ptMax )  // Note this is a fixed bug!! Afecting Scale factors and Prompt rates
 		{
-			// WARNING: FAKE RATE Matrix for  pt > 35 is not reliable
-			//          Following Alicia advice take the values of bin [30,35]
-			double ptIn = prov->GetXaxis()->GetBinCenter(i);
-			const double ptOut = ptIn;
+			ptIn = ptLowMax;
+		}
+
+		// WARNING: FAKE RATE Matrix for  pt > 35 is not reliable
+		//          Following Alicia advice take the values of bin [30,35]
+		if( _wtype == WManager::FR )
+		{
 			if( ptIn >= 35.0 )
 			{
 				ptIn = 34.;
 			}
-			
-			// Same as pt (w.r.t. the overflow) for the eta case 
-			for(int j = 1; j <= prov->GetNbinsY()+1; ++j)
-			{
-				const double eta = prov->GetYaxis()->GetBinCenter(j);
-				const int globalbin = prov->FindBin(ptIn,eta);
-				const double f = prov->GetBinContent(globalbin);
-				double finalweight = f/(1.0-f);
-				const int globalbinOut = prov->FindBin(ptOut,eta);
-				_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
-			}
 		}
-		if(prov != 0)
+		// Same as pt (w.r.t. the overflow) for the eta case 
+		for(int j = 1; j <= prov->GetNbinsY()+1; ++j)
 		{
-			delete prov;
-			prov = 0;
+			const double eta = prov->GetYaxis()->GetBinCenter(j);
+			const int globalbin = prov->FindBin(ptIn,eta);
+			// Some arrangements in order to avoid the calculation inside the loop
+			// for the fake rate case the weight per event is f/(1-f)
+			// FIXME: Activate below line if we are not doing the full calculation
+			//const double f = prov->GetBinContent(globalbin);
+			//if( _wtype == WManager::FR )
+			//{
+			//        double finalweight = f/(1.0-f);
+			//}
+			const double finalweight = prov->GetBinContent(globalbin);
+			const int globalbinOut = prov->FindBin(ptOut,eta);
+			_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
 		}
+	}
+	if(prov != 0)
+	{
+		delete prov;
+		prov = 0;
 	}
 	
 	f->Close();
