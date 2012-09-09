@@ -91,6 +91,18 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 			}
 		}
 	}
+	else if( _wtype == WManager::PR )
+	{
+		if( lepton == MUON )
+		{
+			thefile  += "MuonPR_all2011.root";
+		}
+		else if( lepton == ELECTRON )
+		{
+			thefile  += "ElecPR_all2011.root";
+		}
+
+	}
 	else
 	{
 		std::cerr << "\033[1;31mWManager::getfile ERROR\033[1;m Not implemented "
@@ -219,6 +231,10 @@ const char * WManager::GetWTStr(const unsigned int & wt) const
 	else if( wt == WManager::FR )
 	{
 		type = "fake rate";
+	}
+	else if( wt == WManager::PR )
+	{
+		type = "prompt rate";
 	}
 	else
 	{

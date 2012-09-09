@@ -50,8 +50,7 @@ class WManager
 
 
 		//! Get the weight 
-		const double GetWeight(const LeptonTypes & lt, const double & pt, 
-				const double & eta); 
+		const double GetWeight(const LeptonTypes & lt, const double & pt, const double & eta); 
 
 		//! Get the name of the weight type introduced as an  enum
 		const char * GetWTStr(const unsigned int & wt) const;
