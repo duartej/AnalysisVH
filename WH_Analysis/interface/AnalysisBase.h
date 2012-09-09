@@ -155,6 +155,14 @@ class AnalysisBase : public CMSAnalysisSelector
 				const int & iZ1, const int & iZ2,
 				const int & iW, const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
+		
+		//! Methods to evaluate the fakeable object method and its PPF estimation 
+		//! PPF estimation using the approximations p=1 and f->0
+		double GetPPFWeightApprx();
+		//! PPF estimation evaluated using the full calculation: Nt2 term
+		double GetPPFWeightNt2();
+		//! PPF estimation evaluated using the full calculation: Nt3 term
+		double GetPPFWeightNt3();
 
 	private:
 		AnalysisBase();
@@ -217,6 +225,9 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! Fake Rate weights
 		WManager * fFO;
+		
+		//! Prompt Rate weights
+		WManager * fPO;
 
 		//! Scale factors
 		WManager * fSF;

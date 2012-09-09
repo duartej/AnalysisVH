@@ -707,48 +707,24 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
-	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
+	// Using the fake rate if we are in fake mode: Full and complete calculation
+	/*if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
-		// As we are using the approximation PromptRate=1, then
-		// PPF (3,2) = fF0->GetWeight
-		// PFF (3,1) = (fFO->GetWeight)^2
-		// FFF (3,0) = (fFO->GetWeight)^3
-		// Where (N,T) are actually the number of Total leptons and PROMPT leptons. 
-		// This equivalence between tight-prompt can be done because of the approximations
-		// used. So, each no-tight lepton is weighted in order to get its probability to be
-		// fake.
-		for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
+		puw *= this->GetPPFWeightApprx();
+	}*/
+	if( fLeptonSelection->IsInFakeableMode() )
+	{
+		// Nt2
+		if( fLeptonSelection->GetNAnalysisNoTightLeptons() == 1 )
 		{
-			const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-			const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-			const char * name = 0;
-			if( ileptontype == MUON )
-			{
-				name = "Muon";
-				++_nTMuons;
-			}
-			else
-			{
-				name = "Elec";
-				++_nTElecs;
-			}
-			TLorentzVector lvec = this->GetTLorentzVector(name,i);
-			// Provisional --- TO BE DELETED --- FIXME
-			/*for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
-			{
-				TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
-				// Lepton inside the Jets
-				if( fabs(Jet.DeltaR(lvec)) <= 0.3 )
-				{
-					_histos[fHEtJetnoTightLepton]->Fill(Jet.Et(),puw);
-					return std::pair<unsigned int,float>(WZCuts::_iOppositeCharge,puw);
-				}
-			}*/
-			// ----------- FIXME: TO BE DELETED
-			const double pt  = lvec.Pt();
-			const double eta = lvec.Eta();
-			puw *= fFO->GetWeight(ileptontype,pt,eta);
+			puw *= this->GetPPFWeightNt2();
 		}
+		// Nt3
+		else if( fLeptonSelection->GetNAnalysisNoTightLeptons() == 0 )
+		{
+			puw *= this->GetPPFWeightNt3();
+		}
+
 	}
 
 	// Including the scale factors if proceed
@@ -1079,3 +1055,4 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);
 	
 }
+

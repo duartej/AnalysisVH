@@ -42,6 +42,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fNGenLeptons(0),
 	fPUWeight(0),
 	fFO(0),
+	fPO(0),
 	fSF(0),
 	_cuttree(0),
 	_cutweight(1),
@@ -100,6 +101,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
 		fFO = new WManager( WManager::FR, iszjetsFRMatrix );
+		fPO = new WManager( WManager::PR );
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it
@@ -216,6 +218,12 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete fFO;
 		fFO = 0;
+	}
+	
+	if( fPO != 0 )
+	{
+		delete fPO;
+		fPO = 0;
 	}
 	
 	if( fSF != 0 )
@@ -557,3 +565,199 @@ void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw)
 	}
 }
 
+// Fake rate estimations
+//===============================================================
+
+// Simplistic calculation using full approximations p\sim 1, f->0
+double AnalysisBase::GetPPFWeightApprx()
+{
+	// As we are using the approximation PromptRate=1, then
+	// PPF (3,2) = fF0->GetWeight
+	// PFF (3,1) = (fFO->GetWeight)^2
+	// FFF (3,0) = (fFO->GetWeight)^3
+	// Where (N,T) are actually the number of Total leptons and PROMPT leptons. 
+	// This equivalence between tight-prompt can be done because of the approximations
+	// used. So, each no-tight lepton is weighted in order to get its probability to be
+	// fake.
+	double puw = 1.0;
+	for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		puw *= fFO->GetWeight(ileptontype,pt,eta);
+	}
+
+	return puw;
+}
+
+
+// Full calculation for PPF estimation
+// Nt3 term
+double AnalysisBase::GetPPFWeightNt3()
+{
+	// Weighting rules:
+	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
+	//                        pf      for each failing
+	//  FAKE ESTIMATED:       f(1-p)  for each passing
+	//                        pf      for each failing
+	//  Plus the common factor: 1/(p-f)^N  (N: number of analysis leptons)
+	
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	std::vector<double> p; 
+	std::vector<double> f;
+	// 1. All Tights
+	double kterm = 1.0;
+	for(unsigned int k = 0; k < ntight; ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
+		// Taking advantatge of the loop
+		kterm *= 1.0/(p[k]-f[k]);
+	}
+	// combinations of the tights: PPF PFP FPP
+	const double PPF = kterm*p[0]*(1.0-f[0])*p[1]*(1.0-f[1])*f[2]*(1.0-p[2]);
+	const double PFP = kterm*p[0]*(1.0-f[0])*p[2]*(1.0-f[2])*f[1]*(1.0-p[1]);
+	const double FPP = kterm*p[2]*(1.0-f[2])*p[1]*(1.0-f[1])*f[0]*(1.0-p[0]);
+
+/*std::cout << " ===================== " << std::endl;
+std::cout << "Prompt rates: ";
+for(unsigned int k = 0; k < p.size(); ++k)
+{
+std::cout << "[" << k << "]=" << p[k] << " ";
+}
+std::cout << std::endl << "Fake rates: ";
+for(unsigned int k = 0; k < f.size(); ++k)
+{
+std::cout << "[" << k << "]=" << f[k] << " ";
+}
+std::cout << std::endl << "PPF:" << PPF << " || PFP:" << PFP << " || FPP:" << FPP <<
+"   TOTAL weight: " << (PPF+PFP+FPP) << std::endl;*/
+
+	return PPF+PFP+FPP;	
+}
+
+// Nt2 term
+double AnalysisBase::GetPPFWeightNt2()
+{
+	// Weighting rules:
+	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
+	//                        pf      for each failing
+	//  FAKE ESTIMATED:       f(1-p)  for each passing
+	//                        pf      for each failing
+	//  Plus the common factor: 1/(p-f)^N  (N: number of analysis leptons)
+
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
+	std::vector<double> p; // index ordered in tight-noTight
+	std::vector<double> f;
+	// 1. Tight 
+	for(unsigned int k = 0; k < ntight; ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
+	}
+	// 2. NoTight (or failing)
+	for(unsigned int k = 0; k < nfailing; ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
+	}
+	// Weight calculation:
+	// 1. 2 Prompt estimated passing + 1 Fake estimated fail
+	double PpPpFf = 1.0;
+	for( unsigned int k = 0; k < ntight; ++k)
+	{
+		PpPpFf *= (1.0/(p[k]-f[k]))*p[k]*(1.0-f[k]);
+	}
+	for(unsigned int k = 0; k < nfailing; ++k)
+	{
+		PpPpFf *= (1.0/(p[k]-f[k]))*p[k]*f[k];
+	}
+	
+	// 2. 1 Prompt estimated passing + 1 Prompt estimated fail + 1 Fake estimated passing
+	//    Note the indetermination on which one of the two passing is prompt and which
+	//    one is fake
+	double PpPfFp = 0.0;  
+	for( unsigned int k = 0; k < nfailing; ++k)
+	{
+		// 1 prompt estimated failing
+		const double pfail = (1.0/(p[k]-f[k]))*p[k]*f[k];
+		// the remaining tights are a prompt estimated and a fake estimated
+		// FIXME: HARDCODED for 3-lepton case
+		// 0-Prompt 1-Fake  term
+		PpPfFp = pfail*(1.0/(p[0]-f[0]))*p[0]*(1.0-f[0])*(1.0/(p[1]-f[1]))*f[1]*(1.0-p[1]);
+		// 0-Fake 1-Prompt  term
+		PpPfFp += pfail*(1.0/(p[1]-f[1]))*p[1]*(1.0-f[1])*(1.0/(p[0]-f[0]))*f[0]*(1.0-p[0]);
+	}
+
+/*std::cout << " ===================== " << std::endl;
+std::cout << "Prompt rates: ";
+for(unsigned int k = 0; k < p.size(); ++k)
+{
+std::cout << "[" << k << "]=" << p[k] << " ";
+}
+std::cout << std::endl << "Fake rates: ";
+for(unsigned int k = 0; k < f.size(); ++k)
+{
+std::cout << "[" << k << "]=" << f[k] << " ";
+}
+std::cout << std::endl << "Prompt-Tight, Prompt-Tight, Fake-Fail:" << PpPpFf <<
+" || Prompt-Tight, Prompt-Fail, Fake-Tight:" << PpPfFp << " || TOTAL weight: " <<
+(PpPpFf+PpPfFp) << std::endl;*/
+
+	return PpPpFf+PpPfFp;
+}
