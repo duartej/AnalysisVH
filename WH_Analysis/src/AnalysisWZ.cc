@@ -707,24 +707,14 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
-	// Using the fake rate if we are in fake mode: Full and complete calculation
 	/*if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
 		puw *= this->GetPPFWeightApprx();
 	}*/
+	// Using the fake rate if we are in fake mode: Full and complete calculation
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
-		// Nt2
-		if( fLeptonSelection->GetNAnalysisNoTightLeptons() == 1 )
-		{
-			puw *= this->GetPPFWeightNt2();
-		}
-		// Nt3
-		else if( fLeptonSelection->GetNAnalysisNoTightLeptons() == 0 )
-		{
-			puw *= this->GetPPFWeightNt3();
-		}
-
+		puw *= this->GetPPFWeight();
 	}
 
 	// Including the scale factors if proceed
@@ -1052,7 +1042,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		++_nTEvents;
 	}
 
-	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);
-	
+	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);	
 }
 

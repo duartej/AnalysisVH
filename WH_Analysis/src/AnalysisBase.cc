@@ -602,76 +602,15 @@ double AnalysisBase::GetPPFWeightApprx()
 	return puw;
 }
 
-
-// Full calculation for PPF estimation
-// Nt3 term
-double AnalysisBase::GetPPFWeightNt3()
+// PPF estimation (full calculation)
+double AnalysisBase::GetPPFWeight()
 {
 	// Weighting rules:
 	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
 	//                        pf      for each failing
 	//  FAKE ESTIMATED:       f(1-p)  for each passing
 	//                        pf      for each failing
-	//  Plus the common factor: 1/(p-f)^N  (N: number of analysis leptons)
-	
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	std::vector<double> p; 
-	std::vector<double> f;
-	// 1. All Tights
-	double kterm = 1.0;
-	for(unsigned int k = 0; k < ntight; ++k)
-	{
-		const unsigned int i = fLeptonSelection->GetTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
-		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
-		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
-		// Taking advantatge of the loop
-		kterm *= 1.0/(p[k]-f[k]);
-	}
-	// combinations of the tights: PPF PFP FPP
-	const double PPF = kterm*p[0]*(1.0-f[0])*p[1]*(1.0-f[1])*f[2]*(1.0-p[2]);
-	const double PFP = kterm*p[0]*(1.0-f[0])*p[2]*(1.0-f[2])*f[1]*(1.0-p[1]);
-	const double FPP = kterm*p[2]*(1.0-f[2])*p[1]*(1.0-f[1])*f[0]*(1.0-p[0]);
-
-/*std::cout << " ===================== " << std::endl;
-std::cout << "Prompt rates: ";
-for(unsigned int k = 0; k < p.size(); ++k)
-{
-std::cout << "[" << k << "]=" << p[k] << " ";
-}
-std::cout << std::endl << "Fake rates: ";
-for(unsigned int k = 0; k < f.size(); ++k)
-{
-std::cout << "[" << k << "]=" << f[k] << " ";
-}
-std::cout << std::endl << "PPF:" << PPF << " || PFP:" << PFP << " || FPP:" << FPP <<
-"   TOTAL weight: " << (PPF+PFP+FPP) << std::endl;*/
-
-	return PPF+PFP+FPP;	
-}
-
-// Nt2 term
-double AnalysisBase::GetPPFWeightNt2()
-{
-	// Weighting rules:
-	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
-	//                        pf      for each failing
-	//  FAKE ESTIMATED:       f(1-p)  for each passing
-	//                        pf      for each failing
-	//  Plus the common factor: 1/(p-f)^N  (N: number of analysis leptons)
-
+	//  common factor: 1/(p-f)
 	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
 	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	std::vector<double> p; // index ordered in tight-noTight
@@ -716,48 +655,60 @@ double AnalysisBase::GetPPFWeightNt2()
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
-	// Weight calculation:
-	// 1. 2 Prompt estimated passing + 1 Fake estimated fail
-	double PpPpFf = 1.0;
-	for( unsigned int k = 0; k < ntight; ++k)
+	
+	// Weights applied to each lepton as map-> index: weight
+	// Estimated as prompt pass (tight) and fail (no tight)
+	std::map<int,double> wPromptPass; 
+	std::map<int,double> wPromptFail; 
+	// Estimated as fake pass (tight) and fail (no tight)
+	std::map<unsigned int,double> wFakePass; 
+	std::map<unsigned int,double> wFakeFail; 
+	for(unsigned int k = 0; k < ntight; ++k)
 	{
-		PpPpFf *= (1.0/(p[k]-f[k]))*p[k]*(1.0-f[k]);
+		wPromptPass[k] = (1.0/(p[k]-f[k]))*p[k]*(1.0-f[k]);
+		wFakePass[k] = (1.0/(p[k]-f[k]))*f[k]*(1.0-p[k]);
 	}
-	for(unsigned int k = 0; k < nfailing; ++k)
+
+	for(unsigned int k = ntight; k < ntight+nfailing; ++k)
 	{
-		PpPpFf *= (1.0/(p[k]-f[k]))*p[k]*f[k];
+		wPromptFail[k] = (1.0/(p[k]-f[k]))*p[k]*f[k];
+		wFakeFail[k] = (1.0/(p[k]-f[k]))*f[k]*p[k];
+	}
+
+	// The contributions to the PPF estimation: given the observed (tight or no-tight)
+	// ordered as 0,1,2,... (see p and f vectors), the three different contributions are
+	// calculated assuming the observed i-essim leptons is estimated as P(prompt) or F(fake)
+	double PPF = 0;  
+	double PFP = 0;
+	double FPP = 0;
+	switch(ntight)
+	{
+		case 0: //Nt0
+			PPF = wPromptFail[0]*wPromptFail[1]*wFakeFail[2];
+			PFP = wPromptFail[0]*wFakeFail[1]*wPromptFail[2];
+			FPP = wFakeFail[0]*wPromptFail[1]*wPromptFail[0];
+			break;
+		case 1: //Nt1
+			PPF = wPromptPass[0]*wPromptFail[1]*wFakeFail[2];
+			PFP = wPromptPass[0]*wFakeFail[1]*wPromptFail[2];
+			FPP = wFakePass[0]*wPromptFail[1]*wPromptFail[2];
+			break;
+		case 2: //Nt2
+			PPF = wPromptPass[0]*wPromptPass[1]*wFakeFail[2];
+			PFP = wPromptPass[0]*wFakePass[1]*wPromptFail[2];
+			FPP = wFakePass[0]*wPromptPass[1]*wPromptFail[2];
+			break;
+		case 3: //Nt3
+			PPF = wPromptPass[0]*wPromptPass[1]*wFakePass[2];
+			PFP = wPromptPass[0]*wFakePass[1]*wPromptPass[2];
+			FPP = wFakePass[0]*wPromptPass[1]*wPromptPass[2];
+			break;
+		default:
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase::GetPPFWeight ERROR:\033[1;m" 
+				<<" The 'Nt=" << ntight << "' contribution is not coded."
+				<< " Exiting... " << std::endl;
+			exit(-1);
 	}
 	
-	// 2. 1 Prompt estimated passing + 1 Prompt estimated fail + 1 Fake estimated passing
-	//    Note the indetermination on which one of the two passing is prompt and which
-	//    one is fake
-	double PpPfFp = 0.0;  
-	for( unsigned int k = 0; k < nfailing; ++k)
-	{
-		// 1 prompt estimated failing
-		const double pfail = (1.0/(p[k]-f[k]))*p[k]*f[k];
-		// the remaining tights are a prompt estimated and a fake estimated
-		// FIXME: HARDCODED for 3-lepton case
-		// 0-Prompt 1-Fake  term
-		PpPfFp = pfail*(1.0/(p[0]-f[0]))*p[0]*(1.0-f[0])*(1.0/(p[1]-f[1]))*f[1]*(1.0-p[1]);
-		// 0-Fake 1-Prompt  term
-		PpPfFp += pfail*(1.0/(p[1]-f[1]))*p[1]*(1.0-f[1])*(1.0/(p[0]-f[0]))*f[0]*(1.0-p[0]);
-	}
-
-/*std::cout << " ===================== " << std::endl;
-std::cout << "Prompt rates: ";
-for(unsigned int k = 0; k < p.size(); ++k)
-{
-std::cout << "[" << k << "]=" << p[k] << " ";
-}
-std::cout << std::endl << "Fake rates: ";
-for(unsigned int k = 0; k < f.size(); ++k)
-{
-std::cout << "[" << k << "]=" << f[k] << " ";
-}
-std::cout << std::endl << "Prompt-Tight, Prompt-Tight, Fake-Fail:" << PpPpFf <<
-" || Prompt-Tight, Prompt-Fail, Fake-Tight:" << PpPfFp << " || TOTAL weight: " <<
-(PpPpFf+PpPfFp) << std::endl;*/
-
-	return PpPpFf+PpPfFp;
+	return PPF+PFP+FPP;
 }

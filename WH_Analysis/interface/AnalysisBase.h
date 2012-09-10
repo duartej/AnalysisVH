@@ -159,10 +159,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Methods to evaluate the fakeable object method and its PPF estimation 
 		//! PPF estimation using the approximations p=1 and f->0
 		double GetPPFWeightApprx();
-		//! PPF estimation evaluated using the full calculation: Nt2 term
-		double GetPPFWeightNt2();
-		//! PPF estimation evaluated using the full calculation: Nt3 term
-		double GetPPFWeightNt3();
+		//! PPF estimation evaluated using the full calculation
+		double GetPPFWeight();
 
 	private:
 		AnalysisBase();
