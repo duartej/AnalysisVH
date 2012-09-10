@@ -200,7 +200,8 @@ def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 		
 	
 	if whatuse == "inclusive":
-		print "\033[33;1mbluemethod WARNING\033[m Inclusive cross-section calculation is not well-understood. See 'bluemethod -v'"
+		print "\033[33;1mbluemethod WARNING\033[m Inclusive cross-section"\
+				" calculation is not well-understood. See 'bluemethod -v'"
 
 	if verbose:
 		newline = "\033[32;2mbluemethod VERBOSE\033[m "
@@ -258,6 +259,7 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	print "\033[34mbluemethod INFO\033[m Combining the %s cross-section at '%s'" % (opt.xstype,opt.workingpath)
+	print "\033[34mbluemethod INFO\033[m MC production to be used: %s" % opt.mcprod
 	xsmean,xserrors = bluemethod(opt.workingpath,opt.zoutrange,opt.xstype,opt.mcprod,opt.verbose)
 
 	output  = "++++ Cross section combined using BLUE method ++++\n"

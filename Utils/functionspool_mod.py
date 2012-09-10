@@ -662,10 +662,11 @@ def getxserrorsrel(workingpath,**keywords):
 		asciirawtable = gettablecontent(os.path.join(workingpath,pathchannel),channel)
 		# -- Signal:
 		try:
-			Nsig,Nsigerr = extractyields(asciirawtable,"Data-TotBkg")
+			Nsig,Nsigerr = extractyields(asciirawtable,"Data-Total Bkg.")
 		except RuntimeError:
 			# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
-			Nsig,Nsigerr = extractyields(asciirawtable,"Nobs-Nbkg")
+			Nsig,Nsigerr = extractyields(asciirawtable,"Data-TotBkg")
+			#Nsig,Nsigerr = extractyields(asciirawtable,"Nobs-Nbkg")
 		# updating the stat part
 		STAT[channel] = Nsigerr/Nsig
 		# -- ZZ: 

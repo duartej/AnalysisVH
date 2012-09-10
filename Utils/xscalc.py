@@ -132,4 +132,5 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	print "\033[34mxscalc INFO\033[m Evaluating the cross-section at '%s'" % opt.workingpath
+	print "\033[34mxscalc INFO\033[m MCProduction to be used: %s'" % opt.mcprod
 	xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod)
