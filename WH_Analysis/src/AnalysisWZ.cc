@@ -707,15 +707,16 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
-	/*if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
+	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
 		puw *= this->GetPPFWeightApprx();
-	}*/
-	// Using the fake rate if we are in fake mode: Full and complete calculation
-	if( fLeptonSelection->IsInFakeableMode() )
-	{
-		puw *= this->GetPPFWeight();
 	}
+	// Using the fake rate if we are in fake mode: Full and complete calculation
+	/*if( fLeptonSelection->IsInFakeableMode() )
+	{
+		//puw *= this->GetPPFWeight();
+		puw *= this->GetPFFWeight();
+	}*/
 
 	// Including the scale factors if proceed
 	if( !fIsData )

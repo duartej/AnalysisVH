@@ -161,6 +161,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		double GetPPFWeightApprx();
 		//! PPF estimation evaluated using the full calculation
 		double GetPPFWeight();
+		//! PFF estimation evaluated using the full calculation
+		double GetPFFWeight();
+		//! FFF estimation evaluated using the full calculation
+		double GetFFFWeight();
 
 	private:
 		AnalysisBase();

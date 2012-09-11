@@ -191,14 +191,14 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 			const double eta = prov->GetYaxis()->GetBinCenter(j);
 			const int globalbin = prov->FindBin(ptIn,eta);
 			// Some arrangements in order to avoid the calculation inside the loop
-			// for the fake rate case the weight per event is f/(1-f)
-			// FIXME: Activate below line if we are not doing the full calculation
-			//const double f = prov->GetBinContent(globalbin);
-			//if( _wtype == WManager::FR )
-			//{
-			//        double finalweight = f/(1.0-f);
-			//}
-			const double finalweight = prov->GetBinContent(globalbin);
+			// for the simple calculation of the fake rate, the weight per event is f/(1-f)
+			// Otherwise (using the full calculation) comment lines below and change 
+			const double f = prov->GetBinContent(globalbin);
+			double finalweight = f;
+			if( _wtype == WManager::FR )
+			{
+			        finalweight = f/(1.0-f);
+			}
 			const int globalbinOut = prov->FindBin(ptOut,eta);
 			_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
 		}
