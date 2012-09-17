@@ -924,3 +924,104 @@ double AnalysisBase::GetFFFWeight()
 	
 	return FFF;
 }
+
+// PPP estimation (full calculation)
+double AnalysisBase::GetPPPWeight()
+{
+	// Weighting rules:
+	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
+	//                        pf      for each failing
+	//  FAKE ESTIMATED:       f(1-p)  for each passing
+	//                        pf      for each failing
+	//  common factor: 1/(p-f)
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
+	std::vector<double> p; // index ordered in tight-noTight
+	std::vector<double> f;
+	// 1. Tight 
+	for(unsigned int k = 0; k < ntight; ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
+	}
+	// 2. NoTight (or failing)
+	for(unsigned int k = 0; k < nfailing; ++k)
+	{
+		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
+		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
+		const char * name = 0;
+		if( ileptontype == MUON )
+		{
+			name = "Muon";
+		}
+		else
+		{
+			name = "Elec";
+		}
+		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		const double pt  = lvec.Pt();
+		const double eta = lvec.Eta();
+		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
+	}
+	
+	// Weights applied to each lepton as map-> index: weight
+	// Estimated as prompt pass (tight) and fail (no tight)
+	std::map<int,double> wPromptPass; 
+	std::map<int,double> wPromptFail; 
+	// Estimated as fake pass (tight) and fail (no tight)
+	std::map<unsigned int,double> wFakePass; 
+	std::map<unsigned int,double> wFakeFail; 
+	for(unsigned int k = 0; k < ntight; ++k)
+	{
+		wPromptPass[k] = (1.0/(p[k]-f[k]))*p[k]*(1.0-f[k]);
+		wFakePass[k] = (1.0/(p[k]-f[k]))*f[k]*(1.0-p[k]);
+	}
+
+	for(unsigned int k = ntight; k < ntight+nfailing; ++k)
+	{
+		wPromptFail[k] = (1.0/(p[k]-f[k]))*p[k]*f[k];
+		wFakeFail[k] = (1.0/(p[k]-f[k]))*f[k]*p[k];
+	}
+
+	// The contributions to the PPF estimation: given the observed (tight or no-tight)
+	// ordered as 0,1,2,... (see p and f vectors), the three different contributions are
+	// calculated assuming the observed i-essim leptons is estimated as P(prompt) or F(fake)
+	double PPP = 0;  
+	switch(ntight)
+	{
+		case 0: //Nt0
+			PPP = wPromptFail[0]*wPromptFail[1]*wPromptFail[2];
+			break;
+		case 1: //Nt1
+			PPP = wPromptPass[0]*wPromptFail[1]*wPromptFail[2];
+			break;
+		case 2: //Nt2
+			PPP = wPromptPass[0]*wPromptPass[1]*wPromptFail[2];
+			break;
+		case 3: //Nt3
+			PPP = wPromptPass[0]*wPromptPass[1]*wPromptPass[2];
+			break;
+		default:
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase::GetPPFWeight ERROR:\033[1;m" 
+				<<" The 'Nt=" << ntight << "' contribution is not coded."
+				<< " Exiting... " << std::endl;
+			exit(-1);
+	}
+	
+	return PPP;
+}

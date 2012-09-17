@@ -715,7 +715,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	/*if( fLeptonSelection->IsInFakeableMode() )
 	{
 		//puw *= this->GetPPFWeight();
-		puw *= this->GetPFFWeight();
+		//puw *= this->GetPFFWeight();
+		puw *= this->GetPPPWeight();
 	}*/
 
 	// Including the scale factors if proceed
