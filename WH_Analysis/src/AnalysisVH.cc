@@ -1006,6 +1006,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	_histos[fHHT]->Fill(Ht,puw);
 	_histos[fHDeltaPhiWMET]->Fill(DeltaPhiWMET,puw);
 	FillHistoPerCut(WHCuts::_iMET, puw, fsNTau);
+	
 
 	return std::pair<unsigned int,float>(WHCuts::_iNCuts,puw);
 }

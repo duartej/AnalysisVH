@@ -1036,8 +1036,13 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
 
-	//Store event info 
-	this->StoresEvtInf(lepton,i1Z,i2Z,iWcand,transverseMassW[iWcand],METV);
+	//Store event info, just in data case
+	if( fIsData )
+	{
+		this->StoresEvtInf(lepton,i1Z,i2Z,iWcand,transverseMassW[iWcand],METV);
+	}
+
+
 
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
