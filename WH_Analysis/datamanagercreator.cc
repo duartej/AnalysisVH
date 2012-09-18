@@ -612,6 +612,10 @@ int main(int argc, char *argv[])
 	// Signal
         knowndata.insert("WH120");
         knowndata.insert("WH130");
+	if(  strncmp(runperiod,"2012",4) == 0 )
+	{
+		knowndata.insert("WH125");
+	}
 	// Z+jets
 	if(  strncmp(runperiod,"2012",4) == 0 )
 	{
