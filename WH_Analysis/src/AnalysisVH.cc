@@ -228,11 +228,16 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 #endif
 	// Get PU Weight
 	//----------------------------------------------------------------------
+	std::string npuname = "T_Event_nPU";
+	if( fRunPeriod.find("2012") != std::string::npos )
+	{
+		npuname = "T_Event_nTruePU";
+	}
 	double puw(1);
 	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->Get<int>("T_Event_nPU"));
+		puw = fPUWeight->GetWeight(fData->Get<int>(npuname.c_str()));
 	}
 	
 	// Filling the npv to see how was weighted
@@ -635,35 +640,15 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	// Using the fake rate if we are in fake mode
 	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
-		// As we are using the approximation PromptRate=1, then
-		// PPF (3,2) = fF0->GetWeight
-		// PFF (3,1) = (fFO->GetWeight)^2
-		// FFF (3,0) = (fFO->GetWeight)^3
-		// Where (N,T) are actually the number of Total leptons and PROMPT leptons. 
-		// This equivalence between tight-prompt can be done because of the approximations
-		// used. So, each no-tight lepton is weighted in order to get its probability to be
-		// fake.
-		for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
-		{
-			const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-			const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-			const char * name = 0;
-			if( ileptontype == MUON )
-			{
-				name = "Muon";
-				++_nTMuons;
-			}
-			else
-			{
-				name = "Elec";
-				++_nTElecs;
-			}
-			TLorentzVector lvec = this->GetTLorentzVector(name,i);
-			const double pt  = lvec.Pt();
-			const double eta = lvec.Eta();
-			puw *= fFO->GetWeight(ileptontype,pt,eta);
-		}
+		puw *= this->GetPPFWeightApprx();
 	}
+	// Using the fake rate if we are in fake mode: Full and complete calculation
+	/*if( fLeptonSelection->IsInFakeableMode() )
+	{
+		//puw *= this->GetPPFWeight();
+		//puw *= this->GetPFFWeight();
+		puw *= this->GetPPPWeight();
+	}*/
 
 	// Including the scale factors if proceed
 	if( !fIsData )
@@ -690,6 +675,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 			++k;
 		}
 	}
+	
+	// N-primary vertices
+	_histos[fHNPrimaryVerticesAfter3Leptons]->Fill(nPV,puw);
 	
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
@@ -764,14 +752,14 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
 	{
 		zcandflavour = MUON;
-		ptcutv.push_back(20.0);
-		ptcutv.push_back(10.0);
+		ptcutv.push_back(fLeptonSelection->GetCut("MinMuPt1"));  // 20 GeV
+		ptcutv.push_back(fLeptonSelection->GetCut("MinMuPt3"));  // 10 GeV
 	}
 	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
 	{
 		zcandflavour = ELECTRON;
-		ptcutv.push_back(20.0);
-		ptcutv.push_back(10.0);
+		ptcutv.push_back(fLeptonSelection->GetCut("MinMuPt1"));  // 20 GeV
+		ptcutv.push_back(fLeptonSelection->GetCut("MinMuPt3"));  // 10 GeV
 	}
 
 	// Find muons with opposite charges and the ptcut requirement
@@ -806,7 +794,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		}
 	}
 	// At least a pair with opposite charge. If we are here this condition has to be fulfilled 
-	// already (see last cut about the sum of the charge). Just removing events with pt lower 
+	// already (see last cut about the sum of the charge). So, just removing events with pt lower 
 	// than the requirements
 	if( leptonPair.size() == 0 )
 	{
@@ -819,9 +807,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	unsigned int nJets = 0;
 	double sumtotaljetsEt = 0.0;
 	double leadingjetEt = 0.0;
-	for(unsigned int k = 0; k < fData->GetSize<float>("T_JetAKPFNoPU_Energy"); ++k) 
+	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
 	{
-		TLorentzVector Jet = this->GetTLorentzVector("JetAKPFNoPU",k);
+		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
 		//FIXME: Add the cuts to the config file
 		// Kinematics
 		if(Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5)
@@ -966,8 +954,8 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	const double pyMET = met*sin(phiMET);
 	TLorentzVector METV(pxMET,pyMET,0.0,met);
 	TLorentzVector allleptons = (lepton[i1]+lepton[i2]+lepton[iWcand]);
-	const double lPt = allleptons.Pt();
-	const double tMass = sqrt( lPt*lPt + met*met - 2.0*lPt*met*cos(allleptons.DeltaPhi(METV)));
+	const double lWPt= lepton[iWcand].Pt();
+	const double tMass = sqrt( lWPt*lWPt + met*met - 2.0*lWPt*met*cos(lepton[iWcand].Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi-->Angle
 	//+ Build the invariant mass of the 3leptons
 	const double invMass3leptons = allleptons.M();
 
