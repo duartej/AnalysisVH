@@ -462,44 +462,29 @@ void AnalysisBase::Summary()
 
 bool AnalysisBase::IspassHLT() const
 {
-	//FIXME
-	return  true;
-	/*// Only data by the moment
+	//return true;
+	//Only data by the moment
 	if( ! fIsData )
 	{
 		return true;
 	}
 
 	bool passtrigger = false;
-	if( fFS == SignatureFS::_iFSmmm )
+	// BUG IN THE LATINO TREE CREATION--- GRIDUI ONLY?? --- Has to be checked
+	//if( fRunPeriod.find("2011") != std::string::npos )
+	//{
+	//       passtrigger = fData->Get<bool>("T_passTriggerDoubleEl");	
+	//}
+	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
 	{
 		passtrigger = fData->Get<bool>("T_passTriggerDoubleMu");
 	}
-	else if( fFS == SignatureFS::_iFSeee )
+	else if( fFS == SignatureFS::_iFSeee || fFS == SignatureFS::_iFSeem )
 	{
 		passtrigger = fData->Get<bool>("T_passTriggerDoubleEl");
 	}
-	else if( fFS == SignatureFS::_iFSmme || fFS == SignatureFS::_iFSeem )
-	{
-		passtrigger = fData->Get<bool>("T_passTriggerElMu");
-	}
-	else if( fFS == SignatureFS::_iFSlll )
-	{
-		// Note that here we are going to mix DoubleElectron samples with 
-		// DoubleMuon Samples: so to avoid double counting:
-		// -- 
-		passtrigger = fData->Get<bool>("T_passTriggerElMu");
-		if( ! passtrigger )
-		{
-			passtrigger = pass->Get<bool>("T_passTriggerMu");
-		}
-		if( ! passtrigger )
-		{
-			passtrigger = pass->Get<bool>("T_passTriggerEl");
-		}
-	}
 
-	return passtrigger;*/
+	return passtrigger;
 }
 
 
