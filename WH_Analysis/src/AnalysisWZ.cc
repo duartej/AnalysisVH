@@ -668,6 +668,33 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			++howmanyElecs;
 		}
 	}
+        
+        std::vector<double> * nLeptons= new std::vector<double>;
+        // Describe the number of leptons we want to cut in order: 
+        // --- nLeptons[0] = mmuons
+        // --- nLeptons[1] = electrons 
+        // Just needed for the mixing case
+	if( fFS == SignatureFS::_iFSmme )
+        {
+                nLeptons->push_back(2);
+                nLeptons->push_back(1);
+        }
+        else if( fFS == SignatureFS::_iFSeem )
+        {
+                nLeptons->push_back(1);
+                nLeptons->push_back(2);
+        }
+	
+	const bool fulfillptminima = fLeptonSelection->IsPass("PtMuonsCuts",nLeptons);
+        delete nLeptons;
+        nLeptons = 0;
+	// Just to avoid extra calculation, but to be coherent below check should to be
+	// included in the next if when checking the IspassExactlyN, fulfillSignature and
+	// passtriggerthresholpt
+	if( ! fulfillptminima )
+        {
+                return std::pair<unsigned int,float>(WHCuts::_iHasExactly3Leptons,puw);
+        }
 	
 	//The signature has to be fulfilled
 	bool fulfillSignature = false;
