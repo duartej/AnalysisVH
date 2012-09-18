@@ -693,7 +693,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// passtriggerthresholpt
 	if( ! fulfillptminima )
         {
-                return std::pair<unsigned int,float>(WHCuts::_iHasExactly3Leptons,puw);
+                return std::pair<unsigned int,float>(WZCuts::_iHasExactly3Leptons,puw);
         }
 	
 	//The signature has to be fulfilled
@@ -731,7 +731,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//---------------------------------------------------------------------------
 	if( (! fLeptonSelection->IspassExactlyN()) || (! fulfillSignature) || (! passtriggerthresholdpt) )
 	{
-		return std::pair<unsigned int,float>(WZCuts::_iHasAtLeast3Leptons,puw);
+		return std::pair<unsigned int,float>(WZCuts::_iHasExactly3Leptons,puw);
 	}
 	// Using the fake rate if we are in fake mode
 	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
@@ -811,8 +811,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		leptontypes.push_back( ileptontype );
 		++k;
 	}
-	FillHistoPerCut(WZCuts::_iHasAtLeast3Leptons, puw, fsNTau);
-	FillGenPlots(WZCuts::_iHasAtLeast3Leptons,puw);
+	FillHistoPerCut(WZCuts::_iHasExactly3Leptons, puw, fsNTau);
+	FillGenPlots(WZCuts::_iHasExactly3Leptons,puw);
 	
 	// CAVEAT =================================================
 	// Note that from here on, the indices used are the ones of

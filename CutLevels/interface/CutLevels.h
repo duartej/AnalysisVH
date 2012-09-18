@@ -44,7 +44,7 @@ struct WZCuts
 		_iHas2PVLeptons,      //  5
 		_iHas2IsoLeptons,     //  6
 		_iHas2IsoGoodLeptons, //  7
-		_iHasAtLeast3Leptons, //  8 At least 3 leptons
+		_iHasExactly3Leptons, //  8 Exactly 3 leptons
 		_iOppositeCharge,     //  9 At least a pair of opposite sign
 		_iHasZCandidate,      // 10 Has a Z candidate
 		_iHasZOverlapping,    // 11 Has another Z candidate (ZZ)

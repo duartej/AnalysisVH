@@ -87,13 +87,13 @@ class CutManager
 
 		//! Auxiliary methods to deal with fakeables sample
 		//! ---------------------------------------------------------------
-		//! Return true if exactly have _nLeptons (or _nTight tight leptons
-		//! and _nFails no tight leptons in the FAKEABLESAMPLE case), after
-		//! all cuts (_selectedGoodIdLeptons must be already fill in)
+		//! Return true if exactly have CutManager::_nLeptons 
+		//! (or CutManager::_nTight+CutManager::_nFails in the FAKEABLESAMPLE case), 
+		//! after all cuts (_selectedGoodIdLeptons must be already fill in)
 		bool IspassExactlyN();
-		//! Return true if at least have _nLeptons (or _nTight tight leptons
-		//! and _nFails no tight leptons in the FAKEABLESAMPLE case), after
-		//! all cuts (_selectedGoodIdLeptons must be already fill in)
+		//! Return true if at least have CutManager::_nLeptons
+		//! (or CutManager::_nTight+CutManager::_nFails  the FAKEABLESAMPLE case),
+		//! after all cuts (_selectedGoodIdLeptons must be already fill in)
 		bool IspassAtLeastN();
 		//! Overloaded method to allow any combination of tights and no tights,
 		//! the first argument is the number of leptons we want to be passed, 
