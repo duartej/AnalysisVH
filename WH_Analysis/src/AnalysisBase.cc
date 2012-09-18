@@ -91,7 +91,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	}
 	
 	// Initialize the scale factors
-	fSF = new WManager( WManager::SF );
+	fSF = new WManager( WManager::SF, fRunPeriod );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -100,8 +100,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		int iszjetsFRMatrixint = 0;
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		fFO = new WManager( WManager::FR, iszjetsFRMatrix );
-		fPO = new WManager( WManager::PR );
+		fFO = new WManager( WManager::FR, fRunPeriod, iszjetsFRMatrix );
+		fPO = new WManager( WManager::PR, fRunPeriod );
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it

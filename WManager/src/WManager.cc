@@ -13,9 +13,20 @@
 #include "TROOT.h"
 
 
-WManager::WManager(const unsigned int & weighttype, const bool & isZJetsRegion ) :
+WManager::WManager(const unsigned int & weighttype, const std::string & runperiod,
+                      const bool & isZJetsRegion ) :
+	_runperiod(runperiod),
 	_wtype(weighttype)
 {
+	// Check coherence
+	if( _runperiod.find("2011") != std::string::npos &&
+		_runperiod.find("2012") != std::string::npos )
+	{
+		std::cerr << "\033[1;31mWManager ERROR\033[1;m The run period '"
+			<< _runperiod << "' is not coded. Exiting..."
+			<< std::endl;
+	}
+
 	_weights[MUON] = 0;
 	_weights[ELECTRON] = 0;
 	_filesnames[MUON] = "";
@@ -42,6 +53,18 @@ WManager::~WManager()
 
 std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsRegion)
 {
+	// FIXME: CREATE A DICT CONTAINING ALL THE INFO Instead of the if's below..
+	//  { "wtype_MUON_RUNPERIOD": file1, ... } ...
+	/*std::map<std::string,const char*> fnamesMuonSF;
+	fnamesMuonSF["2011"] = "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+	fnamesMuonSF["2012"] = "MuonSF_2012_AB_5invfb.root";
+	std::map<std::string,const char*> fnamesElecSF;
+	fnamesElecSF["2011"] = "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+	fnamesElecSF["2012"] = "ElecSF_2012_AB_5invfb.root";
+
+	std::map<unsigned int,std::map<unsigned int,std::map<std::string,const char*> > > fdict;
+	fdict[WManager::SF] = std::pair<unsigned int,std::map<std::string,std::string> >(MUON,fnamesMuonSF);
+	TO BE DONE ... or not */
 	char * pkgpath = 0;
 	pkgpath = getenv("VHSYS");
 	if( pkgpath == 0 )
@@ -58,11 +81,25 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	{
 		if( lepton == MUON )
 		{
-			thefile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+			if( _runperiod.find("2011") != std::string::npos )
+			{
+				thefile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+			}
+			else if( _runperiod.find("2012") != std::string::npos )
+			{
+				thefile += "MuonSF_2012_AB_5invfb.root";
+			}
 		}
 		else if( lepton == ELECTRON )
 		{
-			thefile  += "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+			if( _runperiod.find("2011") != std::string::npos )
+			{
+				thefile  += "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
+			}
+			else if( _runperiod.find("2012") != std::string::npos )
+			{
+				thefile += "ElecSF_2012_AB_5invfb.root";
+			}
 		}
 	}
 	else if( _wtype == WManager::FR )
@@ -71,22 +108,51 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 		{
 			if( isZJetsRegion )
 			{
-				thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root";
+				if( _runperiod.find("2011") != std::string::npos )
+				{
+					thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root";
+				}
+				else if( _runperiod.find("2012") != std::string::npos )
+				{
+					thefile += "MuFR_2012_AB_5invfb_jet30.root";
+				}
 			}
 			else
 			{
-				thefile  += "MuFR_all2011_jet50.root";
+				if( _runperiod.find("2011") != std::string::npos )
+				{
+					thefile  += "MuFR_all2011_jet50.root";
+				}
+				else if( _runperiod.find("2012") != std::string::npos )
+				{
+					// FIXME!! 2011 data
+					thefile += "MuFR_all2011_jet50.root";
+				}
 			}
 		}
 		else if( lepton == ELECTRON )
 		{
 			if( isZJetsRegion )
 			{
-				thefile  += "ElecFR_all2011_jet35.root";
+				if( _runperiod.find("2011") != std::string::npos )
+				{
+					thefile  += "ElecFR_all2011_jet35.root";
+				}
+				else if( _runperiod.find("2012") != std::string::npos )
+				{
+					thefile += "ElecFR_2012_AB_5invfb_jet35.root";
+				}
 			}
 			else
 			{
-				thefile  += "ElecFR_all2011_jet50.root";
+				if( _runperiod.find("2011") != std::string::npos )
+				{
+					thefile  += "ElecFR_all2011_jet50.root";
+				}
+				else if( _runperiod.find("2012") != std::string::npos )
+				{
+					thefile += "ElecFR_2012_AB_5invfb_jet50.root";
+				}
 
 			}
 		}
@@ -95,13 +161,26 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	{
 		if( lepton == MUON )
 		{
-			thefile  += "MuonPR_all2011.root";
+			if( _runperiod.find("2011") != std::string::npos )
+			{
+				thefile  += "MuonPR_all2011.root";
+			}
+			else if( _runperiod.find("2012") != std::string::npos )
+			{
+				thefile += "MuonPR_2012_AB_5invfb.root";
+			}
 		}
 		else if( lepton == ELECTRON )
 		{
-			thefile  += "ElecPR_all2011.root";
+			if( _runperiod.find("2011") != std::string::npos )
+			{
+				thefile  += "ElecPR_all2011.root";
+			}
+			else if(_runperiod.find("2012") != std::string::npos )
+			{
+				thefile += "ElecPR_2012_AB_5invfb.root";
+			}
 		}
-
 	}
 	else
 	{

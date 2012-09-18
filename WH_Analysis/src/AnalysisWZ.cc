@@ -635,7 +635,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//--------------------
 	unsigned int nSelectedIsoGoodMuons = fLeptonSelection->GetNGoodIdLeptons();
 	_histos[fHNSelectedIsoGoodLeptons]->Fill(nSelectedIsoGoodMuons,puw);
-	
 	// Note that nSelectedIsoGoodMuons are tight+noTights leptons (when proceed, so
 	// I cannot use the CutManager::IspassAtLeastN(howmany,nTights) because the 
 	// second argument are the number of  tight leptons
