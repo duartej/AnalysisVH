@@ -318,11 +318,8 @@ void AnalysisBase::InitialiseParameters()
 	{
 		fIsWZ  = true;
 	}
-	else if(fDataName.Contains("Data"))
-	{
-		fIsData = true;
-	}
-	else if(fDataName.Contains("Fake"))
+	// FIXED BUG: Using BeginsWith method in order to avoid the MC Fakes
+	else if(fDataName.Contains("Data") || fDataName.BeginsWith("Fakes") )
 	{
 		fIsData = true;
 	}
