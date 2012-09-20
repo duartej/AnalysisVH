@@ -24,6 +24,9 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"VGamma": "V#gamma",
 		"WHToWW2L120": "WH, M_{H}=120",
 		"WHToWW2L130": "WH, M_{H}=130", 
+		"wzttH120ToWW": "WH, M_{H}=120",
+		"wzttH125ToWW": "WH, M_{H}=125",
+		"wzttH130ToWW": "WH, M_{H}=130",
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -62,7 +65,10 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"PhotonVJets_Madgraph": kGreen-5,
 		"VGamma": kGreen-5,
 		"WHToWW2L120": kRed-4,
-		"WHToWW2L130": kRed-3
+		"WHToWW2L130": kRed-3,
+		"wzttH120ToWW": kRed-4,
+		"wzttH125ToWW": kRed-2,
+		"wzttH130ToWW": kRed-3
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -947,7 +953,10 @@ if __name__ == '__main__':
 	signal = opt.signal
 	if opt.signal:
 		if signal.find("WH") == 0:
-			signal = signal.replace(signal,"WHToWW2L"+signal.replace("WH",""))
+			if opt.runperiod.find("2011") != -1:
+				signal = signal.replace(signal,"WHToWW2L"+signal.replace("WH",""))
+			elif opt.runperiod.find("2012") != -1:
+				signal = signal.replace(signal,"wzttH"+signal.replace("WH","")+"ToWW")
 	
 		if signal.find("WZ") == 0:
 			signal = signal.replace("WZ","WZTo3LNu")
@@ -964,21 +973,14 @@ if __name__ == '__main__':
 	# Guessing the channel if it wasn't introduced by user
 	if not opt.channel:
 		path=os.getcwd()
-		genericsignal = signal[:2]
-		# covering the case when isfakeasdata
-		if opt.isfakeasdata:
-			# FIXME: WARNING TOO MUCH HARDCODED PATCH...
-			genericsignal = os.path.basename(os.getcwd())[:2]
-		try:
-			opt.channel = filter(lambda x: x.find(genericsignal+"e") != -1 or \
-					x.find(genericsignal+"m") != -1, path.split("/"))[0].replace(genericsignal,"")
-		except IndexError:
-			if "leptonchannel" in path:
-				opt.channel = "lll"
-			else:
-				message = "\033[31mplothisto ERROR\033[m Cannot guessing the channel, please enter it with the '-c' option"
-				sys.exit(message)
-
+		# Just the three last words (FIXME it depends of the number of leptons
+		# It could be easy to change depending of the number of leptons
+		nLeptonsAN = 3
+		if "leptonchannel" in path:
+			opt.channel = "lll"
+		else:
+			opt.channel = path.split("/")[-1][-nLeptonsAN:]
+		
 	print "\033[34mplothisto INFO\033[m Plotting histogram '"+histoname+"' ..."
 	sys.stdout.flush()
 	

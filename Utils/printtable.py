@@ -10,6 +10,9 @@ TITLEDICT = { "Fakes": "Data-driven bkg",
 		"VGamma": "V#gamma",
 		"WHToWW2L120": "WH#rightarrow3l#nu, M_{H}=120",
 		"WHToWW2L130": "WH#rightarrow3l#nu, M_{H}=130",
+		"wzttH120ToWW": "WH#rightarrow3l#nuH, M_{H}=120",
+		"wzttH125ToWW": "WH#rightarrow3l#nuH, M_{H}=125",
+		"wzttH130ToWW": "WH#rightarrow3l#nuH, M_{H}=130",
 		"TotBkg": "Total Bkg.",
 		"Data-TotBkg": "Data-Total Bkg."		
 	    }
@@ -308,10 +311,12 @@ class table(object):
 		# available filenames
 		self.filenames = glob.glob(wildcardfiles)
 
-		# Just to be sure that only use one WH signal
-		if signal.find("WH") == 0:
+		# Just to be sure that only use one WH signal (adapted 2012 MC samples)
+		if signal.find("WH") == 0 or signal.find("wztt") == 0:
 			#Extract the other WH signals
-			potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
+			#potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
+			# Common between 2011 and 2012 MC signal samples names
+			potentialSfiles = filter(lambda x : x.find("ToWW") != -1,self.filenames)
 			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
 			# Removing
 			for f in nonsignalfiles:
@@ -695,6 +700,7 @@ class table(object):
 if __name__ == '__main__':
 	import sys
 	from optparse import OptionParser
+	import glob
 	
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
@@ -737,7 +743,17 @@ if __name__ == '__main__':
 	signal = args[0]
 
 	if signal.find("WH") == 0:
-		signal = signal.replace("WH","WHToWW2L")
+		# Check the WH data names (depending of the runperiod)
+		dsfrom2011 = glob.glob("*WHToWW2L*")
+		dsfrom2012 = glob.glob("*wzttH*ToWW")
+		if len(dsfrom2011) != 0 and len(dsfrom2012) == 0:
+			signal = signal.replace("WH","WHToWW2L")
+		elif len(dsfrom2012) != 0 and len(dsfrom2011) == 0: 
+			signal = signal.replace("WH","wzttH")+"ToWW"
+		else:
+			message = "\033[31mprinttable ERROR\033[m What run period are you working on?."+\
+			           " WH signal MC samples not recognized. Exiting..."
+			raise RuntimeError(message)
 	
 	if signal.find("WZ") == 0:
 		signal = signal.replace("WZ","WZTo3LNu")
