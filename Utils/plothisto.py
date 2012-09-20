@@ -325,8 +325,8 @@ class sampleclass(object):
 			raise RuntimeError(message)
 		# - Extract the histogram
 		self.histogram = self.__gethistogram__()
-		# Setting the signal factor to multiply
-		if self.issignal and self.samplename.find("WH") != -1:
+		# Setting the signal factor to multiply (adapted to 2012)
+		if self.issignal and self.samplename.find("ToWW") != -1:
 			self.SIGNALFACTOR = 100.0
 		# The Legend
 		self.legend = LEGENDSDICT[self.samplename]
@@ -453,8 +453,9 @@ class sampleclass(object):
 		else:
 			self.histogram.SetFillColor(COLORSDICT[self.samplename])
 			self.histogram.SetLineColor(kBlack)
-
-		if self.issignal and ( "WH" in self.samplename or "WZ" in self.samplename):
+		# Apadt to 2012
+		#if self.issignal and ( "WH" in self.samplename or "WZ" in self.samplename):
+		if self.issignal and ( "ToWW" in self.samplename or "WZ" in self.samplename):
 			self.histogram.SetFillStyle(3254)
 			self.histogram.SetLineColor(COLORSDICT[self.samplename]-1)
 
@@ -865,7 +866,8 @@ def plotallsamples(sampledict,**keywords):
 		legend.SetNColumns(2)
 		textwidth=0.02
 		textlength=0.15
-		if signal.find("WH") != -1:
+		# Adapt to 2012 (common ToWW substring)
+		if signalname.find("ToWW") != -1:
 			textlength = 0.19
 		legend.SetTextSize(textwidth)
 	y1width = textwidth*legend.GetNRows()
@@ -987,8 +989,11 @@ if __name__ == '__main__':
 	# -- Extracting the samples available
 	samples = map(lambda x: x.replace("cluster_",""),glob.glob("cluster_*"))
 	# -- If we are dealing with WH, be sure not using another Higgs mass sample as background
-	if signal.find("WH") == 0:
-		samples = filter(lambda x: x.find("WH") != 0 or (x.find("WH") == 0 and x == signal), samples)
+	# -- Adapted to 2012 (common for all signal: "ToWW"
+	#if signal.find("WH") == 0:
+	#	samples = filter(lambda x: x.find("WH") != 0 or (x.find("WH") == 0 and x == signal), samples)
+	if signal.find("ToWW") != -1:
+		samples = filter(lambda x: x.find("ToWW") == -1 or (x.find("ToWW") != -1 and x == signal), samples)
 	# --- Some manipulations needed for the samples to be merged. DY and ZJets
 	# --- FIXME: High dependence of the MC sample type (Powheg)
 	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\

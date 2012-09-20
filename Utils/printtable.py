@@ -316,6 +316,7 @@ class table(object):
 			#Extract the other WH signals
 			#potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
 			# Common between 2011 and 2012 MC signal samples names
+			# FIXME: Add all the signals in the last columns 
 			potentialSfiles = filter(lambda x : x.find("ToWW") != -1,self.filenames)
 			nonsignalfiles  = filter( lambda x: x.split("/")[-1].split(".root")[0] != signal,potentialSfiles)
 			# Removing
