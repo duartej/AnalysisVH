@@ -26,7 +26,7 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		}
 
 
-def plotpv(sampleslist):
+def plotpv(sampleslist,luminosity):
 	"""
 	"""
 	import ROOT
@@ -54,7 +54,7 @@ def plotpv(sampleslist):
 			continue
 		rootfilename = os.path.join(os.path.join(s,"Results"),samplename+".root")
 		print rootfilename
-		ps = processedsample(rootfilename,lumi="5016.4")
+		ps = processedsample(rootfilename,lumi=luminosity)
 		h = ps.gethistogram("fHNPrimaryVertices")
 		h.SetNormFactor(1)
 		ymax = h.GetMaximum()/h.Integral()
@@ -99,9 +99,11 @@ if __name__ == '__main__':
                 sys.exit( message )
         
         parser = OptionParser()
-        parser.set_defaults()
+        parser.set_defaults(luminosity="5064.0")
         parser.add_option( '-d', action='store', dest='folder', help='Paths'\
                         ' where to find the standard folder structure "cluster_blbalb"')
+	parser.add_option( '-l', action='store', dest='luminosity', help='Luminosity to be used'\
+			' [Default: 5064.0')
 	parser.add_option( '-p', action='store', dest='printsamples', help='List of samples to'\
 			' be printed and compared with the data')
 
@@ -121,8 +123,14 @@ if __name__ == '__main__':
 		samplesprov = filter(lambda x: x.split("cluster_")[-1] in printsamples,samples)
 		samples = samplesprov
 
+	try:
+		lumi = float(opt.luminosity)
+	except ValueError:
+		message = "\033[1;31mcheckPV ERROR:\033[1;m value introduced with option"\
+				" '-l' must be numeric. It was read '%s'" % str(opt.luminosity)
+		raise RuntimeError(message)
 	print "+++ Plotting the Primary Vertices distribution after re-weighting"
-	plotpv(samples)
+	plotpv(samples,self.luminosity)
 
 
 

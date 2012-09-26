@@ -133,7 +133,7 @@ class processedsample(object):
 			if key == 'showall':
 				self.showall = value
 			if key == 'lumi':
-				self.luminosity = value
+				self.luminosity = float(value)
 			if key == 'nobuilt':
 				self.title = None
 				self.filename = None
@@ -190,7 +190,7 @@ class processedsample(object):
 			ip.TheNamedDouble("Luminosity",luminosity)
 			try: 
 				# Forcing the lumi inputed by the user (if any)
-				luminosity = [ float(self.luminosity) ]
+				luminosity = [ self.luminosity ]
 			except AttributeError:
 				pass
 			weight  = xs[0]*luminosity[0]/neventsample[0]
