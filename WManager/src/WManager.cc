@@ -125,8 +125,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 				}
 				else if( _runperiod.find("2012") != std::string::npos )
 				{
-					// FIXME!! 2011 data
-					thefile += "MuFR_all2011_jet50.root";
+					thefile += "MuFR_2012_AB_5invfb_jet50.root";
 				}
 			}
 		}
