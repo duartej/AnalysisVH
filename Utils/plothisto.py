@@ -18,6 +18,7 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"ZJets": "Z+Jets", "ZJets_Madgraph": "Z+Jets (MG)",
 		"Data": "Data", "Fakes": "Data-driven bkg",
 		"TW_DR": "tW", "TbarW_DR": "#bar{t}W",
+		"TW": "tW", "TbarW": "#bar{t}W",
 		"DDM_ZJets": "DDM Z+Jets",
 		"DDM_TTbar": "DDM t#bar{t}",
 		"PhotonVJets_Madgraph": "V#gamma",
@@ -60,6 +61,7 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"ZZ": kRed+3, "ZJets": kCyan-2, "ZJets_Madgraph": kCyan-2,
 		"Data": kBlack, "Fakes": kAzure-7, 
 		"TW_DR": kGreen-2, "TbarW_DR": kGreen+4,
+		"TW": kGreen-2, "TbarW": kGreen+4,
 		"DDM_ZJets": kOrange-3,
 		"DDM_TTbar": kOrange+5,
 		"PhotonVJets_Madgraph": kGreen-5,
@@ -999,16 +1001,23 @@ if __name__ == '__main__':
 	ZJETSLIST= map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\
 			"DYtautau" ,"Zmumu","Ztautau","Zee"])
 	if opt.runperiod == "2011":
-		zgammaname = "Zgamma"
+		zgammaname= "Zgamma"
+		ttbarname = "TTbar_2L2Nu_Powheg" 
+		tWname    = "TW_DR"
+		tbarWname = "TbarW_DR"
+
 	elif opt.runperiod == "2012":
-		zgammaname = "ZGToLL"
+		zgammaname= "ZGToLL"
+		ttbarname = "TTbar_Madgraph"ç
+		tWname    = "TW"
+		tbarWname = "TbarW"
 	VGAMMALIST= map(lambda x: x.replace("cluster_",""),glob.glob("cluster_"+zgammaname+"*")+glob.glob("cluster_Wgamma*"))
 	DDMZJETSLIST = map(lambda x : x+"_WEIGHTED", ZJETSLIST)
 	metasamples = { "ZJets": [] ,"DDM_ZJets": [], "DDM_TTbar":[], "VGamma": [] }
 	METASAMPLESCOMP = { "ZJets":  ZJETSLIST,
 			"VGamma": VGAMMALIST,
 			"DDM_ZJets": DDMZJETSLIST,
-			"DDM_TTbar": ["TTbar_2L2Nu_Powheg_WEIGHTED"] }
+			"DDM_TTbar": [ttbarname+"_WEIGHTED"] }
 
 	for name in samples:
 		for metaname in metasamples.iterkeys():
@@ -1060,7 +1069,7 @@ if __name__ == '__main__':
 	allsamplesonleg=False
 	# Just we don't want some samples when deal with fake mode
 	if opt.ismodefake:
-		nofakessamples = [ "WJets","TTbar","DY","ZJets","TW_DR","TbarW_DR" ]
+		nofakessamples = [ "WJets","TTbar","DY","ZJets",tWname,tbarWname ]
 		condition = ""
 		for nf in nofakessamples:
 			condition += " not '%s' in x and" % nf
@@ -1075,10 +1084,10 @@ if __name__ == '__main__':
 		COLORSDICT["WW"] = kRed+4
 		LEGENDSDICT["WJets_Madgraph"] = "WJets"
 		COLORSDICT["WJets_Madgraph"] = kAzure+3
-		LEGENDSDICT["TW_DR"]="tW"
-		COLORSDICT["TW_DR"] = kGreen-2
-		LEGENDSDICT["TbarW_DR"]="#bar{t}W"
-		COLORSDICT["TbarW_DR"] = kGreen+4
+		LEGENDSDICT[tWname]="tW"
+		COLORSDICT[tWname] = kGreen-2
+		LEGENDSDICT[tbarWname]="#bar{t}W"
+		COLORSDICT[tbarWname] = kGreen+4
 
 	# Convert run period to center of mass
 	if opt.runperiod == "2011":
