@@ -1,21 +1,12 @@
 #!/usr/bin/env python
 
 
+
 # Fancy name to the samples. The dictionary is built in run-time. Whenever a sample is not
 # defined here, the fancy will be the same as the default one
-TITLEDICT = { "Fakes": "Data-driven bkg", 
-		"Other": "Other bkg", 
-		"WZTo3LNu": "WZ#rightarrow3l#nu", 
-		"PhotonVJets_Madgraph": "V#gamma",
-		"VGamma": "V#gamma",
-		"WHToWW2L120": "WH#rightarrow3l#nu, M_{H}=120",
-		"WHToWW2L130": "WH#rightarrow3l#nu, M_{H}=130",
-		"wzttH120ToWW": "WH#rightarrow3l#nuH, M_{H}=120",
-		"wzttH125ToWW": "WH#rightarrow3l#nuH, M_{H}=125",
-		"wzttH130ToWW": "WH#rightarrow3l#nuH, M_{H}=130",
-		"TotBkg": "Total Bkg.",
-		"Data-TotBkg": "Data-Total Bkg."		
-	    }
+from cosmethicshub_mod import LEGENDSDICT as TITLEDICT
+TITLEDICT["Other"]="Other bkg"
+
 ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
 
 
