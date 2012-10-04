@@ -130,7 +130,7 @@ if __name__ == '__main__':
 				" '-l' must be numeric. It was read '%s'" % str(opt.luminosity)
 		raise RuntimeError(message)
 	print "+++ Plotting the Primary Vertices distribution after re-weighting"
-	plotpv(samples,self.luminosity)
+	plotpv(samples,opt.luminosity)
 
 
 
