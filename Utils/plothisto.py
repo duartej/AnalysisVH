@@ -913,7 +913,7 @@ if __name__ == '__main__':
 		tbarWname = "TbarW_DR"
 
 	elif opt.runperiod == "2012":
-		zgammaname= "ZGToLL"
+		zgammaname= "ZgammaToLLG"
 		ttbarname = "TTbar_Madgraph"
 		tWname    = "TW"
 		tbarWname = "TbarW"

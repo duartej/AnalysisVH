@@ -20,6 +20,7 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"PhotonVJets_Madgraph": kGreen-5,
 		"VGamma": kGreen-5,
 		"WgammaToLNuG": kGreen-5,
+		"ZgammaToLLG": kGreen-6,
 		"ZGToLL": kGreen-6,
 		"WHToWW2L120": kRed-4,
 		"WHToWW2L130": kRed-3

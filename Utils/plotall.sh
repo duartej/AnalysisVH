@@ -123,7 +123,7 @@ then
 	elif [ "$runperiod" == "2012" ];
 	then
 		luminosity=12103.3
-		isreduced="-j VGamma@WgammaToLNuG,ZGToLL"
+		isreduced="-j VGamma@WgammaToLNuG,ZgammaToLLG"
 	else
 		echo "[plotall] WARNING: the run period introduced is not supported. Changing to '2011'"
 		luminosity=4922.0
