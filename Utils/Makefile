@@ -26,7 +26,7 @@ CPPEXE     := $(patsubst %.cpp,$(BINPATH)/%,$(CPPSOURCES))
 
 CPPINCDIR  := -I$(GENERALPATH)/InputParameters/interface -I$(GENERALPATH)
 CPPLIBDIR  := -L$(GENERALPATH)/libs
-CPPLIBS    := -lInputParameters -lTResultsTable -lCutLevels
+CPPLIBS    := -lInputParameters -lCutLevels
 
 ROOTINCDIR ?= -I$(shell root-config --incdir)
 ROOTLIBDIR ?= -L$(shell root-config --libdir)

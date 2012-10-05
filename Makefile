@@ -3,7 +3,7 @@ SHELL = /bin/sh
 PACKAGE   := $(shell basename `pwd`)
 
 ### Dependencies
-DEPPKG     := VectorUtils TResultsTable TCounterUI PUWeight \
+DEPPKG     := VectorUtils TCounterUI PUWeight \
 	DatasetManager InputParameters TreeManager CutLevels CutManager \
 	CMSAnalysisSelector WManager WH_Analysis
 BASEDIR    := $(shell pwd)
