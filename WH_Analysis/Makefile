@@ -62,7 +62,7 @@ getpkgbasedir  = $(foreach var,$(1),$(filter %/$(var),$(DEPSDIR)))
 getheaderdict = $(patsubst %:$(1),%,$(filter %:$(1), $(PAIRDICTHEADER)))
 
 
-all: lib/lib$(PACKAGE).so
+all: bin/datamanagercreator bin/runanalysis lib/lib$(PACKAGE).so
 
 bin/datamanagercreator: datamanagercreator.cc $(DEPSLIBS)
 	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
