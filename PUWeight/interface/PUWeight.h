@@ -1,6 +1,6 @@
 ///////////////////////////////////////////////////////////////////////
 //
-//    FILE: PUWeight.h  $CVS_TAG: V6_0_0
+//    FILE: PUWeight.h  $CVS_TAG: V6_0_0 rev1.24
 //   CLASS: PUWeight
 // AUTHORS: I. Gonzalez Caballero
 //    DATE: 09/03/2011
@@ -42,7 +42,9 @@ enum EMCDistribution {
 
   Fall11True,     /*Fall11 True from TTbar 2l2Nu Powheg sample by Matt*/
   
-  Summer12        /*Summer12 MC*/
+  Summer12,        /*Summer12 MC*/
+
+  Summer12_53X     /* Summer12 MC 53X*/
 };
 
 class PUWeight {

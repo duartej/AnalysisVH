@@ -714,7 +714,8 @@ vector<TString> DatasetManager::GetRealDataFiles(const char* relativepath,
   command += 
     fullpath + "/" + basefile + ".root " +
     fullpath + "/" + basefile + "_[0-9].root " +
-    fullpath + "/" + basefile + "_[0-9][0-9].root";
+    fullpath + "/" + basefile + "_[0-9][0-9].root " +
+    fullpath + "/" + basefile + "_[0-9]*.root";  // Just when incorporates the luminosity in the filename
 #ifdef DEBUGDS
   cout << "DEBUG: Executing command " << command << endl;
 #else

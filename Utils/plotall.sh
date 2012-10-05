@@ -27,7 +27,7 @@ OPTIONS:
 
    [-r]: Run period: 2011 or 2012 [Default: 2011]
    [-l]: Set the luminosity. [Default: 4922.0 (for 2011 run period)
-                                       5064.0 (for 2012 run period)]
+                                       12103.3 (for 2012 run period)]
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
@@ -122,7 +122,7 @@ then
 		luminosity=4922.0;
 	elif [ "$runperiod" == "2012" ];
 	then
-		luminosity=5064.0
+		luminosity=12103.3
 		isreduced="-j VGamma@WgammaToLNuG,ZGToLL"
 	else
 		echo "[plotall] WARNING: the run period introduced is not supported. Changing to '2011'"

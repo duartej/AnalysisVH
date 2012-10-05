@@ -47,7 +47,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		exit(-1);
 	}
 	std::string production = "LatinosSkims";
-	std::string production2012 = "MC_Summer12/WH";
+	std::string production2012 = "MC_Summer12_53X/WH";
 	std::string runpath;
 	std::vector<std::string> filenames;
 	std::map<std::string,std::vector<std::string> > mappathfiles;
@@ -239,18 +239,20 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		runpath = "../"+production2012;
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
-			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuB_20X");
-			filenames.push_back("Tree_DoubleMuB_22X");
-			filenames.push_back("Tree_DoubleMuB_23X");
-			filenames.push_back("Tree_DoubleMuB_24X");
+			// DoubleMuon 
+			filenames.push_back("Tree_DoubleMuB"); 
+			//filenames.push_back("Tree_DoubleMuB_20X");
+			//filenames.push_back("Tree_DoubleMuB_22X");
+			//filenames.push_back("Tree_DoubleMuB_23X");
+			//filenames.push_back("Tree_DoubleMuB_24X");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronB_20X");
-			filenames.push_back("Tree_DoubleElectronB_22X");
-			filenames.push_back("Tree_DoubleElectronB_23X");
-			filenames.push_back("Tree_DoubleElectronB_24X");
+			filenames.push_back("Tree_DoubleElectronB");
+			//filenames.push_back("Tree_DoubleElectronB_20X");
+			//filenames.push_back("Tree_DoubleElectronB_22X");
+			//filenames.push_back("Tree_DoubleElectronB_23X");
+			//filenames.push_back("Tree_DoubleElectronB_24X");
 		}
 		else if( strcmp(finalstate,"mme") == 0  )
 		{
@@ -266,12 +268,61 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			}
 			filenames.insert( filenames.end(), 
 					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
-			//filenames.push_back("Tree_MuEGV1_Latinos_2509");
 		}
 		else if( strcmp(finalstate,"eem") == 0  )
 		{
 			std::map<std::string,std::vector<std::string> > mapelec = 
 				getdatapathfiles("2012B","eee");
+			// Just checking things are consistent
+			if( mapelec.size() != 1)
+			{
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapelec.begin()->second.begin(),mapelec.begin()->second.end() );
+		}
+		else
+		{
+			std::cerr << "\033[31mgetdatapathfile ERROR\033[m Not recognized"
+				" finalstate '"  << finalstate << "'"
+				<< " See \033[37datamanagercreator -h\033[m" << std::endl;
+			exit(-1);
+		}
+		mappathfiles[runpath] = filenames;
+	}
+	else if( strcmp(runperiod,"2012C") == 0 )
+	{
+		runpath = "../"+production2012;
+		if( strcmp(finalstate,"mmm") == 0 )
+		{
+			filenames.push_back("Tree_DoubleMuC"); 
+		}
+		else if( strcmp(finalstate,"eee") == 0 )
+		{
+			filenames.push_back("Tree_DoubleElectronC");
+		}
+		else if( strcmp(finalstate,"mme") == 0  )
+		{
+			std::map<std::string,std::vector<std::string> > mapmuons = 
+				getdatapathfiles("2012C","mmm");
+			// Just checking things are consistent
+			if( mapmuons.size() != 1)
+			{
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
+		}
+		else if( strcmp(finalstate,"eem") == 0  )
+		{
+			std::map<std::string,std::vector<std::string> > mapelec = 
+				getdatapathfiles("2012C","eee");
 			// Just checking things are consistent
 			if( mapelec.size() != 1)
 			{
@@ -298,8 +349,10 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			getdatapathfiles("2012A",finalstate);
 		std::map<std::string,std::vector<std::string> > map2012B = 
 			getdatapathfiles("2012B",finalstate);
+		std::map<std::string,std::vector<std::string> > map2012C = 
+			getdatapathfiles("2012C",finalstate);
 		// Just checking things are consistent
-		if( map2012A.size() != 1 and map2012B.size() != 1)
+		if( map2012A.size() != 1 && map2012B.size() != 1 && map2012C.size() != 1 )
 		{
 			std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 				<< " this shows some inconsistency in the code. Contact the developer"
@@ -307,19 +360,25 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			exit(-4);
 		}
 		mappathfiles[map2012A.begin()->first] = map2012A.begin()->second;
-		if( map2012A.begin()->first == map2012B.begin()->first )
+		if( (map2012A.begin()->first == map2012B.begin()->first) && 
+			(map2012A.begin()->first == map2012C.begin()->first) )
 		{
 			// We can't use the same structure than 2011 because the directory was different 
-			// for each period:  Must be appendded 
+			// for each period:  Now must be appendded 
 			const std::string labelname = map2012B.begin()->first;
 			std::vector<std::string>::iterator lastit = mappathfiles[labelname].end();
 			std::vector<std::string> v2012B = map2012B.begin()->second;
 			mappathfiles[labelname].insert(lastit,v2012B.begin(),v2012B.end());
+			// C -period (labelname is the same for all, see the if condition)
+			lastit = mappathfiles[labelname].end();  // New last element
+			std::vector<std::string> v2012C = map2012C.begin()->second;
+			mappathfiles[labelname].insert(lastit,v2012C.begin(),v2012C.end());
 		}
 		else
 		{
 			// As 2011
 			mappathfiles[map2012B.begin()->first] = map2012B.begin()->second;
+			mappathfiles[map2012C.begin()->first] = map2012C.begin()->second;
 		}
 	}
 	else
@@ -379,7 +438,7 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		}
 		else if( strncmp(runperiod,"2012",4) == 0 )
 		{
-			folder = "Summer12"; // Latinos";
+			folder = "Summer12_53X"; // 53X-release
 		}
 		else
 		{
