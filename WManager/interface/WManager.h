@@ -67,6 +67,9 @@ class WManager
 		//! get the complete path to the weight maps
 		std::string getfile(const unsigned int & lepton, const bool & isZJetsRegionFRMatrix = false);
 
+		//! get the internal name of the weight type (internal use)
+		const std::string getstrtype( const unsigned int & wt) const;
+
 		//! Run period
 		std::string _runperiod;
 

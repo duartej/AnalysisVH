@@ -53,18 +53,15 @@ WManager::~WManager()
 
 std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsRegion)
 {
-	// FIXME: CREATE A DICT CONTAINING ALL THE INFO Instead of the if's below..
-	//  { "wtype_MUON_RUNPERIOD": file1, ... } ...
-	/*std::map<std::string,const char*> fnamesMuonSF;
-	fnamesMuonSF["2011"] = "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-	fnamesMuonSF["2012"] = "MuonSF_2012_AB_5invfb.root";
-	std::map<std::string,const char*> fnamesElecSF;
-	fnamesElecSF["2011"] = "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-	fnamesElecSF["2012"] = "ElecSF_2012_AB_5invfb.root";
+	/* Notation of the weighting files: LepWT_YEARP1P2_EXTRAINFO.root
+	Where: 
+	       Lep       -- Lepton name -- Mu|Ele 
+	       WT        -- Weight type -- FR|PR|SF
+	       YEAR      -- Run year    -- 2011|2012
+	       PI        -- Run Period  -- A|B|C (Nothing is equivalent to all the run periods of the year)
+	       EXTRAINFO -- Some extra information
+	*/
 
-	std::map<unsigned int,std::map<unsigned int,std::map<std::string,const char*> > > fdict;
-	fdict[WManager::SF] = std::pair<unsigned int,std::map<std::string,std::string> >(MUON,fnamesMuonSF);
-	TO BE DONE ... or not */
 	char * pkgpath = 0;
 	pkgpath = getenv("VHSYS");
 	if( pkgpath == 0 )
@@ -76,122 +73,47 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	}
 	
 	std::string thefile(std::string(pkgpath)+"/WManager/data/");
+	std::string jetzregion;
 
-	if( _wtype == WManager::SF )
+	// Build the name given the inputs
+	// 1. Lepton type
+	if( lepton == MUON )
 	{
-		if( lepton == MUON )
-		{
-			if( _runperiod.find("2011") != std::string::npos )
-			{
-				thefile  += "Muon_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-			}
-			else if( _runperiod.find("2012") != std::string::npos )
-			{
-				thefile += "MuonSF_2012_AB_5invfb.root";
-			}
-		}
-		else if( lepton == ELECTRON )
-		{
-			if( _runperiod.find("2011") != std::string::npos )
-			{
-				thefile  += "Electron_OutputScaleFactorMap_MC42X_2011_ALL_Reweighted.root";
-			}
-			else if( _runperiod.find("2012") != std::string::npos )
-			{
-				thefile += "ElecSF_2012_AB_5invfb.root";
-			}
-		}
-	}
-	else if( _wtype == WManager::FR )
-	{
-		if( lepton == MUON )
-		{
-			if( isZJetsRegion )
-			{
-				if( _runperiod.find("2011") != std::string::npos )
-				{
-					thefile  += "MuFR_All2011_LPcuts_AND_kink_jet30.root";
-				}
-				else if( _runperiod.find("2012") != std::string::npos )
-				{
-					thefile += "MuFR_2012_AB_5invfb_jet30.root";
-				}
-			}
-			else
-			{
-				if( _runperiod.find("2011") != std::string::npos )
-				{
-					thefile  += "MuFR_all2011_jet50.root";
-				}
-				else if( _runperiod.find("2012") != std::string::npos )
-				{
-					thefile += "MuFR_2012_AB_5invfb_jet50.root";
-				}
-			}
-		}
-		else if( lepton == ELECTRON )
-		{
-			if( isZJetsRegion )
-			{
-				if( _runperiod.find("2011") != std::string::npos )
-				{
-					thefile  += "ElecFR_all2011_jet35.root";
-				}
-				else if( _runperiod.find("2012") != std::string::npos )
-				{
-					thefile += "ElecFR_2012_AB_5invfb_jet35.root";
-				}
-			}
-			else
-			{
-				if( _runperiod.find("2011") != std::string::npos )
-				{
-					thefile  += "ElecFR_all2011_jet50.root";
-				}
-				else if( _runperiod.find("2012") != std::string::npos )
-				{
-					thefile += "ElecFR_2012_AB_5invfb_jet50.root";
-				}
-
-			}
-		}
-	}
-	else if( _wtype == WManager::PR )
-	{
-		if( lepton == MUON )
-		{
-			if( _runperiod.find("2011") != std::string::npos )
-			{
-				thefile  += "MuonPR_all2011.root";
-			}
-			else if( _runperiod.find("2012") != std::string::npos )
-			{
-				thefile += "MuonPR_2012_AB_5invfb.root";
-			}
-		}
-		else if( lepton == ELECTRON )
-		{
-			if( _runperiod.find("2011") != std::string::npos )
-			{
-				thefile  += "ElecPR_all2011.root";
-			}
-			else if(_runperiod.find("2012") != std::string::npos )
-			{
-				thefile += "ElecPR_2012_AB_5invfb.root";
-			}
-		}
+		thefile += "Mu";
+		jetzregion = "jet30";
 	}
 	else
 	{
-		std::cerr << "\033[1;31mWManager::getfile ERROR\033[1;m Not implemented "
-			<< "'" << this->GetWTStr(_wtype) << "' weight type." 
-			<< std::endl;
-		exit(-1);
+		thefile += "Ele";
+		jetzregion = "jet35";
 	}
+	
+	// 2. the weight type
+	thefile += this->getstrtype(this->_wtype);
+	thefile += "_";
+
+	// 3. the Run year and periods  (notation is yearABC ..)
+	thefile += this->_runperiod;
+
+	// 4. if fake rate, check whether we use the ZRegion fake matrices
+	if( this->_wtype == WManager::FR )
+	{
+		thefile += "_";
+		if( isZJetsRegion )
+		{
+			thefile += jetzregion;
+		}
+		else
+		{
+			thefile += "jet50";
+		}
+	}
+
+	// And extension
+	thefile += ".root";
 
 	return thefile;
 }
-
 
 void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename)
 {
@@ -307,6 +229,37 @@ const double WManager::GetWeight(const LeptonTypes & lt, const double & pt, cons
 	// FIXME: Also return error --> std::pair
 	return w;
 }
+
+//! Get the internal string name of the weight type
+const std::string WManager::getstrtype( const unsigned int & wt) const
+{
+	std::string type;
+	if( wt == WManager::EFF )
+	{
+		type = "EF";
+	}
+	else if( wt == WManager::SF )
+	{
+		type = "SF";
+	}
+	else if( wt == WManager::FR )
+	{
+		type = "FR";
+	}
+	else if( wt == WManager::PR )
+	{
+		type = "PR";
+	}
+	else
+	{
+		std::cerr << "\033[1;31mWManager::getstrtype ERROR\033[1;m Type not implemented "
+			<< std::endl;
+		exit(-1);
+	}
+
+	return type;
+}
+
 
 //! Get name of the weight type 
 const char * WManager::GetWTStr(const unsigned int & wt) const
