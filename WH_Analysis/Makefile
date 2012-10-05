@@ -71,7 +71,7 @@ bin/datamanagercreator: datamanagercreator.cc $(DEPSLIBS) lib/lib$(PACKAGE).so
 		$(ROOTLIBDIR) $(ROOTLIBS) $(DEPSLIBS) -L./lib $< -o $@  
 	@echo "... Done $@"
 
-bin/runanalysis: runanalysis.cc $(DEPSLIBS) lib/lib$(PACKAGE).sor
+bin/runanalysis: runanalysis.cc $(DEPSLIBS) lib/lib$(PACKAGE).so
 	@echo "=== $(PACKAGE): +++ Creating Executable ($@)"
 	@$(shell mkdir -p bin)
 	@$(CXX) -DTIMERS $(INCDIR) $(DEPSINC) $(ROOTINCDIR) $(CXXFLAGS) $(DEPSLIBDIR) \
