@@ -604,17 +604,16 @@ void DatasetManager::RedownloadFiles() {
 };
 
 
-
 TString DatasetManager::GuessLocalBasePath() {
     TString host = gSystem->HostName();
     if (host.Contains("geol.uniovi.es"))
       return TString("/hadoop");
     else if (host.Contains("ifca.es"))
-      return TString("/gpfs/csic_projects/cms/data");
+      return TString("/gpfs/csic_projects/tier3data");
     else if (host.Contains("gcsic"))
-      return TString("/gpfs/csic_projects/cms/data");
+      return TString("/gpfs/csic_projects/tier3data");
     else if (host.Contains("wn")) // including workernodes
-      return TString("/gpfs/csic_projects/cms/data");
+      return TString("/gpfs/csic_projects/tier3data");
     else if (host.Contains("cern.ch"))
       return TString("/pool/data1/MiniTrees/");
     else {
