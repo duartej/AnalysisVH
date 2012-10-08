@@ -439,7 +439,7 @@ class table(object):
 		elif metasample == "VGamma" and not isusersrequest:
 			components = [ "ZgammaToElElMad", "ZgammaToMuMuMad", "ZgammaToTauTauMad",\
 					"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
-		elif metasample == "Other" and not isuserrequest:
+		elif metasample == "Other" and not isusersrequest:
 			#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
 			components = [ "WW", "WJets_Madgraph" ]
 		elif metasample in self.usermetasample.keys():
