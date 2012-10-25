@@ -936,8 +936,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// + Fill histograms
 	//   - Invariant mass of leptons supposedly from Z
 	_histos[fHZInvMassAfterZCand]->Fill(invMassLL,puw);
-	// Extract MET to fill histograms:
-	const double met = fData->Get<float>("T_METPF_ET");
+	// Extract MET to fill histograms: T_METPFTypeI_ET
+	const double met = fData->Get<float>("T_METPFTypeI_ET");
 	_histos[fHMETAfterZCand]->Fill(met,puw);
 	
 	// W selection
@@ -954,7 +954,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 
 	// Some MET stuff we're going to need
-	const double phi = fData->Get<float>("T_METPF_Phi");
+	const double phi = fData->Get<float>("T_METPFTypeI_Phi");
 	const double px = met*cos(phi);
 	const double py = met*sin(phi);
 	TLorentzVector METV(px,py,0.0,0.0); 
