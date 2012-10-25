@@ -6,6 +6,84 @@ Build a default configuration input sheet needed for runanalysis executable.
 ELEC=0
 MUON=1
 
+# Description 
+
+DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
+		                   "treeType": "The enumerate of the tree type: see  TreeManager/interface/TreeTypes.h [int]",
+				   "nEvents":  "Events to be processed [int]",
+				   "firstEvent":"First event to be processed [int]",
+				   'Luminosity':"Luminosity of the data sample (or equivalent lumi for MC) [double]",
+				   },
+		'Analysis cuts': { 'MinMuPt1': "Minimum pt for the leading lepton [double]",
+			           'MinMuPt2': "Minimum pt for the 2nd leading lepton [double]",
+				   'MinMuPt3': "Minimum pt for the trailing lepton [double]",
+				   'MaxAbsEta':"Maximum abs(eta) for the lepton [double]",
+				   'MaxMuIP2DInTrackRX': "Maximum impact parameter of track associated with lepton w.r.t\n"\
+						   " the Primary Vertex. [double]\n"\
+					"                          X=1 for lepton pt >= 20 GeV/c region\n"\
+					"                          X=2 for lepton pt <  20 GeV/c region",
+				   'MaxDeltaZMu':  "Maximum dz (distance in z-coordinate) of track associated with lepton"\
+						   "w.r.t the Primary Vertex [double]",
+				   'MaxDeltaRMuMu': "Maximum DeltaR between Higgs candidates leptons [double]",
+				   'MinMET': "Minimum aumount of MET holded by the event [double]",
+				   'DeltaZMass': "Distance from the Z-boson mass peak where to cut the dileptonic"\
+						   " invariant mass system [double]"
+				  },
+		'Lepton object definition': { 'MuonID': "Muon identification and isolation to be used: 'HWWID' for the"\
+				"Latino's (Higgs-like) id and iso definition or 'VBTF' for the muon POG iso and iso"\
+				"definitions [string]",
+				'MaxPTIsolationRX': "Maximum Particle Flow type isolation value [double]\n"\
+	               			"                          X=1 for lepton region pt <= 20 and abs(eta) <  1.479\n"\
+					"                          X=2 for lepton region pt <= 20 and abs(eta) >= 1.479\n"\
+					"                          X=3 for lepton region pt > 20  and abs(eta) <  1.479\n"\
+					"                          X=4 for lepton region pt > 20  and abs(eta) >= 1.479",
+				'MinMVAValueRX': "Minimum BDT (trained for electron id) output value [double]\n"\
+					"                          X=1 for lepton region pt <  20 and abs(eta) <=  r1\n"\
+					"                          X=2 for lepton region pt <  20 and r1 < abs(eta) < 1.479\n"\
+					"                          X=3 for lepton region pt <  20 and abs(eta) >= 1.479\n"\
+					"                          X=4 for lepton region pt >= 20 and abs(eta) <=  r1\n"\
+					"                          X=5 for lepton region pt >= 20 and r1 < abs(eta) < 1.479\n"\
+					"                          X=6 for lepton region pt >= 20 and abs(eta) >=  1.479\n"\
+					"                          where r1=1.0 (0.8) for data taking run period 2011 (2012)",
+				'MinNValidHitsSATrk': "Minimum number of valid hits in stand alone track for muon [double]",
+				'MinNValidPixelHitsInTrk': "Minimum number of pixel hists in global track for muon [double]",
+				'MinNValidHitsInTrk': "Minimum number of hits for the global track of muon [double]",
+				'MaxNormChi2GTrk': " Maximum value for the normalized chi-square of the global track"\
+						"fit [double]",
+				'MinNumOfMatches': "Minimum number of inner track-muon stations matches for muon [double]",
+				'MinNLayers':  "Minimum number of tracker layers with hits for muon [double]",
+				'MaxDeltaPtMuOverPtMu': "Miximum value for the pt relative error [double]",
+				'MaxSigmaietaietaRX': "Maximum value of the sigmaIetaIeta for electrons [double]\n"\
+					"                          X=1 for lepton region abs(SCeta) < 1.479\n"\
+					"                          X=2 for lepton region abs(SCeta) >=1.479",
+				'MaxdeltaPhiInRX': "Maximum value for deltaPhiIn [double]\n"\
+					"                          X=1 for lepton region abs(SCeta) < 1.479\n"\
+					"                          X=2 for lepton region abs(SCeta) >=1.479",
+				'MaxdeltaEtaInRX': "Maximum value for deltEtaIn  [double]\n"\
+					"                          X=1 for lepton region abs(SCeta) < 1.479\n"\
+					"                          X=2 for lepton region abs(SCeta) >=1.479",
+				'MaxHtoERX': "Maximum value for energy in hadronic calorimeter over energy in"\
+					"electromagnetic [double]"\
+					"                          X=1 for lepton region abs(SCeta) < 1.479\n"\
+					"                          X=2 for lepton region abs(SCeta) >=1.479",
+				'Maxdr03TkSumPtOverPt':"Maximum value for sum of tracks in a dR<0.3 cone around the lepton"\
+						" over the lepton pt [double]",  
+				'Maxdr03EcalSumPtOverPt':"Maximum value for sum of energy deposits in ECAL in a dR<0.3 cone"\
+						" around the lepton over the lepton pt [double]",
+				'Maxdr03HcalSumPtOverPt':"Maximum value for sum of energy deposits in HCAL in a dR<0.3 cone"\
+						" around the lepton over the lepton pt [double]",
+				'MaxLoosed0': "Maximum value for the impact parameter in the loose definition [double]",
+				'MaxLooseIso': "Maximum value for isolation in the loose definition [double]"
+				},
+		'Other parameters': { 'FRMatrixZJETS': "If 1 evaluate the fakeable object method using the fake rates"\
+				" matrices (FRM) calculated with the leading jet energy cut-off to mimic the Z+Jets sample,"\
+				" useful to evaluate yields and plots before the MET cut. Otherwise, if 0 it will"\
+				" use the FRM calculated with the leading jet energy cut-off to mimic the ttbar sample"\
+				" [int]",
+				'Systematics' : "TO BE INCLUDED. NOT OPERATIONAL YET",
+				}
+		}
+
 # All ordered config values
 CONFIGORDER = { 10 : "NameTree",              
 		20 : "treeType",              
@@ -200,6 +278,16 @@ class configvar:
 					" the runperiod '"+runperiod+"'")
 		return val
 
+	def __str__(self):
+		for vartype,dictofvar in DESCRIPTION.iteritems():
+			try:
+				return dictofvar[self.name]
+			except KeyError:
+				pass
+		raise ValueError("\033[1;31mconfigvar instance\033[1;m: '"+self.name+"' not"+\
+				"described. Modify this module to insert it")
+
+
 
 
 def createfile(filename,leptontype,runperiod):
@@ -238,6 +326,11 @@ if __name__ == '__main__':
 	#Opciones de entrada
 	parser = OptionParser()
 	parser.set_defaults(runperiod="2012",signal="WZ")
+	parser.add_option( '-d',  action='store', metavar="CONFIGNAME", dest='describe',\
+			help="List and describe the configurable 'CONFIGNAME'. Print "\
+			" 'all' to show all accepted configurables. Also is posible to"\
+			" extract all the configurables splitted by subsets: general, analysis,"\
+			" lepton or other [Default: all]" )
 	parser.add_option( '-r', '--runperiod', action='store', type='string', dest='runperiod',\
 			help="The run period [2011 2012<-default>]")
 	parser.add_option( '-s', '--signal', action='store', dest='signal',\
@@ -252,6 +345,45 @@ if __name__ == '__main__':
 			help="List of configuration values with their values introduced here")
 
 	( opt, args ) = parser.parse_args()
+
+	# Listing and exit
+	if opt.describe:
+		import sys
+		message = ""
+		sections = [ 'general', 'analysis', 'lepton', 'other' ]
+		if opt.describe.lower() == 'all':
+			describelist = sections
+		else:
+			describelist = [opt.describe.lower()]
+
+		if describelist[0] in sections or describelist == sections:
+			maxvalvar  = 0
+			listmessage = {}
+			for sect in describelist:
+				try:
+					_typesval = filter(lambda x: x.lower().find(sect) != -1,DESCRIPTION.keys())[0]
+				except IndexError:
+					raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: The global section"+\
+						" '"+sect+"' is not defined as configurable section. See the help"+\
+						" (option '-d')")
+				dictvar = DESCRIPTION[_typesval]
+				listmessage[_typesval] = []
+				for var,description in dictvar.iteritems():
+					maxvalvar = max(maxvalvar,len(var))
+					listmessage[_typesval].append((var,description))
+			for _typesval,listvar in listmessage.iteritems():
+				message += "\033[1;34m%s configuration type\033[1;m:\n" % _typesval
+				for var,descript in listvar:
+					metaline = "\033[1;37m%"+str(maxvalvar)+"s\033[1;m: %s\n"
+					message += metaline % (var,descript)
+			print message+"\n"
+			sys.exit(0)
+
+
+		var = configvar(opt.describe)
+		print "\033[1;37m%s\033[1;m: %s\n" % (opt.describe,var)
+		sys.exit(0)
+
 
 	# file name
 	filename = None
