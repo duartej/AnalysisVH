@@ -63,9 +63,17 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// it doesn't matters which one pick up
 	// The others already can be deleted as they have already used to input the cuts
 	int ksize = ipmap.size();
+	const char * muonidchar = 0;  //FIXME: patch while do not merge the input parameters
 	for(std::map<LeptonTypes,InputParameters*>::iterator ipI = ipmap.begin();
 			ipI != ipmap.end(); ++ipI)
 	{
+		// FIXME: patch while do not merge the input parameters
+		//        in only one
+		if( ipI->first == MUON )
+		{
+			muonidchar = ipI->second->TheNamedString("MuonID");
+		}
+
 		if( ksize == 1 )
 		{
 			fInputParameters = ipI->second;
@@ -90,8 +98,17 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		_jetname = "JetAKCHS";
 	}
 	
+	// If 2011, check the ID for muons
+	std::string muonid("");
+	if( fRunPeriod.find("2011") != std::string::npos )
+	{
+		muonid=muonidchar;		
+		// Transforming to lower case
+		std::transform(muonid.begin(),muonid.end(),muonid.begin(), ::tolower);
+	}
+
 	// Initialize the scale factors
-	fSF = new WManager( WManager::SF, fRunPeriod );
+	fSF = new WManager( WManager::SF, fRunPeriod, muonid );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -100,8 +117,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		int iszjetsFRMatrixint = 0;
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		fFO = new WManager( WManager::FR, fRunPeriod, iszjetsFRMatrix );
-		fPO = new WManager( WManager::PR, fRunPeriod );
+		fFO = new WManager( WManager::FR, fRunPeriod, muonid, iszjetsFRMatrix );
+		fPO = new WManager( WManager::PR, fRunPeriod, muonid );
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it

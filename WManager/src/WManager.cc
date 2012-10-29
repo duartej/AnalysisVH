@@ -13,9 +13,11 @@
 #include "TROOT.h"
 
 
-WManager::WManager(const unsigned int & weighttype, const std::string & runperiod,
-                      const bool & isZJetsRegion ) :
+WManager::WManager(const unsigned int & weighttype, const std::string & runperiod, 
+		const std::string & muonid,
+		const bool & isZJetsRegion ) :
 	_runperiod(runperiod),
+	_muonid(muonid),
 	_wtype(weighttype)
 {
 	// Check coherence
@@ -25,6 +27,15 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 		std::cerr << "\033[1;31mWManager ERROR\033[1;m The run period '"
 			<< _runperiod << "' is not coded. Exiting..."
 			<< std::endl;
+	}
+	
+	// Check for valid keys
+	if(  (muonid != "") and (muonid != "hwwid" and muonid != "vbtf") )
+	{
+		std::cerr << "\033[1;31mWManager ERROR\033[1;m Valid values are"
+			<< " 'hwwid' and 'vbtf'. Instead, found the value: '" << muonid << "'"
+			<< std::endl;
+		exit(-1);
 	}
 
 	_weights[MUON] = 0;
@@ -58,6 +69,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	       Lep       -- Lepton name -- Mu|Ele 
 	       WT        -- Weight type -- FR|PR|SF
 	       YEAR      -- Run year    -- 2011|2012
+	       ID        -- ID and ISO  -- hwwid|vbtf (just for muons of 2011)
 	       PI        -- Run Period  -- A|B|C (Nothing is equivalent to all the run periods of the year)
 	       EXTRAINFO -- Some extra information
 	*/
@@ -94,6 +106,23 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 
 	// 3. the Run year and periods  (notation is yearABC ..)
 	thefile += this->_runperiod;
+
+	// 3!. If muons and 2011, check the  id
+	if( lepton == MUON and this->_runperiod.find("2011") != std::string::npos )
+	{
+		// Coherence
+		if( _muonid == "" )
+		{
+			std::cerr << "\033[1;31mWManager::getfile ERROR\033[1;m For the run period 2011 is "
+			<< "mandatory the inclusion of the muon id (vbtf or hwwid)."
+			<< std::endl;
+			exit(-1);
+		}
+		
+		thefile += "_";
+		thefile += this->_muonid;
+	}
+
 
 	// 4. if fake rate, check whether we use the ZRegion fake matrices
 	if( this->_wtype == WManager::FR )

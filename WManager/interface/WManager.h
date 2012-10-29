@@ -44,7 +44,8 @@ class WManager
 
 		//! Constructor
 		WManager(const unsigned int & weighttype, const std::string & runperiod,
-		            const bool & isZJetsRegionFRMatrix = false); 
+				const std::string & muonid,
+				const bool & isZJetsRegionFRMatrix = false); 
 
 		//! Destructor
 		virtual ~WManager();
@@ -72,6 +73,9 @@ class WManager
 
 		//! Run period
 		std::string _runperiod;
+
+		//! The muonID (used when 2011 run period)
+		std::string _muonid;
 
 		//! Weight type
 		unsigned int _wtype;
