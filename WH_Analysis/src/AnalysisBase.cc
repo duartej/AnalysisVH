@@ -118,7 +118,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
 		fFO = new WManager( WManager::FR, fRunPeriod, muonid, iszjetsFRMatrix );
-		fPO = new WManager( WManager::PR, fRunPeriod, muonid );
+		// fPO = new WManager( WManager::PR, fRunPeriod, muonid ); --> FIXME: Not needed if using the approximated method
+		// this has to be implemented (if using appr. no PR, else instance PR)
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it

@@ -616,12 +616,12 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		{
 			deltaZMu = _data->Get<float>("T_Muon_dzPVBiasedPV",i);
 		}
-		else if( _muonID == MuonID::VBTF )
+		/*else if( _muonID == MuonID::VBTF )
 		{
 			// FIXME :: HARCODED VALUES
 			kMaxMuIP2DInTrackR1 = 0.2;
 			kMaxMuIP2DInTrackR2 = 0.2;
-		}
+		}*/
 
 		if(fabs(deltaZMu) > kMaxDeltaZMu )
 		{
@@ -698,13 +698,13 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		const bool reversecmp = isoandorder.second;
 
 		// FIXME:: hardcoded-- how to deal with?
-		if( _muonID == MuonID::VBTF )
+		/*if( _muonID == MuonID::VBTF )
 		{
 			kMaxPTIsolationR1 = 0.12;
 			kMaxPTIsolationR2 = 0.12;
 			kMaxPTIsolationR3 = 0.12;
 			kMaxPTIsolationR4 = 0.12;
-		}
+		}*/
 		
 		//WARNING: HARDCODED limit of the eta regions and Pt
 		//The eta/pt plane is divided in 4 regions and the cut on isolation

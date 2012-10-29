@@ -236,6 +236,17 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'MaxLooseIso':            (None,{"2011": 0.4, "2012":-0.6}),
 	      }
 
+#The muon 2011 vbtf id needs some different values, the CONFIGVAL dict stores the values for the hwwid
+MUONID_VBTF = { 'MaxMuIP2DInTrackR1' : (CONFIGVAL['MaxMuIP2DInTrackR1'][0],{'2011':0.2,'2012':CONFIGVAL['MaxMuIP2DInTrackR1'][0]}),
+	'MaxMuIP2DInTrackR2' : (CONFIGVAL['MaxMuIP2DInTrackR2'][0],{'2011':0.2,'2012':CONFIGVAL['MaxMuIP2DInTrackR2'][1]}),
+	'MaxPTIsolationR1' : (CONFIGVAL['MaxPTIsolationR1'][0],{'2011':0.12,'2012':CONFIGVAL['MaxPTIsolationR1'][1]['2012']}),
+	'MaxPTIsolationR2' : (CONFIGVAL['MaxPTIsolationR2'][0],{'2011':0.12,'2012':CONFIGVAL['MaxPTIsolationR2'][1]['2012']}),
+	'MaxPTIsolationR3' : (CONFIGVAL['MaxPTIsolationR3'][0],{'2011':0.12,'2012':CONFIGVAL['MaxPTIsolationR3'][1]['2012']}),
+	'MaxPTIsolationR4' : (CONFIGVAL['MaxPTIsolationR4'][0],{'2011':0.12,'2012':CONFIGVAL['MaxPTIsolationR4'][1]['2012']})
+	}
+
+
+
 
 class configvar:
 	"""
@@ -396,6 +407,10 @@ if __name__ == '__main__':
 		if opt.muonid != "HWWID" and opt.muonid != "VBTF":
 			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
 					" for '--muonid' option")
+		# Change the CONFIGVAL dict if proceed to the values of VBTF
+		if opt.muonid == "VBTF":
+			for key, value in MUONID_VBTF.iteritems():
+				CONFIGVAL[key] = value
 		try:
 			opt.forcelist += "MuonID:None@"+opt.muonid
 		except TypeError:
