@@ -46,7 +46,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			<< " See \033[37datamanagercreator -h\033[m" << std::endl;
 		exit(-1);
 	}
-	std::string production = "LatinosSkims";
+	std::string production = "MC_Fall11/WZ11";
 	std::string production2012 = "MC_Summer12_53X/WH";
 	std::string runpath;
 	std::vector<std::string> filenames;
@@ -54,22 +54,22 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 
 	if( strcmp(runperiod,"2011A") == 0 )
 	{
-		runpath = "../"+production+"/Data7TeVRun2011A";
+		runpath = "../"+production;
 		// O Quizas este --> runpath = "../"+production+"/Data7TeVRun2011A";
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuMay10_Latinos_211.4");
-			filenames.push_back("Tree_DoubleMuV4_Latinos_929.7");
-			filenames.push_back("Tree_DoubleMuAug5_Latinos_317.8");
-			filenames.push_back("Tree_DoubleMuV6_Latinos_658.9");
+			filenames.push_back("Tree_DoubleMu_May10_216.7pbinv");
+			filenames.push_back("Tree_DoubleMu_PromptV4_970.0");
+			filenames.push_back("Tree_DoubleMu_Aug5_337.3pbinv");
+			filenames.push_back("Tree_DoubleMu_PromptV6_706.3pbinv");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronMay10_Latinos_211.4");
-			filenames.push_back("Tree_DoubleElectronV4_Latinos_929.7"); // OJO hay dos, lo hara el DM
-			filenames.push_back("Tree_DoubleElectronAug5_Latinos_317.8"); 
-			filenames.push_back("Tree_DoubleElectronV6_Latinos_658.9");
+			filenames.push_back("Tree_DoubleElectron_May10_216.7pbinv");
+			filenames.push_back("Tree_DoubleElectron_PromptV4_970.0"); // OJO hay dos, lo hara el DM
+			filenames.push_back("Tree_DoubleElectron_Aug5_337.3pbinv"); 
+			filenames.push_back("Tree_DoubleElectron_PromptV6_706.3pbinv");
 		}
 		else if( strcmp(finalstate,"mme") == 0  ) 
 		{
@@ -85,10 +85,6 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			}
 			filenames.insert( filenames.end(), 
 					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
-			/*filenames.push_back("Tree_MuEGMay10_210.5");
-			filenames.push_back("Tree_MuEGV4_927.9"); // OJO hay dos, lo hara el DM
-			filenames.push_back("Tree_MuEGAug5_334.4"); 
-			filenames.push_back("Tree_MuEGV6_662.9");*/
 		}
 		else if( strcmp(finalstate,"eem") == 0  ) 
 		{
@@ -116,15 +112,15 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 	}
 	else if( strcmp(runperiod,"2011B") == 0 )
 	{
-		runpath = "../"+production+"/Data7TeVRun2011B";
+		runpath = "../"+production;
 		if( strcmp(finalstate,"mmm") == 0 )
 		{
 			// DoubleMuon
-			filenames.push_back("Tree_DoubleMuV1_Latinos_2509");
+			filenames.push_back("Tree_DoubleMu_B_2740pbinv");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
-			filenames.push_back("Tree_DoubleElectronV1_Latinos_2509");
+			filenames.push_back("Tree_DoubleElectron_B_2740pbinv");
 		}
 		else if( strcmp(finalstate,"mme") == 0  )
 		{
@@ -181,7 +177,10 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			exit(-4);
 		}
 		mappathfiles[map2011A.begin()->first] = map2011A.begin()->second;
-		mappathfiles[map2011B.begin()->first] = map2011B.begin()->second;
+		const std::string labelname = map2011B.begin()->first;
+		std::vector<std::string>::iterator lastit = mappathfiles[labelname].end();
+		std::vector<std::string> v2011B = map2011B.begin()->second;
+		mappathfiles[labelname].insert(lastit,v2011B.begin(),v2011B.end());
 	}
 	else if( strcmp(runperiod,"2012A") == 0 )
 	{
@@ -241,18 +240,10 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		{
 			// DoubleMuon 
 			filenames.push_back("Tree_DoubleMuB"); 
-			//filenames.push_back("Tree_DoubleMuB_20X");
-			//filenames.push_back("Tree_DoubleMuB_22X");
-			//filenames.push_back("Tree_DoubleMuB_23X");
-			//filenames.push_back("Tree_DoubleMuB_24X");
 		}
 		else if( strcmp(finalstate,"eee") == 0 )
 		{
 			filenames.push_back("Tree_DoubleElectronB");
-			//filenames.push_back("Tree_DoubleElectronB_20X");
-			//filenames.push_back("Tree_DoubleElectronB_22X");
-			//filenames.push_back("Tree_DoubleElectronB_23X");
-			//filenames.push_back("Tree_DoubleElectronB_24X");
 		}
 		else if( strcmp(finalstate,"mme") == 0  )
 		{
@@ -434,7 +425,7 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		TString folder;		
 		if( strncmp(runperiod,"2011",4) == 0 )
 		{
-			folder = "Fall11 Latinos";
+			folder = "Fall11";
 		}
 		else if( strncmp(runperiod,"2012",4) == 0 )
 		{
@@ -476,6 +467,11 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 			// I'm patching everywhere to deal with it. This is another patch...
 			dm->SetSkim("WH");
 		}
+		else
+		{
+			dm->SetSkim("WZ11");
+		}
+
 		AddDataFiles(dm->GetFiles(),*datafiles); //Find files
 		
 		xsection = dm->GetCrossSection();
