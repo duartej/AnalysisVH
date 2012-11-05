@@ -365,20 +365,11 @@ void AnalysisBase::InitialiseParameters()
 	}
 	else if( fRunPeriod == "2011" )
 	{
-		//MCdist = Fall11True;
-		MCdist = Fall11;
+		MCdist = Fall11True;
 	}
-	else if( fRunPeriod == "2012A" )
+	else if( fRunPeriod == "2012A" || fRunPeriod == "2012B" || fRunPeriod == "2012" )
 	{
 		MCdist = Summer12_53X; 
-	}
-	else if( fRunPeriod == "2012B" )
-	{
-		MCdist = Summer12_53X;
-	}
-	else if( fRunPeriod == "2012" )
-	{
-		MCdist = Summer12_53X;
 	}
 	else
 	{
@@ -539,7 +530,7 @@ void AnalysisBase::StoresEvtInf(const std::vector<TLorentzVector> & lepton,
 
         _evtinfo.metet = METV.Pt();
         _evtinfo.metphi= METV.Phi();
-
+	
 	_evtlisttree->Fill();
 }
 

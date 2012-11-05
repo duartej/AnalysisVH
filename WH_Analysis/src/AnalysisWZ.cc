@@ -217,7 +217,9 @@ void AnalysisWZ::Initialise()
 
 	//_histos[fHIsoLepton] = CreateH1D("fHIsoLepton","#sum Iso_{total}/p_{t}",100,0,0.4);
 	//_histos[fHD0Lepton] = CreateH1D("fHD0Lepton","d_{0}",100,0,0.2);
-	_histos[fHEtJetnoTightLepton] = CreateH1D("fHEtJetnoTightLepton","Jet E_{T}",200,0,100);
+	_histos[fHEtJetMatchedLeptonPreSel] = CreateH1D("fHEtJetMatchedLeptonPreSel","Jet E_{T}",200,0,100);
+	_histos[fHEtJetMatchedLeptonAfterZ] = CreateH1D("fHEtJetMatchedLeptonAfterZ","Jet E_{T}",200,0,100);
+	_histos[fHEtJetMatchedLepton] = CreateH1D("fHEtJetMatchedLepton","Jet E_{T}",200,0,100);
 	
 }
 
@@ -232,11 +234,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 #endif
 	// Get PU Weight
 	//----------------------------------------------------------------------
-	std::string npuname = "T_Event_nPU";
-	if( fRunPeriod.find("2012") != std::string::npos )
-	{
-		npuname = "T_Event_nTruePU";
-	}
+	//std::string npuname = "T_Event_nPU";
+	std::string npuname = "T_Event_nTruePU";
 	double puw(1);
 	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
@@ -732,6 +731,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	{
 		return std::pair<unsigned int,float>(WZCuts::_iHasExactly3Leptons,puw);
 	}
+
+
 	// Using the fake rate if we are in fake mode
 	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
@@ -826,6 +827,58 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 	// Fill charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
+	
+	// Jet Veto: Not applied, just counting the number of jets
+	//------------------------------------------------------------------
+	unsigned int nJets = 0;
+	std::vector<double> jetsmatchedEt;
+	std::vector<int> notightleptons;
+	if( fLeptonSelection->IsInFakeableMode() )
+	{
+		notightleptons = *(fLeptonSelection->GetNoTightLeptons());
+	}
+	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
+	{
+		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
+		//FIXME: Add the pt,eta and deltaR cuts in the config file
+		// Leptons not inside the Jets
+		bool leptoninsideJet = false;
+		for(unsigned int j = 0; j < lepton.size(); ++j)
+		{
+			if( fabs(Jet.DeltaR(lepton[j])) <= 0.3 )
+			{
+				leptoninsideJet = true;
+				// If is a notight lepton, stores the jet Et to plot it distributions
+				const int indexforselector = theLeptons->at(j);
+				if( std::find(notightleptons.begin(),notightleptons.end(), indexforselector) 
+						!= notightleptons.end() )
+				{
+					jetsmatchedEt.push_back(Jet.Et());
+				}
+				break;
+			}
+		}
+		// Checked for the count of number of jets, the jet is defined
+		// as pt > 30 and eta <5
+		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
+		{
+			continue;
+		}
+
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		
+		nJets++;
+	}
+	// Storing the number of jets
+	_histos[fHNJets]->Fill(nJets,puw);
+	// And the number of matched jets
+	for(unsigned int i =  0; i < jetsmatchedEt.size(); ++i)
+	{
+		_histos[fHEtJetMatchedLeptonPreSel]->Fill(jetsmatchedEt[i],puw);
+	}
 	
 	// Build Z candidates: same flavour opposite charge
 	// ------------------------------------------------------------------
@@ -939,7 +992,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Extract MET to fill histograms: T_METPFTypeI_ET
 	const double met = fData->Get<float>("T_METPFTypeI_ET");
 	_histos[fHMETAfterZCand]->Fill(met,puw);
-	
+	// Matched jets after Z
+	for(unsigned int i =  0; i < jetsmatchedEt.size(); ++i)
+	{
+		_histos[fHEtJetMatchedLeptonAfterZ]->Fill(jetsmatchedEt[i],puw);
+	}
+
 	// W selection
 	//------------------------------------------------------------------
 	// Looking the not used leptons
@@ -1014,35 +1072,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	const int iWcand = wcandidate.rbegin()->second;	
 	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
 	
-	// Jet Veto:
-	//------------------------------------------------------------------
-	unsigned int nJets = 0;
-	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
-	{
-		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
-		//FIXME: Add the pt,eta and deltaR cuts in the config file
-		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
-		{
-			continue;
-		}
-		// Leptons not inside the Jets
-		bool leptoninsideJet = false;
-		for(unsigned int j = 0; j < lepton.size(); ++j)
-		{
-			if( fabs(Jet.DeltaR(lepton[j])) <= 0.3 )
-			{
-				leptoninsideJet = true;
-				break;
-			}
-		}
-		if( leptoninsideJet )
-		{
-			continue;
-		}
-		nJets++;
-	}
-	// Storing before the veto
-	_histos[fHNJets]->Fill(nJets,puw);
   	
 	
 	// MET
@@ -1061,6 +1090,11 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Filling histos -------------------------------------
 	_histos[fHZInvMass]->Fill(invMassLL,puw);
 	_histos[fHMET]->Fill(met,puw);
+	// Matched jets after all cuts
+	for(unsigned int i =  0; i < jetsmatchedEt.size(); ++i)
+	{
+		_histos[fHEtJetMatchedLepton]->Fill(jetsmatchedEt[i],puw);
+	}
 
 	//Store event info, just in data case
 	if( fIsData )

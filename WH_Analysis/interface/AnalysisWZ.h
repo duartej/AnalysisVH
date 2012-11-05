@@ -41,6 +41,9 @@ class AnalysisWZ : public AnalysisBase
 			fHNSelectedIsoLeptons,    //Selected Isolated leptons
 			fHNSelectedIsoGoodLeptons,//Selected Isolated Good Leptons
 			fHLeptonCharge,           //Sum charges of leptons
+			fHEtJetMatchedLeptonPreSel,//Et of the jet matching a lepton at preselection
+			fHEtJetMatchedLeptonAfterZ,//Et of the jet matching a lepton after z candidate
+			fHEtJetMatchedLepton,     //Et of the jet matching a lepton after all cuts
 			fHZInvMass,               //Invariant mass of leptons in/out of Z peak after all cust
 			fHZInvMassAfterZCand,     //Invariant mass of leptons in/out of Z peak
 			fHZInvMassAfterWCand,     //Invariant mass of leptons in/out of Z peak
@@ -53,7 +56,6 @@ class AnalysisWZ : public AnalysisBase
 			fHdRl2Wcand
 			//fHIsoLepton,
 			//fHD0Lepton
-			,fHEtJetnoTightLepton
 		};
 		
 		//! Constructor

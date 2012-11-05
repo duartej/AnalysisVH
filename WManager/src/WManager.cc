@@ -207,7 +207,7 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 
 		// WARNING: FAKE RATE Matrix for  pt > 35 is not reliable
 		//          Following Alicia advice take the values of bin [30,35]
-		if( _wtype == WManager::FR )
+		if( _wtype == WManager::FR ) // FIXME: Solo para 2011? o para todos?
 		{
 			if( ptIn >= 35.0 )
 			{
