@@ -341,6 +341,11 @@ void AnalysisBase::InitialiseParameters()
 	{
 		fIsData = true;
 	}
+	// Square of the Sum of the weight when dealing with MC or Fakes (weighted) or Fakes (weighted)
+	if( ! fIsData || fDataName.BeginsWith("Fakes") )
+	{
+		TH1::SetDefaultSumw2();
+	}
 	
 	// Luminosity
 	//--------------------------------
