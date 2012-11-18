@@ -89,14 +89,6 @@ def merge(sfA,lumiA,sfB,lumiB,outputfile):
 	froot.Close()
 
 
-
-	
-
-
-
-
-
-
 if __name__ == "__main__":
 	from optparse import OptionParser,OptionGroup
 	import os
@@ -113,6 +105,9 @@ where LumiA=2.111 and LumiB=2.811. Although previously the scale factors per run
 re-factorized (the id and iso components) using sf=sf_A*sf_B'"""
 	parser = OptionParser(usage=usage)
 	parser.set_defaults(outputfile='MuSF_2011_vbtf.root')
+	parser.add_option('-r', '--runperiod', action='store', dest='runperiod',
+			help='Run period to be used: A|B. If this option is not activated'\
+					' the scale factors are calculated merging both periods.')
 	parser.add_option('-o', '--ouputfile', action='store', dest='outputfile',
 			help='The name of the output root file [Default:MuSF_2011_vbtf.root]')
 	(opt,args) = parser.parse_args()
@@ -121,19 +116,22 @@ re-factorized (the id and iso components) using sf=sf_A*sf_B'"""
 		message = "\033[31;2msffrompog: ERROR\033[0m The arguments must be 1 pickle scale factor file"+\
 				" from the Muon POG page."
 		raise RuntimeError(message)
-
-	# Extract relevant info from the pickle files
-	sfAdict = extractdict(args[0],"A")
-	sfBdict = extractdict(args[0],"B")
 	
 	# FIXME: Valores approximados, tengo que preguntar...
 	LumiA = 2230.3
-	LumiB = 2740.0
+	LumiB = 2740.0		
 
-	merge(sfAdict,LumiA,sfBdict,LumiB,opt.outputfile)
-
-
-
-
-
+	if opt.runperiod:
+		if opt.runperiod not in [ "A","B"]:
+			raise RuntimeError("\033[31;2msffrompog: ERROR\033[0m: Invalid argument for "+\
+					"'-r' option. Valid arg. are A|B. Parsed '"+opt.runperiod+"'")
+		sfdict = extractdict(args[0],opt.runperiod)
+		lumi = eval("Lumi"+opt.runperiod)
+		merge(sfdict,lumi,sfdict,lumi,opt.outputfile)
+	else:
+		# Extract relevant info from the pickle files
+		sfAdict = extractdict(args[0],"A")
+		sfBdict = extractdict(args[0],"B")
+		
+		merge(sfAdict,LumiA,sfBdict,LumiB,opt.outputfile)
 

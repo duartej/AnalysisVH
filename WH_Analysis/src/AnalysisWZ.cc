@@ -220,7 +220,6 @@ void AnalysisWZ::Initialise()
 	_histos[fHEtJetMatchedLeptonPreSel] = CreateH1D("fHEtJetMatchedLeptonPreSel","Jet E_{T}",200,0,100);
 	_histos[fHEtJetMatchedLeptonAfterZ] = CreateH1D("fHEtJetMatchedLeptonAfterZ","Jet E_{T}",200,0,100);
 	_histos[fHEtJetMatchedLepton] = CreateH1D("fHEtJetMatchedLepton","Jet E_{T}",200,0,100);
-	
 }
 
 //---------------------------------------------------------------------

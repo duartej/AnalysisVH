@@ -622,7 +622,7 @@ class clustermanager(object):
 			command = [ 'qsub','-V','-d',os.getcwd(), \
                                  '-t',str(taskidinit)+"-"+str(taskidend),bashscript ]
 		else:
-			command = [ 'qsub','-V','-cwd','-S','/bin/bash', \
+			command = [ 'qsub','-r','yes','-V','-cwd','-S','/bin/bash', \
 			        '-t',str(taskidinit)+"-"+str(taskidend),\
 				'-P','l.gaes','-l', 'immediate', '-l','h_rt=02:00:00',bashscript ]
 		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()

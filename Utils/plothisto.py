@@ -507,7 +507,11 @@ def plotallsamples(sampledict,**keywords):
 	"""..function::plotallsamples(sampledict,plottype=plottype,rebin=rebin,hasratio=hasratio,\
 			isofficial=isofficial[,plotsuffix=suf,allsamplesonleg=allsamplesonleg]) -> None
 
-	Main function where the plot are actually done
+	Main function where the plot are actually done. 
+	The ratio plot is defined per bin content as:
+	   Points:     Bin i-esim: datayield/totbkgyield +/- sqrt(error_datayield/totbkgyield)
+	   Blue Band:  Bin i-esim: 1.0 +/- sqrt(error_totbkgyield/totbkgyield)
+	TO BE INCORPORATED SOON: systematics errors
 
 	:param sampledict: dictionary of sampleclass instances containing all the sample to
 	                   be plotted
@@ -573,6 +577,8 @@ def plotallsamples(sampledict,**keywords):
 	ROOT.gROOT.ForceStyle()
 	ROOT.gStyle.SetOptStat(0)
 
+	ROOT.TH1.SetDefaultSumw2()
+
 	# Create the folder structure
 	try:
 		os.mkdir("Plots")
@@ -595,7 +601,6 @@ def plotallsamples(sampledict,**keywords):
 	# Defining the ratio histogram
 	ratio = ROOT.TH1F("ratio","",datasample.histogram.GetNbinsX(),
 			datasample.histogram.GetXaxis().GetXmin(),datasample.histogram.GetXaxis().GetXmax())
-	ratio.Sumw2()
 	ratio.SetLineColor(datasample.histogram.GetMarkerColor())
 	# And the ratio-error for MC histogram
 	errors = ROOT.TH1F("errorsratio","",datasample.histogram.GetNbinsX(),
@@ -714,9 +719,13 @@ def plotallsamples(sampledict,**keywords):
 				errors.GetXaxis().SetBinLabel(i,binlabel)
 			errors.SetBinContent(i,1.0)
 			try:
-				errors.SetBinError(i,1.0/mcratio.GetBinError(i))
+				errors.SetBinError(i,mcratio.GetBinError(i)/mcratio.GetBinContent(i))
 			except ZeroDivisionError:
 				errors.SetBinError(i,0.0)
+			try:
+				ratio.SetBinError(i,datasample.histogram.GetBinError(i)/mcratio.GetBinContent(i))
+			except ZeroDivisionError:
+				ratio.SetBinError(i,0.0)
 		ratio.SetMaximum(2.3)
 		errors.SetMaximum(2.3)
 		ratio.SetMinimum(0.0)
