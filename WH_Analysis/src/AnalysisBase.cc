@@ -20,8 +20,12 @@ const double kZMass = 91.1876;
 //const unsigned int kNMuons = 3; 
 const unsigned int kNMuons = 2; 
 const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParticle("W+")->PdgCode()
-const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()
+const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()a
 
+//Momentum/energy scale SYSTEMATICS
+const float MUONPTSYS = 0.05;
+const float ELECPTBARRELSYS = 0.02;
+const float ELECPTENDCAPSYS = 0.05;
 
 
 // Prepare analysis Constructor
@@ -54,7 +58,11 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_jetname(""),
 	_issysrun(false),
 	_namesys(""),
+	_typesys(0),
 	_modesys(0),
+	_mptsys(MUONPTSYS),
+	_eptbarrelsys(ELECPTBARRELSYS),
+	_epteesys(ELECPTENDCAPSYS),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -111,14 +119,20 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		std::transform(muonid.begin(),muonid.end(),muonid.begin(), ::tolower);
 	}
 
-	// Check if we have to deal with systematics and which one
+	// Check if we have to deal with systematics and which one: FIXME: Do that in a function
 	const char * sys = fInputParameters->TheNamedString("Systematic");
-	std::map<std::string,int> systypemode;
+	std::map<int,int> systypemode;
 	// Initialize
 	// Systematic related with the scale factors: using sf+-sigma 
-	systypemode["LEPTONSYS"] = 0;
+	systypemode[AnalysisBase::LEPTONSYS] = 0;
 	// Systematic related with the fake rate matrices errors, using fr+-sigma
-	systypemode["FRSYS"] = 0;
+	systypemode[AnalysisBase::FRSYS] = 0;
+	// Systematic related with the momentum/energy scale for muons/electrons
+	systypemode[AnalysisBase::MSSYS] = 0;
+	// Systematic related with the energy scale and resolution for MET
+	systypemode[AnalysisBase::METSYS] = 0;
+	// Systematic related with the Pile up estimation
+	systypemode[AnalysisBase::PUSYS] = 0;
 	if( sys )
 	{
 		_issysrun = true;
@@ -134,14 +148,55 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 			exit(-1);
 		}
 		_namesys = systr.substr(0,pos_colon);
+		// Checking it is defined
+		if( _namesys == "LEPTONSYS" )
+		{
+			_typesys = AnalysisBase::LEPTONSYS;
+		}
+		else if( _namesys == "FRSYS" )
+		{
+			_typesys = AnalysisBase::FRSYS;
+		}
+		else if( _namesys == "MSSYS" )
+		{
+			_typesys = AnalysisBase::MSSYS;
+		}
+		else if( _namesys == "METSYS" )
+		{
+			_typesys = AnalysisBase::METSYS;
+		}
+		else if( _namesys == "PUSYS" )
+		{
+			_typesys = AnalysisBase::PUSYS;
+		}
+		else
+		{
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
+				<< " from InputParameters with wrong systematic type: '" << systr << "' "
+				<< " Valid arguments are 'LEPTONSYS' 'FRSYS' MSSYS' 'METSYS' 'PUSYS'"
+				<< std::endl;
+			exit(-1);
+		}
 		const std::string mode = systr.substr(pos_colon+1);
 		if( mode == "UP" )
 		{
 			_modesys = WManager::UP;
+			if( _typesys == AnalysisBase::MSSYS )
+			{
+				_mptsys = (1.0+_mptsys);
+				_eptbarrelsys = (1.0+_eptbarrelsys);
+				_epteesys = (1.0+_epteesys);
+			}
 		}
 		else if( mode == "DOWN" )
 		{
 			_modesys = WManager::DOWN;
+			if( _typesys == AnalysisBase::MSSYS )
+			{
+				_mptsys = (1.0-_mptsys);
+				_eptbarrelsys = (1.0-_eptbarrelsys);
+				_epteesys = (1.0-_epteesys);
+			}
 		}
 		else
 		{
@@ -152,19 +207,19 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 			exit(-1);
 		}
 		// Checking the key is in there
-		if( systypemode.find(_namesys) == systypemode.end() )
+		if( systypemode.find(_typesys) == systypemode.end() )
 		{
 			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
 				<< " from InputParameters with systematic type: '" << _namesys << "' This type"
 				<< " is not implemented yet. Exiting..." << std::endl;
 			exit(-1);
 		}
-		systypemode[_namesys] = _modesys;
+		systypemode[_typesys] = _modesys;
 	}
 	// End parsing systematics
 
 	// Initialize the scale factors
-	fSF = new WManager( WManager::SF, fRunPeriod, muonid, systypemode["LEPTONSYS"] );
+	fSF = new WManager( WManager::SF, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -173,7 +228,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		int iszjetsFRMatrixint = 0;
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode["FRSYS"], iszjetsFRMatrix );
+		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], iszjetsFRMatrix );
 		// fPO = new WManager( WManager::PR, fRunPeriod, muonid ); --> FIXME: Not needed if using the approximated method
 		// this has to be implemented (if using appr. no PR, else instance PR)
 	}
@@ -462,6 +517,33 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 			);
 }
 
+// Overloaded function for take into account momentum systematic
+const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const int & index, const int & leptontype) const
+{
+	TLorentzVector aux = this->GetTLorentzVector(name,index);
+	// Aplying the correction factor
+	float systematic = 0.0;
+	switch(leptontype)
+	{
+		case ELECTRON:
+			if( fabs(aux.Eta()) < 1.479 )
+			{
+				systematic = _eptbarrelsys;
+			}
+			else
+			{
+				systematic = _epteesys;
+			}
+			break;
+		case MUON:
+			systematic = _mptsys;
+	}
+	//TLorentzVector *auxpr = new TLorentzVector;
+	aux.SetPtEtaPhiE(aux.Pt()*systematic,aux.Eta(),aux.Phi(),aux.E());
+
+	return aux;
+}
+
 void AnalysisBase::Summary()
 {
 	std::cout << " + Channel evaluated: " << SignatureFS::GetFSID(fFS) << std::endl;
@@ -657,7 +739,7 @@ double AnalysisBase::GetPPFWeightApprx()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		puw *= fFO->GetWeight(ileptontype,pt,eta);
@@ -693,7 +775,7 @@ double AnalysisBase::GetPPFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
@@ -713,7 +795,7 @@ double AnalysisBase::GetPPFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
@@ -804,7 +886,7 @@ double AnalysisBase::GetPFFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
@@ -824,7 +906,7 @@ double AnalysisBase::GetPFFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
@@ -915,7 +997,7 @@ double AnalysisBase::GetFFFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
@@ -935,7 +1017,7 @@ double AnalysisBase::GetFFFWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
@@ -1016,7 +1098,7 @@ double AnalysisBase::GetPPPWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
@@ -1036,7 +1118,7 @@ double AnalysisBase::GetPPPWeight()
 		{
 			name = "Elec";
 		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i);
+		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
 		const double pt  = lvec.Pt();
 		const double eta = lvec.Eta();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );

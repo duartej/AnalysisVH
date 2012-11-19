@@ -44,9 +44,11 @@ class TreeManager
 		void Init(TTree * tree);  // = 0;
 		void GetEntry( const int & entry );
 		
+		//! Extract the value for a given branchname at a given index
 		template <class T>
 		T Get(const char * branchname,const int & index = 0) const;
-
+	
+		//! Extract the number of elements contained in branchname
 		template <class T>
 		unsigned int GetSize(const char * branchname) const;
 

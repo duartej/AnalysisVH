@@ -132,6 +132,16 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		};
 
+		//! Systematic types
+		enum
+		{
+			LEPTONSYS,          // Scale factors related systematics
+			FRSYS,		    // Fake rates+-1sigma variation of its value
+			MSSYS,		    // Momentum/Energy scale systematic
+			METSYS,		    // MET scale and resolution systematic
+			PUSYS		    // Pile up variation systematic
+		};
+
 		//! Constructor
 		AnalysisBase( TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 				CutManager * selectorcuts, const unsigned int & finalstate );
@@ -177,6 +187,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Extract the 4-momenta of object "namep".
 		const TLorentzVector GetTLorentzVector( const char * namep, 
 				const int & index ) const;
+		//! Overloaded to extract the momentum with momentum/energy systematic 
+		const TLorentzVector GetTLorentzVector( const char * namep, 
+				const int & index, const int & leptontype ) const;
 
 		//! Methods to fill histograms
 		virtual void FillHistoPerCut(const unsigned int & cut,const double & puw, 
@@ -258,8 +271,12 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Systematics info
 		bool _issysrun;
 		std::string _namesys;
+		int _typesys; 
 		int _modesys;
-
+		//! systematic pt
+		float _mptsys;
+		float _eptbarrelsys;
+		float _epteesys;
 
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
