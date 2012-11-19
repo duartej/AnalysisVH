@@ -52,6 +52,9 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_evtlisttree(0),
 	_wcharge(0),
 	_jetname(""),
+	_issysrun(false),
+	_namesys(""),
+	_modesys(0),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -88,7 +91,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		--ksize;
 	}
 	
-	// Extract the run period
+	// Extract the run period (FIXME: Check if RunPeriod exist, otherwise it
+	// will crash with a logic error exception
 	fRunPeriod = fInputParameters->TheNamedString("RunPeriod");
 
 	// Set jet name
@@ -107,8 +111,60 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		std::transform(muonid.begin(),muonid.end(),muonid.begin(), ::tolower);
 	}
 
+	// Check if we have to deal with systematics and which one
+	const char * sys = fInputParameters->TheNamedString("Systematic");
+	std::map<std::string,int> systypemode;
+	// Initialize
+	// Systematic related with the scale factors: using sf+-sigma 
+	systypemode["LEPTONSYS"] = 0;
+	// Systematic related with the fake rate matrices errors, using fr+-sigma
+	systypemode["FRSYS"] = 0;
+	if( sys )
+	{
+		_issysrun = true;
+		const std::string systr(sys);
+		// Parsing content  TYPESYS:UP|DOWN
+		const size_t pos_colon = systr.find(":");
+		if( pos_colon == std::string::npos )
+		{
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
+				<< " from InputParameters with wrong format: '" << systr << "' The argument must"
+				<< " have exactly the format: SYSTEMATICTYPE:VAR where VAR should be either UP"
+				<< " or DOWN" << std::endl;
+			exit(-1);
+		}
+		_namesys = systr.substr(0,pos_colon);
+		const std::string mode = systr.substr(pos_colon+1);
+		if( mode == "UP" )
+		{
+			_modesys = WManager::UP;
+		}
+		else if( mode == "DOWN" )
+		{
+			_modesys = WManager::DOWN;
+		}
+		else
+		{
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
+				<< " from InputParameters with wrong format: '" << systr << "' The argument must"
+				<< " have exactly the format: SYSTEMATICTYPE:VAR where VAR should be either UP"
+				<< " or DOWN" << std::endl;
+			exit(-1);
+		}
+		// Checking the key is in there
+		if( systypemode.find(_namesys) == systypemode.end() )
+		{
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
+				<< " from InputParameters with systematic type: '" << _namesys << "' This type"
+				<< " is not implemented yet. Exiting..." << std::endl;
+			exit(-1);
+		}
+		systypemode[_namesys] = _modesys;
+	}
+	// End parsing systematics
+
 	// Initialize the scale factors
-	fSF = new WManager( WManager::SF, fRunPeriod, muonid );
+	fSF = new WManager( WManager::SF, fRunPeriod, muonid, systypemode["LEPTONSYS"] );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -117,7 +173,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		int iszjetsFRMatrixint = 0;
 		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
 		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		fFO = new WManager( WManager::FR, fRunPeriod, muonid, iszjetsFRMatrix );
+		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode["FRSYS"], iszjetsFRMatrix );
 		// fPO = new WManager( WManager::PR, fRunPeriod, muonid ); --> FIXME: Not needed if using the approximated method
 		// this has to be implemented (if using appr. no PR, else instance PR)
 	}
@@ -440,7 +496,19 @@ void AnalysisBase::Summary()
 			std::cout << "ttbar Region" << std::endl;
 		}
 	}
-	// FIXME---> SYSTEMATICS MODE ?? -> IsSystematicMode() ??
+	if( _issysrun )
+	{
+		std::cout << " + SYSTEMATIC MODE ACTIVATED for '" << _namesys << "': ";
+		if( _modesys == WManager::UP )
+		{
+			std::cout << "UP";
+		}
+		else
+		{
+			std::cout << "DOWN";
+		}
+		std::cout << std::endl;
+	}
 	std::cout << " ------------------------------------------------- " << std::endl;
 	std::cout << std::endl;
   

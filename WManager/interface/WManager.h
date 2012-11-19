@@ -41,11 +41,23 @@ class WManager
 			PR,       // Prompt rate
 			_n        // Not to use (internal)
 		};
+		//! Enums defining the systematic variation of weights
+		enum
+		{
+			UP    = 1,  
+			DOWN  = 2
+		};
 
 		//! Constructor
 		WManager(const unsigned int & weighttype, const std::string & runperiod,
 				const std::string & muonid,
-				const bool & isZJetsRegionFRMatrix = false); 
+				const int & systematic = 0);
+		
+		//! Copnstructor including systematics
+		WManager(const unsigned int & weighttype, const std::string & runperiod,
+				const std::string & muonid,
+				const int & sytematics,
+				const bool & isZJetsRegionFRMatrix); 
 
 		//! Destructor
 		virtual ~WManager();
@@ -62,8 +74,11 @@ class WManager
 
 	
 	private:
+		//! Initialize the class, decoupling both constructors
+		void init(const int & sytematics,const bool & isZJetsRegionFRMatrix); 
+
 		//! Set the root file where to find the TH2F with the weights
-		void setweightfile(const LeptonTypes & lt, const char * filename);
+		void setweightfile(const LeptonTypes & lt, const char * filename, const int & systematic);
 		
 		//! get the complete path to the weight maps
 		std::string getfile(const unsigned int & lepton, const bool & isZJetsRegionFRMatrix = false);

@@ -15,10 +15,35 @@
 
 WManager::WManager(const unsigned int & weighttype, const std::string & runperiod, 
 		const std::string & muonid,
+		const int & systematics ) :
+	_runperiod(runperiod),
+	_muonid(muonid),
+	_wtype(weighttype)
+{
+	this->init(systematics,false);
+}
+
+WManager::WManager(const unsigned int & weighttype, const std::string & runperiod, 
+		const std::string & muonid,
+		const int & systematics,
 		const bool & isZJetsRegion ) :
 	_runperiod(runperiod),
 	_muonid(muonid),
 	_wtype(weighttype)
+{
+	// Check coherence
+	if( systematics != WManager::UP && systematics != WManager::DOWN && systematics != 0)
+	{
+		std::cerr << "\033[1;31mWManager ERROR\033[1;m Not understood '"
+			<< " sytematic variation '" << systematics << "'. Valid"
+			<< " values are 'UP' and 'DOWN'"
+			<< std::endl;
+		exit(-1);
+	}
+	this->init(systematics,isZJetsRegion);
+}
+
+void WManager::init(const int & systematic,const bool & isZJetsRegion )
 {
 	// Check coherence
 	if( _runperiod.find("2011") != std::string::npos &&
@@ -27,13 +52,14 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 		std::cerr << "\033[1;31mWManager ERROR\033[1;m The run period '"
 			<< _runperiod << "' is not coded. Exiting..."
 			<< std::endl;
+		exit(-1);
 	}
 	
 	// Check for valid keys
-	if(  (muonid != "") and (muonid != "hwwid" and muonid != "vbtf") )
+	if(  (_muonid != "") and (_muonid != "hwwid" and _muonid != "vbtf") )
 	{
 		std::cerr << "\033[1;31mWManager ERROR\033[1;m Valid values are"
-			<< " 'hwwid' and 'vbtf'. Instead, found the value: '" << muonid << "'"
+			<< " 'hwwid' and 'vbtf'. Instead, found the value: '" << _muonid << "'"
 			<< std::endl;
 		exit(-1);
 	}
@@ -46,9 +72,10 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 	_filesnames[MUON] = this->getfile(MUON,isZJetsRegion);
 	_filesnames[ELECTRON] = this->getfile(ELECTRON,isZJetsRegion);
 
-	this->setweightfile(MUON,_filesnames[MUON].c_str());
-	this->setweightfile(ELECTRON,_filesnames[ELECTRON].c_str());
+	this->setweightfile(MUON,_filesnames[MUON].c_str(),systematic);
+	this->setweightfile(ELECTRON,_filesnames[ELECTRON].c_str(),systematic);
 }
+
 
 WManager::~WManager()
 {
@@ -144,7 +171,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	return thefile;
 }
 
-void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename)
+void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename, const int & systematic)
 {
 	// Forcing the ownership to WManager instead of TFile,
 	// in order not to enter in conflict with the TreeManager TFile
@@ -224,9 +251,22 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 			// Otherwise (using the full calculation) comment lines below and change 
 			const double f = prov->GetBinContent(globalbin);
 			double finalweight = f;
+			// Building systematics if proceed, adding the error contribution
+			// so when call getWeight the value is already the (value+-error)
+			if( systematic )
+			{
+				if( systematic == WManager::UP )
+				{
+					finalweight += prov->GetBinError(globalbin);
+				}
+				else if( systematic == WManager::DOWN )
+				{
+					finalweight -= prov->GetBinError(globalbin);
+				}
+			}
 			if( _wtype == WManager::FR )
 			{
-			        finalweight = f/(1.0-f);
+			        finalweight = finalweight/(1.0-finalweight);
 			}
 			const int globalbinOut = prov->FindBin(ptOut,eta);
 			_weights[leptontype]->SetBinContent(globalbinOut,finalweight);

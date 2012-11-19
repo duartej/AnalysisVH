@@ -255,6 +255,11 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Jet name (it depends of the run period)
 		std::string _jetname;
 
+		//! Systematics info
+		bool _issysrun;
+		std::string _namesys;
+		int _modesys;
+
 
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }
