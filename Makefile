@@ -4,7 +4,7 @@ PACKAGE   := $(shell basename `pwd`)
 
 ### Dependencies
 DEPPKG     := VectorUtils TCounterUI PUWeight \
-	DatasetManager InputParameters TreeManager CutLevels CutManager \
+	DatasetManager InputParameters TreeManager CutLevels Lepton CutManager \
 	CMSAnalysisSelector WManager WH_Analysis
 BASEDIR    := $(shell pwd)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))

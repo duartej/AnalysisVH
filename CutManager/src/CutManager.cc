@@ -19,7 +19,8 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_selectedIsoLeptons(0),
 	_selectedGoodIdLeptons(0),
 	_notightLeptons(0),
-	_tightLeptons(0)
+	_tightLeptons(0),
+	_registeredcols(new std::vector<std::vector<LeptonRel*> *>),
 {
 	_cuts = new std::map<std::string,double>;
 
@@ -43,40 +44,74 @@ CutManager::~CutManager()
 		delete _cuts;
 		_cuts = 0;
 	}
-
-	if( _notightLeptons != 0 )
+	
+	for(std::vector<std::vector<LeptonRel*> *>::iterator it = _registeredcols->begin();
+			it != _registeredcols->end(); ++it)
 	{
+		leptonDeleter(*it);
+		if( *it != 0 )
+		{
+			delete *it;
+			*it = 0;
+		}
+	}
+
+	delete _registercols;
+	_registeredcols = 0;
+
+	/*if( _notightLeptons != 0 )
+	{
+		leptonDeleter(_notightLeptons);
 		delete _notightLeptons;
 		_notightLeptons = 0;
 	}
 	
 	if( _tightLeptons != 0 )
 	{
+		leptonDeleter(_tightLeptons);
 		delete _tightLeptons;
 		_tightLeptons = 0;
 	}
 
 	if( _selectedbasicLeptons != 0)
 	{
+		leptonDeleter(_selectedbasicLeptons);
 		delete _selectedbasicLeptons;
 		_selectedbasicLeptons = 0;
 	}
 	if( _closeToPVLeptons != 0)
 	{
+		leptonDeleter(_closeToPVLeptons);
 		delete _closeToPVLeptons;
 		_closeToPVLeptons = 0;
 	}
 	if( _selectedIsoLeptons != 0)
 	{
+		leptonDeleter(_selectedIsoLeptons);
 		delete _selectedIsoLeptons;
 		_selectedIsoLeptons = 0;
 	}
 	if( _selectedGoodIdLeptons != 0)
 	{
+		leptonDeleter(_selectedGoodIdLeptons);
 		delete _selectedGoodIdLeptons;
 		_selectedGoodIdLeptons = 0;
+	}*/
+}
+
+// Auxiliary function to delete the LeptonRel instances
+void CutManager::leptonDeleter(std::vector<LeptonRel*> * collection)
+{
+	for(std::vector<LeptonRel*>::iterator it = collection->begin(); it != collection->end(); ++it)
+	{
+		if( *it != 0 )
+		{
+			delete *it;
+			*it = 0;
+		}
 	}
 }
+
 
 // Es una funcion de esta classe quien se deberia encargar de esto o es
 // mejor que lo haga la clase analisis? Depende de lo generales que 
@@ -146,7 +181,17 @@ void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & i
 // Method to be called each time finalize a entry
 void CutManager::Reset()
 {
-	if( _notightLeptons != 0 )
+	for(std::vector<std::vector<LeptonRel*> *>::iterator it = _registeredcols->begin();
+			it != _registeredcols->end(); ++it)
+	{
+		leptonDeleter(*it);
+		if( *it != 0 )
+		{
+			delete *it;
+			*it = 0;
+		}
+	}
+	/*if( _notightLeptons != 0 )
 	{
 		delete _notightLeptons;
 		_notightLeptons = 0;
@@ -177,7 +222,7 @@ void CutManager::Reset()
 	{
 		delete _selectedGoodIdLeptons;
 		_selectedGoodIdLeptons = 0;
-	}
+	}*/
 }
 
 //
@@ -186,7 +231,8 @@ unsigned int CutManager::GetNBasicLeptons()
 	int size = 0;
 	if( _selectedbasicLeptons == 0)
 	{
-		_selectedbasicLeptons = new std::vector<int>;
+		_selectedbasicLeptons = new std::vector<LeptonRel*>;
+		_registeredcols->push_back(_selectedbasicLeptons);
 		size = this->SelectBasicLeptons();
 	}
 	else
@@ -209,7 +255,8 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	int size = 0;
 	if( _closeToPVLeptons == 0)
 	{
-		_closeToPVLeptons = new std::vector<int>;
+		_closeToPVLeptons = new std::vector<LeptonRel*>;
+		_registeredcols->push_back(_closeToPVLeptons);
 		size = this->SelectLeptonsCloseToPV();
 	}
 	else
@@ -226,7 +273,8 @@ unsigned int CutManager::GetNIsoLeptons()
 	unsigned int size = 0;
 	if( _selectedIsoLeptons == 0)
 	{
-		_selectedIsoLeptons = new std::vector<int>;
+		_selectedIsoLeptons = new std::vector<LeptonRel*>;
+		_registeredcols->push_back(_selectedIsoLeptons);
 		size = this->SelectIsoLeptons();
 	}
 	else
@@ -239,7 +287,8 @@ unsigned int CutManager::GetNIsoLeptons()
 	if( this->IsInFakeableMode() )
 	{
 		// Build the tight
-		_tightLeptons = new std::vector<int>;
+		_tightLeptons = new std::vector<LeptonRel*>;
+		_registeredcols->push_back(_tightLeptons);
 		for(unsigned int i = 0; i < size; ++i)
 		{
 			_tightLeptons->push_back( _selectedIsoLeptons->at(i) );
@@ -253,7 +302,7 @@ unsigned int CutManager::GetNIsoLeptons()
 		// Keep track of the lepton type if proceed (mixing classes)
 		// Is at this level when _selected Vector has the tight, notight
 		// merged collection
-		this->SyncronizeLeptonType();
+		this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
 
 		size += notightsize;		
 	}
@@ -266,7 +315,8 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	unsigned int size = 0;
 	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIdLeptons = new std::vector<int>;
+		_selectedGoodIdLeptons = new std::vector<LeptonRel*>;
+		_registeredcols->push_back(_selectedGoodIdLeptons);
 		size = this->SelectGoodIdLeptons();
 	}
 	else
@@ -346,7 +396,7 @@ bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int
 }
 
 // Update the tight and no tight collection, the vector introduced as argument
-// contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
+// contains the final result:  [ tight1,...,tightN,notight1,..., notightN] -----> CUIDADO XXX --> No se como aun
 void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
 {
 	if( ! this->IsInFakeableMode() )

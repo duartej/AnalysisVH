@@ -27,6 +27,7 @@
 
 #include"TreeManager.h"
 #include "LeptonTypes.h"
+#include "LeptonRel.h"
 #include "InputParameters.h"
 
 
@@ -109,20 +110,14 @@ class CutManager
 		//-- Getters
 		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
 		//! leptons if fakeable mode is active
-		virtual std::vector<int> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
+		virtual std::vector<LeptonRel*> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
 		//! Get the Tight leptons (passing the PV, Iso and ID cuts)
-		inline virtual std::vector<int> * GetTightLeptons() const { return _tightLeptons; }
+		inline virtual std::vector<LeptonRel*> * GetTightLeptons() const { return _tightLeptons; }
 		//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
-		inline virtual std::vector<int> * GetNoTightLeptons() const { return _notightLeptons; }
-		//! Get The lepton type for the i-esim good lepton  (tight+notight)
-		virtual LeptonTypes GetLeptonType(const unsigned int & index) const = 0;
-		//! Get The lepton type for the i-esim Tight lepton 
-		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const = 0;
-		//! Get The lepton type for the i-esim no Tight lepton 
-		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const = 0;
-		//! Get the i-essim index of the Tight lepton
+		inline virtual std::vector<LeptonRel*> * GetNoTightLeptons() const { return _notightLeptons; }
+		//! Get the i-essim index of the Tight lepton --> ??
 		const unsigned int GetTightIndex(const unsigned int & i) const;
-		//! Get the i-essim index of the NoTight lepton
+		//! Get the i-essim index of the NoTight lepton ---> ??
 		const unsigned int GetNoTightIndex(const unsigned int & i) const;
 		//! Get the number of total leptons which are considered in this analysis
 		inline const unsigned int GetNAnalysisLeptons() { return _nLeptons; }
@@ -145,6 +140,8 @@ class CutManager
 		friend std::ostream & operator<<(std::ostream & out, const CutManager & cm );
 
 	protected:
+		//! Auxiliary function to delete the LeptonRel instances
+		void leptonDeleted(std::vector<LeptonRel*> * col);
 		//! Selectors: WARNING use GetNWhatever methods instead!! Not to be used by any client
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts (Loose)
@@ -161,13 +158,10 @@ class CutManager
 		//! mode == CutManager::FAKEABLESAMPLE
 		virtual unsigned int SelectLooseLeptons() = 0; 
 		
-		//! Syncronize lepton type with indices vector when fake mode active
-		virtual void SyncronizeLeptonType() = 0;
-		
-		//! Update fakeables collection, taking into account the lepton type (fake mode active)
+		//! Update fakeables collection, taking into account the lepton type (fake mode active) 
 		virtual bool WasAlreadyUpdated() = 0;
 
-		//! Container of the data:  FIXME: IT is needed?
+		//! Container of the data
 		TreeManager * _data;
 
 		//! The run period of the data being analysed
@@ -190,18 +184,21 @@ class CutManager
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
 		//! Vector of index of leptons which pass the basic selection (Loose)
-		std::vector<int> * _selectedbasicLeptons;
+		std::vector<LeptonRel*> * _selectedbasicLeptons;
 		//! Vector of index of leptons closest to PV (tight)
-		std::vector<int> * _closeToPVLeptons;
+		std::vector<LeptonRel*> * _closeToPVLeptons;
 		//! Vector of index of isolated leptons (tight + no tight)
-		std::vector<int> * _selectedIsoLeptons;
+		std::vector<LeptonRel*> * _selectedIsoLeptons;
 		//! Vector of index of good identified leptons ( tight + no tight)
-		std::vector<int> * _selectedGoodIdLeptons;
+		std::vector<LeptonRel*> * _selectedGoodIdLeptons;
 
 		//! Vector of leptons indices which have not passed the tight cuts 
-		std::vector<int> * _notightLeptons;
+		std::vector<LeptonRel*> * _notightLeptons;
 		//! Vector of leptons indices which have pass the tight cuts
-		std::vector<int> * _tightLeptons;
+		std::vector<LeptonRel*> * _tightLeptons;
+
+		//! Auxiliary data member to keep track of the pointers allocated
+		std::vector<std::vector<LeptonRel*> *> * _registeredcols;
 
 	ClassDef(CutManager,0);
 };

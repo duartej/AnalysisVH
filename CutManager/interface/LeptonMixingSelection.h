@@ -62,11 +62,11 @@ class LeptonMixingSelection : public CutManager
 		
 		//-- Selection
 		//---------------------------------------------
-		//! Get The lepton type for the i-esim lepton (tight+notight)
+		//! Get The lepton type for the i-esim lepton (tight+notight) -- TO BE DEPRECATED
 		virtual LeptonTypes GetLeptonType(const unsigned int & index) const; 
-		//! Get The lepton type for the i-esim tight lepton
-		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const; 
-		//! Get The lepton type for the i-esim no tight lepton
+		//! Get The lepton type for the i-esim tight lepton  -- TO BE DEPRECATED
+		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const;  
+		//! Get The lepton type for the i-esim no tight lepton -- TO BE DEPRECATED
 		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const; 
 
 		//! Overloaded Reset method in order to deal with the extra data members
@@ -96,9 +96,6 @@ class LeptonMixingSelection : public CutManager
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 
-		//! Syncronize lepton type with indices vector when fake mode active
-		virtual void SyncronizeLeptonType();
-		
 		//! Update fakeables collection, taking into account the lepton type 
 		virtual bool WasAlreadyUpdated() { return true; }
 		
@@ -117,8 +114,8 @@ class LeptonMixingSelection : public CutManager
 		//! Vector containing the type of lepton which
 		//! corresponds to the counterpart index vector (from
 		//! the mother class). It could be done directly by a map
-		//! but then is needed modify the mother class.. (Maybe it's useful..)
-		std::vector<LeptonTypes> * _leptontypebasicLeptons;
+		//! but then is needed modify the mother class.. (Maybe it's useful..)  -- TO BE DEPRECATED
+		std::vector<LeptonTypes> * _leptontypebasicLeptons;  
 		std::vector<LeptonTypes> * _leptontypecloseToPVLeptons;
 		std::vector<LeptonTypes> * _leptontypeIsoLeptons;
 		std::vector<LeptonTypes> * _leptontypeGoodIdLeptons;

@@ -598,21 +598,27 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	// Be ready the notightLeptons if proceed
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
-		_notightLeptons = new std::vector<int>;
+		_notightLeptons = new std::vector<LeptonRel*>;
+		_registercols->push_back(_notightLeptons);
 	}
 	
 	// Loop over electrons
 	for(unsigned int i=0; i < _data->GetSize<float>("T_Elec_Px"); ++i) 
 	{
 		//Build 4 vector for muon
-		TLorentzVector Elec(_data->Get<float>("T_Elec_Px",i), 
+		TLorentzVector ElecP4(_data->Get<float>("T_Elec_Px",i), 
 				_data->Get<float>("T_Elec_Py",i), 
 				_data->Get<float>("T_Elec_Pz",i), 
 				_data->Get<float>("T_Elec_Energy",i));
+
+		// Build the relative lepton 
+		LeptonRel elec(ElecP4,i);
+		elec.setleptontype(ELECTRON);
+		
 		
 		//[Cut in Eta and Pt]
 		//-------------------
-		if( fabs(Elec.Eta()) >= kMaxAbsEta || Elec.Pt() <= kMinMuPt3 )
+		if( fabs(elec.getP4().Eta()) >= kMaxAbsEta || elec.getP4().Pt() <= kMinMuPt3 )
 		{
 			continue;
 		}
@@ -624,7 +630,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		}
 		
 		// If we got here it means the muon is good
-		_selectedbasicLeptons->push_back(i);
+		_selectedbasicLeptons->push_back(new LeptonRel(elec));
 	}
 	
 	return _selectedbasicLeptons->size();
@@ -657,14 +663,11 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 	for(std::vector<int>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
-		unsigned int i = *it;
+		unsigned int i = (*it)->index();
 
 		//Build 4 vector for muon (por que no utilizar directamente Pt
 		// FIXME: Not needed: just extract Pt
-		double ptMu = TLorentzVector(_data->Get<float>("T_Elec_Px",i), 
-				_data->Get<float>("T_Elec_Py",i), 
-				_data->Get<float>("T_Elec_Pz",i), 
-				_data->Get<float>("T_Elec_Energy",i)).Pt();
+		const double ptMu = (*it)->getP4().Pt();
 
 		//[Require muons to be close to PV] 
 		//-------------------
@@ -690,7 +693,7 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		}
 		
 		// If we got here it means the muon is good
-		_closeToPVLeptons->push_back(i);
+		_closeToPVLeptons->push_back(*it);
 	}
 	
 	return _closeToPVLeptons->size();
@@ -721,22 +724,15 @@ unsigned int ElecSelection::SelectIsoLeptons()
 	}
 	
 	//Loop over selected muons
-	for(std::vector<int>::iterator it = _closeToPVLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _closeToPVLeptons->begin();
 			it != _closeToPVLeptons->end(); ++it)
 	{
-		unsigned int i = *it;
-		
-		//Build 4 vector for muon
-		// FIXME: Not needed: just extract Pt and Eta
-		TLorentzVector Elec(_data->Get<float>("T_Elec_Px",i), 
-				_data->Get<float>("T_Elec_Py",i),
-				_data->Get<float>("T_Elec_Pz",i), 
-				_data->Get<float>("T_Elec_Energy",i));
+		unsigned int i = (*it)->index();
 
 		//[Require muons to be isolated]
 		//-------------------
 		const char * isonamestr = "T_Elec_eleSmurfPF";
-		double elecpt = Elec.Pt();
+		const double elecpt = (*it)->getP4().Pt();
 		if( _runperiod.find("2012") != std::string::npos )
 		{
 			isonamestr = "T_Elec_pfComb";
@@ -758,13 +754,12 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		const double ptLimit  = 20.0;
 		
 		double IsoCut = -1;
-		const double mupt = Elec.Pt();
-		const double mueta= Elec.Eta();
+		const double eleceta= (*it)->getP4().Eta();
 		// Low Pt Region:
-		if( mupt <= ptLimit )
+		if( elecpt <= ptLimit )
 		{
 			// Low eta region: R1
-			if( fabs(mueta) < etaLimit ) 
+			if( fabs(eleceta) < etaLimit ) 
 			{
 				IsoCut = kMaxPTIsolationR1;
 			}
@@ -777,7 +772,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		else  // High Pt Region:
 		{
 			// Low eta region: R3
-			if( fabs(mueta) < etaLimit )
+			if( fabs(eleceta) < etaLimit )
 			{
 				IsoCut = kMaxPTIsolationR3;
 			}
@@ -794,7 +789,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		{
 			if( _samplemode == CutManager::FAKEABLESAMPLE )
 			{
-				_notightLeptons->push_back(i);
+				_notightLeptons->push_back(*it);
 			}
 			continue;
 		}
@@ -806,13 +801,13 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		{
 			if( _samplemode == CutManager::FAKEABLESAMPLE )
 			{
-				_notightLeptons->push_back(i);
+				_notightLeptons->push_back(*it);
 			}
 			continue;
 		}
 		
 		// If we got here it means the muon is good
-		_selectedIsoLeptons->push_back(i);
+		_selectedIsoLeptons->push_back(*it);
 	}
 	
 	return _selectedIsoLeptons->size();
