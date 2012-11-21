@@ -199,7 +199,7 @@ class CutManager
 		std::vector<LeptonRel*> * _tightLeptons;
 
 		//! Auxiliary data member to keep track of the allocated pointers
-		std::vector<std::vector<LeptonRel*> *> * _registeredcols;
+		std::vector<std::vector<LeptonRel*> **> * _registeredcols;
 
 	ClassDef(CutManager,0);
 };

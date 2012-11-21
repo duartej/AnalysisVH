@@ -23,6 +23,15 @@ LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const
 	}
 }
 
+LeptonRel::LeptonRel(const LeptonRel & lp)
+{
+	this->_p4 = new TLorentzVector(*(lp._p4));
+	this->_index = lp._index;
+	this->_q = lp._q;
+	this->_leptontype = lp._leptontype;
+	this->_name = lp._name;
+}
+
 
 LeptonRel::~LeptonRel()
 {

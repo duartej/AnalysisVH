@@ -498,12 +498,11 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	// Empty the selected muons vector --> Redundant to be removed
 	_selectedbasicLeptons->clear();
 	
-	
 	// Be ready the notightLeptons if proceed
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		_notightLeptons = new std::vector<LeptonRel*>;
-		_registeredcols->push_back(_notightLeptons);
+		_registeredcols->push_back(&_notightLeptons);
 	}
 
 	
@@ -557,7 +556,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 			continue; 
 		}
 		
-		// If we got here it means the muon is good
+		// If we got here it means the muon is good (keep track of hte new
 		_selectedbasicLeptons->push_back(new LeptonRel(mu));
 	}
 	
@@ -572,7 +571,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 //---------------------------------------------
 unsigned int MuonSelection::SelectLeptonsCloseToPV() 
 {
-	if( _closeToPVLeptons == 0)
+	if( _closeToPVLeptons == 0 )
 	{
 		this->GetNLeptonsCloseToPV();
 		//_closeToPVLeptons = new std::vector<int>;
@@ -641,7 +640,6 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		// If we got here it means the muon is good
 		_closeToPVLeptons->push_back(*it);
 	}
-	
 	return _closeToPVLeptons->size();
 }
 

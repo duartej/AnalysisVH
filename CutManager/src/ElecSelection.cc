@@ -598,7 +598,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		_notightLeptons = new std::vector<LeptonRel*>;
-		_registeredcols->push_back(_notightLeptons);
+		_registeredcols->push_back(&_notightLeptons);
 	}
 	
 	// Loop over electrons
@@ -628,7 +628,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 			continue;
 		}
 		
-		// If we got here it means the muon is good
+		// If we got here it means the muon is good and keeping track of memory
 		_selectedbasicLeptons->push_back(new LeptonRel(elec));
 	}
 	

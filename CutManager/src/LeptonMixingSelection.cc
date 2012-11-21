@@ -312,7 +312,7 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		_notightLeptons = new std::vector<LeptonRel*>;
-		_registeredcols->push_back(_notightLeptons);
+		_registeredcols->push_back(&_notightLeptons);
 	}
 
 	// ordering by Pt

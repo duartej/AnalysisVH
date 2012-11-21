@@ -32,6 +32,7 @@ class LeptonRel
 		LeptonRel(const unsigned int & index);  // Probably to be deprecated
 		LeptonRel(const TLorentzVector & p, const unsigned int & index);
 		LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const LeptonTypes & leptontype);
+		LeptonRel(const LeptonRel & lr); // copy constructor
 		virtual ~LeptonRel();
 
 		//! Equality operator
