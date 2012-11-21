@@ -16,7 +16,7 @@ INCDIR     += -I$(shell pwd)/interface
 INCDIR     += -I$(shell pwd)
 
 ### Dependencies
-DEPPKG     := TreeManager InputParameters TCounterUI DatasetManager Lepton
+DEPPKG     := TreeManager InputParameters LeptonRel
 BASEDIR    := $(shell cd .. && pwd && cd ..)
 DEPSDIR    := $(foreach DEPPKG,$(DEPPKG),$(BASEDIR)/$(DEPPKG))
 DEPSLIBS   := $(foreach DEPPKG,$(DEPPKG),-l$(DEPPKG))

@@ -1,16 +1,16 @@
 #include "LeptonRel.h"
 
 LeptonRel::LeptonRel(const unsigned int & index) 
-	: _p4(0), _index(index), _q(-999), _leptontype(-999),_name("")
+	: _p4(0), _index(index), _q(-999), _leptontype(UNDEFINED),_name("")
 {
 }
 
 LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index) 
-	: _p4(new TLorentzVector(p)), _index(index), _q(-999), _leptontype(-999),_name("")
+	: _p4(new TLorentzVector(p)), _index(index), _q(-999), _leptontype(UNDEFINED),_name("")
 {
 }
 
-LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const int & leptontype)
+LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const LeptonTypes & leptontype)
 	: _p4(new TLorentzVector(p)), _index(index), _q(charge), _leptontype(leptontype)
 {
 	if( _leptontype == MUON )
@@ -26,7 +26,7 @@ LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const
 
 LeptonRel::~LeptonRel()
 {
-	if( this->_p4 )
+	if( this->_p4 != 0 )
 	{
 		delete this->_p4;
 		this->_p4 = 0;
@@ -44,9 +44,9 @@ bool LeptonRel::operator ==(const LeptonRel & l1) const
 	return false;
 }
 
-LeptonRel::setP4(const TLorentzVector & p4)
+void LeptonRel::setP4(const TLorentzVector & p4)
 {
-	if( this->_p4 )
+	if( this->_p4 != 0 )
 	{
 		delete this->_p4;
 		this->_p4 = 0;
@@ -55,15 +55,15 @@ LeptonRel::setP4(const TLorentzVector & p4)
 	this->_p4 = new TLorentzVector(p4);
 }
 
-LeptonRel::setleptontype(const int & leptontype)
+void LeptonRel::setleptontype(const LeptonTypes & leptontype)
 {
-	_leptontype = leptontype;
+	this->_leptontype = leptontype;
 	
-	if( _leptontype == MUON )
+	if( this->_leptontype == MUON )
 	{
 		_name = "Muon";
 	}
-	else if( _leptontype == ELECTRON )
+	else if( this->_leptontype == ELECTRON )
 	{
 		_name = "Elec";
 	}

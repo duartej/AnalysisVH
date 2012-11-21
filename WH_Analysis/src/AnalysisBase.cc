@@ -6,6 +6,7 @@
 #include<algorithm>
 
 #include "AnalysisBase.h"
+#include "LeptonRel.h"
 #include "InputParameters.h"
 #include "CutManager.h"
 #include "PUWeight.h"
@@ -660,28 +661,27 @@ void AnalysisBase::StoresCut(const unsigned int & cut, const float & weight)
 	_cutweight = 1;
 }
 
-void AnalysisBase::StoresEvtInf(const std::vector<TLorentzVector> & lepton, 
-		const int & iZ1, const int & iZ2,
-		const int & iW, const double & transversmass, const TLorentzVector & METV)
+void AnalysisBase::StoresEvtInf(const TLorentzVector & zcand1, const TLorentzVector & zcand2,
+		const TLorentzVector & wcand, const double & transversmass, const TLorentzVector & METV)
 {
         _evtinfo.run = fData->Get<int>("T_Event_RunNumber");
         _evtinfo.lumi = fData->Get<int>("T_Event_LuminosityBlock");
         _evtinfo.evt  = fData->Get<int>("T_Event_EventNumber");
         _evtinfo.channel = fFS;
 
-        _evtinfo.zmass = (lepton[iZ1]+lepton[iZ2]).M();
-        _evtinfo.zlep1pt = lepton[iZ1].Pt();
-        _evtinfo.zlep1eta = lepton[iZ1].Eta();
-        _evtinfo.zlep1phi = lepton[iZ1].Phi();
+        _evtinfo.zmass = (zcand1+zcand2).M();
+        _evtinfo.zlep1pt = zcand1.Pt();
+        _evtinfo.zlep1eta = zcand1.Eta();
+        _evtinfo.zlep1phi = zcand1.Phi();
 
-        _evtinfo.zlep2pt = lepton[iZ2].Pt();
-        _evtinfo.zlep2eta = lepton[iZ2].Eta();
-        _evtinfo.zlep2phi = lepton[iZ2].Phi();
+        _evtinfo.zlep2pt = zcand2.Pt();
+        _evtinfo.zlep2eta = zcand2.Eta();
+        _evtinfo.zlep2phi = zcand2.Phi();
 
         _evtinfo.wmt = transversmass;
-        _evtinfo.wleppt = lepton[iW].Pt();
-        _evtinfo.wlepeta = lepton[iW].Eta();
-        _evtinfo.wlepphi = lepton[iW].Phi();
+        _evtinfo.wleppt = wcand.Pt();
+        _evtinfo.wlepeta = wcand.Eta();
+        _evtinfo.wlepphi = wcand.Phi();
 
         _evtinfo.metet = METV.Pt();
         _evtinfo.metphi= METV.Phi();
@@ -726,22 +726,12 @@ double AnalysisBase::GetPPFWeightApprx()
 	// used. So, each no-tight lepton is weighted in order to get its probability to be
 	// fake.
 	double puw = 1.0;
-	for(unsigned int k = 0; k < fLeptonSelection->GetNAnalysisNoTightLeptons(); ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		puw *= fFO->GetWeight(ileptontype,pt,eta);
 	}
 
@@ -757,51 +747,31 @@ double AnalysisBase::GetPPFWeight()
 	//  FAKE ESTIMATED:       f(1-p)  for each passing
 	//                        pf      for each failing
 	//  common factor: 1/(p-f)
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(unsigned int k = 0; k < ntight; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(unsigned int k = 0; k < nfailing; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 
@@ -868,50 +838,31 @@ double AnalysisBase::GetPFFWeight()
 	//  FAKE ESTIMATED:       f(1-p)  for each passing
 	//                        pf      for each failing
 	//  common factor: 1/(p-f)
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(unsigned int k = 0; k < ntight; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(unsigned int k = 0; k < nfailing; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
+	
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
@@ -979,50 +930,31 @@ double AnalysisBase::GetFFFWeight()
 	//  FAKE ESTIMATED:       f(1-p)  for each passing
 	//                        pf      for each failing
 	//  common factor: 1/(p-f)
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(unsigned int k = 0; k < ntight; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(unsigned int k = 0; k < nfailing; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
+	
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
@@ -1080,51 +1012,31 @@ double AnalysisBase::GetPPPWeight()
 	//  FAKE ESTIMATED:       f(1-p)  for each passing
 	//                        pf      for each failing
 	//  common factor: 1/(p-f)
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(unsigned int k = 0; k < ntight; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(unsigned int k = 0; k < nfailing; ++k)
+	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const unsigned int i = fLeptonSelection->GetNoTightIndex(k);
-		const LeptonTypes ileptontype= fLeptonSelection->GetNoTightLeptonType(k);
-		const char * name = 0;
-		if( ileptontype == MUON )
-		{
-			name = "Muon";
-		}
-		else
-		{
-			name = "Elec";
-		}
-		TLorentzVector lvec = this->GetTLorentzVector(name,i,ileptontype);
-		const double pt  = lvec.Pt();
-		const double eta = lvec.Eta();
+		const double pt  = (*it)->getP4().Pt();
+		const double eta = (*it)->getP4().Eta();
+		const LeptonTypes ileptontype = (*it)->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
+	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
+	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 

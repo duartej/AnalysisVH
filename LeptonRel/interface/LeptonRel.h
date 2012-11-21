@@ -23,38 +23,41 @@
 
 #include<cstring>
 #include "TLorentzVector.h"
+#include "LeptonTypes.h"
 
 class LeptonRel
 {
 	public:
-		// Default constructor
-		LeptonRel(): _p4(0), _index(-1), _q(-999),_leptontype(-999),_name("") { ; }
 		//! Constructors
-		LeptonRel(const unsigned int & index);
+		LeptonRel(const unsigned int & index);  // Probably to be deprecated
 		LeptonRel(const TLorentzVector & p, const unsigned int & index);
-		LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const int & leptontype);
+		LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const LeptonTypes & leptontype);
 		virtual ~LeptonRel();
 
+		//! Equality operator
 		bool operator ==(const LeptonRel & l1) const;
 		
 		//! Accessors
-		inline const TLorentzVector getP4() const { return *(this->_p4); }
+		inline const TLorentzVector & getP4() const { return *(this->_p4); }
 		inline const unsigned int index() const { return this->_index; }
 		inline const int charge() const { return this->_q; }
 		inline const std::string leptonname() const { return this->_name; }
-		inline const int leptontype() const { return this->_leptontype; }
+		inline const LeptonTypes leptontype() const { return this->_leptontype; }
 
 		//! Setters
 		void setP4(const TLorentzVector & p4);
 		inline void setcharge(const int & q) { this->_q = q; }
-		void setleptontype(const int & leptontype);
+		void setleptontype(const LeptonTypes & leptontype);
 
 	private:
+		// Default constructor avoided
+		LeptonRel(): _p4(0), _index(-1), _q(-999),_leptontype(UNDEFINED),_name("") { ; }
+		// Data members
 		TLorentzVector * _p4;
 		//! Index related with the tree being extracted
 		unsigned int _index;
 		int _q;
-		int _leptontype;
+		LeptonTypes _leptontype;
 		std::string _name;
 	
 	ClassDef(LeptonRel,0);

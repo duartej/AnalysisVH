@@ -20,7 +20,7 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_selectedGoodIdLeptons(0),
 	_notightLeptons(0),
 	_tightLeptons(0),
-	_registeredcols(new std::vector<std::vector<LeptonRel*> *>),
+	_registeredcols(new std::vector<std::vector<LeptonRel*> *>)
 {
 	_cuts = new std::map<std::string,double>;
 
@@ -56,7 +56,7 @@ CutManager::~CutManager()
 		}
 	}
 
-	delete _registercols;
+	delete _registeredcols;
 	_registeredcols = 0;
 
 	/*if( _notightLeptons != 0 )
@@ -302,7 +302,7 @@ unsigned int CutManager::GetNIsoLeptons()
 		// Keep track of the lepton type if proceed (mixing classes)
 		// Is at this level when _selected Vector has the tight, notight
 		// merged collection
-		this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
+		//this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
 
 		size += notightsize;		
 	}
@@ -396,8 +396,8 @@ bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int
 }
 
 // Update the tight and no tight collection, the vector introduced as argument
-// contains the final result:  [ tight1,...,tightN,notight1,..., notightN] -----> CUIDADO XXX --> No se como aun
-void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
+// contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
+void CutManager::UpdateFakeableCollections( const std::vector<LeptonRel*> * finalcol)
 {
 	if( ! this->IsInFakeableMode() )
 	{
@@ -417,22 +417,21 @@ void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
 		return;
 	}
 
-	std::vector<int> *tight = new std::vector<int>;
-	std::vector<int> *notight = new std::vector<int>;
-	for(std::vector<int>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
+	std::vector<LeptonRel*> *tight = new std::vector<LeptonRel*>;
+	std::vector<LeptonRel*> *notight = new std::vector<LeptonRel*>;
+	for(std::vector<LeptonRel*>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
 	{
-		const int index = *it;
-		if( std::find(_tightLeptons->begin(),_tightLeptons->end(), index) != 
+		if( std::find(_tightLeptons->begin(),_tightLeptons->end(), *it) != 
 				_tightLeptons->end() )
 		{
-			tight->push_back( index );
-			continue; //FIXME COMPRUEBA---> POR CONSTRUCCITON DEBERIA SER VALIDO
+			tight->push_back( *it );
+			continue;
 		}
-		if( std::find(_notightLeptons->begin(),_notightLeptons->end(), index) != 
+		if( std::find(_notightLeptons->begin(),_notightLeptons->end(), *it) != 
 				_notightLeptons->end() )
 		{
-			notight->push_back( index );
-			continue; //FIXME COMPRUEBA---> POR CONSTRUCCITON DEBERIA SER VALIDO
+			notight->push_back( *it );
+			continue; 
 		}
 	}
 
@@ -446,49 +445,4 @@ void CutManager::UpdateFakeableCollections( const std::vector<int> * finalcol)
 	delete notight;
 }
 
-// Extract the Index (in the data) of the i-essim Tight lepton
-const unsigned int CutManager::GetTightIndex(const unsigned int & i) const
-{
-	if( _samplemode != CutManager::FAKEABLESAMPLE )
-	{
-		std::cerr << "\033[1;31mCutManager::GetTightIndex ERROR\033[1;m Incoherent use of"
-			<< " this function because it cannot be called in NORMALSAMPLE mode."
-			<< " Check the client of this function why has been made this call"
-			<< std::endl;
-		exit(-1);
-	}
-
-	if( _tightLeptons->size() <= i )
-	{
-		std::cerr << "\033[1;31mCutManager::GetTightIndex ERROR\033[1;m Overbounded, "
-			<< "there are '" << _notightLeptons->size() << "' noTight leptons."
-			<< std::endl;
-		exit(-1);
-	}
-
-	return (*_tightLeptons)[i];
-}
-
-// Extract the Index (in the data) of the i-essim no Tight lepton
-const unsigned int CutManager::GetNoTightIndex(const unsigned int & i) const
-{
-	if( _samplemode != CutManager::FAKEABLESAMPLE )
-	{
-		std::cerr << "\033[1;31mCutManager::GetNoTightIndex ERROR\033[1;m Incoherent use of"
-			<< " this function because it cannot be called in NORMALSAMPLE mode."
-			<< " Check the client of this function why has been made this call"
-			<< std::endl;
-		exit(-1);
-	}
-
-	if( _notightLeptons->size() <= i )
-	{
-		std::cerr << "\033[1;31mCutManager::GetNoTightIndex ERROR\033[1;m Overbounded, "
-			<< "there are '" << _notightLeptons->size() << "' noTight leptons."
-			<< std::endl;
-		exit(-1);
-	}
-
-	return (*_notightLeptons)[i];
-}
 

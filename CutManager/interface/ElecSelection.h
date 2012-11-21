@@ -67,11 +67,11 @@ class ElecSelection : public CutManager
 		//-- Selection
 		//---------------------------------------------
 		//! Get the lepton type of the i-esim good lepton (tight+notight)
-		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return ELECTRON; }
 		//! Get the lepton type of the i-esim tight lepton
-		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return ELECTRON; }
 		//! Get the lepton type of the i-esim no tight lepton
-		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return ELECTRON; }
+		//virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return ELECTRON; }
 
 	private:
 		//-- The effective cuts whose would be called by IsPass
@@ -84,9 +84,6 @@ class ElecSelection : public CutManager
 		bool IsPassWP( const unsigned int & index ) const;
 		//! Check if pass the BDT Working Point selected
 		bool IsPassBDT( const unsigned int & index ) const;
-		
-		//! Syncronize lepton type with indices vector when fake mode active
-		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
 		
 		//! Update fakeables collection, taking into account the lepton type 
 		virtual bool WasAlreadyUpdated() { return false; }

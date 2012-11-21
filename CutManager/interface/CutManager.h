@@ -105,7 +105,6 @@ class CutManager
 		//! Return true if we are in FAKEABLESAMPLE mode
 		inline bool IsInFakeableMode() const { return _samplemode == CutManager::FAKEABLESAMPLE ; }
 
-		void UpdateFakeableCollections( const std::vector<int> * finalcol );
 		
 		//-- Getters
 		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
@@ -116,9 +115,9 @@ class CutManager
 		//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
 		inline virtual std::vector<LeptonRel*> * GetNoTightLeptons() const { return _notightLeptons; }
 		//! Get the i-essim index of the Tight lepton --> ??
-		const unsigned int GetTightIndex(const unsigned int & i) const;
+		//const unsigned int GetTightIndex(const unsigned int & i) const;
 		//! Get the i-essim index of the NoTight lepton ---> ??
-		const unsigned int GetNoTightIndex(const unsigned int & i) const;
+		//const unsigned int GetNoTightIndex(const unsigned int & i) const;
 		//! Get the number of total leptons which are considered in this analysis
 		inline const unsigned int GetNAnalysisLeptons() { return _nLeptons; }
 		//! Get the number of total Tight leptons which are considered in this analysis
@@ -141,10 +140,10 @@ class CutManager
 
 	protected:
 		//! Auxiliary function to delete the LeptonRel instances
-		void leptonDeleted(std::vector<LeptonRel*> * col);
+		void leptonDeleter(std::vector<LeptonRel*> * col);
 		//! Selectors: WARNING use GetNWhatever methods instead!! Not to be used by any client
 		//! Basic selection: usually consist in some loose kinematical cuts
-		//! and some loose id cuts (Loose)
+		//! and some loose id cuts (Loose) --> make it private
 		virtual unsigned int SelectBasicLeptons() = 0; 
 		//! Select leptons close to the Primary Vertex 
 		virtual unsigned int SelectLeptonsCloseToPV() = 0;
@@ -158,7 +157,9 @@ class CutManager
 		//! mode == CutManager::FAKEABLESAMPLE
 		virtual unsigned int SelectLooseLeptons() = 0; 
 		
-		//! Update fakeables collection, taking into account the lepton type (fake mode active) 
+
+		//! Update fakeables collection, taking into account the lepton type (fake mode active)
+		void UpdateFakeableCollections( const std::vector<LeptonRel*> * finalcol );
 		virtual bool WasAlreadyUpdated() = 0;
 
 		//! Container of the data
@@ -183,21 +184,21 @@ class CutManager
 		unsigned int _nFails;
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
-		//! Vector of index of leptons which pass the basic selection (Loose)
+		//! Vector of leptons which pass the basic selection (Loose)
 		std::vector<LeptonRel*> * _selectedbasicLeptons;
-		//! Vector of index of leptons closest to PV (tight)
+		//! Vector of leptons closest to PV (tight)
 		std::vector<LeptonRel*> * _closeToPVLeptons;
-		//! Vector of index of isolated leptons (tight + no tight)
+		//! Vector of isolated leptons (tight + no tight)
 		std::vector<LeptonRel*> * _selectedIsoLeptons;
-		//! Vector of index of good identified leptons ( tight + no tight)
+		//! Vector of good identified leptons ( tight + no tight)
 		std::vector<LeptonRel*> * _selectedGoodIdLeptons;
 
-		//! Vector of leptons indices which have not passed the tight cuts 
+		//! Vector of leptons which have not passed the tight cuts 
 		std::vector<LeptonRel*> * _notightLeptons;
-		//! Vector of leptons indices which have pass the tight cuts
+		//! Vector of leptons which have pass the tight cuts
 		std::vector<LeptonRel*> * _tightLeptons;
 
-		//! Auxiliary data member to keep track of the pointers allocated
+		//! Auxiliary data member to keep track of the allocated pointers
 		std::vector<std::vector<LeptonRel*> *> * _registeredcols;
 
 	ClassDef(CutManager,0);

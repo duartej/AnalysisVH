@@ -353,6 +353,7 @@ bool MuonSelection::IsPassMETCut(const double & MET) const
 // Specific muon pt-cuts (for the good identified-isolated muons)
 bool MuonSelection::IsPassPtCuts() const
 {
+	//FIXME: Hardcoded number of lepton cuts: Potential bug!!
 	std::vector<double> vptcut;
 	vptcut.push_back(kMinMuPt1);
 	vptcut.push_back(kMinMuPt2);
@@ -361,12 +362,11 @@ bool MuonSelection::IsPassPtCuts() const
 	// Ordered from higher to lower pt: begin from the lowest in order
 	// to accomplish the old cut pt1 = 20 pt2 = 10 when you are dealing
 	// with two leptons
-        for(std::vector<int>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
+        for(std::vector<LeptonRel*>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
 			it != _selectedGoodIdLeptons->rend() ; ++it)
 	{
-		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
-		if( _data->Get<float>("T_Muon_Pt",i) < ptcut )
+		if( (*it)->getP4().Pt() < ptcut )
 		{
 			return false;
 		}
@@ -503,7 +503,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		_notightLeptons = new std::vector<LeptonRel*>;
-		_registercols->push_back(_notightLeptons);
+		_registeredcols->push_back(_notightLeptons);
 	}
 
 	
@@ -517,7 +517,7 @@ unsigned int MuonSelection::SelectBasicLeptons()
 				_data->Get<float>("T_Muon_Energy",i));
 
 		// Build the lepton with all 
-		Lepton mu(MuP4,i);
+		LeptonRel mu(MuP4,i);
 		// these are muons
 		mu.setleptontype(MUON);
 		
@@ -593,7 +593,7 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 	//unsigned int iGoodVertex = 0;
 
 	//Loop over selected muons
-	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
 		unsigned int i = (*it)->index();
@@ -671,7 +671,7 @@ unsigned int MuonSelection::SelectIsoLeptons()
 	}
 	
 	//Loop over selected muons
-	for(std::vector<LeptonRel>::iterator it = _closeToPVLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _closeToPVLeptons->begin();
 			it != _closeToPVLeptons->end(); ++it)
 	{
 		unsigned int i = (*it)->index();
@@ -778,7 +778,7 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	}
 
 	//Loop over selected muons
-	for(std::vector<LeptonRel>::iterator it = _selectedIsoLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _selectedIsoLeptons->begin();
 			it != _selectedIsoLeptons->end(); ++it)
 	{
 		const unsigned int i = (*it)->index();
@@ -808,6 +808,8 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 			continue;
 		}
 		// If we got here it means the muon is good
+		// and also we can include the rest of datamembers
+		(*it)->setcharge(_data->Get<int>("T_Muon_Charge",(*it)->index()));
 		_selectedGoodIdLeptons->push_back(*it);
       	}
 	
@@ -834,7 +836,7 @@ unsigned int MuonSelection::SelectLooseLeptons()
 	std::vector<LeptonRel*> tokeep;
 
 	//Loop over selected muons
-	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
 		unsigned int i = (*it)->index();

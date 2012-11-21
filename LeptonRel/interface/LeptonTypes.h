@@ -25,7 +25,8 @@ enum LeptonTypes
 	MUON,
 	ELECTRON,
 	MIX2MU1ELE,
-	MIX2ELE1MU
+	MIX2ELE1MU,
+	UNDEFINED
 };
 
 #endif

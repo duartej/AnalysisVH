@@ -161,9 +161,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		virtual void StoresCut(const unsigned int & cut,const float & weight);
 		//! Method to fill the tree containing relevant event information for the 
 		//! selected events
-		virtual void StoresEvtInf(const std::vector<TLorentzVector> & lepton, 
-				const int & iZ1, const int & iZ2,
-				const int & iW, const double & transversmass, const TLorentzVector & METV);
+		virtual void StoresEvtInf(const TLorentzVector & zcand1, const TLorentzVector & zcand2, 
+				const TLorentzVector & wcand,
+				const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
 		
 		//! Methods to evaluate the fakeable object method and its PPF estimation 

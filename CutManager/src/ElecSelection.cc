@@ -438,12 +438,11 @@ bool ElecSelection::IsPassPtCuts() const
 	// Ordered from higher to lower pt: begin from the lowest in order
 	// to accomplish the old cut pt1 = 20 pt2 = 10 when you are dealing
 	// with two leptons
-        for(std::vector<int>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
+        for(std::vector<LeptonRel*>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
 			it != _selectedGoodIdLeptons->rend() ; ++it)
 	{
-		const unsigned int i = *it;
 		const double ptcut = vptcut[k];
-		if( _data->Get<float>("T_Elec_Pt",i) < ptcut )
+		if( (*it)->getP4().Pt() < ptcut )
 		{
 			return false;
 		}
@@ -599,7 +598,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
 		_notightLeptons = new std::vector<LeptonRel*>;
-		_registercols->push_back(_notightLeptons);
+		_registeredcols->push_back(_notightLeptons);
 	}
 	
 	// Loop over electrons
@@ -660,7 +659,7 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 	}
 
 	//Loop over selected muons
-	for(std::vector<int>::iterator it = _selectedbasicLeptons->begin();
+	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
 		unsigned int i = (*it)->index();
@@ -732,7 +731,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		//[Require muons to be isolated]
 		//-------------------
 		const char * isonamestr = "T_Elec_eleSmurfPF";
-		const double elecpt = (*it)->getP4().Pt();
+		double elecpt = (*it)->getP4().Pt();
 		if( _runperiod.find("2012") != std::string::npos )
 		{
 			isonamestr = "T_Elec_pfComb";
@@ -839,8 +838,15 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 		this->SelectIsoLeptons();
 	}
 
+
 	// Note we don't need to do anything more...
 	*_selectedGoodIdLeptons = *_selectedIsoLeptons;
+	// Just adding the missing charge
+	for(std::vector<LeptonRel*>::iterator it = _selectedGoodIdLeptons->begin();
+			it != _selectedGoodIdLeptons->end(); ++it)
+	{
+		(*it)->setcharge(_data->Get<int>("T_Elec_Charge",(*it)->index()));
+	}
 	
       	return _selectedGoodIdLeptons->size();
 }

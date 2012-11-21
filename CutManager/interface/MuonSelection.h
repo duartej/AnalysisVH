@@ -65,11 +65,11 @@ class MuonSelection : public CutManager
 		//-- Selection
 		//---------------------------------------------
 		//! Get The lepton type for the i-esim good lepton  (tight+notight)
-		virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }	
+		//virtual LeptonTypes GetLeptonType(const unsigned int & index) const { return MUON; }	
 		//! Get The lepton type for the i-esim Tight lepton 
-		virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return MUON;}
+		//virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const { return MUON;}
 		//! Get The lepton type for the i-esim Tight lepton 
-		virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return MUON; }	
+		//virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const { return MUON; }	
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
 
@@ -90,9 +90,6 @@ class MuonSelection : public CutManager
 		bool IsPassDeltaRCut(const double & deltaRMuMu) const; 
 		bool IsInsideZWindow(const double & invariantMass) const; 
 		bool IsPassMETCut(const double & MET) const;
-		
-		//! Syncronize lepton type with indices vector when fake mode active
-		virtual void SyncronizeLeptonType() { /* Not neeed for this concrete class */ }
 		
 		//! Update fakeables collection, taking into account the lepton type 
 		virtual bool WasAlreadyUpdated() { return false; }
