@@ -187,6 +187,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 				_mptsys = (1.0+_mptsys);
 				_eptbarrelsys = (1.0+_eptbarrelsys);
 				_epteesys = (1.0+_epteesys);
+				// And activate the scales
+				fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
 			}
 		}
 		else if( mode == "DOWN" )
@@ -197,6 +199,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 				_mptsys = (1.0-_mptsys);
 				_eptbarrelsys = (1.0-_eptbarrelsys);
 				_epteesys = (1.0-_epteesys);
+				// And activate the scales
+				fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
 			}
 		}
 		else

@@ -71,6 +71,9 @@ class CutManager
 		//! Return a vector of string containing the names of the 'codenams'
 		virtual std::vector<std::string> GetCodenames() const = 0;
 
+		//! Set the factor to be multiplied each lepton pt (momentum/energy scale sys.)
+		void SetPtSystematicFactor(const double & mu, 
+				const double & ebarrel, const double & eendcap);
 		
 		//! Selection stuff (in parenthesis the meaning when fake mode active)
 		//! Number of leptons which pass the basic selection (Loose)
@@ -81,10 +84,6 @@ class CutManager
 		unsigned int GetNIsoLeptons();
 		//! Number of Good Identified leptons (tight + no tight)
 		unsigned int GetNGoodIdLeptons();
-		//! Number of Tight Leptons 
-		//unsigned int GetNTightLeptons();
-		//! Number of no Tight Leptons 
-		//unsigned int GetNnoTightLeptons();
 
 		//! Auxiliary methods to deal with fakeables sample
 		//! ---------------------------------------------------------------
@@ -127,6 +126,8 @@ class CutManager
 		
 		//! Get the value for the input parameters entered by the user via the InputParameters
 		inline const double GetCut(const std::string & cutname) const { return (*_cuts)[cutname]; }
+
+		//!
 
 		//-- Setters
 		//! Set the operational MODE
@@ -180,6 +181,12 @@ class CutManager
 		//! Number of no Tight leptons, If sample mode is in FAKEABLE,
 		//! note that _nLeptons = _nTights + _nFails
 		unsigned int _nFails;
+
+		//! data member to deal with momentum/energy scale systematics
+		bool _modifypt;
+		double _smu;
+		double _sebr;
+		double _see;
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
 		//! Vector of leptons which pass the basic selection (Loose)

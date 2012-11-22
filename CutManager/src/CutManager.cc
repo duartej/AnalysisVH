@@ -14,6 +14,10 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_samplemode(CutManager::NORMALSAMPLE),
 	_nTights(-1),
 	_nFails(-1),
+	_modifypt(false),
+	_smu(1.0),
+	_sebr(1.0),
+	_see(1.0),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
@@ -164,6 +168,37 @@ unsigned int CutManager::GetNBasicLeptons()
 		size = this->SelectLooseLeptons();
 	}
 
+	// Putting the pt-scale when systematics
+	if( this->_modifypt )
+	{
+		for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
+				it != _selectedbasicLeptons->end(); ++it)
+		{
+			double f = 1.0;
+			switch(it->leptontype())
+			{
+				case(MUON):
+					f = this->_smu;
+					break;
+				case(ELECTRON):
+					if( fabs(it->getP4().Eta()) < 1.479 )
+				        {
+						f = this->_sebr;
+					}
+					else
+					{
+						f = this->_see;
+					}
+					break;
+				default:
+					std::cerr << "\033[1;31mCutManager::GetNBasicLeptons ERROR\033[1;m" 
+						<< "The leptontype is not known! Exiting..." << std::endl;
+					exit(-1);
+			}
+			it->setPt(f*(it->getP4().Pt()));
+		}
+	}
+
 	return size;
 }
 
@@ -249,6 +284,16 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	}
 
 	return size;
+}
+
+// Scale factor to be applied to lepton pt (momentum/energy scale systematic)
+void CutManager::SetPtSystematicFactor(const double & smu, 
+		const double & sebarrel, const double & seendcap)
+{
+	_modifypt = true;
+	_smu = smu;
+	_sebr= sebarrel;
+	_see = seendcap;
 }
 
 

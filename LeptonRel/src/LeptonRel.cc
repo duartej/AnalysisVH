@@ -83,6 +83,14 @@ bool LeptonRel::operator ==(const LeptonRel & l1) const
 	return false;
 }
 
+void LeptonRel::setPt(const double & pt)
+{
+	if( _p4 != 0 )
+	{
+		_p4->SetPtEtaPhiE(pt,_p4->Eta(),_p4->Phi(),_p4->E());
+	}
+}
+
 void LeptonRel::setP4(const TLorentzVector & p4)
 {
 	if( this->_p4 != 0 )
