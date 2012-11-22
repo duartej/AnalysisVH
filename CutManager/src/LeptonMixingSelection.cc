@@ -243,8 +243,8 @@ bool LeptonMixingSelection::IsPassPtCuts(const int & nwantMuons, const int & nwa
 	int k = _selectedGoodIdLeptons->size()-1;
 	int nMuons = 0;
 	int nElectrons = 0;
-	for(std::vector<LeptonRel>::iterator it = _selectedGoodIdLeptons->begin();
-			it != _selectedGoodIdLeptons->end(); ++it)
+	for(std::vector<LeptonRel>::reverse_iterator it = _selectedGoodIdLeptons->rbegin();
+			it != _selectedGoodIdLeptons->rend(); ++it)
 	{
 		double ptcut = 0.0;
 		if( it->leptontype() == MUON )
@@ -442,6 +442,9 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	fElecSelection->GetNIsoLeptons();
 	//Loop over selected muons
 	//Loop over selected leptons
+for(unsigned int i = 0; i < _closeToPVLeptons->size(); ++i)
+{
+} 
 	for(std::vector<LeptonRel>::iterator it = _closeToPVLeptons->begin(); 
 			it != _closeToPVLeptons->end(); ++it)
 	{
@@ -490,7 +493,6 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 				}
 			}
 		}
-		
 		_selectedIsoLeptons->push_back(*it);
 	}
 	
@@ -522,7 +524,7 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	fMuonSelection->GetNGoodIdLeptons();
 	// Electrons
 	fElecSelection->GetNGoodIdLeptons();
-
+	
 	//Loop over selected muons
 	for(std::vector<LeptonRel>::iterator it = _selectedIsoLeptons->begin(); 
 			it != _selectedIsoLeptons->end(); ++it)
@@ -539,10 +541,11 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 			if( ! isfound(*it,fElecSelection->_selectedGoodIdLeptons) )
 			{
 				continue;
-			}
-			
+			}			
 		}
-
+		
+		// Update the charges
+		it->setcharge(_data->Get<int>(std::string("T_"+it->leptonname()+"_Charge").c_str(),it->index()));
 		_selectedGoodIdLeptons->push_back(*it);
 	}
 	

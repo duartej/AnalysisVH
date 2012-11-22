@@ -23,7 +23,6 @@ LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const
 	}
 }
 
-#include<iostream>
 LeptonRel::LeptonRel(const LeptonRel & lp)
 {
 	if( lp._p4 != 0 )
@@ -74,8 +73,9 @@ LeptonRel & LeptonRel::operator=(const LeptonRel & l1)
 
 bool LeptonRel::operator ==(const LeptonRel & l1) const
 {
-	if( (this->_index == l1.index()) && (*(this->_p4) == l1.getP4()) 
-			&& ( this->_q == l1.charge()) &&  (this->_leptontype == l1.leptontype()) )
+	// Just the index and the leptontype is enough to check if we 
+	// have the same object
+	if( (this->_index == l1.index()) &&  (this->_leptontype == l1.leptontype()) )
 	{
 		return true;
 	}
