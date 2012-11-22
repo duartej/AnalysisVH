@@ -518,10 +518,11 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 			);
 }
 
+// TO BE DEPRECATED---> The inclusion of systematics has to be done in other way
 // Overloaded function for take into account momentum systematic
-const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const int & index, const int & leptontype) const
+/*const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const int & index, const int & leptontype) const
 {
-	TLorentzVector aux = this->GetTLorentzVector(name,index);
+	 TLorentzVector aux = this->GetTLorentzVector(name,index);
 	// Aplying the correction factor
 	float systematic = 0.0;
 	switch(leptontype)
@@ -543,7 +544,7 @@ const TLorentzVector AnalysisBase::GetTLorentzVector( const char * name, const i
 	aux.SetPtEtaPhiE(aux.Pt()*systematic,aux.Eta(),aux.Phi(),aux.E());
 
 	return aux;
-}
+}*/
 
 void AnalysisBase::Summary()
 {

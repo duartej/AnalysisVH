@@ -188,8 +188,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		const TLorentzVector GetTLorentzVector( const char * namep, 
 				const int & index ) const;
 		//! Overloaded to extract the momentum with momentum/energy systematic 
-		const TLorentzVector GetTLorentzVector( const char * namep, 
-				const int & index, const int & leptontype ) const;
+		//const TLorentzVector GetTLorentzVector( const char * namep, 
+		//		const int & index, const int & leptontype ) const;
 
 		//! Methods to fill histograms
 		virtual void FillHistoPerCut(const unsigned int & cut,const double & puw, 
