@@ -24,7 +24,7 @@ const unsigned int kWPID   = 24; //Found with TDatabasePDG::Instance()->GetParti
 const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParticle("tau-")->PdgCode()a
 
 //Momentum/energy scale SYSTEMATICS
-const float MUONPTSYS = 0.05;
+const float MUONPTSYS = 0.01;
 const float ELECPTBARRELSYS = 0.02;
 const float ELECPTENDCAPSYS = 0.05;
 
