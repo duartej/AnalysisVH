@@ -726,12 +726,12 @@ double AnalysisBase::GetPPFWeightApprx()
 	// used. So, each no-tight lepton is weighted in order to get its probability to be
 	// fake.
 	double puw = 1.0;
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		puw *= fFO->GetWeight(ileptontype,pt,eta);
 	}
 
@@ -750,22 +750,22 @@ double AnalysisBase::GetPPFWeight()
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
 			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
@@ -841,22 +841,22 @@ double AnalysisBase::GetPFFWeight()
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
 			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
@@ -933,22 +933,22 @@ double AnalysisBase::GetFFFWeight()
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
 			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
@@ -1015,22 +1015,22 @@ double AnalysisBase::GetPPPWeight()
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
 			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
 		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel*>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
+	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
 	{
-		const double pt  = (*it)->getP4().Pt();
-		const double eta = (*it)->getP4().Eta();
-		const LeptonTypes ileptontype = (*it)->leptontype();
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
 		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}

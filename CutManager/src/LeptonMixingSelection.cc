@@ -243,22 +243,22 @@ bool LeptonMixingSelection::IsPassPtCuts(const int & nwantMuons, const int & nwa
 	int k = _selectedGoodIdLeptons->size()-1;
 	int nMuons = 0;
 	int nElectrons = 0;
-	for(std::vector<LeptonRel*>::iterator it = _selectedGoodIdLeptons->begin();
+	for(std::vector<LeptonRel>::iterator it = _selectedGoodIdLeptons->begin();
 			it != _selectedGoodIdLeptons->end(); ++it)
 	{
 		double ptcut = 0.0;
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			ptcut = vptcutMuon[k];
 			++nMuons;
 		}
-		else if( (*it)->leptontype() == ELECTRON )
+		else if( it->leptontype() == ELECTRON )
 		{
 			ptcut = vptcutElec[k];
 			++nElectrons;
 		}
 
-		if( (*it)->getP4().Pt() < ptcut )
+		if( it->getP4().Pt() < ptcut )
 		{
 			return false;
 		}
@@ -276,8 +276,8 @@ bool LeptonMixingSelection::IsPassPtCuts(const int & nwantMuons, const int & nwa
 
 
 // Helper function to find if an index is inside the vector of indices
-bool LeptonMixingSelection::isfound(const LeptonRel * const lepton, 
-		const std::vector<LeptonRel*> * const leptonsvector) const 
+bool LeptonMixingSelection::isfound(const LeptonRel & lepton, 
+		const std::vector<LeptonRel> * const leptonsvector) const 
 {
 	if( std::find(leptonsvector->begin(),leptonsvector->end(), lepton ) != leptonsvector->end() )
 	{
@@ -311,23 +311,23 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	// Be ready the notightLeptons if proceed
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
-		_notightLeptons = new std::vector<LeptonRel*>;
+		_notightLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_notightLeptons);
 	}
 
 	// ordering by Pt
 	// -- Muons
-	std::map<double,LeptonRel*> ordermap;
+	std::map<double,LeptonRel> ordermap;
 	for(int i = 0 ; i < nselectedMuons; ++i)
 	{
-		LeptonRel * mu = fMuonSelection->_selectedbasicLeptons->at(i);
-		ordermap[mu->getP4().Pt()] = mu;
+		const LeptonRel & mu = fMuonSelection->_selectedbasicLeptons->at(i);
+		ordermap[mu.getP4().Pt()] = mu;
 	}
 	// -- Electrons
 	for(int i = 0 ; i < nselectedElecs; ++i)
 	{
-		LeptonRel * elec = fElecSelection->_selectedbasicLeptons->at(i);
-		ordermap[elec->getP4().Pt()] = elec;
+		const LeptonRel & elec = fElecSelection->_selectedbasicLeptons->at(i);
+		ordermap[elec.getP4().Pt()] = elec;
 	}
 	// Consistency check (to avoid the repetition of doubles, very improbable!!)
 	if( ordermap.size() != (unsigned int)(nselectedMuons+nselectedElecs) )
@@ -341,7 +341,7 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 			
 	// Storing the  index (in _selectedbasicLeptons inherit datamember) and
 	// the reference to the kind of lepton (_leptontypebasicLepton)
-	for(std::map<double,LeptonRel*>::reverse_iterator it = ordermap.rbegin();
+	for(std::map<double,LeptonRel>::reverse_iterator it = ordermap.rbegin();
 			it != ordermap.rend(); ++it)
 	{
 		_selectedbasicLeptons->push_back( it->second );
@@ -383,10 +383,10 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 	fElecSelection->GetNLeptonsCloseToPV();
 
 	//Loop over selected leptons
-	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin(); 
+	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin(); 
 			it != _selectedbasicLeptons->end(); ++it)
 	{
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			if( ! isfound(*it,fMuonSelection->_closeToPVLeptons) )
 			{
@@ -397,7 +397,7 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 				continue;
 			}
 		}
-		else if( (*it)->leptontype() == ELECTRON )
+		else if( it->leptontype() == ELECTRON )
 		{
 			if( ! isfound(*it,fElecSelection->_closeToPVLeptons) )
 			{
@@ -442,13 +442,13 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	fElecSelection->GetNIsoLeptons();
 	//Loop over selected muons
 	//Loop over selected leptons
-	for(std::vector<LeptonRel*>::iterator it = _closeToPVLeptons->begin(); 
+	for(std::vector<LeptonRel>::iterator it = _closeToPVLeptons->begin(); 
 			it != _closeToPVLeptons->end(); ++it)
 	{
 		// CAVEAT: here the algorithm is different w.r.t. last method,
 		// because fMuonSelection->_selectedIsoLeptons and 
 		// fElecSelection->_selectedIsoLeptons are composed by tights+notights
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			// --- First check: the leptons was lost: not tight neither no-tight
 			if( ! isfound(*it,fMuonSelection->_selectedIsoLeptons) )
@@ -469,7 +469,7 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 				}
 			}
 		}
-		else if( (*it)->leptontype() == ELECTRON )
+		else if( it->leptontype() == ELECTRON )
 		{
 			// --- First check: the leptons was lost: not tight neither no-tight
 			if( ! isfound(*it,fElecSelection->_selectedIsoLeptons) )
@@ -524,17 +524,17 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	fElecSelection->GetNGoodIdLeptons();
 
 	//Loop over selected muons
-	for(std::vector<LeptonRel*>::iterator it = _selectedIsoLeptons->begin(); 
+	for(std::vector<LeptonRel>::iterator it = _selectedIsoLeptons->begin(); 
 			it != _selectedIsoLeptons->end(); ++it)
 	{
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			if( ! isfound(*it,fMuonSelection->_selectedGoodIdLeptons) )
 			{
 				continue;
 			}
 		}
-		else if( (*it)->leptontype() == ELECTRON )
+		else if( it->leptontype() == ELECTRON )
 		{
 			if( ! isfound(*it,fElecSelection->_selectedGoodIdLeptons) )
 			{
@@ -579,20 +579,20 @@ unsigned int LeptonMixingSelection::SelectLooseLeptons()
 	fElecSelection->SelectLooseLeptons();
 
 	// leptons to be stored
-	std::vector<LeptonRel*> tokeep;
+	std::vector<LeptonRel> tokeep;
 
 	// What muons/electrons were lost?
-	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin(); 
+	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin(); 
 			it != _selectedbasicLeptons->end(); ++it)
 	{
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			if( ! isfound(*it,fMuonSelection->_selectedbasicLeptons) )
 			{
 				continue;
 			}
 		}
-		else if( (*it)->leptontype() == ELECTRON )
+		else if( it->leptontype() == ELECTRON )
 		{
 			if( ! isfound(*it,fElecSelection->_selectedbasicLeptons) )
 			{
@@ -628,12 +628,12 @@ void LeptonMixingSelection::UpdateFakeableCollections()
 		exit(-1);
 	}
 
-	std::vector<LeptonRel*> *notight = new std::vector<LeptonRel*>;
-	for(std::vector<LeptonRel*>::iterator it = _notightLeptons->begin(); 
+	std::vector<LeptonRel> *notight = new std::vector<LeptonRel>;
+	for(std::vector<LeptonRel>::iterator it = _notightLeptons->begin(); 
 			it != _notightLeptons->end(); ++it)
 	{
 		CutManager * tmp = 0;
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			tmp = fMuonSelection;
 		}
@@ -653,12 +653,12 @@ void LeptonMixingSelection::UpdateFakeableCollections()
 	delete notight;
 	notight = 0;
 	
-	std::vector<LeptonRel*> *tight = new std::vector<LeptonRel*>;
-	for(std::vector<LeptonRel*>::iterator it = _tightLeptons->begin(); 
+	std::vector<LeptonRel> *tight = new std::vector<LeptonRel>;
+	for(std::vector<LeptonRel>::iterator it = _tightLeptons->begin(); 
 			it != _tightLeptons->end(); ++it)
 	{
 		CutManager * tmp = 0;
-		if( (*it)->leptontype() == MUON )
+		if( it->leptontype() == MUON )
 		{
 			tmp = fMuonSelection;
 		}

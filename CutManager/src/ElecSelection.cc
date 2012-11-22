@@ -438,11 +438,11 @@ bool ElecSelection::IsPassPtCuts() const
 	// Ordered from higher to lower pt: begin from the lowest in order
 	// to accomplish the old cut pt1 = 20 pt2 = 10 when you are dealing
 	// with two leptons
-        for(std::vector<LeptonRel*>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
+        for(std::vector<LeptonRel>::reverse_iterator it = _selectedGoodIdLeptons->rbegin(); 
 			it != _selectedGoodIdLeptons->rend() ; ++it)
 	{
 		const double ptcut = vptcut[k];
-		if( (*it)->getP4().Pt() < ptcut )
+		if( it->getP4().Pt() < ptcut )
 		{
 			return false;
 		}
@@ -597,7 +597,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	// Be ready the notightLeptons if proceed
 	if( _samplemode == CutManager::FAKEABLESAMPLE )
 	{
-		_notightLeptons = new std::vector<LeptonRel*>;
+		_notightLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_notightLeptons);
 	}
 	
@@ -629,7 +629,7 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		}
 		
 		// If we got here it means the muon is good and keeping track of memory
-		_selectedbasicLeptons->push_back(new LeptonRel(elec));
+		_selectedbasicLeptons->push_back(elec);
 	}
 	
 	return _selectedbasicLeptons->size();
@@ -659,14 +659,14 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 	}
 
 	//Loop over selected muons
-	for(std::vector<LeptonRel*>::iterator it = _selectedbasicLeptons->begin();
+	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
 			it != _selectedbasicLeptons->end(); ++it)
 	{
-		unsigned int i = (*it)->index();
+		unsigned int i = it->index();
 
 		//Build 4 vector for muon (por que no utilizar directamente Pt
 		// FIXME: Not needed: just extract Pt
-		const double ptMu = (*it)->getP4().Pt();
+		const double ptMu = it->getP4().Pt();
 
 		//[Require muons to be close to PV] 
 		//-------------------
@@ -723,15 +723,15 @@ unsigned int ElecSelection::SelectIsoLeptons()
 	}
 	
 	//Loop over selected muons
-	for(std::vector<LeptonRel*>::iterator it = _closeToPVLeptons->begin();
+	for(std::vector<LeptonRel>::iterator it = _closeToPVLeptons->begin();
 			it != _closeToPVLeptons->end(); ++it)
 	{
-		unsigned int i = (*it)->index();
+		unsigned int i = it->index();
 
 		//[Require muons to be isolated]
 		//-------------------
 		const char * isonamestr = "T_Elec_eleSmurfPF";
-		double elecpt = (*it)->getP4().Pt();
+		double elecpt = it->getP4().Pt();
 		if( _runperiod.find("2012") != std::string::npos )
 		{
 			isonamestr = "T_Elec_pfComb";
@@ -753,7 +753,7 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		const double ptLimit  = 20.0;
 		
 		double IsoCut = -1;
-		const double eleceta= (*it)->getP4().Eta();
+		const double eleceta= it->getP4().Eta();
 		// Low Pt Region:
 		if( elecpt <= ptLimit )
 		{
@@ -842,10 +842,10 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 	// Note we don't need to do anything more...
 	*_selectedGoodIdLeptons = *_selectedIsoLeptons;
 	// Just adding the missing charge
-	for(std::vector<LeptonRel*>::iterator it = _selectedGoodIdLeptons->begin();
+	for(std::vector<LeptonRel>::iterator it = _selectedGoodIdLeptons->begin();
 			it != _selectedGoodIdLeptons->end(); ++it)
 	{
-		(*it)->setcharge(_data->Get<int>("T_Elec_Charge",(*it)->index()));
+		it->setcharge(_data->Get<int>("T_Elec_Charge",it->index()));
 	}
 	
       	return _selectedGoodIdLeptons->size();

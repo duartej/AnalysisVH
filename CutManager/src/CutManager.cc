@@ -20,7 +20,7 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_selectedGoodIdLeptons(0),
 	_notightLeptons(0),
 	_tightLeptons(0),
-	_registeredcols(new std::vector<std::vector<LeptonRel*> **>)
+	_registeredcols(new std::vector<std::vector<LeptonRel> **>)
 {
 	_cuts = new std::map<std::string,double>;
 
@@ -46,11 +46,9 @@ CutManager::~CutManager()
 	}
 	
 	// All the others are subsets of this one
-	//leptonDeleter(_selectedbasicLeptons);
-	for(std::vector<std::vector<LeptonRel*> **>::iterator it = _registeredcols->begin();
+	for(std::vector<std::vector<LeptonRel> **>::iterator it = _registeredcols->begin();
 			it != _registeredcols->end(); ++it)
 	{
-		//leptonDeleter(*(*it));
 		if( *(*it) != 0 )
 		{
 			delete *(*it);
@@ -131,12 +129,9 @@ void CutManager::InitialiseCuts(const std::map<LeptonTypes,InputParameters*> & i
 // Method to be called each time finalize a entry
 void CutManager::Reset()
 {
-	// All the others are subsets of this one
-	//leptonDeleter(_selectedbasicLeptons);
-	for(std::vector<std::vector<LeptonRel*> **>::iterator it = _registeredcols->begin();
+	for(std::vector<std::vector<LeptonRel> **>::iterator it = _registeredcols->begin();
 			it != _registeredcols->end(); ++it)
 	{
-		//leptonDeleter(*(*it));
 		if( *(*it) != 0 )
 		{
 			delete *(*it);
@@ -147,26 +142,13 @@ void CutManager::Reset()
 	_registeredcols->clear();
 }
 
-// Auxiliary function to delete the LeptonRel instances
-void CutManager::leptonDeleter(std::vector<LeptonRel*> * collection)
-{
-	for(std::vector<LeptonRel*>::iterator it = collection->begin(); it != collection->end(); ++it)
-	{
-		if( *it != 0 )
-		{
-			delete *it;
-			*it = 0;
-		}
-	}
-}
-
 //
 unsigned int CutManager::GetNBasicLeptons()
 {
 	int size = 0;
 	if( _selectedbasicLeptons == 0)
 	{
-		_selectedbasicLeptons = new std::vector<LeptonRel*>;
+		_selectedbasicLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_selectedbasicLeptons);
 		size = this->SelectBasicLeptons();
 	}
@@ -190,7 +172,7 @@ unsigned int CutManager::GetNLeptonsCloseToPV()
 	int size = 0;
 	if( _closeToPVLeptons == 0)
 	{
-		_closeToPVLeptons = new std::vector<LeptonRel*>;
+		_closeToPVLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_closeToPVLeptons);
 		size = this->SelectLeptonsCloseToPV();
 	}
@@ -208,7 +190,7 @@ unsigned int CutManager::GetNIsoLeptons()
 	unsigned int size = 0;
 	if( _selectedIsoLeptons == 0)
 	{
-		_selectedIsoLeptons = new std::vector<LeptonRel*>;
+		_selectedIsoLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_selectedIsoLeptons);
 		size = this->SelectIsoLeptons();
 	}
@@ -222,7 +204,7 @@ unsigned int CutManager::GetNIsoLeptons()
 	if( this->IsInFakeableMode() )
 	{
 		// Build the tight
-		_tightLeptons = new std::vector<LeptonRel*>;
+		_tightLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_tightLeptons);
 		for(unsigned int i = 0; i < size; ++i)
 		{
@@ -250,7 +232,7 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	unsigned int size = 0;
 	if( _selectedGoodIdLeptons == 0)
 	{
-		_selectedGoodIdLeptons = new std::vector<LeptonRel*>;
+		_selectedGoodIdLeptons = new std::vector<LeptonRel>;
 		_registeredcols->push_back(&_selectedGoodIdLeptons);
 		size = this->SelectGoodIdLeptons();
 	}
@@ -332,7 +314,7 @@ bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int
 
 // Update the tight and no tight collection, the vector introduced as argument
 // contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
-void CutManager::UpdateFakeableCollections( const std::vector<LeptonRel*> * finalcol)
+void CutManager::UpdateFakeableCollections( const std::vector<LeptonRel> * finalcol)
 {
 	if( ! this->IsInFakeableMode() )
 	{
@@ -352,9 +334,9 @@ void CutManager::UpdateFakeableCollections( const std::vector<LeptonRel*> * fina
 		return;
 	}
 
-	std::vector<LeptonRel*> *tight = new std::vector<LeptonRel*>;
-	std::vector<LeptonRel*> *notight = new std::vector<LeptonRel*>;
-	for(std::vector<LeptonRel*>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
+	std::vector<LeptonRel> *tight = new std::vector<LeptonRel>;
+	std::vector<LeptonRel> *notight = new std::vector<LeptonRel>;
+	for(std::vector<LeptonRel>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
 	{
 		if( std::find(_tightLeptons->begin(),_tightLeptons->end(), *it) != 
 				_tightLeptons->end() )

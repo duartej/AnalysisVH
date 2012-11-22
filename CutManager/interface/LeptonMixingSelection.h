@@ -78,8 +78,8 @@ class LeptonMixingSelection : public CutManager
 		bool IsPassPtCuts(const int & nMuons, const int & nElecs) const;
 
 		//! Check if the 'lepton' is found in the vector 'leptonsvector'
-		bool isfound(const LeptonRel * const lepton, 
-				const std::vector<LeptonRel*> * const leptonsvector) const;
+		bool isfound(const LeptonRel & lepton, 
+				const std::vector<LeptonRel> * const leptonsvector) const;
 		
 		//! Select basic muons: 
 		//! - with pt > MinPt and fabs(eta) < eta 

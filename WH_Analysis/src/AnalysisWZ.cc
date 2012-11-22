@@ -650,17 +650,17 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	
 	// Storing all Iso-ID (tight,loose) variables before cut
 	// Indexs of good leptons (noTight+Tights if proceed)
-	std::vector<LeptonRel*> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
+	std::vector<LeptonRel> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	int howmanyMuons = 0;
 	int howmanyElecs = 0;
 	for(unsigned int k=0; k < theLeptons->size(); ++k)
 	{
-		LeptonRel * lep = fLeptonSelection->GetGoodLeptons()->at(k);
-		if( lep->leptontype() == MUON )
+		const LeptonRel & lep = fLeptonSelection->GetGoodLeptons()->at(k);
+		if( lep.leptontype() == MUON )
 		{
 			++howmanyMuons;
 		}
-		else if( lep->leptontype() == ELECTRON )
+		else if( lep.leptontype() == ELECTRON )
 		{
 			++howmanyElecs;
 		}
@@ -708,9 +708,9 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	bool passtriggerthresholdpt = false;
 	for(unsigned int k=0; k < theLeptons->size();++k)
 	{
-		const LeptonRel * const lep = (*theLeptons)[k];
-		LeptonTypes ileptontype = lep->leptontype();
-		double pt = lep->getP4().Pt();
+		const LeptonRel & lep = (*theLeptons)[k];
+		LeptonTypes ileptontype = lep.leptontype();
+		double pt = lep.getP4().Pt();
 		if( nMuonsNeeded >= 2 && ileptontype == MUON )
 		{
 			passtriggerthresholdpt = ( pt > triggerthreshold );
@@ -747,12 +747,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Including the scale factors if proceed
 	if( !fIsData )
 	{
-		for(std::vector<LeptonRel*>::iterator it = theLeptons->begin(); it != theLeptons->end();
+		for(std::vector<LeptonRel>::iterator it = theLeptons->begin(); it != theLeptons->end();
 				++it)
 		{
-			const double pt  = (*it)->getP4().Pt();
-			const double eta = (*it)->getP4().Eta();
-			const LeptonTypes ilt = (*it)->leptontype();
+			const double pt  = it->getP4().Pt();
+			const double eta = it->getP4().Eta();
+			const LeptonTypes ilt = it->leptontype();
 			puw *= fSF->GetWeight(ilt,pt,eta);
 		}
 	}
@@ -762,15 +762,15 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
-	for(std::vector<LeptonRel*>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	for(std::vector<LeptonRel>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
-		const LeptonRel * const lep = *it;
+		const LeptonRel & lep = *it;
 		// Fill histos
-		fHPtLepton[k]->Fill(lep->getP4().Pt(), puw);
-		fHEtaLepton[k]->Fill(lep->getP4().Eta(), puw);
+		fHPtLepton[k]->Fill(lep.getP4().Pt(), puw);
+		fHEtaLepton[k]->Fill(lep.getP4().Eta(), puw);
 		if( fGenLepton.size() != 0 )
 		{
-			fHDeltaRGenRecoLepton[k]->Fill(lep->getP4().DeltaR(fGenLepton.at(k)), puw);
+			fHDeltaRGenRecoLepton[k]->Fill(lep.getP4().DeltaR(fGenLepton.at(k)), puw);
 		}
 		++k;
 	}
@@ -786,7 +786,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	int charge = 0;
 	for(unsigned int k = 0; k < theLeptons->size(); ++k)
 	{
-		charge += (*theLeptons)[k]->charge();
+		charge += (*theLeptons)[k].charge();
 	}
 	// Fill charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
@@ -795,7 +795,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
 	std::vector<double> jetsmatchedEt;
-	std::vector<LeptonRel*> notightleptons;
+	std::vector<LeptonRel> notightleptons;
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
 		notightleptons = *(fLeptonSelection->GetNoTightLeptons());
@@ -808,7 +808,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		bool leptoninsideJet = false;
 		for(unsigned int j = 0; j < theLeptons->size(); ++j)
 		{
-			if( fabs(Jet.DeltaR( (*theLeptons)[j]->getP4() )) <= 0.3 )
+			if( fabs(Jet.DeltaR( (*theLeptons)[j].getP4() )) <= 0.3 )
 			{
 				leptoninsideJet = true;
 				// If is a notight lepton, stores the jet Et to plot it distributions
@@ -866,35 +866,35 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Find muons with opposite charges and the ptcuts fulfill
 	// Note that we are not using anymore the index of the Tree, instead
 	// are using the index of lepton, leptonCharge and leptontype vectors
-	std::vector<std::pair<LeptonRel*,LeptonRel*> > leptonPair;
-	for(std::vector<LeptonRel*>::iterator itbegin = theLeptons->begin(); 
+	std::vector<std::pair<LeptonRel,LeptonRel> > leptonPair;
+	for(std::vector<LeptonRel>::iterator itbegin = theLeptons->begin(); 
 			itbegin !=  theLeptons->end(); ++itbegin)
 	{
-		const LeptonTypes ltbegin = (*itbegin)->leptontype();
-		const int qbegin = (*itbegin)->charge();
-		const double ptbegin = (*itbegin)->getP4().Pt();
-		for(std::vector<LeptonRel*>::iterator itfromend = theLeptons->end()-1;
+		const LeptonTypes ltbegin = itbegin->leptontype();
+		const int qbegin = itbegin->charge();
+		const double ptbegin = itbegin->getP4().Pt();
+		for(std::vector<LeptonRel>::iterator itfromend = theLeptons->end()-1;
 				itfromend != itbegin; --itfromend) 
 		{
 			// Same flavour (and specifically the flavour of the channel
-			const LeptonTypes ltend = (*itfromend)->leptontype();
+			const LeptonTypes ltend = itfromend->leptontype();
 			if( ltbegin != zcandflavour || ( ltbegin != ltend ) )
 			{
 				continue;
 			}
 			// opposite charge
-			const int qend = (*itfromend)->charge();
+			const int qend = itfromend->charge();
 			if( qbegin*qend >= 0 )
 			{
 				continue;
 			}
 			// Check pass the pt (recall PT[kbegin] > PT[kfromend])
-			const double ptend = (*itfromend)->getP4().Pt();
+			const double ptend = itfromend->getP4().Pt();
 			if( ptcutv[0] > ptbegin || ptcutv[1] > ptend )
 			{
 				continue;
 			}
-			leptonPair.push_back( std::pair<LeptonRel*,LeptonRel*>(*itbegin,*itfromend) );
+			leptonPair.push_back( std::pair<LeptonRel,LeptonRel>(*itbegin,*itfromend) );
 		}
 	}
 	// rejecting events with no opposite charge leptons: Better put it before
@@ -909,19 +909,19 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Calculate invMass...
 	// Keep the pair with Mass closer to Z nominal
 	// ------------------------------------------------------------------	
-	std::map<double,std::pair<LeptonRel*,LeptonRel*> > candidatesZMass;
-	for(std::vector<std::pair<LeptonRel*,LeptonRel*> >::iterator it = leptonPair.begin(); 
+	std::map<double,std::pair<LeptonRel,LeptonRel> > candidatesZMass;
+	for(std::vector<std::pair<LeptonRel,LeptonRel> >::iterator it = leptonPair.begin(); 
 			it != leptonPair.end(); ++it)
 	{
-		LeptonRel * lep1 = it->first;
-		LeptonRel * lep2 = it->second;
-		const double invMass= (lep1->getP4()+lep2->getP4()).M();
+		const LeptonRel & lep1 = it->first;
+		const LeptonRel & lep2 = it->second;
+		const double invMass= (lep1.getP4()+lep2.getP4()).M();
 		if( invMass > 111.0 || invMass < 71.0 )
 		{
 			continue;
 		}
 		const double deltaZMass = fabs(kZMass-invMass);
-		candidatesZMass[deltaZMass] = std::pair<LeptonRel*,LeptonRel*>(lep1,lep2);
+		candidatesZMass[deltaZMass] = std::pair<LeptonRel,LeptonRel>(lep1,lep2);
 	}
 
 
@@ -933,17 +933,17 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
         
 	// + Getting the nearest pair to nominal ZMass
 	// Remember map<double,pair>  (second is the pair)
-	const LeptonRel * lep1Z = ((candidatesZMass.begin())->second).first;
-	const LeptonRel * lep2Z = ((candidatesZMass.begin())->second).second;
+	const LeptonRel & lep1Z = ((candidatesZMass.begin())->second).first;
+	const LeptonRel & lep2Z = ((candidatesZMass.begin())->second).second;
 	// Also check that there are not another non-overlapping Z: ZZ rejection
 	// FIXME: It doesn't sense anymore because the Exactly3Leptons requirement
 	if( candidatesZMass.size() > 1 )
 	{
-		for(std::map<double,std::pair<LeptonRel*,LeptonRel*> >::iterator it = ++candidatesZMass.begin(); 
+		for(std::map<double,std::pair<LeptonRel,LeptonRel> >::iterator it = ++candidatesZMass.begin(); 
 				it != candidatesZMass.end(); ++it)
 		{
-			const LeptonRel * lep1 = (it->second).first;
-			const LeptonRel * lep2 = (it->second).second;
+			const LeptonRel & lep1 = (it->second).first;
+			const LeptonRel & lep2 = (it->second).second;
 			//FIXME: Check this if, I think is wrong...
 			if( lep1 != lep1Z && lep1 != lep2Z && lep2 != lep1Z && lep2 != lep2Z)
 			{
@@ -954,7 +954,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 	FillHistoPerCut(WZCuts::_iHasZOverlapping, puw, fsNTau);
 
-	const double invMassLL = (lep1Z->getP4() + lep2Z->getP4()).M();
+	const double invMassLL = (lep1Z.getP4() + lep2Z.getP4()).M();
 
 	// + Fill histograms
 	//   - Invariant mass of leptons supposedly from Z
@@ -991,7 +991,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	std::map<double,int> wcandidate;
 	for(unsigned int i=0; i < theLeptons->size(); ++i) 
 	{
-		const LeptonRel * const wcandlep =  (*theLeptons)[i];
+		const LeptonRel & wcandlep =  (*theLeptons)[i];
 		// lepton used in the Z candidate
 		if( wcandlep == lep1Z || wcandlep == lep2Z )
 		{
@@ -999,25 +999,25 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		}
 		// when searching W+ or W- --> correct sign 
 		// if not, then _wcharge = 0, so do not enter here
-		if( _wcharge != 0 && wcandlep->charge() != _wcharge )
+		if( _wcharge != 0 && wcandlep.charge() != _wcharge )
 		{
 			continue;
 		}
 		// Must be the correct flavour
-		if( wcandlep->leptontype() != wcandflavour )
+		if( wcandlep.leptontype() != wcandflavour )
 		{
 			continue;
 		}
 		// Pt cut and isolation // FIXME just for electrons WP80
-		const double pt = wcandlep->getP4().Pt();
+		const double pt = wcandlep.getP4().Pt();
 		if( pt < 20.0 )
 		{
 			continue;
 		}
 		// NEW (and important for 2mu1e channel): Rejecting the fake electron aligned with 
 		// the muon due to internal bremsstrahlung in W an Z decays
-		const double dRl1 = wcandlep->getP4().DeltaR( lep1Z->getP4() );
-		const double dRl2 = wcandlep->getP4().DeltaR( lep2Z->getP4() );
+		const double dRl1 = wcandlep.getP4().DeltaR( lep1Z.getP4() );
+		const double dRl2 = wcandlep.getP4().DeltaR( lep2Z.getP4() );
 		_histos[fHdRl1Wcand]->Fill( dRl1, puw );
 		_histos[fHdRl2Wcand]->Fill( dRl2, puw );
 		if( dRl1 < 0.1 || dRl2 < 0.1 )
@@ -1025,8 +1025,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			continue;
 		}
 		// Stores transverse mass (W cand., MET)
-		const double lWEt = wcandlep->getP4().Et();
-		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(wcandlep->getP4().Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi --> Angle
+		const double lWEt = wcandlep.getP4().Et();
+		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(wcandlep.getP4().Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi --> Angle
 		wcandidate[pt] = i;
 		transverseMassW[i] = tMassW;
 	}
@@ -1070,9 +1070,9 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//Store event info, just in data case
 	if( fIsData )
 	{
-		const TLorentzVector zcand1 = lep1Z->getP4();
-		const TLorentzVector zcand2 = lep2Z->getP4();
-		const TLorentzVector wcand  = (*theLeptons)[iWcand]->getP4();
+		const TLorentzVector zcand1 = lep1Z.getP4();
+		const TLorentzVector zcand2 = lep2Z.getP4();
+		const TLorentzVector wcand  = (*theLeptons)[iWcand].getP4();
 		this->StoresEvtInf(zcand1,zcand2,wcand,transverseMassW[iWcand],METV);
 	}
 

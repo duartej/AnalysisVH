@@ -29,14 +29,19 @@ class LeptonRel
 {
 	public:
 		//! Constructors
+		LeptonRel(): _p4(0), _index(-1), _q(-999),_leptontype(UNDEFINED),_name("") { ; }
 		LeptonRel(const unsigned int & index);  // Probably to be deprecated
 		LeptonRel(const TLorentzVector & p, const unsigned int & index);
 		LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const LeptonTypes & leptontype);
 		LeptonRel(const LeptonRel & lr); // copy constructor
 		virtual ~LeptonRel();
 
-		//! Equality operator
+		//Equally operator
+		LeptonRel & operator=(const LeptonRel & l1);
+
+		//! boolean operator
 		bool operator ==(const LeptonRel & l1) const;
+		inline bool operator !=(const LeptonRel & l1) const { return ! this->operator==(l1); }
 		
 		//! Accessors
 		inline const TLorentzVector & getP4() const { return *(this->_p4); }
@@ -51,8 +56,6 @@ class LeptonRel
 		void setleptontype(const LeptonTypes & leptontype);
 
 	private:
-		// Default constructor avoided
-		LeptonRel(): _p4(0), _index(-1), _q(-999),_leptontype(UNDEFINED),_name("") { ; }
 		// Data members
 		TLorentzVector * _p4;
 		//! Index related with the tree being extracted

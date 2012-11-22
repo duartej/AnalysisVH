@@ -109,11 +109,11 @@ class CutManager
 		//-- Getters
 		//! Get good leptons, i.e., whatever passing the GoodId level, also the no tight 
 		//! leptons if fakeable mode is active
-		virtual std::vector<LeptonRel*> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
+		virtual std::vector<LeptonRel> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
 		//! Get the Tight leptons (passing the PV, Iso and ID cuts)
-		inline virtual std::vector<LeptonRel*> * GetTightLeptons() const { return _tightLeptons; }
+		inline virtual std::vector<LeptonRel> * GetTightLeptons() const { return _tightLeptons; }
 		//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
-		inline virtual std::vector<LeptonRel*> * GetNoTightLeptons() const { return _notightLeptons; }
+		inline virtual std::vector<LeptonRel> * GetNoTightLeptons() const { return _notightLeptons; }
 		//! Get the i-essim index of the Tight lepton --> ??
 		//const unsigned int GetTightIndex(const unsigned int & i) const;
 		//! Get the i-essim index of the NoTight lepton ---> ??
@@ -139,8 +139,6 @@ class CutManager
 		friend std::ostream & operator<<(std::ostream & out, const CutManager & cm );
 
 	protected:
-		//! Auxiliary function to delete the LeptonRel instances
-		void leptonDeleter(std::vector<LeptonRel*> * col);
 		//! Selectors: WARNING use GetNWhatever methods instead!! Not to be used by any client
 		//! Basic selection: usually consist in some loose kinematical cuts
 		//! and some loose id cuts (Loose) --> make it private
@@ -159,7 +157,7 @@ class CutManager
 		
 
 		//! Update fakeables collection, taking into account the lepton type (fake mode active)
-		void UpdateFakeableCollections( const std::vector<LeptonRel*> * finalcol );
+		void UpdateFakeableCollections( const std::vector<LeptonRel> * finalcol );
 		virtual bool WasAlreadyUpdated() = 0;
 
 		//! Container of the data
@@ -185,21 +183,21 @@ class CutManager
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
 		//! Vector of leptons which pass the basic selection (Loose)
-		std::vector<LeptonRel*> * _selectedbasicLeptons;
+		std::vector<LeptonRel> * _selectedbasicLeptons;
 		//! Vector of leptons closest to PV (tight)
-		std::vector<LeptonRel*> * _closeToPVLeptons;
+		std::vector<LeptonRel> * _closeToPVLeptons;
 		//! Vector of isolated leptons (tight + no tight)
-		std::vector<LeptonRel*> * _selectedIsoLeptons;
+		std::vector<LeptonRel> * _selectedIsoLeptons;
 		//! Vector of good identified leptons ( tight + no tight)
-		std::vector<LeptonRel*> * _selectedGoodIdLeptons;
+		std::vector<LeptonRel> * _selectedGoodIdLeptons;
 
 		//! Vector of leptons which have not passed the tight cuts 
-		std::vector<LeptonRel*> * _notightLeptons;
+		std::vector<LeptonRel> * _notightLeptons;
 		//! Vector of leptons which have pass the tight cuts
-		std::vector<LeptonRel*> * _tightLeptons;
+		std::vector<LeptonRel> * _tightLeptons;
 
 		//! Auxiliary data member to keep track of the allocated pointers
-		std::vector<std::vector<LeptonRel*> **> * _registeredcols;
+		std::vector<std::vector<LeptonRel> **> * _registeredcols;
 
 	ClassDef(CutManager,0);
 };

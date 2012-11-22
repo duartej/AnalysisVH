@@ -560,13 +560,13 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
       
 	// Storing all Iso-ID (tight,loose) variables before cut
 	// Indexs of good leptons (noTight+Tights if proceed)
-	std::vector<LeptonRel*> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
+	std::vector<LeptonRel> * theLeptons = fLeptonSelection->GetGoodLeptons(); 
 	int howmanyMuons = 0;
 	int howmanyElecs = 0;
-	for(std::vector<LeptonRel*>::iterator it = theLeptons->begin();
+	for(std::vector<LeptonRel>::iterator it = theLeptons->begin();
 			it != theLeptons->end(); ++it)
 	{
-		LeptonTypes ileptontype = (*it)->leptontype();
+		LeptonTypes ileptontype = it->leptontype();
 		if( ileptontype == MUON )
 		{
 			++howmanyMuons;
@@ -614,9 +614,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	bool passtriggerthresholdpt = false;
 	for(unsigned int k=0; k < theLeptons->size();++k)
 	{
-		const LeptonRel * const lep = (*theLeptons)[k];
-		LeptonTypes ileptontype = lep->leptontype();
-		double pt = lep->getP4().Pt();
+		const LeptonRel & lep = (*theLeptons)[k];
+		LeptonTypes ileptontype = lep.leptontype();
+		double pt = lep.getP4().Pt();
 		if( nMuonsNeeded >= 2 && ileptontype == MUON )
 		{
 			passtriggerthresholdpt = ( pt > triggerthreshold );
@@ -652,12 +652,12 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	// Including the scale factors if proceed
 	if( !fIsData )
 	{
-		for(std::vector<LeptonRel*>::iterator it = theLeptons->begin(); it != theLeptons->end();
+		for(std::vector<LeptonRel>::iterator it = theLeptons->begin(); it != theLeptons->end();
 				++it)
 		{
-			const double pt  = (*it)->getP4().Pt();
-			const double eta = (*it)->getP4().Eta();
-			const LeptonTypes ilt = (*it)->leptontype();
+			const double pt  = it->getP4().Pt();
+			const double eta = it->getP4().Eta();
+			const LeptonTypes ilt = it->leptontype();
 			puw *= fSF->GetWeight(ilt,pt,eta);
 		}
 	}
@@ -667,15 +667,15 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	
 	// + Fill histograms with Pt and Eta
 	int k = 0;  // Note that k is the index of the vectors, not the TTree
-	for(std::vector<LeptonRel*>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
+	for(std::vector<LeptonRel>::iterator it = theLeptons->begin(); it != theLeptons->end(); ++it) 
 	{
-		const LeptonRel * lep = *it;
+		const LeptonRel & lep = *it;
 		// Fill histos
-		fHPtLepton[k]->Fill(lep->getP4().Pt(), puw);
-		fHEtaLepton[k]->Fill(lep->getP4().Eta(), puw);
+		fHPtLepton[k]->Fill(lep.getP4().Pt(), puw);
+		fHEtaLepton[k]->Fill(lep.getP4().Eta(), puw);
 		if( fGenLepton.size() != 0 )
 		{
-			fHDeltaRGenRecoLepton[k]->Fill(lep->getP4().DeltaR(fGenLepton.at(k)), puw);
+			fHDeltaRGenRecoLepton[k]->Fill(lep.getP4().DeltaR(fGenLepton.at(k)), puw);
 		}
 		++k;
 	}
@@ -694,7 +694,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	int charge = 0;
 	for(unsigned int k = 0; k < theLeptons->size(); ++k)
 	{
-		charge += (*theLeptons)[k]->charge();
+		charge += (*theLeptons)[k].charge();
 	}
 	// Fill charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
@@ -728,36 +728,35 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 
 	// Find muons with opposite charges and the ptcut requirement
 	// ------------------------------------------------------------------
-	std::vector<std::pair<LeptonRel*,LeptonRel*> > leptonPair;
-	std::vector<std::pair<LeptonRel*,LeptonRel*> > zleptoPair;
-	for(std::vector<LeptonRel*>::iterator itbegin = theLeptons->begin(); 
+	std::vector<std::pair<LeptonRel,LeptonRel> > leptonPair;
+	std::vector<std::pair<LeptonRel,LeptonRel> > zleptoPair;
+	for(std::vector<LeptonRel>::iterator itbegin = theLeptons->begin(); 
 			itbegin !=  theLeptons->end(); ++itbegin)
 	{
-		const LeptonTypes ltbegin = (*itbegin)->leptontype();
-		const int qbegin = (*itbegin)->charge();
-		const double ptbegin = (*itbegin)->getP4().Pt();
-		// CUIDADO CON ESTO XXX
-		for(std::vector<LeptonRel*>::iterator itfromend = theLeptons->end()-1;
+		const LeptonTypes ltbegin = itbegin->leptontype();
+		const int qbegin = itbegin->charge();
+		const double ptbegin = itbegin->getP4().Pt();
+		for(std::vector<LeptonRel>::iterator itfromend = theLeptons->end()-1;
 				itfromend != itbegin; --itfromend) 
 		{
-			const int qend = (*itfromend)->charge();
+			const int qend = itfromend->charge();
 			// opposite charge
 			if( qbegin*qend >= 0 )
 			{
 				continue;
 			}
 			// Check pass the pt (recall PT[kbegin] > PT[kfromend])	
-			const double ptend = (*itfromend)->getP4().Pt();
+			const double ptend = itfromend->getP4().Pt();
 			if( ptcutv[0] > ptbegin || ptcutv[1] > ptend )
 			{
 				continue;
 			}
 			
-			const std::pair<LeptonRel*,LeptonRel*> ip = std::pair<LeptonRel*,LeptonRel*>(*itbegin,*itfromend);
+			const std::pair<LeptonRel,LeptonRel> ip = std::pair<LeptonRel,LeptonRel>(*itbegin,*itfromend);
 			leptonPair.push_back( ip );
 
 			// Same flavour (and specifically the flavour of the channel) could be a Z
-			const LeptonTypes ltend = (*itfromend)->leptontype();
+			const LeptonTypes ltend = itfromend->leptontype();
 			if( ltbegin != zcandflavour || ( ltbegin != ltend ) )
 			{
 				continue;
@@ -792,7 +791,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 		bool leptoninsideJet = false;
 		for(unsigned int j = 0; j < theLeptons->size(); ++j)
 		{
-			if( Jet.DeltaR( (*theLeptons)[j]->getP4() ) <= 0.3 )
+			if( Jet.DeltaR( (*theLeptons)[j].getP4() ) <= 0.3 )
 			{
 				leptoninsideJet = true;
 				break;
@@ -817,16 +816,16 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	// + Find Min/Max DeltaR and DeltaPhi
 	// Using ordering from maps (from lower to higher)
 	// Again uses the index of the lepton and leptonCharge vectors
-	std::map<double,std::pair<LeptonRel*,LeptonRel*> > deltaRLL;
-	std::map<double,std::pair<LeptonRel*,LeptonRel*> > deltaPhiLL;
-	for(std::vector<std::pair<LeptonRel*,LeptonRel*> >::iterator it = leptonPair.begin(); 
+	std::map<double,std::pair<LeptonRel,LeptonRel> > deltaRLL;
+	std::map<double,std::pair<LeptonRel,LeptonRel> > deltaPhiLL;
+	for(std::vector<std::pair<LeptonRel,LeptonRel> >::iterator it = leptonPair.begin(); 
 			it != leptonPair.end(); ++it)
 	{
-		LeptonRel * lep1 = it->first;
-		LeptonRel * lep2 = it->second;
-		const double deltaR = lep1->getP4().DeltaR(lep2->getP4());
+		const LeptonRel & lep1 = it->first;
+		const LeptonRel & lep2 = it->second;
+		const double deltaR = lep1.getP4().DeltaR(lep2.getP4());
 		deltaRLL[deltaR] = *it;
-		const double deltaPhi = TMath::Abs(lep1->getP4().DeltaPhi(lep2->getP4()));
+		const double deltaPhi = TMath::Abs(lep1.getP4().DeltaPhi(lep2.getP4()));
 		deltaPhiLL[deltaPhi] = *it;
 	}
 	double minDeltaRLL   = (deltaRLL.begin())->first;
@@ -845,9 +844,9 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
         
 	// + Calculate inv mass of closest pair in R plane
 	// Remember map<double,pair>  (second is the pair)
-	const LeptonRel * const lep1 = ((deltaRLL.begin())->second).first;
-	const LeptonRel * const lep2 = ((deltaRLL.begin())->second).second;
-	const double invMassLLH = (lep1->getP4() + lep2->getP4()).M();
+	const LeptonRel & lep1 = ((deltaRLL.begin())->second).first;
+	const LeptonRel & lep2 = ((deltaRLL.begin())->second).second;
+	const double invMassLLH = (lep1.getP4() + lep2.getP4()).M();
 	
 	//  - Invariant mass of leptons supposedly from H Before ZVeto, i.e after OppSign
 	_histos[fHHInvMassAfterOppSign]->Fill(invMassLLH,puw);
@@ -869,12 +868,12 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	//-----------------------------------------------------------------
 	// + Evaluate if there are some Z candidate within the mass window
 	//   In that case applies the Z mass veto 	
-	for(std::vector<std::pair<LeptonRel*,LeptonRel*> >::iterator it = zleptoPair.begin(); 
+	for(std::vector<std::pair<LeptonRel,LeptonRel> >::iterator it = zleptoPair.begin(); 
 			it != zleptoPair.end(); ++it)
 	{
-		const LeptonRel * const zcand1 = it->first;
-		const LeptonRel * const  zcand2 = it->second;
-		const double invMass = (zcand1->getP4() + zcand2->getP4()).M();
+		const LeptonRel & zcand1 = it->first;
+		const LeptonRel & zcand2 = it->second;
+		const double invMass = (zcand1.getP4() + zcand2.getP4()).M();
 		// Check invariant mass of muons with opposite charge (outside Z)
 		//------------------------------------------------------------------
 		(*auxVar)[0] = invMass;
@@ -893,21 +892,21 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	int iWcand = -1;
 	for(unsigned int i = 0; i < theLeptons->size(); ++i)
 	{
-		LeptonRel* wcand = (*theLeptons)[i];
+		const LeptonRel wcand = (*theLeptons)[i];
 		if(  wcand == lep1 || wcand == lep2 )
 		{
 			continue;
 		}
 		// NEW: Rejecting the fake electron aligned with 
 		// the muon due to internal bremsstrahlung in W an Z decays
-		const double dRl1 = wcand->getP4().DeltaR( lep1->getP4() );
-		const double dRl2 = wcand->getP4().DeltaR( lep2->getP4() );
+		const double dRl1 = wcand.getP4().DeltaR( lep1.getP4() );
+		const double dRl2 = wcand.getP4().DeltaR( lep2.getP4() );
 		if( dRl1 < 0.1 || dRl2 < 0.1 )
 		{
 			continue;
 		}
 		// Want the pt > 20 (i.e, MinMuPt1)
-		if( wcand->getP4().Pt() < fLeptonSelection->GetCut("MinMuPt1") ) 
+		if( wcand.getP4().Pt() < fLeptonSelection->GetCut("MinMuPt1") ) 
 		{
 			continue;
 		}
@@ -920,7 +919,7 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	}
 	FillHistoPerCut(WHCuts::_iWCandidate, puw, fsNTau);
 
-	const LeptonRel * const wcandlep = (*theLeptons)[iWcand];
+	const LeptonRel & wcandlep = (*theLeptons)[iWcand];
 
 	//+ Transverse mass all leptons:
 	const double met = fData->Get<float>("T_METPFTypeI_ET");
@@ -928,19 +927,19 @@ std::pair<unsigned int,float> AnalysisVH::InsideLoop()
 	const double pxMET = met*cos(phiMET);
 	const double pyMET = met*sin(phiMET);
 	TLorentzVector METV(pxMET,pyMET,0.0,met);
-	TLorentzVector allleptons = (lep1->getP4()+lep2->getP4()+wcandlep->getP4());
-	const double lWPt= wcandlep->getP4().Pt();
-	const double tMass = sqrt( lWPt*lWPt + met*met - 2.0*lWPt*met*cos(wcandlep->getP4().Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi-->Angle
+	TLorentzVector allleptons = (lep1.getP4()+lep2.getP4()+wcandlep.getP4());
+	const double lWPt= wcandlep.getP4().Pt();
+	const double tMass = sqrt( lWPt*lWPt + met*met - 2.0*lWPt*met*cos(wcandlep.getP4().Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi-->Angle
 	//+ Build the invariant mass of the 3leptons
 	const double invMass3leptons = allleptons.M();
 
 	//+ Ht: Sum of transverse energy of all the 3 leptons, Jets and MET
-	double sumPtleptons = lep1->getP4().Pt()+lep2->getP4().Pt()+wcandlep->getP4().Pt();
+	double sumPtleptons = lep1.getP4().Pt()+lep2.getP4().Pt()+wcandlep.getP4().Pt();
 	//     HT = \sum_{i-leptons}P_T^i+\sum_{i-jets}P_T^i+\MET
 	const double Ht = sumPtleptons+sumtotaljetsEt+met;
 
 	//+ DeltaPhi between METvect and Wcand lepton
-	const double DeltaPhiWMET = wcandlep->getP4().DeltaPhi(METV);
+	const double DeltaPhiWMET = wcandlep.getP4().DeltaPhi(METV);
 
 	// + And fill the histo all histos after jet veto cut
 	_histos[fHTrileptonMassAfterWCand]->Fill(invMass3leptons,puw);

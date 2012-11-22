@@ -23,15 +23,22 @@ LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const
 	}
 }
 
+#include<iostream>
 LeptonRel::LeptonRel(const LeptonRel & lp)
 {
-	this->_p4 = new TLorentzVector(*(lp._p4));
+	if( lp._p4 != 0 )
+	{
+		this->_p4 = new TLorentzVector(*(lp._p4));
+	}
+	else
+	{
+		this->_p4 = 0;
+	}
 	this->_index = lp._index;
 	this->_q = lp._q;
 	this->_leptontype = lp._leptontype;
 	this->_name = lp._name;
 }
-
 
 LeptonRel::~LeptonRel()
 {
@@ -41,6 +48,29 @@ LeptonRel::~LeptonRel()
 		this->_p4 = 0;
 	}
 }
+
+LeptonRel & LeptonRel::operator=(const LeptonRel & l1)
+{
+	if( this == &l1 )
+	{
+		return *this;
+	}
+
+	if( this->_p4 != 0 )
+	{
+		delete this->_p4;
+		this->_p4 = 0;
+	}
+	
+	this->_p4 = new TLorentzVector(*(l1._p4));
+	this->_index = l1._index;
+	this->_q = l1._q;
+	this->_leptontype = l1._leptontype;
+	this->_name = l1._name;
+
+	return *this;
+}
+
 
 bool LeptonRel::operator ==(const LeptonRel & l1) const
 {
