@@ -412,35 +412,6 @@ def getweight(f,lumi=None):
 	:return: the weigth needed to apply to the sample to match the luminosity
 	:rtype: float
 	"""
-#	import ROOT 
-#	from array import array
-#	import os
-#
-	# Extracting the luminosity, efficiency weights,,...
-#	filename = f.GetName()
-#	if "Data.root" in filename:
-#		weight = 1.0
-#	elif "Fakes.root" in filename and not "_Fakes.root" in filename:
-#		weight = 1.0
-#	else:
-#		# 1) Load the InputParameters
-#		ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
-#		ROOT.gSystem.Load("libInputParameters.so")
-#
-#		weight = 1.0
-#		xs = array('d',[0.0])
-#		luminosity = array('d',[0.0])
-#		neventsample = array('i',[0])
-#		neventsskim  = array('i',[0])
-#		ip = f.Get("Set Of Parameters")
-#		ip.TheNamedDouble("CrossSection",xs)
-#		ip.TheNamedInt("NEventsSample",neventsample)
-#		ip.TheNamedInt("NEventsTotal",neventsskim)
-#		ip.TheNamedDouble("Luminosity",luminosity)
-#		# Using the introduced by the user
-#		if lumi:
-#			luminosity[0] = lumi
-#		weight  = xs[0]*luminosity[0]/neventsample[0]
 	ps = processedsample(f)
 	weight = ps.getweight()
 	del ps
@@ -498,8 +469,8 @@ def extractyields(asciirawtable,titlerow):
 	return (N,Nerrstat)
 
 
-def getpassevts(rootfile,cutlevel=-1,histoname="fHEventsPerCut"):
-	""".. function:: getpassevts(rootfile[,cutlevel,histoname]) --> evts
+def getpassevts(rootfile,cutlevel=-1,**keywords):
+	""".. function:: getpassevts(rootfile[,cutlevel,histoname=histoname]) --> (evts,err)
 	
 	Given a cutlevel and the rootfile (or alternatively the name of an histogram),
 	extract the number of passed events at that cut level using the histogram passed.
@@ -520,28 +491,45 @@ def getpassevts(rootfile,cutlevel=-1,histoname="fHEventsPerCut"):
 			  [default: "fHEventsPerCut"]
 	:param histoname: str
 
-	:return: the content of the bin cutlevel
-	:rtype: float
+	:return: the content of the bin cutlevel and its error
+	:rtype: (float,float)
 	"""
 	import ROOT
-
-	f = ROOT.TFile(rootfile)
-	if f.IsZombie():
-		message="\033[31;1mgetpassevts ERROR\033[m File '%s' not found." % rootfile
-		raise OSError(message)
-	histo = f.Get(histoname)
-	if cutlevel == -1:
-		cutlevel = histo.GetNbinsX()
+	
+	# The function was called just to extract the content of some bin (cutlevel)
+	if keywords.has_key("histoname"):
+		f = ROOT.TFile(rootfile)
+		if f.IsZombie():
+			message="\033[31;1mgetpassevts ERROR\033[m File '%s' not found." % rootfile
+			raise OSError(message)
+		histo = f.Get(histoname)
+		if cutlevel == -1:
+			cutlevel = histo.GetNbinsX()
+		else:
+			if cutlevel > histo.GetNbinsX():
+				message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater than maximum (%i)." % (cutlevel,histo.GetNbinsX())
+				raise RuntimeError(message)
+			
+		Npass = float(histo.GetBinContent(cutlevel))
+		Nerr = float(histo.GetBinError(cutlevel))
+		f.Close()
+		f.Delete()
+		
+		return (Npass,Nerr)
 	else:
-		if cutlevel > histo.GetNbinsX():
-			message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater than maximum (%i)." % (cutlevel,histo.GetNbinsX())
-			raise RuntimeError(message)
-
-	Npass = float(histo.GetBinContent(cutlevel))
-	f.Close()
-	f.Delete()
-
-	return Npass
+		s = processedsample(rootfile)
+		try:
+			cutindex = int(cutlevel)
+			if cutlevel == -1:
+				cutindex = len(s.getcutlist())-1
+			if cutindex > len(s.getcutlist())-1:
+				message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater"\
+						" than maximum (%i)." % (cutlevel,(len(s.getcutlist())-1))
+				raise RuntimeError(message)
+			cut = s.getcutlist()[cutindex]
+		except ValueError:
+			cut = cutlevel
+		return s.getvalue(cut)
 
 
 
@@ -654,7 +642,7 @@ def getxserrorsrel(workingpath,**keywords):
 		signaldn = os.path.join(os.path.join(workingpath,pathchannel),
 				"WZTo3LNu_datanames.dn")
 		# Number of signal events --- 
-		Npass = getpassevts(signalroot)
+		Npass,Nerr = getpassevts(signalroot)
 
 		# ================= 1. Extract yields
 		pathchannel = signal+channel
