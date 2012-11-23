@@ -135,7 +135,7 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Systematic types
 		enum
 		{
-			LEPTONSYS,          // Scale factors related systematics
+			LEPTONSYS=10,       // Scale factors related systematics
 			FRSYS,		    // Fake rates+-1sigma variation of its value
 			MSSYS,		    // Momentum/Energy scale systematic
 			METSYS,		    // MET scale and resolution systematic
@@ -165,7 +165,12 @@ class AnalysisBase : public CMSAnalysisSelector
 				const TLorentzVector & wcand,
 				const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
-		
+
+		//! Encapsulates the MET object (needed to deal with its systematic)
+		//! If the analysis is being done with the METSYS activated calculates
+		//! the corrected MET and return it, otherwise uses the branch in the Tree
+		const double GetMET(const std::vector<LeptonRel> * const theLeptons) const;
+
 		//! Methods to evaluate the fakeable object method and its PPF estimation 
 		//! PPF estimation using the approximations p=1 and f->0
 		double GetPPFWeightApprx();
@@ -180,7 +185,8 @@ class AnalysisBase : public CMSAnalysisSelector
 
 	private:
 		AnalysisBase();
-
+		//! Auxiliary function to set-up the systematic related stuff
+		bool initializeSys(const std::string & variation);
 
 	protected: 
 		bool IspassHLT() const;
@@ -277,6 +283,11 @@ class AnalysisBase : public CMSAnalysisSelector
 		float _mptsys;
 		float _eptbarrelsys;
 		float _epteesys;
+		//! systematic met (1 for up, -1 for down)
+		int _metsysmode;
+		float _metmuonpt;
+		float _metelecpt;
+		float _metjetspt;
 
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }

@@ -960,7 +960,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//   - Invariant mass of leptons supposedly from Z
 	_histos[fHZInvMassAfterZCand]->Fill(invMassLL,puw);
 	// Extract MET to fill histograms: T_METPFTypeI_ET
-	const double met = fData->Get<float>("T_METPFTypeI_ET");
+	//const double met = fData->Get<float>("T_METPFTypeI_ET");
+	const double met = this->GetMET(theLeptons);
 	_histos[fHMETAfterZCand]->Fill(met,puw);
 	// Matched jets after Z
 	for(unsigned int i =  0; i < jetsmatchedEt.size(); ++i)

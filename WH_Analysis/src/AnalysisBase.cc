@@ -27,6 +27,9 @@ const unsigned int kTauPID = 15; //Found with TDatabasePDG::Instance()->GetParti
 const float MUONPTSYS = 0.01;
 const float ELECPTBARRELSYS = 0.02;
 const float ELECPTENDCAPSYS = 0.05;
+const float METMUONPTSYS = 0.015;
+const float METELECPTSYS = 0.025;
+const float METJETSPTSYS = 0.05;
 
 
 // Prepare analysis Constructor
@@ -59,11 +62,15 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_jetname(""),
 	_issysrun(false),
 	_namesys(""),
-	_typesys(0),
+	_typesys(-1),
 	_modesys(0),
 	_mptsys(MUONPTSYS),
 	_eptbarrelsys(ELECPTBARRELSYS),
 	_epteesys(ELECPTENDCAPSYS),
+	_metsysmode(0),
+	_metmuonpt(METMUONPTSYS),
+	_metelecpt(METELECPTSYS),
+	_metjetspt(METJETSPTSYS),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -178,45 +185,23 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 				<< std::endl;
 			exit(-1);
 		}
-		const std::string mode = systr.substr(pos_colon+1);
-		if( mode == "UP" )
-		{
-			_modesys = WManager::UP;
-			if( _typesys == AnalysisBase::MSSYS )
-			{
-				_mptsys = (1.0+_mptsys);
-				_eptbarrelsys = (1.0+_eptbarrelsys);
-				_epteesys = (1.0+_epteesys);
-				// And activate the scales
-				fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
-			}
-		}
-		else if( mode == "DOWN" )
-		{
-			_modesys = WManager::DOWN;
-			if( _typesys == AnalysisBase::MSSYS )
-			{
-				_mptsys = (1.0-_mptsys);
-				_eptbarrelsys = (1.0-_eptbarrelsys);
-				_epteesys = (1.0-_epteesys);
-				// And activate the scales
-				fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
-			}
-		}
-		else
-		{
-			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
-				<< " from InputParameters with wrong format: '" << systr << "' The argument must"
-				<< " have exactly the format: SYSTEMATICTYPE:VAR where VAR should be either UP"
-				<< " or DOWN" << std::endl;
-			exit(-1);
-		}
 		// Checking the key is in there
 		if( systypemode.find(_typesys) == systypemode.end() )
 		{
 			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
 				<< " from InputParameters with systematic type: '" << _namesys << "' This type"
 				<< " is not implemented yet. Exiting..." << std::endl;
+			exit(-1);
+		}
+		
+		const std::string mode = systr.substr(pos_colon+1);
+		// Set-up all the systematics environment (return false if fails something)
+		if( ! this->initializeSys(mode) )
+		{
+			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
+				<< " from InputParameters with wrong format: '" << systr << "' The argument must"
+				<< " have exactly the format: SYSTEMATICTYPE:VAR where VAR should be either UP"
+				<< " or DOWN" << std::endl;
 			exit(-1);
 		}
 		systypemode[_typesys] = _modesys;
@@ -368,6 +353,7 @@ AnalysisBase::~AnalysisBase()
 
 }
 
+
 void AnalysisBase::SaveOutput( const char * outputname )
 {
 	// Create the output file and fill it
@@ -432,6 +418,153 @@ void AnalysisBase::SaveOutput( const char * outputname )
 
 	this->fWasStored = true;
 }
+
+// Systematics management
+bool AnalysisBase::initializeSys(const std::string & variation)
+{
+	if( variation == "UP" )
+	{
+		_modesys = WManager::UP;
+		if( _typesys == AnalysisBase::MSSYS )
+		{
+			_mptsys = (1.0+_mptsys);
+			_eptbarrelsys = (1.0+_eptbarrelsys);
+			_epteesys = (1.0+_epteesys);
+			// And activate the scales
+			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
+		}
+		else if( _typesys == AnalysisBase::METSYS)
+		{
+			_metsysmode = 1;
+			_metmuonpt = 1.0+_metmuonpt;
+			_metelecpt = 1.0+_metelecpt;
+			_metjetspt = 1.0+_metjetspt;
+		}
+	}
+	else if( variation == "DOWN" )
+	{
+		_modesys = WManager::DOWN;
+		if( _typesys == AnalysisBase::MSSYS )
+		{
+			_mptsys = (1.0-_mptsys);
+			_eptbarrelsys = (1.0-_eptbarrelsys);
+			_epteesys = (1.0-_epteesys);
+			// And activate the scales
+			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
+		}
+		else if( _typesys == AnalysisBase::METSYS)
+		{
+			_metsysmode = -1;
+			_metmuonpt = 1.0+_metmuonpt;
+			_metelecpt = 1.0+_metelecpt;
+			_metjetspt = 1.0+_metjetspt;
+		}
+	}
+	else
+	{
+		return false;
+	}
+
+	return true;
+
+}
+	
+const double AnalysisBase::GetMET(const std::vector<LeptonRel> * const theLeptons) const
+{
+	const double met = (double)fData->Get<float>("T_METPFTypeI_ET");
+	if( _metsysmode == 0)
+	{
+		return met;
+	}
+
+	// Else we're evaluating the energy and resolution systematic, due
+	// to the lack of all variables we'll do a correction in an approximate
+	// MET because there are not available collection in the Tree. So, the
+	// approximate MET is evaluated as follows (vectorial sum),
+	// approxMET = -\sum jets (not containing a lepton) - \sum electrons -\sum muons
+	// The MET is recalculated using a new pt variated for jets,elec and muons getting
+	// smearMET = -\sum jets*scaledpt -\sum elec*scaledpt -\sum muon*scaledpt
+	// After that the resolution variation is evaluated,
+	// resolMET = |approxMET-smearMET|/approxMET
+	// And it is used to correct the real calculated MET as follows
+	// correctMET = MET*(1.0+/-resolMET)
+	// Note that when evaluate 1sigma up(down), the scales for the jets,muons,elecs pt are used
+	// with 1sigma up(down) 
+	TLorentzVector aproxMET;
+	TLorentzVector smearMET;
+	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
+	{
+		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
+		// Extract jets < 30 and eta > 5
+		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
+		{
+			Jet.SetPz(0.0);
+			Jet.SetE(0.0);
+			aproxMET -= Jet;
+	
+			Jet.SetPx(Jet.Px()*_metjetspt);
+			Jet.SetPy(Jet.Py()*_metjetspt);
+			smearMET -= Jet;
+			continue;
+		}
+		// Otherwise, jets > 30 and eta < 5
+		// Leptons not inside the Jets
+		bool leptoninsideJet = false;
+		for(unsigned int j = 0; j < theLeptons->size(); ++j)
+		{
+			if( fabs(Jet.DeltaR((*theLeptons)[j].getP4())) <= 0.3 )
+			{
+				leptoninsideJet = true;
+				break;
+			}
+		}
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		Jet.SetPz(0.0);
+		Jet.SetE(0.0);
+		aproxMET -= Jet;
+
+		Jet.SetPx(Jet.Px()*_metjetspt);
+		Jet.SetPy(Jet.Py()*_metjetspt);
+		smearMET -= Jet;
+	}
+	
+	// Aproximate MET,
+	//------------------------------------------------------------------
+	// Electrons contributing
+	for(unsigned int i=0; i < fData->GetSize<float>("T_Elec_Px"); ++i)
+	{
+		TLorentzVector elec( fData->Get<float>("T_Elec_Px",i),
+			fData->Get<float>("T_Elec_Py",i),0.0,0.0);
+		aproxMET -= elec;
+		
+		elec.SetPx(elec.Px()*_metelecpt);
+		elec.SetPy(elec.Py()*_metelecpt);
+		smearMET -= elec;
+
+	}
+	// Muons contributing
+	for(unsigned int i=0; i < fData->GetSize<float>("T_Muon_Px"); ++i)
+	{
+		TLorentzVector muon( fData->Get<float>("T_Muon_Px",i),
+			fData->Get<float>("T_Muon_Py",i),0.0,0.0) ;
+		aproxMET -= muon;
+		
+		muon.SetPx(muon.Px()*_metmuonpt);
+		muon.SetPy(muon.Py()*_metmuonpt);
+		smearMET -= muon;
+	}
+	
+	const double resolMET = fabs(aproxMET.Pt()-smearMET.Pt())/aproxMET.Pt();
+	const double correctMET = met*(1.0+_metsysmode*resolMET);
+
+	//std::cout << "PFMET=" << met << " correcMET=" << correctMET 
+	//	<< " myMET without unclustered E=" << aproxMET.Pt() << std::endl;
+	return correctMET;
+}
+
 
 void AnalysisBase::InitialiseParameters()
 {
