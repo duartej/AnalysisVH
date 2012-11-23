@@ -5,6 +5,7 @@
 # Fancy name to the samples. The dictionary is built in run-time. Whenever a sample is not
 # defined here, the fancy will be the same as the default one
 from cosmethicshub_mod import LEGENDSDICT as TITLEDICT
+from functionspool_mod import processedsample
 TITLEDICT["Other"]="Other bkg"
 
 ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
@@ -72,156 +73,6 @@ class format(object):
 
 		self.format = format
 
-# FIXME: Has to be superseeded by the processedsample class from functionspool_mod module
-class column(object):
-	"""
-	A column has a file where to extract the information
-	Also it is assumed than the values are extracted from
-	an TH1F histogram (at least in this __builddict__ 
-	implementation)
-	"""
-	def __init__(self,file,**keywords):
-		""".. class:: column(file[,title=title,nobuilt=True|False]) 
-
-		A column is associated with a file containing the information. The 
-		file has to get an TH1F histogram (see __builddict__ method) defining
-		the rows (the x-axis of the histogram) and the values of the rows
-		(the bin content of the histogram). So a column is formed by 
-		(rows,values).
-		Also, if it is called with 'nobuilt=True' it is created a instance
-		without fill any of its datamember, so the user must do that.
-		"""
-		import os
-
-		validkeywords = [ "title", "nobuilt" ]
-		self.title = None
-		wildcardfiles = "*.root" # Per default in the current working directory
-		for key,value in keywords.iteritems():
-			if not key in validkeywords:
-				message  = "\033[31;1mcolumn ERROR\033[m Incorrect instantiation of 'column'"
-				message += " class. Valid keywords are: "+str(validkeywords)
-				raise RuntimeError(message)
-			if key == 'title':
-				self.title = value
-			if key == 'nobuilt':
-				self.title = None
-				self.filename = None
-				self.cutordered = None
-				self.rowvaldict = None
-				return
-
-		self.filename = file
-		# FIXME: Must be a root file, checks missing
-		# Define the title of the column as the last word 
-		# before the .root (if the client doesn't provided it)
-		if not self.title:
-			self.title = os.path.basename(self.filename).split(".")[0]
-
-		# Extract the values and stores to a dict
-		self.rowvaldict = self.__builddict__()
-
-
-	def __builddict__(self):
-		"""..method: __builddict__() -> { 'cutname1': (val,err), ... } 
-		This could be a pure virtual, in order to be used by anyone
-		and  any storage method (not just a histo). So this is concrete
-		for my analysis: fHEventsPerCut  histogram
-		Build a dict containing the values already weighted by its luminosity
-		"""
-		import ROOT
-		from array import array
-		import os
-
-		f = ROOT.TFile(self.filename)
-		# FIXME: USE THe getweight function of plothisto which
-		#        has to be put at functionspool_mod
-		# Including the luminosity, efficiency weights,,...
-		if "Data.root" in self.filename:
-			weight = 1.0
-		elif "Fakes.root" in self.filename and not "_Fakes.root" in self.filename:
-			weight = 1.0
-		else:
-			# 1) Load the InputParameters
-			ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
-			ROOT.gSystem.Load("libInputParameters.so")
-
-			weight = 1.0
-			xs = array('d',[0.0])
-			luminosity = array('d',[0.0])
-			neventsample = array('i',[0])
-			neventsskim  = array('i',[0])
-			ip = f.Get("Set Of Parameters")
-			ip.TheNamedDouble("CrossSection",xs)
-			ip.TheNamedInt("NEventsSample",neventsample)
-			ip.TheNamedInt("NEventsTotal",neventsskim)
-			ip.TheNamedDouble("Luminosity",luminosity)
-			weight  = xs[0]*luminosity[0]/neventsample[0]
-		
-		h = f.Get("fHEventsPerCut")
-		self.cutordered = []
-		valdict = {}
-		#FIXME: Control de errores: histo esta
-		for i in xrange(h.GetNbinsX()):
-			self.cutordered.append( h.GetXaxis().GetBinLabel(i+1) )
-			#Initialization of the bin content dict
-			valdict[self.cutordered[-1]] = (weight*h.GetBinContent(i+1),weight*h.GetBinError(i+1))
-		f.Close()
-
-		return valdict	
-
-	def __add__(self,other):
-		""".. operator+(other) -> column 
-
-		Adding up the rowvaldict, so the two columns have to contain the
-		same rows. Note that
-
-		:param other: a column instance
-		:type other: column
-
-		:return: a column instance
-		:rtype:  column
-
-		"""
-		from math import sqrt
-		# Checks
-		# Allowing the a += b operation (when a was instantied using
-		# the 'nobuilt=True' argument, in this case rowvaldict=None
-		try:
-			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
-				raise TypeError,"Cannot be added because they don't have the same"+\
-						" row composition"
-			hasdict=True
-		except AttributeError:
-			hasdict=False
-
-		# Case when self was called as a += b
-		if not hasdict:
-			self.rowvaldict = other.rowvaldict
-			self.cutordered = other.cutordered
-			return self			
-		
-		addeddict = {}
-		for cutname,(val,err) in self.rowvaldict.iteritems():
-			val  += other.rowvaldict[cutname][0]
-			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
-			addeddict[cutname] = (val,swap)
-
-		#self.rowvaldict = addeddict
-		result = column("",nobuilt=True)
-		result.rowvaldict = addeddict
-		result.cutordered = self.cutordered
-
-		return result
-
-	def getvalerr(self,cutname):
-		""".. method:: getvalerr(cutname) -> (val,err)
-		"""
-		try:
-			return self.rowvaldict[cutname]
-		except KeyError:
-			raise RuntimeError,"column.getvalerr:: the cut '"+cutname+"' is not "+\
-					"defined"
-
 		
 class table(object):
 	"""
@@ -229,7 +80,7 @@ class table(object):
 	def __init__(self,data,signal,**keywords):
 		"""..class:: table(data,signal[,format="tex|html", isreduced=True|False, wildcardfiles="dir",join="metasample"]) 
 		
-		The table is composed by several 'columns' (see 'column' class), and is 
+		The table is composed by several 'processedsample' instances (see functionspool_mod module), and is 
 		going to be built as
 		               bkg1  bkg2 ... TotBkg data signal
 		
@@ -334,7 +185,7 @@ class table(object):
 				coltitle = TITLEDICT[naturalname]
 			except KeyError:
 				TITLEDICT[naturalname] = naturalname
-			col = column(f)
+			col = processedsample(f)
 			self.columns[col.title] = col
 		
 		# samples names
@@ -381,7 +232,7 @@ class table(object):
 		# 2) Merge some samples just in one
 		for metasample in join:
 			samplestodelete = []
-			self.columns[metasample] = column("",nobuilt=True)
+			self.columns[metasample] = processedsample("",nobuilt=True)
 			for sample in self.getsamplecomponents(metasample):
 				try:
 					self.columns[metasample] += self.columns[sample]
@@ -483,7 +334,7 @@ class table(object):
 			val = 0.0
 			err2 = 0.0
 			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg" and x != "Data-TotBkg",self.samples):
-				(v,e) = self.columns[s].getvalerr(cut)
+				(v,e) = self.columns[s].getvalue(cut)
 				val += v
 				err2 += e**2.0
 			err = sqrt(err2)
@@ -491,20 +342,20 @@ class table(object):
 				self.columns["TotBkg"].rowvaldict[cut] = (val,err)
 			except KeyError:
 				# Creating the column
-				self.columns["TotBkg"] = column("",nobuilt=True)
+				self.columns["TotBkg"] = processedsample("",nobuilt=True)
 				# Inititalizing dict and all the other needed data members
 				self.columns["TotBkg"].rowvaldict= { cut: (val,err) }
 				self.columns["TotBkg"].cutordered = self.columns[self.data].cutordered
 
 		# extracting the values
 		try:
-			val,err=self.columns[sample].getvalerr(cut)
+			val,err=self.columns[sample].getvalue(cut)
 		except KeyError:
 			# It's substraction data - TotBkg columns
 			if sample == "Data-TotBkg":
 				# Note that as it has been extract by order, Data and total background
-				(valdata,errdata) = self.columns[self.data].getvalerr(cut)
-				(valbkg,errbkg)   = self.columns["TotBkg"].getvalerr(cut)
+				(valdata,errdata) = self.columns[self.data].getvalue(cut)
+				(valbkg,errbkg)   = self.columns["TotBkg"].getvalue(cut)
 				val = valdata-valbkg
 				err = sqrt(errdata**2.0+errbkg**2.0)
 

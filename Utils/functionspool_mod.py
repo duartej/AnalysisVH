@@ -239,6 +239,54 @@ class processedsample(object):
 
 		return strout
 
+	
+	def __add__(self,other):
+		""".. operator+(other) -> column 
+
+		Adding up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
+		"""
+		from math import sqrt
+		# Checks
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise TypeError("Cannot be added because they don't have the same"+\
+						" row composition")
+			hasdict=True
+		except AttributeError:
+			hasdict=False
+
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
+		
+		addeddict = {}
+		for cutname,(val,err) in self.rowvaldict.iteritems():
+			val  += other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
+			addeddict[cutname] = (val,swap)
+
+		result = processedsample("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+		result.rowvaldictReferenced = self.rowvaldict.copy()
+		result.showall = self.showall
+		result.weight = self.weight
+		result.luminosity = self.luminosity
+
+		return result
+
 
 	def __sub__(self,other):
 		""".. operator-(other) -> events
@@ -259,7 +307,7 @@ class processedsample(object):
 		# the 'nobuilt=True' argument, in this case rowvaldict=None
 		try:
 			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
-				raise(TypeError,"Cannot be added because they don't have the same"+\
+				raise(TypeError,"Cannot be substracted because they don't have the same"+\
 						" row composition")
 			hasdict=True
 		except AttributeError:
