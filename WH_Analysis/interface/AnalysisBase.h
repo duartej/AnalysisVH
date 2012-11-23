@@ -288,6 +288,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		float _metmuonpt;
 		float _metelecpt;
 		float _metjetspt;
+		//! systematic pu
+		float _pusys;
 
 
 		// Histograms FIXME: 3 --> nLeptons and to a vector or map: { # id : TH1D }

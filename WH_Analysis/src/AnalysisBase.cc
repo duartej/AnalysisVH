@@ -30,6 +30,7 @@ const float ELECPTENDCAPSYS = 0.05;
 const float METMUONPTSYS = 0.015;
 const float METELECPTSYS = 0.025;
 const float METJETSPTSYS = 0.05;
+const float PUVARSYS = 0.05;
 
 
 // Prepare analysis Constructor
@@ -71,6 +72,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_metmuonpt(METMUONPTSYS),
 	_metelecpt(METELECPTSYS),
 	_metjetspt(METJETSPTSYS),
+	_pusys(0),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -440,6 +442,10 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 			_metelecpt = 1.0+_metelecpt;
 			_metjetspt = 1.0+_metjetspt;
 		}
+		else if( _typesys == AnalysisBase::PUSYS )
+		{
+			_pusys = 1.0+PUVARSYS;
+		}
 	}
 	else if( variation == "DOWN" )
 	{
@@ -458,6 +464,10 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 			_metmuonpt = 1.0+_metmuonpt;
 			_metelecpt = 1.0+_metelecpt;
 			_metjetspt = 1.0+_metjetspt;
+		}
+		else if( _typesys == AnalysisBase::PUSYS )
+		{
+			_pusys = 1.0-PUVARSYS;
 		}
 	}
 	else
@@ -599,6 +609,12 @@ void AnalysisBase::InitialiseParameters()
 	// Luminosity
 	//--------------------------------
 	ip->TheNamedDouble("Luminosity", fLuminosity);
+	// Taking the variation +-5% in the lumi when systematic for PU
+	if( _issysrun != 0 )
+	{
+		fLuminosity *= _pusys;
+	}
+
 	
 #ifdef DEBUGANALYSIS
 	std::cout << "DEBUG: IsWH   = " << fIsWH << std::endl;
