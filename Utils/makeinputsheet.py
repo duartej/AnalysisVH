@@ -80,9 +80,17 @@ DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
 				" useful to evaluate yields and plots before the MET cut. Otherwise, if 0 it will"\
 				" use the FRM calculated with the leading jet energy cut-off to mimic the ttbar sample"\
 				" [int]",
-				'Systematics' : "TO BE INCLUDED. NOT OPERATIONAL YET",
+				'Systematics' : "Activate the systematic calculation for\n"\
+					"                LEPTONSYS: sys. related with efficiencies\n"\
+					"                FRSYS: sys. related with errors in FR matrices determination\n"\
+					"                MSSYS: sys. related with momentum/energy scale\n"\
+					"                METSYS: sys. related with energy scale and resolution for MET\n"\
+					"                PUSYS: sys. related with the Pile up reweighting",
 				}
 		}
+# To print ordered as
+DESCRIPTIONORDER = { 'General': 0, 'Analysis cuts': 1, 'Lepton object definition':2, 'Other parameters':3}
+
 
 # All ordered config values
 CONFIGORDER = { 10 : "NameTree",              
@@ -131,6 +139,8 @@ CONFIGORDER = { 10 : "NameTree",
 		450 : 'MaxLooseIso',           
 		530 : "nEvents",               
 		540 : "firstEvent",            
+		560 : "FRMatrixZJETS",
+		570 : "Systematics"
 		}
 
 # Types of the different config
@@ -179,7 +189,9 @@ CONFIGTYPES = { "NameTree":              "TString",
 		'Maxdr03EcalSumPtOverPt':"double",
 		'Maxdr03HcalSumPtOverPt':"double",      	
 		'MaxLoosed0':            "double",
-		'MaxLooseIso':           "double"
+		'MaxLooseIso':           "double",
+		'FRMatrixZJETS':         "int",
+		'Systematics':		 "TString",
 		}
 
 # Values for the different run periods
@@ -234,6 +246,8 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'Maxdr03HcalSumPtOverPt':   (0.2,None),
 	      'MaxLoosed0':             (None,0.2),
 	      'MaxLooseIso':            (None,{"2011": 0.4, "2012":-0.6}),
+	      'FRMatrixZJETS':          (None,),
+	      'Systematics':            (None,),
 	      }
 
 #The muon 2011 vbtf id needs some different values, the CONFIGVAL dict stores the values for the hwwid
@@ -312,7 +326,7 @@ def createfile(filename,leptontype,runperiod):
 
 	lines = ""
 	vis = 0
-	formatted = "@var %-7s %-"+str(maxchar)+"s %7s;\n"
+	formatted = "@var %-7s %-"+str(maxchar)+"s %13s;\n"
 	for cfg in cfgval:
 		value = cfg(leptontype,runperiod)
 		if value == None:
@@ -336,12 +350,12 @@ if __name__ == '__main__':
 	
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(runperiod="2012",signal="WZ")
+	parser.set_defaults(runperiod="2012",signal="WZ",muonid='VBTF')
 	parser.add_option( '-d',  action='store', metavar="CONFIGNAME", dest='describe',\
 			help="List and describe the configurable 'CONFIGNAME'. Print "\
 			" 'all' to show all accepted configurables. Also is posible to"\
 			" extract all the configurables splitted by subsets: general, analysis,"\
-			" lepton or other [Default: all]" )
+			" lepton or other" )
 	parser.add_option( '-r', '--runperiod', action='store', type='string', dest='runperiod',\
 			help="The run period [2011 2012<-default>]")
 	parser.add_option( '-s', '--signal', action='store', dest='signal',\
@@ -349,8 +363,18 @@ if __name__ == '__main__':
 	parser.add_option( '-o', '--outputname', action='store', dest='outputname',\
 			help="The ouput filename [Default: analisis[signal]_*.ip]")
 	parser.add_option( '--muonid', action="store", dest="muonid",\
-			help="The ID and Iso to be used for the muon."\
-			" Valid values are HWWID and VBTF. [Default: HWWID]")
+			help="The ID and Iso to be used for the 2011 muon."\
+			" Valid values are HWWID and VBTF. [Default: VBTF]")
+	parser.add_option( '-z', '--zregionfr', action='store_true', dest='zregionfr',\
+			help="Activate the Z+Jets FR region (use a FR with a"\
+			" leading jet Energy cut-off of 30 (instead the nominal 50)")
+	parser.add_option( '--sys', action='store', dest='systematic',\
+			metavar="SYSNAME:UP|DOWN",
+			help="Introduce the systematic to be evaluated and splitted by"\
+					" a colon, the variation UP or DOWN. Known and"\
+					"valid systematic names are: 'LEPTONSYS', 'FRSYS'"\
+					" 'MSSYS','METSYS' and 'PUSYS'. See 'makeinputsheet -d"\
+					" other' for detailed info about them")
 	parser.add_option( '-f', '--forcevalues', action='store', dest='forcelist',\
 			metavar="cfgname:valueElectron@valueMuon,...",
 			help="List of configuration values with their values introduced here")
@@ -382,7 +406,8 @@ if __name__ == '__main__':
 				for var,description in dictvar.iteritems():
 					maxvalvar = max(maxvalvar,len(var))
 					listmessage[_typesval].append((var,description))
-			for _typesval,listvar in listmessage.iteritems():
+			for _typesval,listvar in sorted(listmessage.iteritems(),\
+					key=lambda (key,ord): DESCRIPTIONORDER[key] ):
 				message += "\033[1;34m%s configuration type\033[1;m:\n" % _typesval
 				for var,descript in listvar:
 					metaline = "\033[1;37m%"+str(maxvalvar)+"s\033[1;m: %s\n"
@@ -403,10 +428,35 @@ if __name__ == '__main__':
 	else:
 		filename = opt.outputname.split(".")[0]
 
+	# Activate the FR for Z+Jets region
+	if opt.zregionfr:
+		CONFIGVAL['FRMatrixZJETS'] = (1,)
+	
+	# Systematics
+	if opt.systematic:
+		# Parsing input
+		try:
+			sys,mode = opt.systematic.split(":")
+		except ValueError:
+			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
+					" for '--sys' option. Format is SYS:VAL, where VAL must be UP or DOWN")
+		validsys = [ 'LEPTONSYS', 'FRSYS', 'MSSYS', 'METSYS', 'PUSYS' ]
+		if not sys in validsys:
+			message = "\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
+					" for '--sys' option. Valid systematics are:"
+			for i in validsys:
+				message += " '%s'" % i
+			raise RuntimeError(message)
+		if not mode in [ 'UP', 'DOWN']:
+			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
+					" for '--sys option. Valid variation are 'UP' 'DOWN'")
+		CONFIGVAL['Systematics'] = (sys+":"+mode,)
+
+
 	if opt.muonid:
 		if opt.muonid != "HWWID" and opt.muonid != "VBTF":
 			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
-					" for '--muonid' option")
+					" for '--muonid' option. Valid ID are 'HWWID' 'VBTF'")
 		# Change the CONFIGVAL dict if proceed to the values of VBTF
 		if opt.muonid == "VBTF":
 			for key, value in MUONID_VBTF.iteritems():
@@ -440,7 +490,6 @@ if __name__ == '__main__':
 			except NameError:
 				pass
 			CONFIGVAL[cfgname] = (electronval,muonval)
-
 
 
 	for lt in [ ELEC,MUON ]:
