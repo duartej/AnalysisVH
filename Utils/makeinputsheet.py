@@ -80,7 +80,7 @@ DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
 				" useful to evaluate yields and plots before the MET cut. Otherwise, if 0 it will"\
 				" use the FRM calculated with the leading jet energy cut-off to mimic the ttbar sample"\
 				" [int]",
-				'Systematics' : "Activate the systematic calculation for\n"\
+				'Systematic' : "Activate the systematic calculation for\n"\
 					"                LEPTONSYS: sys. related with efficiencies\n"\
 					"                FRSYS: sys. related with errors in FR matrices determination\n"\
 					"                MSSYS: sys. related with momentum/energy scale\n"\
@@ -140,7 +140,7 @@ CONFIGORDER = { 10 : "NameTree",
 		530 : "nEvents",               
 		540 : "firstEvent",            
 		560 : "FRMatrixZJETS",
-		570 : "Systematics"
+		570 : "Systematic"
 		}
 
 # Types of the different config
@@ -191,7 +191,7 @@ CONFIGTYPES = { "NameTree":              "TString",
 		'MaxLoosed0':            "double",
 		'MaxLooseIso':           "double",
 		'FRMatrixZJETS':         "int",
-		'Systematics':		 "TString",
+		'Systematic':		 "TString",
 		}
 
 # Values for the different run periods
@@ -247,7 +247,7 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'MaxLoosed0':             (None,0.2),
 	      'MaxLooseIso':            (None,{"2011": 0.4, "2012":-0.6}),
 	      'FRMatrixZJETS':          (None,),
-	      'Systematics':            (None,),
+	      'Systematic':            (None,),
 	      }
 
 #The muon 2011 vbtf id needs some different values, the CONFIGVAL dict stores the values for the hwwid
@@ -432,7 +432,7 @@ if __name__ == '__main__':
 	if opt.zregionfr:
 		CONFIGVAL['FRMatrixZJETS'] = (1,)
 	
-	# Systematics
+	# Systematic
 	if opt.systematic:
 		# Parsing input
 		try:
@@ -450,7 +450,7 @@ if __name__ == '__main__':
 		if not mode in [ 'UP', 'DOWN']:
 			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
 					" for '--sys option. Valid variation are 'UP' 'DOWN'")
-		CONFIGVAL['Systematics'] = (sys+":"+mode,)
+		CONFIGVAL['Systematic'] = (sys+":"+mode,)
 
 
 	if opt.muonid:
