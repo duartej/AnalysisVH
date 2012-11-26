@@ -70,7 +70,7 @@ class WManager
 		const char * GetWTStr(const unsigned int & wt) const;
 
 		//! Get the file name used 
-		inline const std::string GetFilename(const LeptonTypes & lt) { return _filesnames[lt]; } 
+		const std::string GetFilename(const LeptonTypes & lt); 
 
 	
 	private:

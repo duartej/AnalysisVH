@@ -730,11 +730,15 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasExactly3Leptons,puw);
 	}
 
-
+	double frweight(1.0);
+	double frweightZJetsRegion(1.0);
 	// Using the fake rate if we are in fake mode
 	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
-		puw *= this->GetPPFWeightApprx();
+		frweight = this->GetPPFWeightApprx();
+		frweightZJetsRegion = this->GetPPFWeightApprx(true);
+		puw *= frweightZJetsRegion;
+		//puw *= this->GetPPFWeightApprx();
 	}
 	// Using the fake rate if we are in fake mode: Full and complete calculation
 	/*if( fLeptonSelection->IsInFakeableMode() )
@@ -1044,7 +1048,13 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	const int iWcand = wcandidate.rbegin()->second;	
 	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
 	
-  	
+ 	
+	if( fLeptonSelection->IsInFakeableMode() )
+	{
+		// Change the region from ZJets -> ttbar
+		const double changedweight= frweight/frweightZJetsRegion;
+		puw *= changedweight;
+	}
 	
 	// MET
 	//------------------------------------------------------------------
@@ -1081,6 +1091,18 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
+		for(unsigned int i = 0 ; i < notightleptons.size(); ++i)
+		{
+			const LeptonTypes lt = notightleptons[i].leptontype();
+			if( lt == MUON )
+			{
+				++_nTMuons;
+			}
+			else if( lt == ELECTRON )
+			{
+				++_nTElecs;
+			}
+		}
 		++_nTEvents;
 	}
 

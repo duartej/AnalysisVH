@@ -173,7 +173,7 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! Methods to evaluate the fakeable object method and its PPF estimation 
 		//! PPF estimation using the approximations p=1 and f->0
-		double GetPPFWeightApprx();
+		double GetPPFWeightApprx(const bool & iszjetregion = false);
 		//! PPP estimation evaluated using the full calculation
 		double GetPPPWeight();
 		//! PPF estimation evaluated using the full calculation
@@ -248,6 +248,9 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! Fake Rate weights
 		WManager * fFO;
+		
+		//! Fake Rate weights for ZJets region, i.e. all the analysis up to the MET cut
+		WManager * fFOZJetsRegion;
 		
 		//! Prompt Rate weights
 		WManager * fPO;

@@ -359,4 +359,11 @@ const char * WManager::GetWTStr(const unsigned int & wt) const
 }
 
 
+// Just extract the name of the file used
+const std::string WManager::GetFilename(const LeptonTypes & lt)
+{
+	size_t wmanagerfound = _filesnames[lt].find("WManager/data");
+	return _filesnames[lt].substr(wmanagerfound);
+}
+
 

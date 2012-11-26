@@ -51,6 +51,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fNGenLeptons(0),
 	fPUWeight(0),
 	fFO(0),
+	fFOZJetsRegion(0),
 	fPO(0),
 	fSF(0),
 	_cuttree(0),
@@ -217,10 +218,11 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
 		// Fake rate Matrix for Z Jets, when proceed
-		int iszjetsFRMatrixint = 0;
-		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
-		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], iszjetsFRMatrix );
+		//int iszjetsFRMatrixint = 0;
+		//fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
+		//const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
+		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] );//, iszjetsFRMatrix );
+		fFOZJetsRegion = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], true );
 		// fPO = new WManager( WManager::PR, fRunPeriod, muonid ); --> FIXME: Not needed if using the approximated method
 		// this has to be implemented (if using appr. no PR, else instance PR)
 	}
@@ -339,6 +341,12 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete fFO;
 		fFO = 0;
+	}
+	
+	if( fFOZJetsRegion != 0 )
+	{
+		delete fFOZJetsRegion;
+		fFOZJetsRegion = 0;
 	}
 	
 	if( fPO != 0 )
@@ -719,18 +727,20 @@ void AnalysisBase::Summary()
 	}
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
-		std::cout << " + FAKEABLE MODE ENABLED: ";
-		int iszjetsFRMatrixint = 0;
-		// Fake rate Matrix for Z Jets, when proceed
-		fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
-		const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
-		if( iszjetsFRMatrix ) 
+		std::cout << " + FAKEABLE MODE ENABLED: | " << std::endl;
+		if( fFS == SignatureFS::_iFSmmm ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
 		{
-			std::cout << "Z+Jets Region" << std::endl;
+			std::cout << "                          + [MUON] ZJets Region: " << fFOZJetsRegion->GetFilename(MUON) << std::endl;
+			std::cout << "                          + [MUON] ttbar Region: " << fFO->GetFilename(MUON) << std::endl;
+
 		}
-		else
+		
+		if( fFS == SignatureFS::_iFSeee ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
 		{
-			std::cout << "ttbar Region" << std::endl;
+			std::cout << "                          + [ELEC] ZJets Region: " << fFOZJetsRegion->GetFilename(ELECTRON) << std::endl;
+			std::cout << "                          + [ELEC] ttbar Region: " << fFO->GetFilename(ELECTRON) << std::endl;
 		}
 	}
 	if( _issysrun )
@@ -869,7 +879,7 @@ void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw)
 //===============================================================
 
 // Simplistic calculation using full approximations p\sim 1, f->0
-double AnalysisBase::GetPPFWeightApprx()
+double AnalysisBase::GetPPFWeightApprx(const bool & zjetsregion)
 {
 	// As we are using the approximation PromptRate=1, then
 	// PPF (3,2) = fF0->GetWeight
@@ -879,6 +889,14 @@ double AnalysisBase::GetPPFWeightApprx()
 	// This equivalence between tight-prompt can be done because of the approximations
 	// used. So, each no-tight lepton is weighted in order to get its probability to be
 	// fake.
+	
+	// Take the proper FR Matrix depending the region of interestt
+	WManager * properFR = fFO;
+	if( zjetsregion )
+	{
+		properFR = fFOZJetsRegion;
+	}
+
 	double puw = 1.0;
 	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
 			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
@@ -886,7 +904,7 @@ double AnalysisBase::GetPPFWeightApprx()
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
-		puw *= fFO->GetWeight(ileptontype,pt,eta);
+		puw *= properFR->GetWeight(ileptontype,pt,eta);
 	}
 
 	return puw;

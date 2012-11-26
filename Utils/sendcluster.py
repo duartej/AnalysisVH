@@ -724,11 +724,12 @@ def showresults(textresultfiles):
 
 		print formatstr % (totaldict[cut],percent,"%",cut)
 
-	print "-------------------------------------------------"
-	print "N of muons and electrons no Tight (when proceed)"
-	print "nMuons = %d    nElecs = %d" % (nmuons,nelecs)
-	print "Number of Nt%s events passing all selection: %d" % (ntights,nevents)
-	print "-------------------------------------------------"
+	if ntights != -1:
+		print "-------------------------------------------------"
+		print "N of muons and electrons no Tight"
+		print "nMuons = %d    nElecs = %d" % (nmuons,nelecs)
+		print "Number of Nt%s events passing all selection: %d" % (ntights,nevents)
+		print "-------------------------------------------------"
 
 
 

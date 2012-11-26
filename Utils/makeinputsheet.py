@@ -75,12 +75,7 @@ DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
 				'MaxLoosed0': "Maximum value for the impact parameter in the loose definition [double]",
 				'MaxLooseIso': "Maximum value for isolation in the loose definition [double]"
 				},
-		'Other parameters': { 'FRMatrixZJETS': "If 1 evaluate the fakeable object method using the fake rates"\
-				" matrices (FRM) calculated with the leading jet energy cut-off to mimic the Z+Jets sample,"\
-				" useful to evaluate yields and plots before the MET cut. Otherwise, if 0 it will"\
-				" use the FRM calculated with the leading jet energy cut-off to mimic the ttbar sample"\
-				" [int]",
-				'Systematic' : "Activate the systematic calculation for\n"\
+		'Other parameters': { 'Systematic' : "Activate the systematic calculation for\n"\
 					"                LEPTONSYS: sys. related with efficiencies\n"\
 					"                FRSYS: sys. related with errors in FR matrices determination\n"\
 					"                MSSYS: sys. related with momentum/energy scale\n"\
@@ -139,8 +134,7 @@ CONFIGORDER = { 10 : "NameTree",
 		450 : 'MaxLooseIso',           
 		530 : "nEvents",               
 		540 : "firstEvent",            
-		560 : "FRMatrixZJETS",
-		570 : "Systematic"
+		560 : "Systematic"
 		}
 
 # Types of the different config
@@ -190,7 +184,6 @@ CONFIGTYPES = { "NameTree":              "TString",
 		'Maxdr03HcalSumPtOverPt':"double",      	
 		'MaxLoosed0':            "double",
 		'MaxLooseIso':           "double",
-		'FRMatrixZJETS':         "int",
 		'Systematic':		 "TString",
 		}
 
@@ -246,7 +239,6 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'Maxdr03HcalSumPtOverPt':   (0.2,None),
 	      'MaxLoosed0':             (None,0.2),
 	      'MaxLooseIso':            (None,{"2011": 0.4, "2012":-0.6}),
-	      'FRMatrixZJETS':          (None,),
 	      'Systematic':            (None,),
 	      }
 
@@ -365,9 +357,6 @@ if __name__ == '__main__':
 	parser.add_option( '--muonid', action="store", dest="muonid",\
 			help="The ID and Iso to be used for the 2011 muon."\
 			" Valid values are HWWID and VBTF. [Default: VBTF]")
-	parser.add_option( '-z', '--zregionfr', action='store_true', dest='zregionfr',\
-			help="Activate the Z+Jets FR region (use a FR with a"\
-			" leading jet Energy cut-off of 30 (instead the nominal 50)")
 	parser.add_option( '--sys', action='store', dest='systematic',\
 			metavar="SYSNAME:UP|DOWN",
 			help="Introduce the systematic to be evaluated and splitted by"\
@@ -428,10 +417,6 @@ if __name__ == '__main__':
 	else:
 		filename = opt.outputname.split(".")[0]
 
-	# Activate the FR for Z+Jets region
-	if opt.zregionfr:
-		CONFIGVAL['FRMatrixZJETS'] = (1,)
-	
 	# Systematic
 	if opt.systematic:
 		# Parsing input
