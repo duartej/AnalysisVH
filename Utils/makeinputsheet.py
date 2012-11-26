@@ -238,7 +238,7 @@ CONFIGVAL = { "NameTree":    ("Tree",),
 	      'Maxdr03EcalSumPtOverPt':   (0.2,None),
 	      'Maxdr03HcalSumPtOverPt':   (0.2,None),
 	      'MaxLoosed0':             (None,0.2),
-	      'MaxLooseIso':            (None,{"2011": 0.4, "2012":-0.6}),
+	      'MaxLooseIso':            (None,{"2011": 1.0, "2012":-0.6}),
 	      'Systematic':            (None,),
 	      }
 
