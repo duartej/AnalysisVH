@@ -231,6 +231,14 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	std::cout << "========================================================" << std::endl;
 	std::cout << "New event: " << fData->Get<int>("T_Event_EventNumber") << std::endl;
 #endif
+	// XXX FIXME: Just for the production of WZ2011 28112012-- missed HBHE filter and 
+	// instead reprocess again, blacklist the event
+	if( fIsData && fData->Get<int>("T_Event_RunNumber") == 176304 && fData->Get<int>("T_Event_EventNumber") == 495908595 )
+	{
+		continue;
+	}
+	// XXX --> TO BE DEPRECATED (Millor seria demanar a Javi que es carregui el succes)
+
 	// Get PU Weight
 	//----------------------------------------------------------------------
 	//std::string npuname = "T_Event_nPU";
