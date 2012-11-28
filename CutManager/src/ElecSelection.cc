@@ -468,7 +468,7 @@ bool ElecSelection::IsInsideZWindow( const double & invariantMass ) const
 bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 {
 	//Variables:
-	const double pt       = _data->Get<float>("T_Elec_Pt",index);
+	const double pt       = _data->Get<float>("T_UncalibElec_Pt",index);
 	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 	
 	const char * mvanamestr = "T_Elec_BDT";
