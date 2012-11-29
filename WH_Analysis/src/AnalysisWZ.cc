@@ -235,7 +235,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// instead reprocess again, blacklist the event
 	if( fIsData && fData->Get<int>("T_Event_RunNumber") == 176304 && fData->Get<int>("T_Event_EventNumber") == 495908595 )
 	{
-		continue;
+		return std::pair<unsigned int,float>(WZCuts::_iAllEvents,1.0);
 	}
 	// XXX --> TO BE DEPRECATED (Millor seria demanar a Javi que es carregui el succes)
 

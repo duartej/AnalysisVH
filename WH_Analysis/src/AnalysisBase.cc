@@ -123,7 +123,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	
 	// If 2011, check the ID for muons
 	std::string muonid("");
-	if( fRunPeriod.find("2011") != std::string::npos )
+	if( fRunPeriod.find("2011") != std::string::npos )  //FIXME: Bug when introducing -c ELECTRON
+	//  only, -- > muonidchar = 0 so initializing a string with the NULL char gives you a segmentation
 	{
 		muonid=muonidchar;		
 		// Transforming to lower case
