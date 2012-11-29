@@ -149,7 +149,11 @@ class clustermanager(object):
 				message = "\033[34;2mclustermanager: INFO\033[m Guessing the number of tasks "\
 						+"to send 10 minutes jobs. Found: "
 				self.njobs = self.nevents/300000   #450000 
-				message += str(self.njobs)
+				mess2 = ""
+				if self.hostname.find("uniovi") != -1 and self.njobs >= 70:
+					self.njobs = 70
+					mess2 = " (Forced due to UNIOVI cluster limitation)"
+				message += str(self.njobs)+mess2
 				print message
 			# Checking if has sense the njobs
 			if self.njobs < 1:
