@@ -470,9 +470,9 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 		else if( _typesys == AnalysisBase::METSYS)
 		{
 			_metsysmode = -1;
-			_metmuonpt = 1.0+_metmuonpt;
-			_metelecpt = 1.0+_metelecpt;
-			_metjetspt = 1.0+_metjetspt;
+			_metmuonpt = 1.0-_metmuonpt;
+			_metelecpt = 1.0-_metelecpt;
+			_metjetspt = 1.0-_metjetspt;
 		}
 		else if( _typesys == AnalysisBase::PUSYS )
 		{
