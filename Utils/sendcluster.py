@@ -7,6 +7,9 @@ python sendcluster.py -a submit -c ../analisiswh_mmm.ip -d WH120 -j 1 --pkgdir=.
 python sendcluster.py -a harvest --wd=cluster_WHToWW2L120
 """
 
+# Number of maximum jobs supported at uniovi cluster
+MAXJOBSUNIOVI=70
+
 class clustermanager(object):
 	"""
 	Class to manage the sending and harvesting
@@ -150,8 +153,8 @@ class clustermanager(object):
 						+"to send 10 minutes jobs. Found: "
 				self.njobs = self.nevents/300000   #450000 
 				mess2 = ""
-				if self.hostname.find("uniovi") != -1 and self.njobs >= 70:
-					self.njobs = 70
+				if self.hostname.find("uniovi") != -1 and self.njobs > MAXJOBSUNIOVI:
+					self.njobs = MAXJOBSUNIOVI
 					mess2 = " (Forced due to UNIOVI cluster limitation)"
 				message += str(self.njobs)+mess2
 				print message
