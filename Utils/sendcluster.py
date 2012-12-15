@@ -390,6 +390,8 @@ class clustermanager(object):
 		"""
 		import os
 		import sys
+		import glob
+		import shutil
 		# Checking we have the datamembers initialized: FIXME
 		#Creacion del directorio de trabajo
 		launchDir = os.getenv( 'PWD' )
@@ -428,6 +430,15 @@ class clustermanager(object):
 
 		#persistency
 		self.store()
+
+		# If data or Fakes check and copy if exists a blacklist
+		if self.dataname == "Data" or self.dataname == "Fakes":
+			try:
+				blfilename = "blacklist.evt"
+				originalbl = glob.glob(os.path.join(launchDir,blfilename))[0]
+				shutil.copyfile(originalbl,blfilename)
+			except IndexError:
+				pass
 		
 		# Returning initial directory
 		os.chdir(launchDir)
