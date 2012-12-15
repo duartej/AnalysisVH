@@ -42,15 +42,17 @@ class CMSAnalysisSelector : public TSelector {
   //Methods from TSelector
   CMSAnalysisSelector(TreeManager * data): 
 	  TSelector(), fData(data), fInputParameters(0), 
-	  fNEventsProcessed(0), fLeptonSelection(0) { }
-  virtual ~CMSAnalysisSelector() { }
+	  fNEventsProcessed(0), fLeptonSelection(0),
+	  _blacklist(0) { }
+  virtual ~CMSAnalysisSelector();
   virtual Int_t   Version() const { return 2; }
-  //virtual void    Begin(TTree *tree);
+  //! Setting events which are not going to be processed
+  virtual void SetBlacklistEvents(const char * blfile);
+  inline virtual const std::vector<long int> * GetBlacklistEvents() { return _blacklist; }
   virtual void    Init(TTree *tree);
   virtual void    SlaveBegin(TTree *tree);
   virtual Bool_t  Notify();
   virtual Bool_t  Process(Long64_t entry);
-  //virtual Int_t   GetEntry(Long64_t entry, Int_t getall = 0) { return fChain ? fChain->GetTree()->GetEntry(entry, getall) : 0; }
   virtual void    SetOption(const char *option) { fOption = option; }
   virtual void    SetObject(TObject *obj) { fObject = obj; }
   virtual void    SetInputList(TList *input) { fInput = input; }
@@ -141,6 +143,10 @@ class CMSAnalysisSelector : public TSelector {
   InputParameters * fInputParameters;
   TCounterUI*      fNEventsProcessed;
   CutManager *     fLeptonSelection;   // FIXME: Podria ser un map<enum lepton type,manager>??
+
+ private:
+  //! List of events not to be processed
+  std::vector<long int> * _blacklist;
 
 
 

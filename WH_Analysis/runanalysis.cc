@@ -202,6 +202,7 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 	return ip;
 }
 
+
 void display_usage()
 {
 	std::cout << "\033[37musage:\033[m runanalysis dataname [options]" << std::endl;
@@ -553,6 +554,40 @@ int main(int argc, char *argv[])
 	{
 		delete fakeable;
 		fakeable = 0;
+	}
+	
+	// Events blacklist: search for vetoed evens in the datafiles or in the processing slot
+	const std::string blfilename("blacklist.evt");
+	std::ifstream blf( blfilename.c_str() );
+	const bool isblfile = blf.is_open();
+	blf.close();
+	if( isblfile )
+	{
+		analysis->SetBlacklistEvents(blfilename.c_str());
+		// Extract the vetoed events in order to see are there in the 
+		// processing interval 
+		const std::vector<long int> * vetolist = analysis->GetBlacklistEvents();
+		int eventsinslot = 0;
+		if( vetolist != 0 )
+		{
+			for(std::vector<long int>::const_iterator it = vetolist->begin(); 
+					it != vetolist->end(); ++it)
+			{
+				const long int entry = *it;
+				if( firstEvent > entry || firstEvent+nEvents < entry )
+				{
+					// Not in these files or processing slot
+					continue;
+				}
+				++eventsinslot;
+			}
+			// just if we are in the right processed slot or file
+			if( eventsinslot == 0 )
+			{
+				// Resetting the blacklist (there is no blacklist)
+				analysis->SetBlacklistEvents(0);
+			}
+		}
 	}
 
 #ifdef TIMERS

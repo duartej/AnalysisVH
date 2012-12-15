@@ -43,6 +43,8 @@ class TreeManager
 
 		void Init(TTree * tree);  // = 0;
 		void GetEntry( const int & entry );
+		//! Get the TChain global entry given a local (tree) entry
+		inline const long GetGlobalEntryNumber(const long & entry) const { return fChain->GetChainEntryNumber(entry); }
 		
 		//! Extract the value for a given branchname at a given index
 		template <class T>

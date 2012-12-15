@@ -37,7 +37,10 @@
 
 //Standard includes
 #include<iostream>
+#include<sstream>
+#include<fstream>
 #include<stdlib.h>
+#include<algorithm>
 
 // Uncomment the following line to get some debug information in the output
 // Set the value to 2 to get even more debug information
@@ -47,12 +50,83 @@
 #define DEBUGCMSANALYSISSELECTOR
 #endif
 
+CMSAnalysisSelector::~CMSAnalysisSelector()
+{
+	if( _blacklist != 0 )
+	{
+		delete _blacklist;
+		_blacklist = 0;
+	}
+}
+
+void CMSAnalysisSelector::SetBlacklistEvents(const char * blfile)
+{
+	// Sanity check. This function has to be called just once. Otherwise
+	// Implies we want to delete the content
+	if( _blacklist != 0 )
+	{
+		/*std::cerr << "\033[33mSetBlacklistEvents WARNING\033[m Blacklist events already"
+			<< " filled before this method calling. This method should be called"
+			<< " just once. Ignoring the call and using the previous blacklist.. "
+			<< std::endl;*/
+		return;
+	}
+
+	std::ifstream blacklistfile( blfile );
+	if( ! blacklistfile.is_open() )
+	{
+		// There is no events to blacklist
+		blacklistfile.close();
+		return;
+	}
+	
+	_blacklist = new std::vector<long int>;
+
+	// Parse the list of RUN:EVENTID@entrynumber (each line contain a RUN:EventID@EntryNumber)
+	std::string line;
+	std::cout << "\033[33mBlacklisting the following events *\033[m" << std::endl;
+	while( ! blacklistfile.eof() )
+	{	
+		getline(blacklistfile,line);
+		const size_t colonpos = line.find(":");
+		const size_t atpos = line.find("@");
+		if( colonpos == line.npos || atpos == line.npos )
+		{
+			continue;
+		}
+
+		long int run    = -1;
+		long int evtid  = -1;
+		long int entryn = -1;
+		std::stringstream runstr(line.substr(0,colonpos));
+		runstr >> run;
+		std::stringstream evtidstr(line.substr(colonpos+1,std::string::npos));
+		evtidstr >> evtid;
+		std::stringstream entrynstr(line.substr(atpos+1,std::string::npos));
+		entrynstr >> entryn;
+
+		_blacklist->push_back(entryn);
+		std::cout << "Run:" << run << " EventID:" << evtid << " Entry number: " 
+			<< entryn << std::endl;
+	}
+	std::cout << "\033[33m***********************************\033[m" << std::endl;
+	blacklistfile.close();
+
+	// Some final check,
+	if( _blacklist->size() < 1 )
+	{
+		std::cerr << "\033[33mSetBlacklist WARNING\033[m Found a 'blacklist.evt' file but"
+			<< " parsing it returns nothing. Check the format." << std::endl;
+		delete _blacklist;
+		_blacklist = 0;
+	}
+}
+
 
 void CMSAnalysisSelector::Init(TTree *tree )
 {
 	// Calling the data init
 	fData->Init(tree);
-
 }
 
 
@@ -113,9 +187,16 @@ Bool_t CMSAnalysisSelector::Process(Long64_t entry)
    //
    // The return value is currently not used.
  
-   //fChain->GetTree()->GetEntry(entry);  
+   // Check if the event is blacklisted
+   if( _blacklist != 0 )
+   {
+	   const long int globalentry = fData->GetGlobalEntryNumber(entry);
+	   if( std::find(_blacklist->begin(),_blacklist->end(),globalentry) != _blacklist->end() )
+	   {
+		   return kFALSE;
+	   }
+   }
    fData->GetEntry(entry);
-
    
    // Increment the number of events
    (*fNEventsProcessed)++;
