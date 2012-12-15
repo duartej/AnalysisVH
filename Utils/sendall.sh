@@ -16,7 +16,7 @@ Send all the final states jobs to the cluster
 
 SYNTAX:
 
-   $0 [-r runperiod] [-F] [-f] <-c|WZ|WH>
+   $0 [-r runperiod] [-F] [-f] [-s sysname] <-c|WZ|WH>
 
 
    Note that the signal is a mandatory argument if not use the -c
@@ -40,6 +40,16 @@ OPTIONS:
          as data and compared with the potential MC sample which could
 	 contribute (so the Monte Carlo sample are sent in -F 3,2 mode)
 	 This option implies '-F' option, so it is called automatically
+   [-s]: Send to cluster the systematic 'sysname'. Besides to launch the
+         usual jobs, a SYSTEMATICS directory is created on the top directory,
+	 containing a folder for each systematic with the same channel folders
+	 structure as the regular jobs. 
+	 'sysname' should be LEPTONSYS LEPTONSYS FRSYS MSSYS METSYS PUSYS all
+	 all will launch all the known systematics [Default: all]
+   [-S]: Flag to restrict the jobs sending only to the systematics ones. 
+         This option can be used it '-s' option has been called, and it 
+	 modifies the default behaviour of '-s' option which send also
+	 the analysis jobs besides the systematic ones.         
    [-c]: Closure test. Don't do anything, just showing some guidelines
          to do the work
 
@@ -115,8 +125,10 @@ fi
 
 fakeable=""
 fakeasdata=""
+SYSTEMATICS=""
+JUSTSYS=""
 
-while getopts r:Ffch o;
+while getopts r:Ffs:Sch o;
 	do
 		case "$o" in
 			r)	runperiod=$OPTARG; 
@@ -126,6 +138,8 @@ while getopts r:Ffch o;
 			f)	fakeasdata="yes";
 				fakeable="yes";
 				;;
+			s)	SYSTEMATICS=$OPTARG;;
+			S)	JUSTSYS="yes";;
 			c)      showct;
 			        exit 0;;
 			h)	help;
@@ -219,15 +233,15 @@ then
 else
 	if [ "X"$fakeasdata == "Xyes" ];
 	then
-		echo "[sendall] Info: not needed the Data, VGamma, WJets_Madgraph and WW, removing";
+		echo "[sendall] Info: not needed the Data, VGamma, WJets_Madgraph, removing"; 
 		rm Data_datanames.dn;
 		for vgamma in $VGamma;
 		do
 			rm ${vgamma}_datanames.dn;
 		done
-		rm WW_datanames.dn;
+		#rm WW_datanames.dn; --> WW is PPF
 	else
-		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar and single top samples, removing";
+		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar, WW and single top samples, removing";
 		rm -f Z*_Powheg_datanames.dn;
 		rm -f DY*_Powheg_datanames.dn;
 		rm -f ZJets_Madgraph_datanames.dn;
@@ -236,52 +250,150 @@ else
 		rm -f TbarW_datanames.dn;
 		rm -f TW_DR_datanames.dn;
 		rm -f TW_datanames.dn;
-		rm ${TTBAR}_datanames.dn;
+		rm -f ${TTBAR}_datanames.dn;
+		rm -f WW_datanames.dn; # WW is PPF
 	fi
 fi
 
+# Preparing the SYSTEMATICS case launching, get the datanames needed
+# at each systematic
+SYSLIST=""
+if [ "X"$SYSTEMATICS != "X" ];
+then
+	DATASAMPLES="Data_datanames.dn Fakes_datanames.dn"
+	MCSAMPLES=`ls *_datanames.dn`
+	# Extracting the Data samples
+	for i in $DATASAMPLES; 
+	do 
+		MCSAMPLES=`echo $MCSAMPLES|sed -e "s/$i//g"`;
+	done
+	# =========== Datasamples needed for the systematics
+	LEPTONSYS=$MCSAMPLES
+	FRSYS="Fakes_datanames.dn"
+	MSSYS=$MCSAMPLES
+	METSYS=$MCSAMPLES" "$DATASAMPLES
+	PUSYS=$MCSAMPLES
 
-for finalstate in mmm mme eem eee;
-do 
-	i=$signal$finalstate
-	mkdir -p $i;
-	cd $i;
-	cp ../*.dn .
-	if [ "X"$fakeasdata == "X" ];
+	if [ "X"$SYSTEMATICS == "Xall" ] ;
 	then
-		datamanagercreator Data -r $runperiod -f $finalstate;
+		SYSLIST="LEPTONSYS FRSYS MSSYS METSYS PUSYS"
 	else
-		fakeasdataOPT="-k"
+		SYSLIST=$SYSTEMATICS
 	fi
-	fakeoption=""
-	if [ "X"$fakeable == "Xyes" ];
-	then
-		datamanagercreator Fakes -r $runperiod -f $finalstate;
-		fakeoption="-F 3,2"
-	fi
-	#-------------------------------------------------------------
-	echo "[sendall] Sending $finalstate -- Working directory: $i"; 
-	sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
-	#-------------------------------------------------------------
-	# The WZ3LNu and ZZ sample has to be considered for the Fake
-	# substraction (-F or -f options)
-	if [ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ];
-	then
-		WZSAMPLE=WZTo3LNu
-		ZZSAMPLE=ZZ
-		cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
-		cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
-		# Plus if we are checking the comparation of the Fakes
-		# with the MC using the data driven, not needed the WZ and ZZ 
-		if [ "X"$fakeasdata == "Xyes" ];
-		then
-			rm ${WZSAMPLE}_datanames.dn;
-			rm ${ZZSAMPLE}_datanames.dn;
-		fi
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
-		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
-	fi
-	cd ../; 
+	# Create the systematic directory
+	for sys in $SYSLIST;
+	do
+		for mode in UP DOWN;
+		do
+			sysdir=SYSTEMATICS/${sys}_${mode};
+			mkdir -p $sysdir;
+			cp analisis*.ip $sysdir/;
+			# And introduce the systematic to the inpusheet
+			# plus copying the datanames needed
+			for i in `ls analisis*.ip`;
+			do
+				echo "" >> ${sysdir}/$i;
+				echo "@var TString Systematic               ${sys}:${mode};" >> ${sysdir}/$i;
+				echo "" >> ${sysdir}/$i;
+				cp ${!sys}  ${sysdir};
+			done
+		done
+	done
+fi
+
+
+# Include in which folders we have to send jobs
+# Analysis jobs 
+LISTOFFOLDERS=$PWD":REGULAR ";
+# Sytematics, if the user just want to send the systematics
+# deleting the analysis folder
+if [ "X$SYSLIST" != "X" -a "X$JUSTSYS" == "Xyes" ];
+then
+	LISTOFFOLDERS="";
+fi
+for sys in $SYSLIST;
+do
+	LISTOFFOLDERS="${LISTOFFOLDERS}SYSTEMATICS/${sys}_UP:${sys}_UP SYSTEMATICS/${sys}_DOWN:${sys}_DOWN ";
 done
+
+PARENTDIR=$PWD;
+for folderandname in $LISTOFFOLDERS;
+do
+	workingfolder=`echo $folderandname|cut -d: -f1`
+	namejob=`echo $folderandname|cut -d: -f2`
+	echo "======================================================================"
+	echo "[sendall INFO] Setting-up and sending jobs for $namejob Analysis"
+	cd $workingfolder;
+	for finalstate in mmm mme eem eee;
+	do 
+		i=$signal$finalstate
+		dilepton=${finalstate:0:2}
+		mkdir -p $i;
+		cd $i;
+		cp ../*.dn .
+		if [ "X"$fakeasdata == "X" ];
+		then
+			if [ $namejob == "REGULAR" ];
+			then
+				datamanagercreator Data -r $runperiod -f $finalstate;
+				# FIXME Just for the mmm and mme channels
+				if [ $dilepton == "mm" -a $runperiod == "2011" ];
+				then
+					echo "[sendall INFO] Creating the list of vetoed events..."
+					buildblacklist 176304:495908595,179889:234022820 Data_datanames.dn
+					ALREADYBLACKLIST=true;
+				fi
+			fi
+		else
+			fakeasdataOPT="-k"
+		fi
+
+		fakeoption=""
+		if [ "X"$fakeable == "Xyes" ];
+		then
+			if [ $namejob == "REGULAR" ];
+			then
+				datamanagercreator Fakes -r $runperiod -f $finalstate;
+				if [ ! $ALREADYBLACKLIST -a $($dilepton == "mm" -a $runperiod == "2011") ];
+				then
+					echo "[sendall INFO] Creating the list of vetoed events..."
+					buildblacklist 176304:495908595,179889:234022820 Fakes_datanames.dn
+				fi
+			fi
+			fakeoption="-F 3,2"
+		fi
+		#-------------------------------------------------------------
+		echo "[sendall] Sending $finalstate -- Working directory: $i"; 
+		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
+		# Not neede anymore
+		rm -f blacklist.evt;
+		#-------------------------------------------------------------
+		# The WZ3LNu and ZZ sample has to be considered for the Fake
+		# substraction (-F or -f options)
+		sysnovar=`echo $namejob|cut -d_ -f1`
+		if [ $([ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ]) -a \
+			$([ $namejob == "REGULAR" -o $sysnovar == "FRSYS" ]) ];
+		then
+			WZSAMPLE=WZTo3LNu
+			ZZSAMPLE=ZZ
+			cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
+			cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
+			# Plus if we are checking the comparation of the Fakes
+			# with the MC using the data driven, not needed the WZ and ZZ 
+			if [ "X"$fakeasdata == "Xyes" ];
+			then
+				rm ${WZSAMPLE}_datanames.dn;
+				rm ${ZZSAMPLE}_datanames.dn;
+			fi
+			sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
+			sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+		fi
+	
+		cd ../; 
+	done
+	rm -f *.dn;
+	cd $PARENTDIR;
+done
+
 rm *.dn
 rm -rf Datasets/

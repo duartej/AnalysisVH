@@ -292,7 +292,7 @@ class table(object):
 					"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
 		elif metasample == "Other" and not isusersrequest:
 			#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
-			components = [ "WW", "WJets_Madgraph" ]
+			components = [ "WJets_Madgraph" ] #, 'WW' ] FIXED WW embeded in data-driven
 		elif metasample in self.usermetasample.keys():
 			components = self.usermetasample[metasample]
 		else:

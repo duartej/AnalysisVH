@@ -14,10 +14,16 @@ Harvest all the final states jobs from the cluster
 
 SYNTAX:
 
-   $0 <WZ|WH> 
+   $0 [-s] <WZ|WH> 
 
 
    Note that the signal is a mandatory argument. 
+
+   OPGIONS:
+
+   [-s]: collect the systematics and creates a file containing 
+         the info collected. The script should be launched at the 
+	 top of the folder containing a 'SYSTEMATICS' directory.
 
 EOF
 }
@@ -25,6 +31,15 @@ EOF
 #
 # Process the arguments
 #
+while getopts sh o;
+	do
+		case "$o" in
+			s)	SYSTEMATICS=$OPTARG;;
+			h)	help;
+				exit 1;;
+		esac
+	done
+
 if [ -z $VHSYS ]; then
     echo "ERROR: 'VHSYS' and 'ANALYSISSYS' is not set. You must source the setup.sh script"
     echo "      source /pathwhereisthepackage/setup.sh"

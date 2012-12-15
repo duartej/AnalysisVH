@@ -29,7 +29,7 @@ OPTIONS:
    [-l]: Set the luminosity. [Default: 4922.0 (for 2011 run period)
                                        12103.3 (for 2012 run period)]
    [-a]: Activate the autobinning
-   [-F]: Activate the fake mode (Z+Jets,DY and tbar{t} = PPF)
+   [-F]: Activate the fake mode (Z+Jets,DY, WW and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
          as data and compared with the potential MC sample which could
 	 contribute (so the Monte Carlo sample was sent in -F 3,2 mode)
