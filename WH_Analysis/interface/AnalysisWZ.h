@@ -70,6 +70,12 @@ class AnalysisWZ : public AnalysisBase
 
 	private:
 		AnalysisWZ();
+		//! Check if Zmass range is the defined when is signal
+		const bool isSignalMCInsideZmassRange(const float & masslow,const float & masshigh) const;
+		//! Stores histos and datamembers related with MC-truth information, just for signal case
+		//! It returns the number of electron and muons leptons (taking into account the 
+		//! taus decaying to them)
+		const unsigned int setSignalMCInfo(const double & eventweight);
 		// Number of no tight muons, electrons and events (Nti)
 		int _nTMuons;
 		int _nTElecs;
