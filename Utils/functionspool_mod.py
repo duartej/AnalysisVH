@@ -535,49 +535,42 @@ def getpassevts(rootfile,cutlevel=-1,**keywords):
 	:param cutlevel: the number of bin where to extract the info. The convention 
 	                 -1 is equivalent to use the last bin [default: -1]
 	:type cutlevel: int
-	:param histoname: the name of histogram where to extract the number of events 
-			  [default: "fHEventsPerCut"]
-	:param histoname: str
+	:param real: return the value without being weighted by luminosisty or cross-section
+	:param histoname: bool
 
 	:return: the content of the bin cutlevel and its error
 	:rtype: (float,float)
 	"""
 	import ROOT
 	
-	# The function was called just to extract the content of some bin (cutlevel)
-	if keywords.has_key("histoname"):
-		f = ROOT.TFile(rootfile)
-		if f.IsZombie():
-			message="\033[31;1mgetpassevts ERROR\033[m File '%s' not found." % rootfile
-			raise OSError(message)
-		histo = f.Get(histoname)
-		if cutlevel == -1:
-			cutlevel = histo.GetNbinsX()
-		else:
-			if cutlevel > histo.GetNbinsX():
-				message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater than maximum (%i)." % (cutlevel,histo.GetNbinsX())
-				raise RuntimeError(message)
+	validkeywords = ["real"]
+	israwevents = False
+	for key,value in keywords.iteritems():
+		if key not in validkeywords:
+			message="\033[31;1mgetpassevts ERROR\033[m Calling function with a non "\
+					" valid parameter argument '%s'" % key
+			raise RuntimeError(message)
+		if key == "real":
+			israwevents = value
 			
-		Npass = float(histo.GetBinContent(cutlevel))
-		Nerr = float(histo.GetBinError(cutlevel))
-		f.Close()
-		f.Delete()
-		
-		return (Npass,Nerr)
-	else:
-		s = processedsample(rootfile)
-		try:
-			cutindex = int(cutlevel)
-			if cutlevel == -1:
-				cutindex = len(s.getcutlist())-1
-			if cutindex > len(s.getcutlist())-1:
-				message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater"\
-						" than maximum (%i)." % (cutlevel,(len(s.getcutlist())-1))
-				raise RuntimeError(message)
-			cut = s.getcutlist()[cutindex]
-		except ValueError:
-			cut = cutlevel
-		return s.getvalue(cut)
+	s = processedsample(rootfile)
+	try:
+		cutindex = int(cutlevel)
+		if cutlevel == -1:
+			cutindex = len(s.getcutlist())-1
+		if cutindex > len(s.getcutlist())-1:
+			message="\033[31;1mgetpassevts ERROR\033[m Cutlevel '%i' greater"\
+					" than maximum (%i)." % (cutlevel,(len(s.getcutlist())-1))
+			raise RuntimeError(message)
+		cut = s.getcutlist()[cutindex]
+	except ValueError:
+		cut = cutlevel
+	# return raw events or not
+	callfunct = "s.getvalue(cut)"
+	if israwevents:
+		callfunct = "s.getrealvalue(cut)"
+	
+	return eval(callfunct)
 
 
 
@@ -689,8 +682,9 @@ def getxserrorsrel(workingpath,**keywords):
 				"cluster_WZTo3LNu/Results/WZTo3LNu.root")
 		signaldn = os.path.join(os.path.join(workingpath,pathchannel),
 				"WZTo3LNu_datanames.dn")
-		# Number of signal events --- 
-		Npass,Nerr = getpassevts(signalroot)
+		# Number of signal events --- (watch out, the raw events without xs,lumi. This
+		# is because we want to evaluate this number to extract eff)
+		Npass,Nerr = getpassevts(signalroot,real=True)
 
 		# ================= 1. Extract yields
 		pathchannel = signal+channel
