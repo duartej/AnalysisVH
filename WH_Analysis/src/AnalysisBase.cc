@@ -109,6 +109,15 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		}
 		--ksize;
 	}
+	// FIXME: Provisional patch to avoid the segmentation if do not intialize muonidchar
+	if( muonidchar == 0 )
+	{
+		std::cout << "\033[1;33mAnalysisBase WARNING\033[1;m The inputsheet for muons" <<
+			" doesn't contain the 'MuonID' parameter, so forced to be 'VBTF'" <<
+			std::endl;
+		muonidchar = "VBTF";
+	}
+	// FIXME END 
 	
 	// Extract the run period (FIXME: Check if RunPeriod exist, otherwise it
 	// will crash with a logic error exception
@@ -123,7 +132,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	
 	// If 2011, check the ID for muons
 	std::string muonid("");
-	if( fRunPeriod.find("2011") != std::string::npos )  //FIXME: Bug when introducing -c ELECTRON
+	if( fRunPeriod.find("2011") != std::string::npos )  //FIXME see above: Bug when introducing -c ELECTRON
 	//  only, -- > muonidchar = 0 so initializing a string with the NULL char gives you a segmentation
 	{
 		muonid=muonidchar;		
