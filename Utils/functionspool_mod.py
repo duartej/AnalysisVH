@@ -648,7 +648,7 @@ def getxserrorsrel(workingpath,**keywords):
 		if mcprod == "Fall11":
 			Ngen = 784391.0  # 0.64 extrapolated from total sample calculation
 		elif mcprod == "Summer12":
-			Ngen = 932462    # 0.718078 extrapolated from total sample (53X)
+			Ngen = 1449067.0 # see https://github.com/duartej/AnalysisVH/issues/40
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 				" Z range mass [71,111]: %d" % Ngen
 	else:
