@@ -467,8 +467,16 @@ bool ElecSelection::IsInsideZWindow( const double & invariantMass ) const
 // BDT Electrons
 bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 {
+	// Probably this will disappear because there was no discussion
+	// in the 2012 data period with respect the electron calibration
+	std::string ptelec = "T_UncalibElec_Pt";
+	if( _runperiod.find("2012") != std::string::npos )
+	{
+		ptelec = "T_Elec_Pt";
+	}
+
 	//Variables:
-	const double pt       = _data->Get<float>("T_UncalibElec_Pt",index);
+	const double pt       = _data->Get<float>(ptelec.c_str(),index);
 	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 	
 	const char * mvanamestr = "T_Elec_BDT";
