@@ -169,9 +169,9 @@ class processedsample(object):
 
 		f = ROOT.TFile(self.filename)
 		# Including the luminosity, efficiency weights,,...
-		if "Data.root" in self.filename:
-			weight = 1.0
-		elif "Fakes.root" in self.filename:
+		if "Data.root" in self.filename \
+				or "Fakes.root" in self.filename \
+				or "Fakes_Nt3.root" in self.filename:
 			weight = 1.0
 		else:
 			# 1) Load the InputParameters

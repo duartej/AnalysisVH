@@ -31,11 +31,12 @@ OPTIONS:
 
    [-r]: Set the Run period: 2011, 2011A, 2011B 
                              2012, 2012A, 2012B  [Default: 2012]
-   [-F]: Activate fakeable mode: the Fakes data sample will be send
-         in substitution of Z+Jets, Drell-Yan and ttbar MC samples.
-	 Also, it is sended a WZ3LNu and ZZ sample in fakeable mode
-	 in order to extract its contribution (PPP) from the fakes
-	 estimation
+   [-F]: Activate fakeable mode (Prompt-Prompt-Fake estimation):
+         the Fakes data sample (Nt2) will be send in substitution
+	 of Z+Jets, Drell-Yan, WW and ttbar MC samples.
+	 Also, it is sended the Nt3 sample with the fake rates and
+	 prompt rates activated in order to be extracted from
+	 the Nt2 sample
    [-f]: Activate fakeable mode: the Fakes data sample is considered
          as data and compared with the potential MC sample which could
 	 contribute (so the Monte Carlo sample are sent in -F 3,2 mode)
@@ -191,11 +192,7 @@ signal=$1
 
 echo "[sendall] Info: Creating data files to extract root files"
 datamanagercreator -r $runperiod -f mmm;
-# DEPRECATED: taken into account in the datamanagercreator
-# if [ -f ZJets_Madgraph_datanames.dn ]; then
-#	echo "[sendall] Warning: the ZJets_Madgraph sample is not yet implemented. Removing it";
-#	rm ZJets_Madgraph_datanames.dn;
-#fi 
+
 if [ "$1" == "WZ" ]; then
 	echo "[sendall] Info: not needed the WH samples, removing";
 	rm -f WHTo*.dn;
@@ -212,16 +209,6 @@ if [ "X$runperiod" == "X2012" -o "X$runperiod" == "X2012A" -o "X$runperiod" == "
 then
 	VGamma="WgammaToLNu ZgammaToLLG";
 fi;
-# DEPRECATED OtherVGamma:
-#OtherVGamma="ZgammaToMuMuMad ZgammaToElElMad ZgammaToTauTauMad WgammaToMuNuMad WgammaToElNuMad WgammaToTauNuMad"
-#echo "[sendall] Info (TO BE DEPRECATED): Considering VGamma as $VGamma"
-#echo "[sendall] Info (TO BE DEPRECATED): So removing $OtherVGamma"
-#for vgammafiles in $OtherVGamma; 
-#do
-#	if [ -f ${vgammafiles}_datanames.dn ]; then
-#		rm ${vgammafiles}_datanames.dn;
-#	fi
-#done
 
 if [ "X"$fakeable == "X" ];
 then
@@ -251,7 +238,7 @@ else
 		rm -f TW_DR_datanames.dn;
 		rm -f TW_datanames.dn;
 		rm -f ${TTBAR}_datanames.dn;
-		rm -f WW_datanames.dn; # WW is PPF
+		rm -f WW_datanames.dn;
 	fi
 fi
 
@@ -303,7 +290,7 @@ fi
 
 
 # Include in which folders we have to send jobs
-# Analysis jobs 
+# Analysis jobs are REGULAR tag
 LISTOFFOLDERS=$PWD":REGULAR ";
 # Sytematics, if the user just want to send the systematics
 # deleting the analysis folder
@@ -368,25 +355,32 @@ do
 		# Not neede anymore
 		rm -f blacklist.evt;
 		#-------------------------------------------------------------
+		# XXX DEPRECATED XXX
 		# The WZ3LNu and ZZ sample has to be considered for the Fake
 		# substraction (-F or -f options)
+		# XXX DEPRECATED XXX
+		# The Nt3 term in the PPF equation (to be substracted to Nt2)
 		sysnovar=`echo $namejob|cut -d_ -f1`
 		if [ $([ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ]) -a \
 			$([ $namejob == "REGULAR" -o $sysnovar == "FRSYS" ]) ];
 		then
-			WZSAMPLE=WZTo3LNu
-			ZZSAMPLE=ZZ
-			cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
-			cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
+			cp Fakes_datanames.dn Fakes_Nt3_datanames.dn
+			sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3_datanames.dn 
+			# XXX DEPRECATED XXX
+			#WZSAMPLE=WZTo3LNu
+			#ZZSAMPLE=ZZ
+			#cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
+			#cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
 			# Plus if we are checking the comparation of the Fakes
 			# with the MC using the data driven, not needed the WZ and ZZ 
-			if [ "X"$fakeasdata == "Xyes" ];
-			then
-				rm ${WZSAMPLE}_datanames.dn;
-				rm ${ZZSAMPLE}_datanames.dn;
-			fi
-			sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
-			sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+			#if [ "X"$fakeasdata == "Xyes" ];
+			#then
+			#	rm ${WZSAMPLE}_datanames.dn;
+			#	rm ${ZZSAMPLE}_datanames.dn;
+			#fi
+			#sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
+			#sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
+			# XXX DEPRECATED XXX
 		fi
 	
 		cd ../; 
