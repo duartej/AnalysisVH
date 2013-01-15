@@ -175,13 +175,13 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! PPF estimation using the approximations p=1 and f->0
 		double GetPPFWeightApprx(const bool & iszjetregion = false);
 		//! PPP estimation evaluated using the full calculation
-		double GetPPPWeight(const bool & zjetsregion = false);
+		double GetPPPWeight();
 		//! PPF estimation evaluated using the full calculation
-		double GetPPFWeight(const bool & zjetsregion = false);
+		double GetPPFWeight();
 		//! PFF estimation evaluated using the full calculation
-		double GetPFFWeight(const bool & zjetsregion = false);
+		double GetPFFWeight();
 		//! FFF estimation evaluated using the full calculation
-		double GetFFFWeight(const bool & zjetsregion = false);
+		double GetFFFWeight();
 
 	private:
 		AnalysisBase();

@@ -227,9 +227,14 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
-		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] );
+		// Fake rate Matrix for Z Jets, when proceed
+		//int iszjetsFRMatrixint = 0;
+		//fInputParameters->TheNamedInt("FRMatrixZJETS",iszjetsFRMatrixint);
+		//const bool iszjetsFRMatrix = (bool)iszjetsFRMatrixint;
+		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] );//, iszjetsFRMatrix );
 		fFOZJetsRegion = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], true );
-		fPO = new WManager( WManager::PR, fRunPeriod, muonid ); // --> XXX: Not needed if use approx. method
+		// fPO = new WManager( WManager::PR, fRunPeriod, muonid ); --> FIXME: Not needed if using the approximated method
+		// this has to be implemented (if using appr. no PR, else instance PR)
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it
@@ -916,15 +921,8 @@ double AnalysisBase::GetPPFWeightApprx(const bool & zjetsregion)
 }
 
 // PPF estimation (full calculation)
-double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
+double AnalysisBase::GetPPFWeight()
 {
-	// Take the proper FR Matrix depending the region of interest
-	WManager * properFR = fFO;
-	if( zjetsregion )
-	{
-		properFR = fFOZJetsRegion;
-	}
-
 	// Weighting rules:
 	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
 	//                        pf      for each failing
@@ -941,7 +939,7 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
-		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
 	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
@@ -951,7 +949,7 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
-		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
 	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
@@ -1014,15 +1012,8 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 }
 
 // PFF estimation (full calculation)
-double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
+double AnalysisBase::GetPFFWeight()
 {
-	// Take the proper FR Matrix depending the region of interest
-	WManager * properFR = fFO;
-	if( zjetsregion )
-	{
-		properFR = fFOZJetsRegion;
-	}
-
 	// Weighting rules:
 	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
 	//                        pf      for each failing
@@ -1039,7 +1030,7 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
-		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
 	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
@@ -1049,7 +1040,7 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
-		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
 	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
@@ -1113,15 +1104,8 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 }
 
 // FFF estimation (full calculation)
-double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
+double AnalysisBase::GetFFFWeight()
 {
-	// Take the proper FR Matrix depending the region of interest
-	WManager * properFR = fFO;
-	if( zjetsregion )
-	{
-		properFR = fFOZJetsRegion;
-	}
-
 	// Weighting rules:
 	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
 	//                        pf      for each failing
@@ -1138,7 +1122,7 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
-		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
 	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
@@ -1148,7 +1132,7 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
-		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
 	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
@@ -1202,15 +1186,8 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 }
 
 // PPP estimation (full calculation)
-double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
+double AnalysisBase::GetPPPWeight()
 {
-	// Take the proper FR Matrix depending the region of interest
-	WManager * properFR = fFO;
-	if( zjetsregion )
-	{
-		properFR = fFOZJetsRegion;
-	}
-
 	// Weighting rules:
 	//  PROMPT ESTIMATED:     p(1-f)  for each passing 
 	//                        pf      for each failing
@@ -1227,7 +1204,7 @@ double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back(fPO->GetWeight(ileptontype,pt,eta));
-		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
+		f.push_back(fFO->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
 	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
@@ -1237,7 +1214,7 @@ double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
 		const double eta = it->getP4().Eta();
 		const LeptonTypes ileptontype = it->leptontype();
 		p.push_back( fPO->GetWeight(ileptontype,pt,eta) );
-		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
+		f.push_back( fFO->GetWeight(ileptontype,pt,eta) );
 	}
 	
 	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();

@@ -457,24 +457,19 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	double frweight(1.0);
 	double frweightZJetsRegion(1.0);
 	// Using the fake rate if we are in fake mode
-	if( fLeptonSelection->IsInFakeableMode() ) //&& fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
+	if( fLeptonSelection->IsInFakeableMode() && fLeptonSelection->GetNAnalysisNoTightLeptons() != 0 )
 	{
-		//frweight = this->GetPPFWeightApprx();
-		//frweightZJetsRegion = this->GetPPFWeightApprx(true);
-		frweight = this->GetPPFWeight();
-		frweightZJetsRegion = this->GetPPFWeight(true);
+		frweight = this->GetPPFWeightApprx();
+		frweightZJetsRegion = this->GetPPFWeightApprx(true);
 		puw *= frweightZJetsRegion;
 	}
-	// DEPRECATED lines below //
 	// Using the fake rate if we are in fake mode: Full and complete calculation
 	/*if( fLeptonSelection->IsInFakeableMode() )
 	{
-		//puw *= this->GetFFFWeight();
-		//puw *= this->GetPFFWeight();
 		//puw *= this->GetPPFWeight();
-		//puw *= this->GetPPPWeight();
+		//puw *= this->GetPFFWeight();
+		puw *= this->GetPPPWeight();
 	}*/
-	// DEPRECATED lines above //
 
 	// Including the scale factors if proceed
 	if( !fIsData )
