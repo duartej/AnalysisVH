@@ -436,8 +436,8 @@ bool MuonSelection::PassHWWMuonID(const int & i) const
 	// Finally new cuts for 2012
 	if( _runperiod.find("2012") != std::string::npos )
 	{
-		Idcuts = Idcuts && _data->Get<int>("T_Muon_isPFMuon",i) && 
-			_data->Get<int>("T_Muon_NLayers") > kMinNLayers;
+		Idcuts = Idcuts && _data->Get<bool>("T_Muon_isPFMuon",i) && 
+		  _data->Get<int>("T_Muon_NLayers",i) > kMinNLayers;
 	}
 
 	return Idcuts;
