@@ -1007,7 +1007,7 @@ double AnalysisBase::GetTriggerWeight(const std::vector<LeptonRel> * const theLe
 
 	const double weight = 1.0-(lFterm+mterm);
 
-	return 1;
+	return weight;
 }
 
 // Fake rate estimations

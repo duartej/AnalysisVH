@@ -16,7 +16,7 @@ Send all the final states jobs to the cluster
 
 SYNTAX:
 
-   $0 [-r runperiod] [-F] [-f] [-s sysname] <-c|WZ|WH>
+   $0 [-r runperiod] [-F] [-f] [-s sysname [-S]] <-c|WZ|WH>
 
 
    Note that the signal is a mandatory argument if not use the -c
@@ -365,7 +365,7 @@ do
 			$([ $namejob == "REGULAR" -o $sysnovar == "FRSYS" ]) ];
 		then
 			cp Fakes_datanames.dn Fakes_Nt3_datanames.dn
-			sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3_datanames.dn 
+			sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3
 			# XXX DEPRECATED XXX
 			#WZSAMPLE=WZTo3LNu
 			#ZZSAMPLE=ZZ

@@ -874,9 +874,9 @@ if __name__ == '__main__':
 			else:
 				if dataname != "Fakes" and not opt.fakeasdata:
 					# not sending to the instance
-					print "\033[1;33msendcluster WARNING:\033[1;m The job is going to be send as"+\
-							" regular not in FAKE mode. Use the '-k' option if you want to"+\
-							" force the FAKE mode in this sample"
+					#print "\033[1;33msendcluster WARNING:\033[1;m The job is going to be send as"+\
+					#		" regular not in FAKE mode. Use the '-k' option if you want to"+\
+					#		" force the FAKE mode in this sample"
 					fakeable = False
 
 			manager = clustermanager('submit',dataname=dataname,cfgfilemap=leptoncfgmap,\

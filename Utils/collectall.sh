@@ -28,13 +28,14 @@ SYNTAX:
 EOF
 }
 
+SYSTEMATICS=""
 #
 # Process the arguments
 #
 while getopts sh o;
 	do
 		case "$o" in
-			s)	SYSTEMATICS=$OPTARG;;
+			s)	SYSTEMATICS="yes";;
 			h)	help;
 				exit 1;;
 		esac
@@ -77,3 +78,11 @@ do
 	done;
 	cd ../;
 done
+
+if [ "X${SYSTEMATICS}" == "X" ]; 
+then;
+	exit 0;
+fi
+
+# Systematic stuff
+
