@@ -35,11 +35,13 @@ class WManager
 		//! Enums defining the weight known weights
 		enum 
 		{
-			EFF,      // Total efficiencies
-			SF,       // Total scale factors
-			FR, 	  // Fake Rate
-			PR,       // Prompt rate
-			_n        // Not to use (internal)
+			EFF,        // Total efficiencies
+			SF,         // Total scale factors
+			FR, 	    // Fake Rate
+			PR,         // Prompt rate
+			TR_LEADING, // Trigger efficiencies: Leading leg
+			TR_TRAILING,// Trigger efficiencies: Trailing leg
+			_n          // Not to use (internal)
 		};
 		//! Enums defining the systematic variation of weights
 		enum

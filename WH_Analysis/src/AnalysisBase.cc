@@ -4,6 +4,7 @@
 #include<iostream>
 #include<functional>
 #include<algorithm>
+#include<cassert>
 
 #include "AnalysisBase.h"
 #include "LeptonRel.h"
@@ -54,6 +55,8 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	fFOZJetsRegion(0),
 	fPO(0),
 	fSF(0),
+	fTRL(0),
+	fTRT(0),
 	_cuttree(0),
 	_cutweight(1),
 	_cutvalue(-1),
@@ -221,8 +224,10 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	}
 	// End parsing systematics
 
-	// Initialize the scale factors
-	fSF = new WManager( WManager::SF, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
+	// Initialize the scale factors and trigger
+	fSF  = new WManager( WManager::SF, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
+	fTRL = new WManager( WManager::TR_LEADING, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
+	fTRT = new WManager( WManager::TR_TRAILING, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -364,6 +369,18 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete fSF;
 		fSF = 0;
+	}
+
+	if( fTRL != 0 )
+	{
+		delete fTRL;
+		fTRL = 0;
+	}
+	
+	if( fTRT != 0 )
+	{
+		delete fTRT;
+		fTRT = 0;
 	}
 
 }
@@ -618,6 +635,18 @@ void AnalysisBase::InitialiseParameters()
 	{
 		TH1::SetDefaultSumw2();
 	}
+
+	// if data, not needed 
+	if( fIsData )
+	{
+		delete fSF; 
+		fSF = 0;
+		delete fTRL;
+		fTRL = 0;
+		delete fTRL;
+		fTRT = 0;
+	}
+
 	
 	// Luminosity
 	//--------------------------------
@@ -728,6 +757,22 @@ void AnalysisBase::Summary()
 				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
 		{
 			std::cout << "                       + ELECTRON: " << fSF->GetFilename(ELECTRON) << std::endl;
+		}
+		std::cout << " + Trigger Efficiencies used: |" << std::endl;
+		std::cout << "                              + MUON |- Leading leg : ";
+		if( fFS == SignatureFS::_iFSmmm ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
+		{
+			std::cout << fTRL->GetFilename(MUON) << std::endl;
+			std::cout << "                                     |- Trailing leg: " << fTRL->GetFilename(MUON) << std::endl;
+		}
+		
+		std::cout << "                              + ELEC |- Leading leg : ";
+		if( fFS == SignatureFS::_iFSeee ||
+				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
+		{
+			std::cout << fTRL->GetFilename(ELECTRON) << std::endl;
+			std::cout << "                                     |- Trailing leg: " << fTRL->GetFilename(ELECTRON) << std::endl;
 		}
 	}
 	if( fLeptonSelection->IsInFakeableMode() ) 
@@ -878,6 +923,89 @@ void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw)
 			fHGenEtaLepton[i][cut]->Fill(fGenLepton[i].Eta(), puw);
 		}
 	}
+}
+
+// Trigger weight
+double AnalysisBase::GetTriggerWeight(const std::vector<LeptonRel> * const theLeptons) const
+{
+	// Find out trigger channel and select the relevant leptons (mu or e). 	
+	const int nMuons = SignatureFS::GetNMuons( fFS );
+	const int nElecs = SignatureFS::GetNElecs( fFS );
+	LeptonTypes mainLepton = UNDEFINED;
+	bool ismixedchannel = false;
+	if( nMuons >= 2 )
+	{
+		mainLepton = MUON;
+		if( nMuons < 3 )
+		{
+			ismixedchannel = true;
+		}
+
+	}
+	else if( nElecs >= 2 )
+	{
+		mainLepton = ELECTRON;
+		if( nElecs < 3 )
+		{
+			ismixedchannel = true;
+		}
+	}
+	else
+	{
+		std::cerr << "\033[1;31mAnalysisBase::GetTriggerWeight ERROR:\033[1;m" 
+			<<" Invalid final state '" << fFS << "'. This is an unexpected error"
+			<< " and should be reported as bug. Exiting... " << std::endl;
+		exit(-1);
+	}
+	
+	// pair of leading leg eff: eff,(1-eff)
+	std::vector<std::pair<double,double> > effL;
+	// pair of trailing leg eff: eff,(1-eff)
+	std::vector<std::pair<double,double> > effT;	
+	for(std::vector<LeptonRel>::const_iterator it = theLeptons->begin(); it != theLeptons->end();
+			++it)
+	{
+		const double pt  = it->getP4().Pt();
+		const double eta = it->getP4().Eta();
+		const LeptonTypes ilt = it->leptontype();
+		//If is mixed channel, just take care of the trigger leptons
+		if( ismixedchannel && ilt != mainLepton )
+		{
+			continue;
+		}
+		const double eL = fTRL->GetWeight(ilt,pt,eta);
+		const double eT = fTRT->GetWeight(ilt,pt,eta);
+		effL.push_back(std::pair<double,double>(eL,(1.0-eL)));
+		effT.push_back(std::pair<double,double>(eT,(1.0-eT)));
+	}
+
+	// leading fail term: (1-eL1)(1-eL2)....
+	double lFterm = 1.0;
+	// mixed term: eLi(1-eLj)...
+	double mterm = 0.0;
+	assert( effL.size() == effT.size() && "Bug found! The number of leading and"
+			" trailing efficiencies must be equal" );
+	const unsigned int nleptons = effL.size();  
+	for(unsigned int i = 0; i < nleptons; ++i)
+	{
+		// for the fail leading term
+		lFterm *= effL[i].second;
+		// leading term in the mixed term
+		double auxmterm = effL[i].first;
+		for(unsigned k = 0; k < nleptons; ++k)
+		{
+			if( k == i )
+			{
+				continue;
+			}
+			auxmterm *= effT[k].second;
+		}
+		mterm += auxmterm;
+	}
+
+	const double weight = 1.0-(lFterm+mterm);
+
+	return 1;
 }
 
 // Fake rate estimations

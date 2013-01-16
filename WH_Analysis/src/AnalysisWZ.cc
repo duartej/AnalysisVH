@@ -301,7 +301,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 
 	FillHistoPerCut(WZCuts::_iIsWZ, puw, fsNTau);
 	
-	// HLT: TBD...
+	// HLT
 	//------------------------------------------------------------------
 	if( ! IspassHLT() )
 	{
@@ -476,7 +476,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}*/
 	// DEPRECATED lines above //
 
-	// Including the scale factors if proceed
+	// Including the scale factors and trigger weigths if proceed
 	if( !fIsData )
 	{
 		for(std::vector<LeptonRel>::iterator it = theLeptons->begin(); it != theLeptons->end();
@@ -487,6 +487,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			const LeptonTypes ilt = it->leptontype();
 			puw *= fSF->GetWeight(ilt,pt,eta);
 		}
+		// and the trigger weight
+		puw *= this->GetTriggerWeight(theLeptons);
 	}
 
 	// N-primary vertices

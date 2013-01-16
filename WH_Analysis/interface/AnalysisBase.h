@@ -166,6 +166,9 @@ class AnalysisBase : public CMSAnalysisSelector
 				const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
 
+		//! Method to extract the trigger weight 
+		double GetTriggerWeight(const std::vector<LeptonRel> * const theleptons) const;
+
 		//! Encapsulates the MET object (needed to deal with its systematic)
 		//! If the analysis is being done with the METSYS activated calculates
 		//! the corrected MET and return it, otherwise uses the branch in the Tree
@@ -257,6 +260,11 @@ class AnalysisBase : public CMSAnalysisSelector
 
 		//! Scale factors
 		WManager * fSF;
+
+		//! Trigger efficiencies: leading leg
+		WManager * fTRL;
+		//! Trigger efficiencies: trailing leg
+		WManager * fTRT;
 
 		//! Tree containing the last cut used in a given event
 		TTree * _cuttree;

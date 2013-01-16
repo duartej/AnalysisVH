@@ -264,10 +264,10 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 					finalweight -= prov->GetBinError(globalbin);
 				}
 			}
-			if( _wtype == WManager::FR )
+			/*if( _wtype == WManager::FR )  ---> Comment when full calculation
 			{
 			        finalweight = finalweight/(1.0-finalweight);
-			}
+			}*/
 			const int globalbinOut = prov->FindBin(ptOut,eta);
 			_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
 		}
@@ -319,6 +319,14 @@ const std::string WManager::getstrtype( const unsigned int & wt) const
 	{
 		type = "PR";
 	}
+	else if( wt == WManager::TR_LEADING )
+	{
+		type = "TR_leading";
+	}
+	else if( wt == WManager::TR_TRAILING )
+	{
+		type = "TR_trailing";
+	}
 	else
 	{
 		std::cerr << "\033[1;31mWManager::getstrtype ERROR\033[1;m Type not implemented "
@@ -349,6 +357,14 @@ const char * WManager::GetWTStr(const unsigned int & wt) const
 	else if( wt == WManager::PR )
 	{
 		type = "prompt rate";
+	}
+	else if( wt == WManager::TR_LEADING )
+	{
+		type = "trigger efficiency (leading leg)";
+	}
+	else if( wt == WManager::TR_TRAILING )
+	{
+		type = "trigger efficiency (trailing leg)";
 	}
 	else
 	{
