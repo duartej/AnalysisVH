@@ -328,7 +328,7 @@ do
 				then
 					echo "[sendall INFO] Creating the list of vetoed events..."
 					buildblacklist 176304:495908595,179889:234022820 Data_datanames.dn
-					ALREADYBLACKLIST=true;
+					ALREADYBLACKLIST="true";
 				fi
 			fi
 		else
@@ -341,7 +341,7 @@ do
 			if [ $namejob == "REGULAR" ];
 			then
 				datamanagercreator Fakes -r $runperiod -f $finalstate;
-				if [ ! $ALREADYBLACKLIST -a $($dilepton == "mm" -a $runperiod == "2011") ];
+				if [[ ($ALREADYBLACKLIST != "true" ) && ($dilepton == "mm") && ($runperiod == "2011") ]];
 				then
 					echo "[sendall INFO] Creating the list of vetoed events..."
 					buildblacklist 176304:495908595,179889:234022820 Fakes_datanames.dn
