@@ -846,11 +846,6 @@ bool AnalysisBase::IspassHLT() const
 	}
 
 	bool passtrigger = false;
-	// BUG IN THE LATINO TREE CREATION--- GRIDUI ONLY?? --- Has to be checked
-	//if( fRunPeriod.find("2011") != std::string::npos )
-	//{
-	//       passtrigger = fData->Get<bool>("T_passTriggerDoubleEl");	
-	//}
 	if( fFS == SignatureFS::_iFSmmm || fFS == SignatureFS::_iFSmme )
 	{
 		passtrigger = fData->Get<bool>("T_passTriggerDoubleMu");
@@ -928,6 +923,13 @@ void AnalysisBase::FillGenPlots(const unsigned int & cut, double puw)
 // Trigger weight
 double AnalysisBase::GetTriggerWeight(const std::vector<LeptonRel> * const theLeptons) const
 {
+	// The weight is split in:
+	// * 3mu, 3e channels:
+	//	p(HLT_MuL_MuT) = 1 -[ (1-eL1)(1-eL2)(1-eL3)+eL1(1-eT2)(1-eT3)+
+	//                                    +eL2(1-eT1)(1-eT3)+eL3(1-eT1)(1-eT2)]
+	// * 2mu1e, 2e1mu channels
+	//	p(HLT_MuL_MuT) = 1- [ (1-eL1)(1-eL2)+eL1(1-eT2)+eL2(1-eT1)]
+
 	// Find out trigger channel and select the relevant leptons (mu or e). 	
 	const int nMuons = SignatureFS::GetNMuons( fFS );
 	const int nElecs = SignatureFS::GetNElecs( fFS );
