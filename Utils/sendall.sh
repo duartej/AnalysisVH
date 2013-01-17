@@ -45,7 +45,7 @@ OPTIONS:
          usual jobs, a SYSTEMATICS directory is created on the top directory,
 	 containing a folder for each systematic with the same channel folders
 	 structure as the regular jobs. 
-	 'sysname' should be LEPTONSYS LEPTONSYS FRSYS MSSYS METSYS PUSYS all
+	 'sysname' should be LEPTONSYS FRSYS MSSYS METSYS PUSYS all
 	 all will launch all the known systematics [Default: all]
    [-S]: Flag to restrict the jobs sending only to the systematics ones. 
          This option can be used it '-s' option has been called, and it 
@@ -190,16 +190,16 @@ cd $PWD
 
 signal=$1
 
-echo "[sendall] Info: Creating data files to extract root files"
+echo -e "\e[00;34m[sendall INFO]\e[00;m: Creating data files to extract root files"
 datamanagercreator -r $runperiod -f mmm;
 
 if [ "$1" == "WZ" ]; then
-	echo "[sendall] Info: not needed the WH samples, removing";
+	echo -e "\e[00;34m[sendall INFO]\e[00m: not needed the WH samples, removing";
 	rm -f WHTo*.dn;
 	rm -f wzttH*.dn
 fi
 
-echo "[sendall] Info: Removing WJets because doesn't have impact after 3leptons"
+echo -e "\e[00;34m[sendall INFO]\e[00;m: Removing WJets because doesn't have impact after 3leptons"
 if [ -f WJets_Madgraph_datanames.dn ]; then
 	rm WJets_Madgraph_datanames.dn;
 fi
@@ -214,13 +214,13 @@ if [ "X"$fakeable == "X" ];
 then
 	if [ "X"$fakeasdata == "X" ];
 	then
-		echo "[sendall] Info: not needed the Fakes sample, removing";
+		echo -e "\e[00;34m[sendall INFO]\e[00;m: not needed the Fakes sample, removing";
 		rm Fakes*.dn;
 	fi
 else
 	if [ "X"$fakeasdata == "Xyes" ];
 	then
-		echo "[sendall] Info: not needed the Data, VGamma, WJets_Madgraph, removing"; 
+		echo -e "\e[00;34m[sendall INFO]\e[00;m: not needed the Data, VGamma, WJets_Madgraph, removing"; 
 		rm Data_datanames.dn;
 		for vgamma in $VGamma;
 		do
@@ -228,7 +228,7 @@ else
 		done
 		#rm WW_datanames.dn; --> WW is PPF
 	else
-		echo "[sendall] Info: not needed the Z+Jets, DY, TTbar, WW and single top samples, removing";
+		echo -e "\e[00;34m[sendall INFO]\e[00;m: not needed the Z+Jets, DY, TTbar, WW and single top samples, removing";
 		rm -f Z*_Powheg_datanames.dn;
 		rm -f DY*_Powheg_datanames.dn;
 		rm -f ZJets_Madgraph_datanames.dn;
@@ -309,7 +309,7 @@ do
 	workingfolder=`echo $folderandname|cut -d: -f1`
 	namejob=`echo $folderandname|cut -d: -f2`
 	echo "======================================================================"
-	echo "[sendall INFO] Setting-up and sending jobs for $namejob Analysis"
+	echo -e "\e[00;34m[sendall INFO]\e[00;m: Setting-up and sending jobs for $namejob Analysis"
 	cd $workingfolder;
 	for finalstate in mmm mme eem eee;
 	do 
@@ -326,7 +326,7 @@ do
 				# FIXME Just for the mmm and mme channels
 				if [ $dilepton == "mm" -a $runperiod == "2011" ];
 				then
-					echo "[sendall INFO] Creating the list of vetoed events..."
+					echo -e "\e[00;34m[sendall INFO]\e[00;m Creating the list of vetoed events..."
 					buildblacklist 176304:495908595,179889:234022820 Data_datanames.dn
 					ALREADYBLACKLIST="true";
 				fi
@@ -343,14 +343,14 @@ do
 				datamanagercreator Fakes -r $runperiod -f $finalstate;
 				if [[ ($ALREADYBLACKLIST != "true" ) && ($dilepton == "mm") && ($runperiod == "2011") ]];
 				then
-					echo "[sendall INFO] Creating the list of vetoed events..."
+					echo -e "\e[00;34m[sendall INFO]\e[00;m Creating the list of vetoed events..."
 					buildblacklist 176304:495908595,179889:234022820 Fakes_datanames.dn
 				fi
 			fi
 			fakeoption="-F 3,2"
 		fi
 		#-------------------------------------------------------------
-		echo "[sendall] Sending $finalstate -- Working directory: $i"; 
+		echo -e "\e[00;34m[sendall INFO]\e[00;m: Sending $finalstate -- Working directory: $i"; 
 		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 		# Not neede anymore
 		rm -f blacklist.evt;

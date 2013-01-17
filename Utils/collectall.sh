@@ -41,6 +41,8 @@ while getopts sh o;
 		esac
 	done
 
+shift $((OPTIND-1))
+
 if [ -z $VHSYS ]; then
     echo "ERROR: 'VHSYS' and 'ANALYSISSYS' is not set. You must source the setup.sh script"
     echo "      source /pathwhereisthepackage/setup.sh"
@@ -71,7 +73,7 @@ cd $PWD
 for i in `ls |grep $signal`;
 do 
 	cd $i;
-	echo "$i ====";
+	echo -e "\e[00;34m[collectall INFO]\e[00m: $i channel";
 	for j in `ls|grep cluster_`; 
 	do 
 		sendcluster harvest -w $j;
@@ -80,9 +82,36 @@ do
 done
 
 if [ "X${SYSTEMATICS}" == "X" ]; 
-then;
+then
 	exit 0;
 fi
 
 # Systematic stuff
+SYSFOLDERS=`find . -type d -name *SYS_*`
+if [ ${#SYSFOLDERS} -eq 0 ];
+then
+	echo "ERROR: There is no SYSTEMATICS folder in the current working directory."
+	echo "       Activate the '-s' option only on the top of a folder containing "
+	echo "       a 'SYSTEMATICS' folder"
+	exit -1;
+fi
+
+echo -e "\e[00a;34m[collectall INFO]\e[00m: collecting SYSTEMATICS ..."
+for sysfolder in $SYSFOLDERS;
+do
+	for i in `ls $sysfolder|grep $signal`;
+	do
+		echo -e "--+ \e[01;34m[collectall INFO]\e[00;m: $i channel"
+		for j in `ls $sysfolder/$i/|grep cluster_`;
+		do 
+			sendcluster harvest -w $sysfolder/$i/$j ;
+		done
+	done
+done
+
+# And extract all info and stores
+collectsys $SYSFOLDERS
+
+
+
 
