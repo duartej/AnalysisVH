@@ -38,7 +38,7 @@ def adduperrors(xserror,xs):
 	
 	return xsabserror
 
-def xscalc(path,zoutrange,format,mcprod):
+def xscalc(path,zoutrange,format,mcprod,lumi):
 	"""
 	"""
 	from functionspool_mod import getxserrorsrel
@@ -50,8 +50,8 @@ def xscalc(path,zoutrange,format,mcprod):
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
 		raise RuntimeError(message)
 	
-	xsWZ,xsWZrelerrors = getxserrorsrel(path,xstype="inclusive",mcprod=mcprod)
-	xs,xsrelerrors = getxserrorsrel(path,xstype="exclusive",mcprod=mcprod)
+	xsWZ,xsWZrelerrors = getxserrorsrel(path,xstype="inclusive",mcprod=mcprod,lumi=lumi)
+	xs,xsrelerrors = getxserrorsrel(path,xstype="exclusive",mcprod=mcprod,lumi=lumi)
 	# -- 
 	hasprint=True
 	if not format:
@@ -122,6 +122,9 @@ if __name__ == '__main__':
 	parser.add_option( '-m', '--mcprod', action='store', type='string', dest='mcprod',\
 			help="The MC production to be used as signal. This affects the number of"\
 			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
+	parser.add_option( '-l', '--lumi', action='store', type='string', dest='lumi',\
+			help="Luminosity to be used. Per defaults it is used '4922.0' if -m Fall11"\
+			" and '12103.3' if -m Summer12")
 	parser.add_option( '-f', '--format', action='store', type='string', dest='format',\
 			help="Output format, it could be 'tex' or 'html'. Per default: 'tex'")
 
@@ -132,5 +135,21 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	print "\033[34mxscalc INFO\033[m Evaluating the cross-section at '%s'" % opt.workingpath
-	print "\033[34mxscalc INFO\033[m MCProduction to be used: %s'" % opt.mcprod
-	xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod)
+	print "\033[34mxscalc INFO\033[m MCProduction to be used: '%s'" % opt.mcprod
+	if not opt.lumi:
+		if opt.mcprod == "Fall11":
+			opt.lumi = "4922.0"
+		elif opt.mcprod == "Summer12":
+			opt.lumi = "12103.3"
+		else:
+			message = "\033[31;1mxscalc ERROR\033[m MC production not supported."\
+					" Valid values are 'Fall11' 'Summer12'" % opt.format
+			raise RuntimeError(message)
+	print "\033[34mxscalc INFO\033[m Luminosity to be used: %s" % opt.lumi
+	try:
+		lumi = float(opt.lumi)
+	except ValueError:
+		message = "\033[31;1mxscalc ERROR\033[m Option '-l' only accepts numbers!" % opt.format
+		raise RuntimeError(message)
+
+	xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod,lumi)
