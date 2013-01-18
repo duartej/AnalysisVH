@@ -76,7 +76,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_metmuonpt(METMUONPTSYS),
 	_metelecpt(METELECPTSYS),
 	_metjetspt(METJETSPTSYS),
-	_pusys(0),
+	_pusys(1.0),
 	fWasStored(false)
 {
 	// FIXME: Check that the data is attached to the selector manager
@@ -240,7 +240,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	{
 		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] );
 		fFOZJetsRegion = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], true );
-		fPO = new WManager( WManager::PR, fRunPeriod, muonid ); // --> XXX: Not needed if use approx. method
+		fPO = new WManager( WManager::PR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] ); 
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it
