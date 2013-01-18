@@ -137,7 +137,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		{
 			LEPTONSYS=10,       // Scale factors related systematics
 			FRSYS,		    // Fake rates+-1sigma variation of its value
-			MSSYS,		    // Momentum/Energy scale systematic
+			MMSSYS,		    // Muon Momentum scale systematic
+			EESSYS,             // Electron Energy scale systematic
 			METSYS,		    // MET scale and resolution systematic
 			PUSYS		    // Pile up variation systematic
 		};

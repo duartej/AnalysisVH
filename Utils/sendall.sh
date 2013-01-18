@@ -45,7 +45,7 @@ OPTIONS:
          usual jobs, a SYSTEMATICS directory is created on the top directory,
 	 containing a folder for each systematic with the same channel folders
 	 structure as the regular jobs. 
-	 'sysname' should be LEPTONSYS FRSYS MSSYS METSYS PUSYS all
+	 'sysname' should be LEPTONSYS FRSYS MMSSYS EESSYS METSYS PUSYS all
 	 all will launch all the known systematics [Default: all]
    [-S]: Flag to restrict the jobs sending only to the systematics ones. 
          This option can be used it '-s' option has been called, and it 
@@ -257,13 +257,14 @@ then
 	# =========== Datasamples needed for the systematics
 	LEPTONSYS=$MCSAMPLES
 	FRSYS="Fakes_datanames.dn"
-	MSSYS=$MCSAMPLES
+	MMSSYS=$MCSAMPLES
+	EESSYS=$MCSAMPLES
 	METSYS=$MCSAMPLES" "$DATASAMPLES
 	PUSYS=$MCSAMPLES
 
 	if [ "X"$SYSTEMATICS == "Xall" ] ;
 	then
-		SYSLIST="LEPTONSYS FRSYS MSSYS METSYS PUSYS"
+		SYSLIST="LEPTONSYS FRSYS MMSSYS EESSYS METSYS PUSYS"
 	else
 		SYSLIST=$SYSTEMATICS
 	fi

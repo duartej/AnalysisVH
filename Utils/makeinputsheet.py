@@ -78,7 +78,8 @@ DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
 		'Other parameters': { 'Systematic' : "Activate the systematic calculation for\n"\
 					"                LEPTONSYS: sys. related with efficiencies\n"\
 					"                FRSYS: sys. related with errors in FR matrices determination\n"\
-					"                MSSYS: sys. related with momentum/energy scale\n"\
+					"                MMSSYS: sys. related with muon momentum scale\n"\
+					"                EESSYS: sys. related with electron energy scale\n"\
 					"                METSYS: sys. related with energy scale and resolution for MET\n"\
 					"                PUSYS: sys. related with the Pile up reweighting",
 				}
@@ -362,7 +363,7 @@ if __name__ == '__main__':
 			help="Introduce the systematic to be evaluated and splitted by"\
 					" a colon, the variation UP or DOWN. Known and"\
 					"valid systematic names are: 'LEPTONSYS', 'FRSYS'"\
-					" 'MSSYS','METSYS' and 'PUSYS'. See 'makeinputsheet -d"\
+					" 'MMSSYS', 'EESSYS', 'METSYS' and 'PUSYS'. See 'makeinputsheet -d"\
 					" other' for detailed info about them")
 	parser.add_option( '-f', '--forcevalues', action='store', dest='forcelist',\
 			metavar="cfgname:valueElectron@valueMuon,...",
@@ -425,7 +426,7 @@ if __name__ == '__main__':
 		except ValueError:
 			raise RuntimeError("\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
 					" for '--sys' option. Format is SYS:VAL, where VAL must be UP or DOWN")
-		validsys = [ 'LEPTONSYS', 'FRSYS', 'MSSYS', 'METSYS', 'PUSYS' ]
+		validsys = [ 'LEPTONSYS', 'FRSYS', 'MMSSYS', 'EESSYS', 'METSYS', 'PUSYS' ]
 		if not sys in validsys:
 			message = "\033[1;31mmakeinputsheet ERROR\033[1;m: Not valid argument"+\
 					" for '--sys' option. Valid systematics are:"

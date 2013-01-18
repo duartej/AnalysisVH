@@ -123,7 +123,7 @@ if __name__ == '__main__':
 			help="The MC production to be used as signal. This affects the number of"\
 			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
 	parser.add_option( '-l', '--lumi', action='store', type='string', dest='lumi',\
-			help="Luminosity to be used. Per defaults it is used '4922.0' if -m Fall11"\
+			help="Luminosity to be used [in pb-1]. Per defaults it is used '4922.0' if -m Fall11"\
 			" and '12103.3' if -m Summer12")
 	parser.add_option( '-f', '--format', action='store', type='string', dest='format',\
 			help="Output format, it could be 'tex' or 'html'. Per default: 'tex'")

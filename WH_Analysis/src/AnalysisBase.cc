@@ -151,8 +151,10 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	systypemode[AnalysisBase::LEPTONSYS] = 0;
 	// Systematic related with the fake rate matrices errors, using fr+-sigma
 	systypemode[AnalysisBase::FRSYS] = 0;
-	// Systematic related with the momentum/energy scale for muons/electrons
-	systypemode[AnalysisBase::MSSYS] = 0;
+	// Systematic related with the muon momentum scale 
+	systypemode[AnalysisBase::MMSSYS] = 0;
+	// Systematic related with the electron energy scale
+	systypemode[AnalysisBase::EESSYS] = 0;
 	// Systematic related with the energy scale and resolution for MET
 	systypemode[AnalysisBase::METSYS] = 0;
 	// Systematic related with the Pile up estimation
@@ -181,9 +183,13 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		{
 			_typesys = AnalysisBase::FRSYS;
 		}
-		else if( _namesys == "MSSYS" )
+		else if( _namesys == "MMSSYS" )
 		{
-			_typesys = AnalysisBase::MSSYS;
+			_typesys = AnalysisBase::MMSSYS;
+		}
+		else if( _namesys == "EESSYS" )
+		{
+			_typesys = AnalysisBase::EESSYS;
 		}
 		else if( _namesys == "METSYS" )
 		{
@@ -197,7 +203,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		{
 			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
 				<< " from InputParameters with wrong systematic type: '" << systr << "' "
-				<< " Valid arguments are 'LEPTONSYS' 'FRSYS' MSSYS' 'METSYS' 'PUSYS'"
+				<< " Valid arguments are 'LEPTONSYS' 'FRSYS' MMSSYS' 'EESSYS' 'METSYS' 'PUSYS'"
 				<< std::endl;
 			exit(-1);
 		}
@@ -457,11 +463,21 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 	if( variation == "UP" )
 	{
 		_modesys = WManager::UP;
-		if( _typesys == AnalysisBase::MSSYS )
+		if( _typesys == AnalysisBase::EESSYS )
 		{
-			_mptsys = (1.0+_mptsys);
+			// Muons do not affect by Electron Energy scale
+			_mptsys = 1.0;
 			_eptbarrelsys = (1.0+_eptbarrelsys);
 			_epteesys = (1.0+_epteesys);
+			// And activate the scales
+			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
+		}
+		else if( _typesys == AnalysisBase::MMSSYS )
+		{
+			_mptsys = (1.0+_mptsys);
+			// Electrons do not affect by Muon Momentum scale
+			_eptbarrelsys = 1.0;
+			_epteesys = 1.0;
 			// And activate the scales
 			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
 		}
@@ -480,11 +496,21 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 	else if( variation == "DOWN" )
 	{
 		_modesys = WManager::DOWN;
-		if( _typesys == AnalysisBase::MSSYS )
+		if( _typesys == AnalysisBase::EESSYS )
 		{
-			_mptsys = (1.0-_mptsys);
+			// Muons do not affect by Electron Energy scale
+			_mptsys = 1.0;
 			_eptbarrelsys = (1.0-_eptbarrelsys);
 			_epteesys = (1.0-_epteesys);
+			// And activate the scales
+			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
+		}
+		if( _typesys == AnalysisBase::MMSSYS )
+		{
+			_mptsys = (1.0-_mptsys);
+			// Electrons do not affect by Muon Momentum scale
+			_eptbarrelsys = 1.0;
+			_epteesys = 1.0;
 			// And activate the scales
 			fLeptonSelection->SetPtSystematicFactor(_mptsys,_eptbarrelsys,_epteesys);
 		}
