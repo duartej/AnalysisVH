@@ -453,7 +453,8 @@ class clustermanager(object):
 		d = shelve.open(".storedmanager")
 		if not d.has_key("storedmanager"):
 			# Check if already is done the file
-			if len(glob.glob("*.tar.gz")) != 0:
+			if len(glob.glob("*.tar.gz")) != 0 \
+					or len(glob.glob("WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt")) != 0:
 				message = "clustermanager.retrive: The job is already DONE!"
 			else:
 				message = "\nclustermanager.retrieve: ERROR Not found the" \
