@@ -251,11 +251,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	unsigned int fsNTau = SignatureFS::_iFSunknown;
 	if(fIsSignal)
 	{
-		// Accepting only generated events Z_{ll} inside the Z-range
-		if( ! isSignalMCInsideZmassRange(71.0,111.0) )
-		{
-			return std::pair<unsigned int,float>(WZCuts::_iIsWZ,puw);
-		}
+		// Accepting only generated events Z_{ll} inside the Z-range-- > BUG!!!
+		// The data is not cuted in there, so we don't have to cut in MC either!!
+		//if( ! isSignalMCInsideZmassRange(71.0,111.0) )
+		//{
+		//	return std::pair<unsigned int,float>(WZCuts::_iIsWZ,puw);
+		//}
 
 		fsNTau = setSignalMCInfo(puw);
 	}
