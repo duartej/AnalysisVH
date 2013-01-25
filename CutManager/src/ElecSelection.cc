@@ -152,7 +152,6 @@ void ElecSelection::LockCuts(const std::map<LeptonTypes,InputParameters*> & ipma
 	}
 	//   - Z mass window
 	double deltazmass=0;
-	double kZMass = 0;
 	ip->TheNamedDouble("DeltaZMass", deltazmass);
 	this->SetCut("MaxZMass",kZMass+deltazmass);
 	this->SetCut("MinZMass",kZMass-deltazmass);
@@ -383,7 +382,7 @@ bool ElecSelection::IsPass(const std::string & codename, const std::vector<doubl
 			exit(-1);
 		}
 
-		ispass = (! this->IsInsideZWindow((*varAux)[0]));
+		ispass = this->IsInsideZWindow((*varAux)[0]);
 	}
 	else if( codename == "MinMET" )
 	{

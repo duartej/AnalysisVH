@@ -174,7 +174,7 @@ bool LeptonMixingSelection::IsPass(const std::string & codename, const std::vect
 			exit(-1);
 		}
 		// Not depend of the lepton, using whatever you want
-		ispass = (! this->fMuonSelection->IsInsideZWindow((*varAux)[0]));
+		ispass = this->fMuonSelection->IsInsideZWindow((*varAux)[0]);
 	}
 	else if( codename == "MinMET" )
 	{
