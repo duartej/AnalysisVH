@@ -651,10 +651,15 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		const LeptonRel & lep1 = it->first;
 		const LeptonRel & lep2 = it->second;
 		const double invMass= (lep1.getP4()+lep2.getP4()).M();
-		if( invMass > 111.0 || invMass < 71.0 )
+		std::vector<double> * auxV = new std::vector<double>;
+		auxV->push_back(invMass);
+		//if( invMass > 111.0 || invMass < 71.0 )
+		if( ! fLeptonSelection->IsPass("ZMassWindow",auxV) )
 		{
+			delete auxV;
 			continue;
 		}
+		delete auxV;
 		const double deltaZMass = fabs(kZMass-invMass);
 		candidatesZMass[deltaZMass] = std::pair<LeptonRel,LeptonRel>(lep1,lep2);
 	}
