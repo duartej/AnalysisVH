@@ -475,8 +475,21 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 	}
 
 	//Variables:
-	const double pt       = _data->Get<float>(ptelec.c_str(),index);
+	double pt       = _data->Get<float>(ptelec.c_str(),index);
 	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+	
+	// systematics
+	if( this->_modifypt )
+	{
+		if( absSCeta < 1.479 )
+		{
+			pt = pt*this->_sebr;
+		}
+		else
+		{
+			pt = pt*this->_see;
+		}
+	}
 	
 	const char * mvanamestr = "T_Elec_BDT";
 	double regionloweta = 1.0;

@@ -179,6 +179,7 @@ unsigned int CutManager::GetNBasicLeptons()
 			{
 				case(MUON):
 					f = this->_smu;
+					it->setP(f*(it->getP4().P()));
 					break;
 				case(ELECTRON):
 					if( fabs(it->getP4().Eta()) < 1.479 )
@@ -189,13 +190,13 @@ unsigned int CutManager::GetNBasicLeptons()
 					{
 						f = this->_see;
 					}
+					it->setE(f*(it->getP4()).E());
 					break;
 				default:
 					std::cerr << "\033[1;31mCutManager::GetNBasicLeptons ERROR\033[1;m" 
 						<< "The leptontype is not known! Exiting..." << std::endl;
 					exit(-1);
 			}
-			it->setPt(f*(it->getP4().Pt()));
 		}
 	}
 

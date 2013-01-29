@@ -91,6 +91,24 @@ void LeptonRel::setPt(const double & pt)
 	}
 }
 
+void LeptonRel::setP(const double & pnew)
+{
+	if( _p4 != 0 )
+	{
+		// Extract old p to get the factor to be multiply
+		const double pold = _p4->P();
+		const double factor = pnew/pold;
+		_p4->SetPxPyPzE(factor*_p4->Px(),factor*_p4->Py(),factor*_p4->Pz(),_p4->E());
+	}
+}
+
+void LeptonRel::setE(const double & e)
+{
+	if( _p4 != 0 )
+	{
+		_p4->SetPtEtaPhiE(_p4->Pt(),_p4->Eta(),_p4->Phi(),e);
+	}
+}
 void LeptonRel::setP4(const TLorentzVector & p4)
 {
 	if( this->_p4 != 0 )
