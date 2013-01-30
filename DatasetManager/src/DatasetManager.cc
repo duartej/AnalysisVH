@@ -614,6 +614,8 @@ TString DatasetManager::GuessLocalBasePath() {
       return TString("/gpfs/csic_projects/tier3data");
     else if (host.Contains("wn")) // including workernodes
       return TString("/gpfs/csic_projects/tier3data");
+    else if (host.Contains("astro")) // including astro workernodes
+      return TString("/gpfs/csic_projects/tier3data");
     else if (host.Contains("cern.ch"))
       return TString("/pool/data1/MiniTrees/");
     else {
