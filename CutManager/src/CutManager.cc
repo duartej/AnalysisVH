@@ -190,7 +190,8 @@ unsigned int CutManager::GetNBasicLeptons()
 					{
 						f = this->_see;
 					}
-					it->setE(f*(it->getP4()).E());
+					//it->setE(f*(it->getP4()).E());
+					it->setEoverP(f);
 					break;
 				default:
 					std::cerr << "\033[1;31mCutManager::GetNBasicLeptons ERROR\033[1;m" 

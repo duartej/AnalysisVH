@@ -109,6 +109,17 @@ void LeptonRel::setE(const double & e)
 		_p4->SetPtEtaPhiE(_p4->Pt(),_p4->Eta(),_p4->Phi(),e);
 	}
 }
+
+void LeptonRel::setEoverP(const double & f)
+{
+	if( _p4 != 0 )
+	{
+		const double ftoP = 1./sqrt(f);
+		const double ftoE = sqrt(f);
+		_p4->SetPxPyPzE(ftoP*_p4->Px(),ftoP*_p4->Py(),ftoP*_p4->Pz(),ftoE*_p4->E());
+	}
+}
+
 void LeptonRel::setP4(const TLorentzVector & p4)
 {
 	if( this->_p4 != 0 )

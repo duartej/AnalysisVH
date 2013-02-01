@@ -58,6 +58,7 @@ class LeptonRel
 		void setPt(const double & pt);
 		void setP(const double & p);
 		void setE(const double & e);
+		void setEoverP(const double & factor);
 
 	private:
 		// Data members
