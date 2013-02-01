@@ -703,7 +703,9 @@ void AnalysisBase::InitialiseParameters()
 	}
 	else if( fRunPeriod == "2011" )
 	{
-		MCdist = Fall11True;
+		//MCdist = Fall11True; 
+		// Switch to this one, after some checks seems to match better
+		MCdist = Fall11;
 	}
 	else if( fRunPeriod == "2012A" || fRunPeriod == "2012B" || fRunPeriod == "2012" )
 	{
