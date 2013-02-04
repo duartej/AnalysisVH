@@ -383,6 +383,12 @@ class clustermanager(object):
 			#	self.taskstatus["Done"].append(taskid)
 			#	return self.outputfiles[taskid]
 			else:
+				if self.hostname.find("ifca") and status == "Eqw":
+					command = [ 'qmod','-cj',self.jobsid+"."+str(task) ]
+					p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+					print "\033[1;33mclustermanager.checkjob\033[1;m: Re-submitting "\
+							" task job in error status: %s.%i" % (self.jobsid,task)
+					#self.qstatoutput = p
 				self.taskstatus["Undefined"].append(task)
 
 	def submit(self):
