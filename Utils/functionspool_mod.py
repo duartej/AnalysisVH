@@ -16,6 +16,7 @@
    + getxserrorsrel
    + getrounded
    + psitest
+   + getsamplenames
 """
 
 
@@ -88,6 +89,16 @@ class br(object):
 # An instance of this class: this has to be call, not the class
 BR = br()
 
+# Global names for systematics: 
+SYSNAMES = { 'EES' : "Electron Energy Scale"  }
+
+# Equivalences of cuts and histograms: WARNING, just for the WZ analysis
+HISTOGRAMBYCUT = { 'AllEvents':'fHProcess', 'IsWH':None , 'HLT':None , 'Has2Leptons': 'fHNSelectedLeptons',\
+		'Has2PVLeptons': 'fHNSelectedPVLeptons' , 'Has2IsoLeptons': 'fHNSelectedIsoleptons', \
+		'Has2IsoGoodLeptons':'fHNSelectedIsoGoodLeptons', \
+		'Exactly3Leptons': 'fHNPrimaryVerticesAfter3Leptons', 'OppositeCharge': None, \
+		'HasZCandidate': 'fHZInvMassAfterZCand' , 'HasZOverlapping': None, \
+		'HasWCandidate': 'fHZInvMassAfterWCand', 'MET': 'fHMET' }
 
 class processedsample(object):
 	"""
@@ -168,6 +179,9 @@ class processedsample(object):
 		import os
 
 		f = ROOT.TFile(self.filename)
+		self.xs = None
+		self.Nsample = None
+		self.Nskim = None
 		# Including the luminosity, efficiency weights,,...
 		if "Data.root" in self.filename \
 				or "Fakes.root" in self.filename \
@@ -182,9 +196,12 @@ class processedsample(object):
 			xs = array('d',[0.0])
 			luminosity = array('d',[0.0])
 			neventsample = array('i',[0])
+			self.Nsample = neventsample[0]
 			neventsskim  = array('i',[0])
+			self.Nskim = neventsskim[0]
 			ip = f.Get("Set Of Parameters")
 			ip.TheNamedDouble("CrossSection",xs)
+			self.xs = xs[0]
 			ip.TheNamedInt("NEventsSample",neventsample)
 			ip.TheNamedInt("NEventsTotal",neventsskim)
 			ip.TheNamedDouble("Luminosity",luminosity)
@@ -200,6 +217,13 @@ class processedsample(object):
 			self.luminosity = luminosity[0]
 		except NameError:
 			self.luminosity = None
+
+		# List of available histograms (not generation)
+		self.histogramnames = []
+		for k in f.GetListOfKeys():
+			if k.GetClassName().find("TH1") != -1 and \
+					k.GetName().find("Gen") == -1:
+				self.histogramnames.append(k.GetName())
 		
 		h = f.Get("fHEventsPerCut")
 		self.cutordered = []
@@ -335,11 +359,12 @@ class processedsample(object):
 
 		return result
 
-	def getvalue(self,cutname):
-		""".. method:: getvalue(cutname) -> (val,err)
+	def getvalue(self,cutname=None):
+		""".. method:: getvalue(cutname=None) -> (val,err)
 
 		Returns the yield and its error for a given cut, normalized
-		at the luminosity obtained in the file
+		at the luminosity obtained in the file.
+		If there is no argument, the last cut is choosen
 
 		:param cutname: the name of the cut where to extract the yield
 		:type cutname: str
@@ -347,6 +372,8 @@ class processedsample(object):
 		:return: the yield and its error at the cutname level (normalized to lumi)
 		:rtype: tuple of floats
 		"""
+		if cutname == None:
+			cutname = self.getcutlist()[-1]
 		try:
 			return self.rowvaldict[cutname]
 		except KeyError:
@@ -368,8 +395,45 @@ class processedsample(object):
 		try:
 			return tuple(map(lambda x: x/self.weight,self.rowvaldict[cutname]))
 		except KeyError:
-			raise RuntimeError,"column.getrealvalue:: the cut '"+cutname+"' is not "+\
-					"defined"
+			raise RuntimeError("column.getrealvalue:: the cut '"+cutname+"' is not "+\
+					"defined")
+	def getrawvalue(self,cutname = None):
+		""".. method:: getrawvalue([cutname]) -> (val,err)
+
+		Returns the yield and its error for cut cutname without weights, normalization,
+		etc... Note that if it is not introduced a cutname it takes the last cut
+
+		:param cutname: the name of the cut where to extract the yield
+		:type cutname: str
+
+		:return: the yield and its error at last cut
+		:rtype: tuple(float,float)
+		"""
+		from math import sqrt 
+
+		if cutname == None:
+			cutname = self.getcutlist()[-1]
+
+		# Find the equivalent histogram to that cut
+		try:
+			h = HISTOGRAMBYCUT[cutname]
+		except KeyError:
+			message = "\033[1;31mprocessedsample.getrawvalue ERROR\033[1;m The cut"\
+					" '%s' is not implemented. Note that this"\
+					" function can only be called in the WZ analysis" % cutname
+			raise RuntimeError(message)
+
+		if h == None:
+			message = "\033[1;31mprocessedsample.getrawvalue ERROR\033[1;m The cut"\
+					" '%s' is not implemented as histogram. Note that there"\
+					" some cuts with no histogram equivalence" % cutname
+			raise RuntimeError(message)
+
+		histo = self.gethistogram(h)
+
+		return histo.GetEntries(),sqrt(histo.GetEntries())
+	 	
+
 	
 	def getsysrelative(self,cutname):
 		""".. method:: getsysrelative(cutname) -> sys
@@ -492,7 +556,45 @@ def gettablecontent(workingpath,channel,signal="WZ"):
 	return lines
 
 
-def extractyields(asciirawtable,titlerow):
+def extractyields(fileroot,**keywords):
+	""".. function:: extractyields( filenameroot[s] ) -> (value,error)
+	Given a file name of a root, or a list of root, files, the function
+	returns the yield (normalized to a luminosity calculated in the root
+	files or introduced by the user--TO BE IMPLEMENTED YET--FIXME)
+	If the argument is a list, it will be returned the sum of all the 
+	root file names in the list
+	"""
+	from math import sqrt
+	# List of backgrounds to be added as one
+	validkeywords = [ "lumi" ]
+	for key,value in keywords.iteritems():
+		if not key in keywords.keys():
+			message  = "\033[1;31mextractyields ERROR\033 Incorrect call of 'extractyields' function"
+			message += " class. Valid keywords are: "+str(validkeywords)
+			raise RuntimeError(message)
+	
+	filelist = []
+	if type(fileroot) != list:
+		filelist.append(fileroot)
+	elif type(fileroot) == list:
+		for i in fileroot:
+			filelist.append(i)
+	else:
+		message  = "\033[1;31mextractyields ERROR\033 Not valid argument type for '%s'"
+		message += " argument. It must be a list of string or a string denoting the"
+		message += " root file path"
+		raise RuntimeError(message)
+	psum = [ processedsample(i) for i in filelist ]
+	sumofsamples = psum[0]
+	for i in xrange(1,len(filelist)):
+		sumofsamples += psum[i]
+		
+	return sumofsamples.getvalue()
+
+
+
+
+def extractyieldsfromtable(asciirawtable,titlerow):
 	""".. function:: extractyields(asciirawtable,titlerow) --> (n,nerrorstat)
 	
 	From a the lines of the table in .tex format (the reduced one of the standard output), 
@@ -518,40 +620,35 @@ def extractyields(asciirawtable,titlerow):
 
 
 def getpassevts(rootfile,cutlevel=-1,**keywords):
-	""".. function:: getpassevts(rootfile[,cutlevel,histoname=histoname]) --> (evts,err)
+	""".. function:: getpassevts(rootfile[,cutlevel,real=bool,raw=bool]) --> (evts,err)
 	
-	Given a cutlevel and the rootfile (or alternatively the name of an histogram),
-	extract the number of passed events at that cut level using the histogram passed.
-
-	Note that the histogram 'fHEventsPerCut' could be used to extract the
-	number of events at each cut stage, and this is done using the equivalence bin-cutlevel
-	you can found at the 'CutLevel' class. This is the behaviour described by above.
-	There is allowed another behaviour: it is possible to extract from the histogram 'histoname'
-	the content of the bin 'cutlevel' but is the user job to discern what is the meaning
-	of the output.	
+	Given a cutlevel and the rootfile extract the number of passed events at that cut level.
 
 	:param rootfile: the name of the root file where to extract the histogram
 	:type rootfile: str
-	:param cutlevel: the number of bin where to extract the info. The convention 
+	:param cutlevel: the number of bin where to extract the info or the name of the cut.
 	                 -1 is equivalent to use the last bin [default: -1]
-	:type cutlevel: int
-	:param real: return the value without being weighted by luminosisty or cross-section
-	:param histoname: bool
+	:type cutlevel: int or str
+	:param real: return the value without being weighted by luminosisty neither cross-section
+	:param raw:  return the value without weights
 
 	:return: the content of the bin cutlevel and its error
 	:rtype: (float,float)
 	"""
 	import ROOT
 	
-	validkeywords = ["real"]
+	validkeywords = ["real","raw"]
 	israwevents = False
+	isrealevents = False
 	for key,value in keywords.iteritems():
 		if key not in validkeywords:
 			message="\033[31;1mgetpassevts ERROR\033[m Calling function with a non "\
 					" valid parameter argument '%s'" % key
 			raise RuntimeError(message)
-		if key == "real":
+		if key == "raw":
 			israwevents = value
+		if key == "real":
+			isrealevents = value
 			
 	s = processedsample(rootfile)
 	try:
@@ -568,6 +665,8 @@ def getpassevts(rootfile,cutlevel=-1,**keywords):
 	# return raw events or not
 	callfunct = "s.getvalue(cut)"
 	if israwevents:
+		callfunct = "s.getrawvalue(cut)"
+	elif isrealevents:
 		callfunct = "s.getrealvalue(cut)"
 	
 	return eval(callfunct)
@@ -597,12 +696,14 @@ def getxserrorsrel(workingpath,**keywords):
 	         errors with respect to the cross-section
 	:rtype: dict(dict(str:(float,float)))
 	"""
-	from systematics_mod import SYSZZ,SYSWZ,DDMMC,STAT
+	#from systematics_mod import SYSZZ,SYSWZ,DDMMC,STAT
 	import os
 	from math import sqrt
+	import sys
+	import glob
 
 	# ===== Get some inputs OR/AND Defaults  ==================
-	validkeywords = [ "channels", "signal", "lumi", "allzrange", "xstype", "mcprod" ]
+	validkeywords = [ "channels", "signal", "lumi", "allzrange", "xstype", "mcprod", "sysinfolder" ]
 	
 	channellist = [ "eee", "eem", "mme", "mmm" ] 
 	signal="WZ"
@@ -610,6 +711,8 @@ def getxserrorsrel(workingpath,**keywords):
 	allzrange = False 
 	xstype = "exclusive"
 	mcprod = "Fall11" 
+	sysinfolder = True # describes if the utility resumesys was used and therefore creates the
+	                   # systematics_mod in the analysis folder
 	for key,value in keywords.iteritems():
 		if not key in validkeywords:
 			message = "\033[33;1mgetxserrosrel ERROR\033[m Not valid keyword argument '%s' " % key
@@ -626,6 +729,20 @@ def getxserrorsrel(workingpath,**keywords):
 			xstype = value
 		elif key == "mcprod":
 			mcprod = value
+		elif key == "sysinfolder":
+			sysinfolder = value
+	# if the resumesys was create, use this module XXX: TO BE DEPRECATE, KEEP IT FOR COMPATIBILITY
+	if sysinfolder:
+		sys.path.insert(0,workingpath)
+	# And do the import (remove the pyc to use the last version)
+	if os.path.isfile("systematics_mod.pyc"):
+		os.remove("systematics_mod.pyc")
+	from systematics_mod import SYSZZ,SYSWZ,DDMMC,STAT
+	try:
+		from systematics_mod import SYSFakes
+	except: 
+		pass
+
 	# =========================================================
 	# Note that the sys is going to absorb the WZ, ZZ and Fakes,
 	# so there will be the union of systematics of each 
@@ -634,8 +751,10 @@ def getxserrorsrel(workingpath,**keywords):
 	xsmeasure = {}
 	for sysname in  list(set(SYSZZ.keys()+SYSWZ.keys())):
 		xserrors[sysname] = {}
-	# plus the fake rate
+	# plus the fake rate (old description)
 	xserrors["DDMMC"] = {}
+	# plus systematic derived from FR and PR
+	xserrors["Fakes"] = {}
 	# plus the STATISTICs error. IMPORTANT: distinguish between "Stats" and "STATS",
 	# the "Stats" is a systematic affecting the efficiency due to the WZ, and STATS 
 	# is refering to the usual STATistics
@@ -686,34 +805,54 @@ def getxserrorsrel(workingpath,**keywords):
 		# is because we want to evaluate this number to extract eff)
 		Npass,Nerr = getpassevts(signalroot,real=True)
 
+		# Get all the files needed
+		availableclusterdir = glob.glob(os.path.join(workingpath,pathchannel+'/cluster_*'))
+		samplerootdir = {}
+		for i in availableclusterdir:
+			s = i.split("cluster_")[-1]
+			p = os.path.join(i,"Results/"+s+".root")
+			samplerootdir[s] = p
+
 		# ================= 1. Extract yields
-		pathchannel = signal+channel
 		# -- get the table built by the printtable script
-		asciirawtable = gettablecontent(os.path.join(workingpath,pathchannel),channel)
+		#asciirawtable = gettablecontent(os.path.join(workingpath,pathchannel),channel)
 		# -- Signal:
-		try:
-			Nsig,Nsigerr = extractyields(asciirawtable,"Data-Total Bkg.")
-		except RuntimeError:
-			# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
-			Nsig,Nsigerr = extractyields(asciirawtable,"Data-TotBkg")
-			#Nsig,Nsigerr = extractyields(asciirawtable,"Nobs-Nbkg")
+		# ----- Get data and all the others backgrounds
+		dataroot = samplerootdir["Data"]
+		bkgroots = map(lambda (x,y): y,filter(lambda (x,y): x != "Data" and x != "WZTo3LNu",\
+				samplerootdir.iteritems()))
+		# ----- And extract the values
+		Ndata,Ndataerr = extractyields(dataroot)
+		Ntotbkg, Ntotbkgerr = extractyields(bkgroots)
+		Nsig = Ndata-Ntotbkg
+		Nsigerr = sqrt(Ndataerr**2.0+Ntotbkgerr**2.0)
+#		Nsig,Nsigerr = extractyields(dataroot,addfilelist=bkgroots)
+		#try:
+		#	Nsig,Nsigerr = extractyields(asciirawtable,"Data-Total Bkg.")
+		#except RuntimeError:
+		#	# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
+		#	Nsig,Nsigerr = extractyields(asciirawtable,"Data-TotBkg")
+		#	#Nsig,Nsigerr = extractyields(asciirawtable,"Nobs-Nbkg")
 		# updating the stat part
 		STAT[channel] = Nsigerr/Nsig
 		# -- ZZ: 
-		Nzz,Nzzerr = extractyields(asciirawtable,"ZZ")
+		#Nzz,Nzzerr = extractyields(asciirawtable,"ZZ")
+		Nzz,Nzzerr = extractyields(samplerootdir["ZZ"])
 		# updating the stat part 
 		SYSZZ["Stat"][channel] = Nzzerr/Nzz
 		# -- Fakes:
-		try:
-			Nf,Nferr = extractyields(asciirawtable,"Data-driven")
-		except RuntimeError:
-			# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
-			Nf,Nferr = extractyields(asciirawtable,"Fakes")
+		Nf,Nferr = extractyields(samplerootdir["Fakes"])
+		#try:
+		#	Nf,Nferr = extractyields(asciirawtable,"Data-driven")
+		#except RuntimeError:
+		#	# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
+		#	Nf,Nferr = extractyields(asciirawtable,"Fakes")
 		# -- WZ: 
-		Nwz,Nwzerr=extractyields(asciirawtable,signal)
+		Nwz,Nwzerr = extractyields(samplerootdir[signal+"To3LNu"])
+		#Nwz,Nwzerr=extractyields(asciirawtable,signal)
 		# updating the stat part
 		SYSWZ["Stat"][channel] = Nwzerr/Nwz
-		
+
 		# --- Calculate the actual xs
 		eff = Npass/Ngen
 		xsmean = xs(Nsig,eff,Lumi)
@@ -723,8 +862,8 @@ def getxserrorsrel(workingpath,**keywords):
 			# 2.1. ZZ systematics
 			try:
 				# Systematics dependents of the flavour
-				if (sysname == "ElecEnergyScale" and channel.find("e") == -1) or \
-						(sysname == "MuonMomentumScale" and channel.find("m") == -1):
+				if (sysname == "EES" and channel.find("e") == -1) or \
+						(sysname == "MMS" and channel.find("m") == -1):
 					raise KeyError
 				# the statistics are considered with the NsigerVr
 				if sysname == "Stat":
@@ -741,8 +880,8 @@ def getxserrorsrel(workingpath,**keywords):
 			# 2.2 WZ systematic
 			try:
 				# Systematics dependents of the flavour
-				if (sysname == "ElecEnergyScale" and channel.find("e") == -1) or \
-						(sysname == "MuonMomentumScale" and channel.find("m") == -1):
+				if (sysname == "EES" and channel.find("e") == -1) or \
+						(sysname == "MMS" and channel.find("m") == -1):
 					raise KeyError
 
 				wzsys = SYSWZ[sysname][channel]
@@ -771,12 +910,17 @@ def getxserrorsrel(workingpath,**keywords):
 			xserrors[sysname][channel] = (sysmax,sysmin)
 
 		# 3. Fakeable object systematics
-		frsys = DDMMC[channel]
+		try:
+			frsys = SYSFakes[channel]
+		except ValueError:
+			# Keeping compatibility
+			frsys = DDMMC[channel]
 		dNf = Nf*frsys
 		# affecting to the signal yield
 		Nsigdown = Nsig-dNf
 		Nsigup   = Nsig+dNf
-		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
+		#xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
+		xserrors["Fakes"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 
 		# 4. Statistics: using signal statistical errors (already included here the ZZ Stat)
 		xserrors["STATS"][channel] = (abs(xs(Nsig+Nsigerr,eff,Lumi)-xsmean)/xsmean,
@@ -911,6 +1055,22 @@ def psitest(predicted,observed):
 	
 	return 10.0*N_total*psib
 
+
+def getsamplenames(topfolder):
+	""".. function:: getsamplename(topfolder) -> [name1,name2,...]
+	Seeking within the topfolder recursively, it look after all the "cluster_*" 
+	directories and returns them (just the name after cluster_).
+	"""
+	import os
+	
+	datanames = []
+	for dirpath,dirnames,filenames in os.walk(topfolder):
+		names = map(lambda x: x.split("cluster_")[-1],\
+				filter(lambda x: x.find("cluster_") != -1, dirnames))
+		if len(names) > 0:
+			datanames += names
+			continue
+	return list(set(datanames))
 
 
 		
