@@ -141,18 +141,26 @@ if __name__ == '__main__':
 	#Comprobando la version (minimo 2.4)
 	vX,vY,vZ,_t,_t1 = sys.version_info
 	if vX > 2 and vY < 4:
-		message = '\033[31promptsubstract ERROR\033[m I need python version >= 2.4'
+		message = '\033[31nt3subtract ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	elif vX < 2:
-		message = '\033[31promptsubstract ERROR\033[m I need python version >= 2.4'
+		message = '\033[31nt3subtract ERROR\033[m I need python version >= 2.4'
 		sys.exit( message )
 	
-	usage  ="usage: promptsubstract [options]"
-	usage +="""\n\n      Subtract to the Nt2 term in the PPF estimation equation,
-      the Nt3 term (roughly equivalent to the PPP contamination). This is done by looking
-      for any folder with the name structure as 'cluster_Fakes_Nti': those samples are 
-      going to be used as elements to subtract to the Nt2 sample which is 
-      identified as the sample inside the 'cluster_Fakes'.
+	usage  ="usage: nt3subtract TERM [options]"
+	usage +="""\n\n      Subtract the lower order term in the PPF/PPP estimation equation.
+      This is done by looking for any folder with the name structure  as 'cluster_Fakes_Nti': 
+      those samples are going to be used as elements to be subtracted (lower order term. The
+      main order term is identified as the sample inside the 'cluster_Fakes'.
+
+      TERM argument must be either 'PPP' 'PPF' [default PPF]
+      For the PPF estimation: 
+                   Nt2: main order term
+		   Nt3: lower order term
+      For the PPP estimation:
+                   Nt2: lower order term
+		   Nt3: main order term                               
+
       The script could be called:
          -without options: assumes you are calling the script inside a folder 
 	                   containing at least one 'cluster_Fakes' and one or several 
@@ -167,12 +175,31 @@ if __name__ == '__main__':
 			help="Force the creation of the backup file 'fakespool.tar.gz' even if it already exists" )
 	( opt, args ) = parser.parse_args()
 
+	if len(args) == 0:
+		ddriven = 'PPF'
+		mainterm = 'Nt2'
+		lowterm = 'Nt3'
+	else:
+		ddriven = args[0]
+
+	if ddriven not in [ 'PPP', 'PPF' ]:
+		message = "\033[31mnt3subtract ERROR\033[m Not valid argument [%s]",\
+				" the argument must be 'Nt2' or 'Nt3'" % term
+		raise RuntimeError(message)
+	else:
+		if ddriven == 'PPP':
+			mainterm = 'Nt3'
+			lowterm = 'Nt2'
+		else:
+			mainterm = 'Nt2'
+			lowterm = 'Nt3'
+
 	path=None
 	# Using all the channels in within a directory
 	if opt.signal:
 		path=glob.glob(os.path.join(os.getcwd(),opt.signal+"*"))
 		if len(path) == 0:
-			message = "\033[31mpromptsubstract ERROR\033[m Malformed '-s' option: %s"\
+			message = "\033[31mnt3subtract ERROR\033[m Malformed '-s' option: %s"\
 					" Not found the standard folders %schannel" % (opt.signal,opt.signal)
 			sys.exit(message)
 	else:
@@ -182,21 +209,21 @@ if __name__ == '__main__':
 	for folder in path:
 		previousdir=os.getcwd()
 		os.chdir(folder)
-		# Find the DDD sample
+		# Find the MAIN order sample
 		fakesample = os.path.join(folder,"cluster_Fakes/Results/Fakes.root")
 		if not os.path.isfile(fakesample):
-			message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
+			message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
 					" Not found the FAKES file 'cluster_Fakes/Results/Fakes.root'"\
 					" inside the folder '%s'" % (folder)
 			sys.exit(message)
-		# Including the raw Nt2 info to be print in the warning file
+		# Including the raw main term info to be print in the warning file
 		psnt2 = processedsample(fakesample)
 		cutordered = psnt2.getcutlist()
-		yieldsNt2 = psnt2.rowvaldict
+		yieldsmain = psnt2.rowvaldict
 		# and store
-		# Find the PPP samples
-		pppfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
-		if len(pppfolders) == 0:
+		# Find the LOW order samples
+		lowfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
+		if len(lowfolders) == 0:
 			# Checking we didn't use this script before
 			if os.path.isfile("fakespool.tar.gz"):
 				# Recovering the original samples
@@ -211,38 +238,39 @@ if __name__ == '__main__':
 				if opt.force:
 					os.remove("fakespool.tar.gz")
 				# And again do the search
-				pppfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
+				lowfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
 			else:
-				message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
+				message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
 						" Not found the Nti samples files 'cluster_Fakes_Nt*/Results/Fakes_Nt*.root'"\
 						" inside the folder '%s'" % (folder)
 				sys.exit(message)
+
 		# --- extract the names of the samples
-		pppnames = map(lambda x: os.path.basename(x).replace("cluster_",""), pppfolders)
-		pppsamples = dict([ (name, filter(lambda x: x.find(name) != -1,pppfolders)[0]+"/Results/"+name+".root")\
-				for name in pppnames ])
-		for _f in pppsamples.itervalues():
+		lownames = map(lambda x: os.path.basename(x).replace("cluster_",""), lowfolders)
+		lowsamples = dict([ (name, filter(lambda x: x.find(name) != -1,lowfolders)[0]+"/Results/"+name+".root")\
+				for name in lownames ])
+		for _f in lowsamples.itervalues():
 			if not os.path.isfile(_f):
-				message = "\033[31mpromptsubstract ERROR\033[m Malformed folder structure:"\
+				message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
 						" Not found the Nti sample root file '%s'" % (_f)
 				sys.exit(message)
 
-		print "\033[34mpromptsubstract INFO\033[m Extracting the Nt3 term to the Nt2 sample "\
-				"(%s subfolder)" % os.path.basename(folder)
+		print "\033[34mnt3subtract INFO\033[m Extracting the %s term to the %s sample "\
+				"(%s subfolder)" % (lowterm,mainterm,os.path.basename(folder))
 		sys.stdout.flush()
 		fakesubstractedfile = "fsubsprov.root"
-		yieldsdict = substractprompt(fakesample,pppsamples,fakesubstractedfile)
+		yieldsdict = substractprompt(fakesample,lowsamples,fakesubstractedfile)
 
-		print "\033[34mpromptsubstract INFO\033[m Generating backup fake folders (fakespool.tar.gz) "\
+		print "\033[34mnt3subtract INFO\033[m Generating backup fake folders (fakespool.tar.gz) "\
 				"(%s subfolder)" % os.path.basename(folder)
 		# Re-organizing the output
 		# --- Don't do it continously (just by demand)
-		folderstotar = map(lambda x: os.path.basename(x),pppfolders)+["cluster_Fakes"]
+		folderstotar = map(lambda x: os.path.basename(x),lowfolders)+["cluster_Fakes"]
 		if not os.path.isfile("fakespool.tar.gz") or opt.force:
 			tar = tarfile.open("fakespool.tar.gz","w:gz")
 			for f in folderstotar:
 				tar.add(f)
-			for s in pppsamples:
+			for s in lowsamples:
 				try:
 					tar.add(s+"_datanames.dn")
 					os.remove(s+"_datanames.dn")
@@ -254,30 +282,30 @@ if __name__ == '__main__':
 			for f in folderstotar:
 				shutil.rmtree(f)
 		else:
-			message  = "\033[33mpromptsubstract: WARNING\033[m I can't manage\n"
+			message  = "\033[33mnt3subtract: WARNING\033[m I can't manage\n"
 			message += "to create the backup fakespool.tar.gz file\n"
 			print message
 		# -- The new folder for the Fakes containing the substracted fakes
 		os.makedirs("cluster_Fakes/Results")
 		shutil.move(fakesubstractedfile,"cluster_Fakes/Results/Fakes.root")
-		warningfile = "CAVEAT: Directory tree created automatically from 'promptsubstract'\n"
+		warningfile = "CAVEAT: Directory tree created automatically from 'nt3subtract'\n"
 		warningfile+= "         script. You can find the original file inside the 'fakespool.tar.gz' file.\n"
 		warningfile+= "WARNING: do not untar the fakespool file at the same level you found it because you will\n"
 		warningfile+= "        destroy the fake substracted folder\n"
 		warningfile+= "="*60+"\n"
-		# Including some useful info: yields PPP substracted to the Fakes
-		pppnameslist = yieldsdict.keys()
+		# Including some useful info: yields low term substracted to the main
+		lownameslist = yieldsdict.keys()
 		warningfile += "%20s ||" % ( "" )
-		for pppname in ["Nt2"]+pppnameslist:
-			warningfile += " %10s ||" % pppname
+		for name in [mainterm]+lownameslist:
+			warningfile += " %10s ||" % name
 		warningfile = warningfile[:-2]+"\n"
-		#for cutname in yieldsdict[pppnameslist[0]].iterkeys():
-		# Add the Nt2 yields info 
-		yieldsdict["Nt2"] = dict(map(lambda (name,valtuple): (name,valtuple[0]), yieldsNt2.iteritems()))
+		# Add the main term yields info 
+		yieldsdict[mainterm] = dict(map(lambda (name,valtuple): (name,valtuple[0]), yieldsmain.iteritems()))
 		for cutname in cutordered:
 			warningfile += "%20s  " % cutname
-			for pppname in ["Nt2"]+pppnameslist:
-				warningfile += " %10.2f  " % yieldsdict[pppname][cutname]
+			#for pppname in ["Nt2"]+pppnameslist:
+			for name in [mainterm]+lownameslist:
+				warningfile += " %10.2f  " % yieldsdict[name][cutname]
 			warningfile = warningfile[:-2]+"\n"
 		warningfile+= "="*60+"\n"
 		fw = open("cluster_Fakes/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
