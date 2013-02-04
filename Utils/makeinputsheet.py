@@ -77,7 +77,7 @@ DESCRIPTION = { 'General': { "NameTree": "Name of the TTree object [string]",
 				},
 		'Other parameters': { 'Systematic' : "Activate the systematic calculation for\n"\
 					"                LEPTONSYS: sys. related with efficiencies\n"\
-					"                FRSYS: sys. related with errors in FR matrices determination\n"\
+					"                FRSYS: sys. related with errors in FR & PR matrices determination\n"\
 					"                MMSSYS: sys. related with muon momentum scale\n"\
 					"                EESSYS: sys. related with electron energy scale\n"\
 					"                METSYS: sys. related with energy scale and resolution for MET\n"\
