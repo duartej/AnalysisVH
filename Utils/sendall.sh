@@ -16,7 +16,7 @@ Send all the final states jobs to the cluster
 
 SYNTAX:
 
-   $0 [-r runperiod] [-F] [-f] [-s sysname [-S]] <-c|WZ|WH>
+   $0 [-r runperiod] [-F] [-f] [-s "sysname [sysname2...]" [-S]] <-c|WZ|WH>
 
 
    Note that the signal is a mandatory argument if not use the -c
@@ -245,9 +245,9 @@ fi
 # Preparing the SYSTEMATICS case launching, get the datanames needed
 # at each systematic
 SYSLIST=""
-if [ "X"$SYSTEMATICS != "X" ];
+if [ ${#SYSTEMATICS} -gt 0 ];
 then
-	DATASAMPLES="Data_datanames.dn Fakes_datanames.dn"
+	DATASAMPLES="Data_datanames.dn Fakes_datanames.dn Fakes_Nt3_datanames.dn"
 	MCSAMPLES=`ls *_datanames.dn`
 	# Extracting the Data samples
 	for i in $DATASAMPLES; 
@@ -256,13 +256,13 @@ then
 	done
 	# =========== Datasamples needed for the systematics
 	LEPTONSYS=$MCSAMPLES
-	FRSYS="Fakes_datanames.dn"
+	FRSYS="Fakes_datanames.dn Fakes_Nt3_datanames.dn"
 	MMSSYS=$MCSAMPLES
 	EESSYS=$MCSAMPLES
-	METSYS=$MCSAMPLES" "$DATASAMPLES
+	METSYS=$MCSAMPLES  #" "$DATASAMPLES ---> No estoy seguro
 	PUSYS=$MCSAMPLES
 
-	if [ "X"$SYSTEMATICS == "Xall" ] ;
+	if [ "X$SYSTEMATICS" == "Xall" ] ;
 	then
 		SYSLIST="LEPTONSYS FRSYS MMSSYS EESSYS METSYS PUSYS"
 	else
@@ -283,7 +283,8 @@ then
 				echo "" >> ${sysdir}/$i;
 				echo "@var TString Systematic               ${sys}:${mode};" >> ${sysdir}/$i;
 				echo "" >> ${sysdir}/$i;
-				cp ${!sys}  ${sysdir};
+				# To avoid the error in the Fakes_Nt3 >& /dev/null
+				cp -f ${!sys}  ${sysdir} >& /dev/null;
 			done
 		done
 	done
@@ -319,7 +320,7 @@ do
 		mkdir -p $i;
 		cd $i;
 		cp ../*.dn .
-		if [ "X"$fakeasdata == "X" ];
+		if [ "X$fakeasdata" == "X" ];
 		then
 			if [ $namejob == "REGULAR" ];
 			then
@@ -337,9 +338,9 @@ do
 		fi
 
 		fakeoption=""
-		if [ "X"$fakeable == "Xyes" ];
+		if [ "X$fakeable" == "Xyes" ];
 		then
-			if [ $namejob == "REGULAR" ];
+			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
 			then
 				datamanagercreator Fakes -r $runperiod -f $finalstate;
 				if [[ ($ALREADYBLACKLIST != "true" ) && ($dilepton == "mm") && ($runperiod == "2011") ]];
@@ -353,36 +354,20 @@ do
 		#-------------------------------------------------------------
 		echo -e "\e[00;34m[sendall INFO]\e[00;m: Sending $finalstate -- Working directory: $i"; 
 		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
-		# Not neede anymore
-		rm -f blacklist.evt;
 		#-------------------------------------------------------------
-		# XXX DEPRECATED XXX
-		# The WZ3LNu and ZZ sample has to be considered for the Fake
-		# substraction (-F or -f options)
-		# XXX DEPRECATED XXX
 		# The Nt3 term in the PPF equation (to be substracted to Nt2)
 		sysnovar=`echo $namejob|cut -d_ -f1`
-		if [ $([ "X"$fakeable == "Xyes" -o "X"$fakeasdata == "Xyes" ]) -a \
-			$([ $namejob == "REGULAR" -o $sysnovar == "FRSYS" ]) ];
+		if [[ ("X"$fakeable == "Xyes") || ("X"$fakeasdata == "Xyes") ]];
 		then
-			cp Fakes_datanames.dn Fakes_Nt3_datanames.dn
-			sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3
-			# XXX DEPRECATED XXX
-			#WZSAMPLE=WZTo3LNu
-			#ZZSAMPLE=ZZ
-			#cp ${WZSAMPLE}_datanames.dn ${WZSAMPLE}_Fakes_datanames.dn;
-			#cp ${ZZSAMPLE}_datanames.dn ${ZZSAMPLE}_Fakes_datanames.dn;		
-			# Plus if we are checking the comparation of the Fakes
-			# with the MC using the data driven, not needed the WZ and ZZ 
-			#if [ "X"$fakeasdata == "Xyes" ];
-			#then
-			#	rm ${WZSAMPLE}_datanames.dn;
-			#	rm ${ZZSAMPLE}_datanames.dn;
-			#fi
-			#sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${WZSAMPLE}_Fakes;
-			#sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption -k -d ${ZZSAMPLE}_Fakes;
-			# XXX DEPRECATED XXX
-		fi
+			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
+			then
+				cp Fakes_datanames.dn Fakes_Nt3_datanames.dn
+				sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3
+			fi
+		fi;
+		
+		# Not needed anymore
+		rm -f blacklist.evt;
 	
 		cd ../; 
 	done
@@ -390,5 +375,5 @@ do
 	cd $PARENTDIR;
 done
 
-rm *.dn
-rm -rf Datasets/
+rm -f *.dn;
+rm -rf Datasets/ ; 
