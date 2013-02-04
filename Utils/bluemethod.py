@@ -84,23 +84,23 @@ def geterrorarray(xs,xserrors):
 	#    is the same as the variation of the error of the other channel
 	for id,(lval,rval) in IDCHANNELMATRIX.iteritems():
 		# - 1. Lepton eff. - Asumming fully correlation between channels 
-		arrayEsys["LeptonEff"][id] = evalsyserr("LeptonEff",lval,rval)
+		arrayEsys["LEPTON"][id] = evalsyserr("LEPTON",lval,rval)
 		# - 2. Trigger eff.: fully correlated when Z->ll channels, i.e., eee with eee and eem (and viceversa)
 		#                    and mmm with mmm and mme. 
 		#if lval[:-1] == rval[:-1]:
 		#	arrayEsys["TriggerEff"][id] = evalsyserr("TriggerEff",lval,rval)
 		# - 3. Electron Energy Scale: assuming fully correlation between electronic channels (contains at least an electron)
 		if lval.find('e') != -1 and rval.find('e') != -1:
-			arrayEsys["ElecEnergyScale"][id] = evalsyserr("ElecEnergyScale",lval,rval)
+			arrayEsys["EES"][id] = evalsyserr("EES",lval,rval)
 		# - 4. Muon Momentum Scale: assuming fully correlation between muonic channels (contains at least an muon)
 		if lval.find('m') != -1 and rval.find('m') != -1:
-			arrayEsys["MuonMomentumScale"][id] = evalsyserr("MuonMomentumScale",lval,rval)
+			arrayEsys["MMS"][id] = evalsyserr("MMS",lval,rval)
 		# - 5. Pile-up reweighting technique: assuming fully correlation between all channels
-		arrayEsys["PILEUP"][id] = evalsyserr("PILEUP",lval,rval)
+		arrayEsys["PU"][id] = evalsyserr("PU",lval,rval)
 		# - 6. PDF sytematic effect: assuming fully correlation between all channels
 		arrayEsys["PDF"][id] = evalsyserr("PDF",lval,rval)
 		# - 7. MET resolution effect: assuming fully correlation between all channels
-		arrayEsys["METres"][id] = evalsyserr("METres",lval,rval)
+		arrayEsys["MET"][id] = evalsyserr("MET",lval,rval)
 		# - 8. Fakeable object method: assuming not correlation between channels
 		if lval == rval:
 			arrayEsys["DDMMC"][id] = evalsyserr("DDMMC",lval,rval)
@@ -220,7 +220,8 @@ def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 			statwz= errors["stat"]/BRprompt
 			lumiwz= errors["lumi"]/BRprompt
 			totalwz = sqrt(syswz**2.+statwz**2.+lumiwz**2.)
-			message += newline+"Inclusive XS using just the exclusive values: %.2f+-%.2f(stat)+-%.2f(sys)+-%.2f(lumi)  (total=%.2f)" % \
+			message += newline+"Inclusive XS using just the exclusive "\
+					"values: %.3f+-%.3f(stat)+-%.3f(sys)+-%.3f(lumi)  (total=%.3f)" % \
 					(xswz,statwz,syswz,lumiwz,totalwz)
 		# Matrices: E y E_sys
 		print message
