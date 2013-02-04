@@ -29,6 +29,14 @@
 	  the call of the functionspool_mod.getxserrosrel
    :type: dict(str:float)
 """
+
+print """\033[1;31m**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**\033[1;m
+  THIS FILE IS DEPRECATED. You should use the 'systematic_mod' module you built in
+  the main working directory. See 'sendall -h' in particular '-s' and '-S' options
+  and the 'collectall -h' help
+\033[1;31m**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**WARNING**\033[1;m"""
+
+
 # == SYSTEMATICS for WZ analysis ===========================================================
 # Relative error with respect the
 # 1. Yields of 
@@ -36,24 +44,24 @@
 DDMMC = { "mmm": 0.31, "mme": 0.46, "eem": 0.42, "eee": 0.14, "leptonchannel": 0.35 }
 #    b. the ZZ MC sample (note the stat has to be extracted from the table/plots ...
 SYSZZ = {
-	'ElecEnergyScale': {'eee': 0.009, 'eem': 0.007, 'mmm': 0.00, 'mme': 0.00},
+	'EES': {'eee': 0.009, 'eem': 0.007, 'mmm': 0.00, 'mme': 0.00},
 	#'TriggerEff': {'eee': 0.015, 'eem': 0.015, 'mmm': 0.015, 'mme': 0.015},
-	'MuonMomentumScale': {'eee': 0.00, 'eem': 0.00, 'mmm': 0.002, 'mme': 0.010},
-	'PILEUP': {'eee': 0.03, 'eem': 0.003, 'mmm': 0.006, 'mme': 0.027}, 
-	'METres': {'eee': 0.15, 'eem': 0.06, 'mmm': 0.147, 'mme': 0.04}, 
-	'LeptonEff': {'eee': 0.013, 'eem': 0.022, 'mmm': 0.003, 'mme': 0.005},
+	'MMS': {'eee': 0.00, 'eem': 0.00, 'mmm': 0.002, 'mme': 0.010},
+	'PU': {'eee': 0.03, 'eem': 0.003, 'mmm': 0.006, 'mme': 0.027}, 
+	'MET': {'eee': 0.15, 'eem': 0.06, 'mmm': 0.147, 'mme': 0.04}, 
+	'LEPTON': {'eee': 0.013, 'eem': 0.022, 'mmm': 0.003, 'mme': 0.005},
 	'Lumi': {'eee': 0.022, 'eem': 0.022, 'mmm': 0.022, 'mme': 0.022},
 	'PDF': {'eee': 0.015, 'eem': 0.015, 'mmm': 0.015, 'mme': 0.015},
 	'Stat': {'eee': 0.0, 'eem': 0.0, 'mmm': 0.0, 'mme': 0.0}
 	}
 #    b. the WZ MC sample (note the stat has to be extracted from the table/plots ...
 SYSWZ = {
-	'ElecEnergyScale': {'eee': 0.009, 'eem': 0.008, 'mmm': 0.00, 'mme': 0.00},
+	'EES': {'eee': 0.009, 'eem': 0.008, 'mmm': 0.00, 'mme': 0.00},
 	#'TriggerEff': {'eee': 0.015, 'eem': 0.015, 'mmm': 0.015, 'mme': 0.015},
-	'MuonMomentumScale': {'eee': 0.0, 'eem': 0.00, 'mmm': 0.002, 'mme': 0.001},
-	'PILEUP': {'eee': 0.005, 'eem': 0.004, 'mmm': 0.003, 'mme': 0.003}, 
-	'METres': {'eee': 0.026, 'eem': 0.024, 'mmm': 0.023, 'mme': 0.029}, 
-	'LeptonEff': {'eee': 0.019, 'eem': 0.016, 'mmm': 0.003, 'mme': 0.005},
+	'MMS': {'eee': 0.0, 'eem': 0.00, 'mmm': 0.002, 'mme': 0.001},
+	'PU': {'eee': 0.005, 'eem': 0.004, 'mmm': 0.003, 'mme': 0.003}, 
+	'MET': {'eee': 0.026, 'eem': 0.024, 'mmm': 0.023, 'mme': 0.029}, 
+	'LEPTON': {'eee': 0.019, 'eem': 0.016, 'mmm': 0.003, 'mme': 0.005},
 	'Lumi': {'eee': 0.022, 'eem': 0.022, 'mmm': 0.022, 'mme': 0.022},
 	'PDF': {'eee': 0.014, 'eem': 0.014, 'mmm': 0.014, 'mme': 0.014},
 	'Stat': {'eee': 0.0, 'eem': 0.0, 'mmm': 0.0, 'mme': 0.0}
