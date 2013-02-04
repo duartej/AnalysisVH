@@ -54,11 +54,8 @@ class LeptonRel
 		void setP4(const TLorentzVector & p4);
 		inline void setcharge(const int & q) { this->_q = q; }
 		void setleptontype(const LeptonTypes & leptontype);
-		//! Modify the P4 pt, P or E
-		void setPt(const double & pt);
-		void setP(const double & p);
-		void setE(const double & e);
-		void setEoverP(const double & factor);
+		//! Modify the 4-Momentum scale
+		void setScale(const double & scale);
 
 	private:
 		// Data members

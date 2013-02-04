@@ -83,40 +83,11 @@ bool LeptonRel::operator ==(const LeptonRel & l1) const
 	return false;
 }
 
-void LeptonRel::setPt(const double & pt)
+void LeptonRel::setScale(const double & scale)
 {
-	if( _p4 != 0 )
+	if( this->_p4 != 0)
 	{
-		_p4->SetPtEtaPhiE(pt,_p4->Eta(),_p4->Phi(),_p4->E());
-	}
-}
-
-void LeptonRel::setP(const double & pnew)
-{
-	if( _p4 != 0 )
-	{
-		// Extract old p to get the factor to be multiply
-		const double pold = _p4->P();
-		const double factor = pnew/pold;
-		_p4->SetPxPyPzE(factor*_p4->Px(),factor*_p4->Py(),factor*_p4->Pz(),_p4->E());
-	}
-}
-
-void LeptonRel::setE(const double & e)
-{
-	if( _p4 != 0 )
-	{
-		_p4->SetPtEtaPhiE(_p4->Pt(),_p4->Eta(),_p4->Phi(),e);
-	}
-}
-
-void LeptonRel::setEoverP(const double & f)
-{
-	if( _p4 != 0 )
-	{
-		const double ftoP = 1./sqrt(f);
-		const double ftoE = sqrt(f);
-		_p4->SetPxPyPzE(ftoP*_p4->Px(),ftoP*_p4->Py(),ftoP*_p4->Pz(),ftoE*_p4->E());
+		this->_p4->SetPxPyPzE(scale*_p4->Px(),scale*_p4->Py(),scale*_p4->Pz(),scale*_p4->E());
 	}
 }
 
