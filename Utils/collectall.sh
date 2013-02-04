@@ -14,16 +14,18 @@ Harvest all the final states jobs from the cluster
 
 SYNTAX:
 
-   $0 [-s] <WZ|WH> 
+   $0 [-s] [-S] <WZ|WH> 
 
 
    Note that the signal is a mandatory argument. 
 
    OPGIONS:
 
-   [-s]: collect the systematics and creates a file containing 
+   [-s]: also, collect the systematics and creates a file containing 
          the info collected. The script should be launched at the 
 	 top of the folder containing a 'SYSTEMATICS' directory.
+   [-S]: same as before but just only collecting the systematics,
+   	 ignoring the regular analysis
 
 EOF
 }
@@ -32,10 +34,12 @@ SYSTEMATICS=""
 #
 # Process the arguments
 #
-while getopts sh o;
+while getopts sSh o;
 	do
 		case "$o" in
 			s)	SYSTEMATICS="yes";;
+			S)	REGULAR="no";
+			        SYSTEMATICS="yes";;
 			h)	help;
 				exit 1;;
 		esac
@@ -70,16 +74,20 @@ signal=$1
 
 cd $PWD
 
-for i in `ls |grep $signal`;
-do 
-	cd $i;
-	echo -e "\e[00;34m[collectall INFO]\e[00m: $i channel";
-	for j in `ls|grep cluster_`; 
+if [ "X$REGULAR" == "X" ];
+then
+	echo -e "\e[00;34m[collectall INFO]\e[00m: collecting REGULAR ANALYSIS ..."
+	for i in `ls |grep $signal`;
 	do 
-		sendcluster harvest -w $j;
-	done;
-	cd ../;
-done
+		cd $i;
+		echo -e "\e[00;34m[collectall INFO]\e[00m: $i channel";
+		for j in `ls|grep cluster_`; 
+		do 
+			sendcluster harvest -w $j;
+		done;
+		cd ../;
+	done
+fi
 
 if [ "X${SYSTEMATICS}" == "X" ]; 
 then
@@ -96,21 +104,31 @@ then
 	exit -1;
 fi
 
-echo -e "\e[00a;34m[collectall INFO]\e[00m: collecting SYSTEMATICS ..."
+echo -e "\e[00;34m[collectall INFO]\e[00m: collecting SYSTEMATICS ..."
 for sysfolder in $SYSFOLDERS;
 do
+	echo -e "\e[00;34m[collectall INFO]\e[00m: +++ $sysfolder"
 	for i in `ls $sysfolder|grep $signal`;
 	do
 		echo -e "--+ \e[01;34m[collectall INFO]\e[00;m: $i channel"
 		for j in `ls $sysfolder/$i/|grep cluster_`;
 		do 
-			sendcluster harvest -w $sysfolder/$i/$j ;
+			sendcluster harvest -w $sysfolder/$i/$j 2>&1 | tee -a .checkingdones;
 		done
 	done
 done
 
-# And extract all info and stores
-collectsys $SYSFOLDERS
+# Check if all the systematics are done
+nlines=$(cat .checkingdones|wc -l)
+nlineswithdone=$(grep "The job is already DONE" .checkingdones|wc -l)
+rm -f .checkingdones
+
+if [ ${nlines} == ${nlineswithdone} ];
+then
+	echo -e "\e[00;34m[collectall INFO]\e[00m All SYSTEMATICS calculated, creating 'systematics_mod.py' file"
+	resumesys SYSTEMATICS;
+fi
+	
 
 
 
