@@ -163,7 +163,12 @@ unsigned int CutManager::GetNBasicLeptons()
 
 	// fake mode: the _selectedbasicLeptons now
 	// are loose leptons
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
+	// AND (_nTights != _nLeptons): Patch to fix different 
+	// behaviour when dealing with a regular analysis and 
+	// a data-driven -F N,N  i.e. the same number of tights
+	// than the number of leptons analyzed (see issue #56 
+	// (https://github.com/duartej/AnalysisVH/issues/56)
+	if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
 	{
 		size = this->SelectLooseLeptons();
 	}
@@ -245,18 +250,21 @@ unsigned int CutManager::GetNIsoLeptons()
 		{
 			_tightLeptons->push_back( _selectedIsoLeptons->at(i) );
 		}
-		// Plus the notight
-		const unsigned int notightsize = _notightLeptons->size();
-		for(unsigned int i = 0; i < notightsize; ++i)
+		// Plus the notight (if we're don't using all the nLeptons as tights
+		if( _nTights != _nLeptons )
 		{
-			_selectedIsoLeptons->push_back( _notightLeptons->at(i) );
+			const unsigned int notightsize = _notightLeptons->size();
+			for(unsigned int i = 0; i < notightsize; ++i)
+			{
+				_selectedIsoLeptons->push_back( _notightLeptons->at(i) );
+			}
+			// Keep track of the lepton type if proceed (mixing classes)
+			// Is at this level when _selected Vector has the tight, notight
+			// merged collection
+			//this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
+			
+			size += notightsize;		
 		}
-		// Keep track of the lepton type if proceed (mixing classes)
-		// Is at this level when _selected Vector has the tight, notight
-		// merged collection
-		//this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
-
-		size += notightsize;		
 	}
 
 	return size;
@@ -315,7 +323,7 @@ bool CutManager::IspassExactlyN()
 	if( this->IsInFakeableMode() )
 	{
 		return ( (_tightLeptons->size() == _nTights) &&
-			(_notightLeptons->size() == _nFails) );		
+				(_notightLeptons->size() == _nFails) );
 	}
 	else
 	{
