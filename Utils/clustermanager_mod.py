@@ -681,25 +681,13 @@ class clustermanager(object):
 
 		try:
 			jobidpresent = jobsdict[self.jobid]
-		except KeyError:
-			# The job was done, nothing to do
-			# Never should be here ??
-			print "XXX --- QUE HACES AQUI?"
-			return None
-		except TypeError:
-			# There is no jobs iin the cluster
-			# so it should be done
-			pass
-		try:
 			rawstatus = jobsdict[self.jobid][taskid]
 			isincluster = True
-		except KeyError:
-			# not in the cluster anymore
-			rawstatus = 'Done'
-			isincluster = False
-		except TypeError:
-			# None job in the cluster
-			rawstatus = 'Done'
+		except (KeyError,TypeError):
+			# The task was done either the self.jobid is not 
+			# (it means the full job is done) or the taskid
+			# is not (it means the task is done)
+			rawstatus='Done'
 			isincluster = False
 
 		# If not in the cluster, it should be finished and get available the outputs
@@ -720,7 +708,6 @@ class clustermanager(object):
 					self.taskstatus[outstatus].remove(taskid)
 				except ValueError:
 					pass
-			self.store()
 			return self.outputfiles[taskid]
 
 		# Parsing status
@@ -771,7 +758,6 @@ class clustermanager(object):
 		"""
 		import shelve
 		import glob
-		import sys
 
 		d = shelve.open(filename)
 		if not d.has_key("storedmanager"):
@@ -780,9 +766,7 @@ class clustermanager(object):
 					or len(glob.glob("WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt")) != 0:
 				message = "clustermanager.retrieve: The job is already DONE!"
 				print message
-				# XXX
-				# return None
-				sys.exit(0)
+				return None
 			else:
 				message = "\nclustermanager.retrieve: ERROR Not found the" \
 					+" class stored in .storedmanager file"

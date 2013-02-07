@@ -120,12 +120,12 @@ if __name__ == '__main__':
 			# Checks and some changes
 			fakeable = opt.fakeable
 			if not opt.fakeable:
-				if dataname == "Fakes":
+				if dataname.find("Fakes") == 0:
 					message = "\033[31msendcluster: ERROR\033[m It is mandatory the '-F' option"+\
 							" with the 'Fakes' dataname"
 					sys.exit( message )			
 			else:
-				if dataname != "Fakes" and not opt.fakeasdata:
+				if dataname.find("Fakes") != 0 and not opt.fakeasdata:
 					# not sending to the instance
 					#print "\033[1;33msendcluster WARNING:\033[1;m The job is going to be send as"+\
 					#		" regular not in FAKE mode. Use the '-k' option if you want to"+\
@@ -178,7 +178,12 @@ if __name__ == '__main__':
 		sys.exit( message )
 	
 	action=args[0]
-	manager.process(action)
+	#manager.process(action)
+	try:
+		manager.process(action)
+	except:
+		# Be sure we have persistency
+		manager.store()
 	
 
 
