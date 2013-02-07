@@ -42,6 +42,9 @@ def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
 	in order to print the number of events	subtracted by each PPP sample
 	"""
 	import ROOT
+	# For the InputParameter
+	ROOT.gSystem.SetDynamicPath(ROOT.gSystem.GetDynamicPath()+":"+os.getenv("VHSYS")+"/libs")
+	ROOT.gSystem.Load("libInputParameters.so")
 
 	prompthistodict = {}
 	for name,sample in filepromptsdict.iteritems():
@@ -76,10 +79,15 @@ def substractprompt(filefakes,filepromptsdict, outfilename, lumi=None):
 		# Checking we aren't with negative values??
 		fsubstracted.cd()
 		oldh.Write()
-	
+	# InputParameter stored too
+	ip = fwithPPP.Get("Set Of Parameters")
+	fsubstracted.cd()
+	ip.Write()
+
 	fsubstracted.Close()
 	fwithPPP.Close()
 	
+	ip.Delete()
 	for histodict in prompthistodict.itervalues():
 		for histo in histodict.itervalues():
 			histo.Delete()
@@ -168,7 +176,11 @@ if __name__ == '__main__':
 	 -with '-s' options: you are going to call the script doing a loop for each 
 	                     channel subfolder."""
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(force=False)
+	parser.set_defaults(force=False,dataname='Fakes')
+	parser.add_option( '-d', action='store', type='string', dest='dataname', 
+			help="use the name DATANAME as the Fakes sample, so the script is going to deal"\
+					" with 'cluster_DATANAME' and 'cluster_DATANAME_Nt*' directories"\
+					" instead of the 'cluster_Fakes' given by default [Default: Fakes]")
 	parser.add_option( '-s', action='store', type='string', dest='signal', 
 			help="<WZ|WH> it describes what subdirectories to search (recall standard structure SIGNALeee ... " )
 	parser.add_option( '-f', action='store_true', dest='force', 
@@ -209,26 +221,35 @@ if __name__ == '__main__':
 	for folder in path:
 		previousdir=os.getcwd()
 		os.chdir(folder)
+		# Find the samples and the folder
+		clustername = 'cluster_'+opt.dataname
+		rootmainterm = clustername+"/Results/"+opt.dataname+".root"
+		ntsamplename = opt.dataname+"_"+lowterm
+		clustername_Nt = 'cluster_'+ntsamplename
+		rootlowterm = clustername_Nt+"/Results/"+ntsamplename+".root"
 		# Find the MAIN order sample
-		fakesample = os.path.join(folder,"cluster_Fakes/Results/Fakes.root")
+		fakesample = os.path.join(folder,rootmainterm)
 		if not os.path.isfile(fakesample):
 			message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
-					" Not found the FAKES file 'cluster_Fakes/Results/Fakes.root'"\
-					" inside the folder '%s'" % (folder)
+					" Not found the FAKES file "\
+					"'%s'' inside the folder '%s'" % (rootmainterm,folder)
 			sys.exit(message)
 		# Including the raw main term info to be print in the warning file
 		psnt2 = processedsample(fakesample)
 		cutordered = psnt2.getcutlist()
-		yieldsmain = psnt2.rowvaldict
+		# Using the same kind of yields than the other term
+		yieldsmain = dict(map( lambda cut: (cut,psnt2.getrealvalue(cut)),cutordered))
+		#yieldsmain = psnt2.rowvaldict
 		# and store
+		nametarfile = opt.dataname.lower().replace("_","")+"pool.tar.gz"
 		# Find the LOW order samples
-		lowfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
+		lowfolders = glob.glob(os.path.join(folder,clustername_Nt+"*"))
 		if len(lowfolders) == 0:
 			# Checking we didn't use this script before
-			if os.path.isfile("fakespool.tar.gz"):
+			if os.path.isfile(nametarfile):
 				# Recovering the original samples
-				shutil.rmtree("cluster_Fakes")
-				tar = tarfile.open("fakespool.tar.gz")
+				shutil.rmtree(clustername)
+				tar = tarfile.open(nametarfile)
 				try:
 					tar.extractall()
 				except AttributeError:
@@ -236,13 +257,13 @@ if __name__ == '__main__':
 					extractall(tar)
 				tar.close()
 				if opt.force:
-					os.remove("fakespool.tar.gz")
+					os.remove(nametarfile)
 				# And again do the search
-				lowfolders = glob.glob(os.path.join(folder,"cluster_Fakes_Nt*"))
+				lowfolders = glob.glob(os.path.join(folder,clustername_Nt+"*"))
 			else:
 				message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
-						" Not found the Nti samples files 'cluster_Fakes_Nt*/Results/Fakes_Nt*.root'"\
-						" inside the folder '%s'" % (folder)
+						" Not found the Nti samples files '%s'"\
+						" inside the folder '%s'" % (rootlowterm,folder)
 				sys.exit(message)
 
 		# --- extract the names of the samples
@@ -261,13 +282,13 @@ if __name__ == '__main__':
 		fakesubstractedfile = "fsubsprov.root"
 		yieldsdict = substractprompt(fakesample,lowsamples,fakesubstractedfile)
 
-		print "\033[34mnt3subtract INFO\033[m Generating backup fake folders (fakespool.tar.gz) "\
-				"(%s subfolder)" % os.path.basename(folder)
+		print "\033[34mnt3subtract INFO\033[m Generating backup fake folders (%s) "\
+				"(%s subfolder)" % (nametarfile,os.path.basename(folder))
 		# Re-organizing the output
 		# --- Don't do it continously (just by demand)
-		folderstotar = map(lambda x: os.path.basename(x),lowfolders)+["cluster_Fakes"]
-		if not os.path.isfile("fakespool.tar.gz") or opt.force:
-			tar = tarfile.open("fakespool.tar.gz","w:gz")
+		folderstotar = map(lambda x: os.path.basename(x),lowfolders)+[clustername]
+		if not os.path.isfile(nametarfile) or opt.force:
+			tar = tarfile.open(nametarfile,"w:gz")
 			for f in folderstotar:
 				tar.add(f)
 			for s in lowsamples:
@@ -278,20 +299,22 @@ if __name__ == '__main__':
 					# Nothing happened if we don't find 
 					pass
 			tar.close()
-		if os.path.exists("fakespool.tar.gz"):
+		if os.path.exists(nametarfile):
 			for f in folderstotar:
 				shutil.rmtree(f)
 		else:
 			message  = "\033[33mnt3subtract: WARNING\033[m I can't manage\n"
-			message += "to create the backup fakespool.tar.gz file\n"
+			message += "to create the backup %s file\n" % (nametarfile)
 			print message
 		# -- The new folder for the Fakes containing the substracted fakes
-		os.makedirs("cluster_Fakes/Results")
-		shutil.move(fakesubstractedfile,"cluster_Fakes/Results/Fakes.root")
+		os.makedirs(clustername+"/Results")
+		shutil.move(fakesubstractedfile,rootmainterm)
 		warningfile = "CAVEAT: Directory tree created automatically from 'nt3subtract'\n"
-		warningfile+= "         script. You can find the original file inside the 'fakespool.tar.gz' file.\n"
-		warningfile+= "WARNING: do not untar the fakespool file at the same level you found it because you will\n"
+		warningfile+= "         script. You can find the original file inside the '"+nametarfile+"' file.\n"
+		warningfile+= "WARNING: do not untar the "+nametarfile+" file at the same level you found it because"\
+				"you will\n"
 		warningfile+= "        destroy the fake substracted folder\n"
+		warningfile+= "Events yields are weighted but not normalized to any luminosity (when MC)\n"
 		warningfile+= "="*60+"\n"
 		# Including some useful info: yields low term substracted to the main
 		lownameslist = yieldsdict.keys()
@@ -308,7 +331,7 @@ if __name__ == '__main__':
 				warningfile += " %10.2f  " % yieldsdict[name][cutname]
 			warningfile = warningfile[:-2]+"\n"
 		warningfile+= "="*60+"\n"
-		fw = open("cluster_Fakes/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
+		fw = open(clustername+"/WARNING_FOLDER_GENERATED_FROM_SCRIPT.txt","w")
 		fw.writelines(warningfile)
 		fw.close()
 
