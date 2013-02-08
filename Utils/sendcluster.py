@@ -147,9 +147,9 @@ if __name__ == '__main__':
 					+"' does not exists"
 			sys.exit( message )
 		
-		manager = clustermanager(workingdir=opt.workingdir)
+		manager = clustermanager(opt.workingdir)
 	
-	elif args[0] == 'delete':
+	elif args[0] == 'delete' or args[0] == 'resubmit' or args[0] == 'resubmit.stalled':
 		if opt.workingdir is None:
 			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
 			sys.exit( message )
@@ -159,31 +159,44 @@ if __name__ == '__main__':
 					+"' does not exists"
 			sys.exit( message )
 		
-		manager = clustermanager(workingdir=opt.workingdir)
+		manager = clustermanager(opt.workingdir)
 	
-	elif args[0] == 'resubmit':
-		if opt.workingdir is None:
-			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
-			sys.exit( message )
-		
-		if not os.path.exists(opt.workingdir):
-			message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
-					+"' does not exists"
-			sys.exit( message )
-		
-		manager = clustermanager(workingdir=opt.workingdir)
+	#elif args[0] == 'resubmit':
+	#	if opt.workingdir is None:
+	#		message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
+	#		sys.exit( message )
+	#	
+	#	if not os.path.exists(opt.workingdir):
+	#		message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
+	#				+"' does not exists"
+	#		sys.exit( message )
+	#	
+	#	manager = clustermanager(workingdir=opt.workingdir)
+	#
+	#elif args[0] == 'resubmit.stalled':
+	#	if opt.workingdir is None:
+	#		message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
+	#		sys.exit( message )
+	#	
+	#	if not os.path.exists(opt.workingdir):
+	#		message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
+	#				+"' does not exists"
+	#		sys.exit( message )
+	#	
+	#	manager = clustermanager(workingdir=opt.workingdir)
 	
 	else:
 		message = "\033[31msendcluster: ERROR\033[mNot recognized the action '"+args[0]+"'"
 		sys.exit( message )
 	
 	action=args[0]
-	#manager.process(action)
-	try:
-		manager.process(action)
-	except:
-		# Be sure we have persistency
-		manager.store()
+	manager.process(action)
+	#try:
+	#	manager.process(action)
+	#except:
+	#	# Be sure we have persistency
+	#	manager.store()
+	#	raise
 	
 
 

@@ -127,7 +127,7 @@ class clustermanager(object):
 	Class to manage the sending and harvesting
 	of jobs in the cluster
 	"""
-	def __init__(self,**keywords):
+	def __init__(self,workingdir='',**keywords):
 		"""
 		Initializes
 		"""
@@ -136,8 +136,20 @@ class clustermanager(object):
 		import socket
 		
 		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile',\
-				'workingdir', 'finalstate', 'analysistype',
+				'finalstate', 'analysistype',
 				'fakeable' ]
+		
+		if workingdir != '':
+			self.cwd = os.path.abspath(workingdir)
+		else:
+			# Sent for submit, no needed for working dir, but check
+			# there are others keywords needed
+			if 'dataname' not in keywords.keys():
+				message = "\033[1;31mclustermanager ERROR\033[1;m Instantiation needs"\
+						" some minimum keywords when it is not introduced the"\
+						" working dir argument"
+				raise RuntimeError(message)
+
 		self.precompile = False
 		self.outputfiles= {}
 		self.leptoncfgfilemap = {}
@@ -175,8 +187,6 @@ class clustermanager(object):
 				self.njobs = int(value)
 			elif key == 'precompile':
 				self.precompile = True
-			elif key == 'workingdir':
-				self.cwd = os.path.abspath(value)
 			elif key == 'finalstate':
 				self.finalstate = value
 			elif key == 'analysistype':
@@ -200,6 +210,62 @@ class clustermanager(object):
 		self.__init__ = True
 		# The class is initialize. Now the process method can be called
 	
+
+	def process(self,action):
+		"""..method:: process([action])
+		Performs the action requiered by the user, submit a job, harvesting
+		or deleting. If it is called with arguments the action mode will be 
+		change to that one introduced
+		"""
+		import os
+
+		if not self.__init__:
+			message = "\033[1;31clustermanager ERROR\033[1;m: It is needed an"\
+					" 'clustermanager' instance to call the 'process' method."
+			raise RuntimeError(message)
+
+		self.__processcall__ = True
+		
+		# Change the state
+		if not action in [ 'submit','resubmit','harvest','delete','resubmit.stalled'] :
+			message = "\033[1;31mclustermanager ERROR\033[1;m: Invalid action '%s'."\
+					" Valid actions are: submit harvest resubmit "\
+					" resubmit.stalled delete" % self.action
+			raise RuntimeError(message)
+
+		self.action = action
+		
+		# In the harvesting or deleting, extracting the clustermanager object
+		# previously stored
+		if self.action == "harvest" or self.action == "resubmit" \
+				or self.action == "resubmit.stalled" or self.action == "delete":
+			PWD = os.getcwd()
+			os.chdir(self.cwd)
+			swapobj = self.retrieve()
+			if swapobj:
+				preserveaction = self.action
+				self = swapobj
+				self.action = preserveaction
+			else:
+				# Already done
+				return None
+
+		if self.action == "submit":
+			self.__doSubmit()
+		elif self.action == "harvest":
+			self.__doHarvest()
+		elif self.action == "delete":
+			self.__doDelete()
+		elif self.action == "resubmit":
+			self.__doResubmit()
+		elif self.action == 'resubmit.stalled':
+			self.__doResubmit_Stalled()
+		else:
+			message = "\033[1;31mclustermanager ERROR\033[1;m: Invalid action '%s'."\
+					" Valid actions are: submit harvest delete" % self.action
+			raise RuntimeError(message)
+	
+
 	def __checkenv(self):
 		"""..method:: __checkenv() -> bool
 		Perfom some environmental checks to be sure the jobs could be
@@ -230,58 +296,6 @@ class clustermanager(object):
 		return True
 		
 
-	def process(self,action):
-		"""..method:: process([action])
-		Performs the action requiered by the user, submit a job, harvesting
-		or deleting. If it is called with arguments the action mode will be 
-		change to that one introduced
-		"""
-		import os
-
-		if not self.__init__:
-			message = "\033[1;31clustermanager ERROR\033[1;m: It is needed an"\
-					" 'clustermanager' instance to call the 'process' method."
-			raise RuntimeError(message)
-
-		self.__processcall__ = True
-		
-		# Change the state
-		if not action in [ 'submit','resubmit','harvest','delete'] :
-			message = "\033[1;31mclustermanager ERROR\033[1;m: Invalid action '%s'."\
-					" Valid actions are: submit harvest delete" % self.action
-			raise RuntimeError(message)
-
-		self.action = action
-		
-		# In the harvesting or deleting, extracting the clustermanager object
-		# previously stored
-		if self.action == "harvest" or self.action == "delete":
-			PWD = os.getcwd()
-			os.chdir(self.cwd)
-			swapobj = self.retrieve()
-			if swapobj:
-				preserveaction = self.action
-				self = swapobj
-				self.action = preserveaction
-			else:
-				# Already done
-				return None
-
-		if self.action == "submit":
-			self.__doSubmit()
-		elif self.action == "harvest":
-			self.__doHarvest()
-		elif self.action == "delete":
-			self.__doDelete()
-		elif self.action == "resubmit":
-			self.__doResubmit()
-		elif self.action == 'resubmit.stalled':
-			self.__doResubmit_Stalled()
-		else:
-			message = "\033[1;31mclustermanager ERROR\033[1;m: Invalid action '%s'."\
-					" Valid actions are: submit harvest delete" % self.action
-			raise RuntimeError(message)
-
 
 	def __doSubmit(self):
 		"""..method:: doSubmit()
@@ -300,6 +314,8 @@ class clustermanager(object):
 					" be called trough the process method."
 			raise RuntimeError(message)
 		self.__processcall__ = False
+
+		# FIXME: Check we have all the datamembers we need
 
 		# Check if we have the names of the data files: FIXME: Nota que con la version
 		# actual del runanalysis no necesito tener el dataname pues me lo busca el mismo !!??
@@ -465,8 +481,8 @@ class clustermanager(object):
 		# coming back
 		os.chdir(prepwd)
 	
-	def __doResubmit_Stalled(self,listoftask):
-		"""..method:: __doResubmit(listoftask)
+	def __doResubmit_Stalled(self):
+		"""..method:: __doResubmit()
 		Send again a list of STALLED jobs
 		"""
 		from subprocess import Popen,PIPE
@@ -475,7 +491,7 @@ class clustermanager(object):
 		for task in self.taskstatus["Stalled"]:
 			listtask.append(task)
 		listtask = list(set(listtask))
-		for task in listtask:
+		for taskid in listtask:
 			command = [ 'qmod','-rj',self.jobid+"."+str(taskid) ]
 			p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 			print "\033[1;33m[clustermanager.__checkjob INFO]\033[1;m: Re-submitting "\
@@ -617,59 +633,8 @@ class clustermanager(object):
 
 		print "Created "+finalfile
 		print "\033[1;34m[clustermanager INFO]\033[1;m",self.dataname,": Harvest completed"
-
-	@staticmethod
-	def getstat(hostname):
-		"""..staticmethod:: getstat() -> { 'jobid': {'taskid': status}, ... }
-		Get and parse string with the result of the 'qstat' cluster utility
-		"""
-		from subprocess import Popen,PIPE
-		import os
-
-                if hostname.find("uniovi") != -1:
-			print "\033[1;32mWARNING\033[1;m New functionalities added"\
-					" to clustermanager. Still not debugged for "\
-					" UNIOVI cluster. Use with caution"
-			command = [ 'qstat','-t','-u',os.getenv("USER") ]
-		else:
-			command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
-		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-		
-		jobs = {}
-		for line in p[0].split("\n")[2:]:
-			parseline = line.split()
-			try:
-				jobid = parseline[0]
-			except IndexError:
-				# There is no job in the cluster
-				continue
-			# Check is not catching an interactive job
-			jobname = parseline[2]
-			if jobname == "QRLOGIN":
-				continue
-
-			status= parseline[4]
-			try:
-				task  = int(parseline[9])
-			except IndexError:
-				# Implies it is still waiting
-				task  = int(parseline[8])
-			except ValueError:
-                                # Working at fanae 
-				jobid  = parseline[0].split(".")[0].split("[")[0]
-				print  parseline[0].split(".")[0].split("[")[0]
-                                task   = parseline[0].split(".")[0].split("[")[1].replace("]","")
-                                status = parseline[9] 
-			try:
-				jobs[jobid][task] = status
-			except KeyError:
-				jobs[jobid] = { task: status }
-
-		if len(jobs) == 0:
-			jobs = None
-			
-		return jobs
-
+	
+	
 	def __checkjob(self, jobsdict,_taskid):
 		"""..method:: __checkjob(taskid)
 		Check and update the status of a job
@@ -748,7 +713,57 @@ class clustermanager(object):
 		self.taskstatus[status].append(taskid)
 		return None
 
+	@staticmethod
+	def getstat(hostname):
+		"""..staticmethod:: getstat() -> { 'jobid': {'taskid': status}, ... }
+		Get and parse string with the result of the 'qstat' cluster utility
+		"""
+		from subprocess import Popen,PIPE
+		import os
 
+                if hostname.find("uniovi") != -1:
+			print "\033[1;32mWARNING\033[1;m New functionalities added"\
+					" to clustermanager. Still not debugged for "\
+					" UNIOVI cluster. Use with caution"
+			command = [ 'qstat','-t','-u',os.getenv("USER") ]
+		else:
+			command = [ 'qstat','-u',os.getenv("USER"),'-g','d' ]
+		p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
+		
+		jobs = {}
+		for line in p[0].split("\n")[2:]:
+			parseline = line.split()
+			try:
+				jobid = parseline[0]
+			except IndexError:
+				# There is no job in the cluster
+				continue
+			# Check is not catching an interactive job
+			jobname = parseline[2]
+			if jobname == "QRLOGIN":
+				continue
+
+			status= parseline[4]
+			try:
+				task  = int(parseline[9])
+			except IndexError:
+				# Implies it is still waiting
+				task  = int(parseline[8])
+			except ValueError:
+                                # Working at fanae 
+				jobid  = parseline[0].split(".")[0].split("[")[0]
+				print  parseline[0].split(".")[0].split("[")[0]
+                                task   = parseline[0].split(".")[0].split("[")[1].replace("]","")
+                                status = parseline[9] 
+			try:
+				jobs[jobid][task] = status
+			except KeyError:
+				jobs[jobid] = { task: status }
+
+		if len(jobs) == 0:
+			jobs = None
+			
+		return jobs
 
 	
 	@staticmethod
@@ -768,17 +783,23 @@ class clustermanager(object):
 				print message
 				return None
 			else:
-				message = "\nclustermanager.retrieve: ERROR Not found the" \
+				message = "\033[1;31mclustermanager.retrieve ERROR]\033[1;m Not found the" \
 					+" class stored in .storedmanager file"
 				raise RuntimeError(message)
 
 		copyself = d["storedmanager"]
+
 		# Check if we are done: NEW 
-		if len(copyself.taskstatus["Done"]) == len(copyself.outputfiles.keys()):
-			message = "clustermanager.retrieve: The job is already DONE!"
-			print message
-			d.close()
-			return None
+		try:
+			if len(copyself.taskstatus["Done"]) == len(copyself.outputfiles.keys()):
+				message = "clustermanager.retrieve: The job is already DONE!"
+				print message
+				d.close()
+				return None
+		except AttributeError:
+			message = "\033[1;31mclustermanager.retrieve ERROR]\033[1;m Massive job failure. See" \
+					+" the *.sh.e* files to see what happened"
+			raise RuntimeError(message)
 
 		return copyself
 		
