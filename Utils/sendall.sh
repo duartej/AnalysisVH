@@ -366,8 +366,8 @@ do
 			fi
 		fi;
 		
-		# Not needed anymore
-		rm -f blacklist.evt;
+		# Not needed anymore -- very slow process, store in the .gz
+		#rm -f blacklist.evt;
 	
 		cd ../; 
 	done
