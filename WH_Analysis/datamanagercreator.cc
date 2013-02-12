@@ -423,6 +423,7 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 		storeXSE = true;
 
 		TString folder;		
+		TString skim("/");
 		if( strncmp(runperiod,"2011",4) == 0 )
 		{
 			folder = "Fall11";
@@ -437,7 +438,6 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 				<< " Not implemented the run period '"
 				<< runperiod << "'. Exiting..."	<< std::endl;
 		}
-		TString skim("/");
 
 		if( dataName.Contains("WH") )
 		{
@@ -573,6 +573,7 @@ void display_usage()
 	std::cout << "    VGamma + Jets  :   [2011] PhotonVJets_Madgraph" << std::endl;
 	std::cout << "                       [2012] WgammaToLNuG ZgammaToLLG" << std::endl;
 	std::cout << "    Zbb + Jets:        Zbb" << std::endl;
+	std::cout << "    ZZ Powheg:         ZZ4E ZZ4Tau ZZ4Mu ZZ2E2Mu ZZ2Mu2Tau ZZ2E2Tau" << std::endl;
 	std::cout << "    Other backgrounds: WZTo3LNu ZZ WW TTbar_Madgraph WJets_Madgraph TW TbarW Fakes" << std::endl;
 }
 
@@ -706,6 +707,14 @@ int main(int argc, char *argv[])
 	// knowndata.insert("WZ"); --> Pythia sample to be deprecated
 	knowndata.insert("WZTo3LNu");
 	knowndata.insert("ZZ");
+	// ZZ powheg
+	knowndata.insert("ZZ4E");
+	knowndata.insert("ZZ4Mu");
+	knowndata.insert("ZZ4Tau");
+	knowndata.insert("ZZ2E2Mu");
+	knowndata.insert("ZZ2Mu2Tau");
+	knowndata.insert("ZZ2E2Tau");
+	// END ZZ powheg
 	knowndata.insert("WW"); // FIXME Use WWTo2L2Nu_MAdgraph ???
 	if( strncmp(runperiod,"2012",4) == 0 )
 	{
