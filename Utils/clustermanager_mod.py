@@ -411,7 +411,7 @@ class clustermanager(object):
 		
 		# If data or Fakes check and copy if exists a blacklist
 		# FIXME: Probably it is has to be introduced other names
-		if self.dataname == "Data" or self.dataname == "Fakes":
+		if self.dataname == "Data" or self.dataname.find("Fakes") == 0:
 			try:
 				blfilename = "blacklist.evt"
 				originalbl = glob.glob(os.path.join(launchDir,blfilename))[0]

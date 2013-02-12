@@ -114,7 +114,7 @@ if __name__ == '__main__':
 				message = "\033[31;1msendcluster: ERROR\033[0m It is mandatory the '-F' option"+\
 						" with the '-k' option"
 		# Instantiate and submit
-		manager = None
+		manager = []
 		for dataname in datanameslist:
 			print "\033[1;34m[sendcluster INFO]\033[1;m:: Dataname: %s" % dataname
 			# Checks and some changes
@@ -131,12 +131,10 @@ if __name__ == '__main__':
 					#		" regular not in FAKE mode. Use the '-k' option if you want to"+\
 					#		" force the FAKE mode in this sample"
 					fakeable = False
-
-			manager = clustermanager(dataname=dataname,cfgfilemap=leptoncfgmap,\
+			manager.append( clustermanager(dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber,\
 					finalstate=opt.finalstate, \
-					analysistype=opt.antype,fakeable=fakeable)
-
+					analysistype=opt.antype,fakeable=fakeable) )
 	elif args[0] == 'harvest':
 		if opt.workingdir is None:
 			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
@@ -190,7 +188,10 @@ if __name__ == '__main__':
 		sys.exit( message )
 	
 	action=args[0]
-	manager.process(action)
+	try:
+		manager.process(action)
+	except AttributeError:
+		map(lambda x: x.process(action), manager)
 	#try:
 	#	manager.process(action)
 	#except:
