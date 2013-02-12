@@ -151,6 +151,8 @@ class processedsample(object):
 				self.cutordered = None
 				self.rowvaldict = None
 				self.rowvaldictReferenced = None
+				self.weight = None
+				self.luminosity = None
 				return
 
 		self.filename = filename
@@ -511,6 +513,62 @@ class processedsample(object):
 
 		return histogram
 
+	def gettotalsys(self,pathmodulesys,channel):
+		"""..method:: setsyserr(pathmodulesys) ->
+		Extracts the relative systematic error associate to
+		this sample. The systematics_mod module is search
+		at the 'pathmodulesys', if it not found it returns 0
+		Otherwise, it returns the square sum of all systematics
+		contributions of this sample in relative values, to
+		be applied to the yields
+
+		:param pathmodulesys: where to find systematics_mod module
+		:type pathmodulesys: str
+		:param channel: the current channel
+		:type channel: str
+
+		:return:
+		:rtype:
+		"""
+		# before nothing see if already was calculated
+		try:
+			return self.syserr
+		except AttributeError:
+			pass
+
+		import os
+		import sys
+		from math import sqrt
+
+		if not os.path.isfile(pathmodulesys+"/systematics_mod.py"):
+			return 0.0
+
+		sys.path.insert(0,pathmodulesys)
+		import systematics_mod
+
+		# -- Checking we have systematics for this sample
+		try: 
+			sysdict = getattr(systematics_mod,"SYS"+self.samplename)
+		except AttributeError:
+			return 0.0
+
+		sumsys2 = 0.0
+		for sysname in sysdict.keys():
+			try:
+				sumsys2 += sysdict[sysname][channel]**2.0
+			except TypeError:
+				# Fakes case: SYSFakes = { 'eee': ...},
+				# so fill the sys with the channel and break the 
+				# bucle because the keys are channels
+				sumsys2 += sysdict[channel]**2.0
+				break
+		
+		# persistency
+		self.syserr = sqrt(sumsys2)		
+
+		return self.syserr
+
+
 
 def getweight(f,lumi=None):
 	"""..function::getweight(f,[lumi=None]) -> float
@@ -766,6 +824,28 @@ def getxserrorsrel(workingpath,**keywords):
 		# [71,111]
 		if mcprod == "Fall11":
 			Ngen = 784391.0  # 0.64 extrapolated from total sample calculation
+			# Also checked with alternative method (and agrees :)):
+			# Values availables:
+			#     N_Gen^{FS}= number of generated events in the Full Sample= 1221134
+			#     N_{Gen,phase}^{FS} = number of gen. events inside the phase space, in the FS=787195
+			#     xs_{wz->3lnu} = cross-section of WZ decaying to 3lnu= 0.876
+			#     Npass = number of events pass the full analysis, weighted, using the partial sample
+			#     Ns    = number of signal events passing the full analysis, weighted and also weighted
+			#             by the luminosity (L)
+			#     L = luminosisty of work (4922.0 pb-1)
+			#     
+			# So, we can extract the equivalent luminosity to use it to see the xs in the phase space
+			# using all the values of the full sample,
+			#    N_{Gen}^{FS}=xs_{wz->3lnu}*L^{equiv}
+			#    N_{Gen,phase}^{FS}= xs_{wz->3lnu,phase}*L^{equiv}
+			# Taking advantage that L^{equiv} is the same in both cases
+			#    xs_{wz->3lnu,phase}=N_{Gen,phase}^{FS}/N_{Gen}^{FS}*xs_{wz->3lnu}
+			# So the number of generated events in the phase space using the partial sample we have is,
+			#    N_{gen,phase}=xs_{wz->3lnu}*L*N_pass/N_s
+			# Substituting by the elements we have
+			#    N_{gen,phase}=N_{Gen,phase}^{FS}/N_{Gen}^{FS}*xs_{wz->3lnu}*L*N_pass/N_s
+
+			#Ngen = 810349.0 # extracted using the 17.81 pb got from MCFM
 		elif mcprod == "Summer12":
 			Ngen = 1449067.0 # see https://github.com/duartej/AnalysisVH/issues/40
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
