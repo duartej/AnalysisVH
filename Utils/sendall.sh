@@ -204,6 +204,11 @@ if [ -f WJets_Madgraph_datanames.dn ]; then
 	rm WJets_Madgraph_datanames.dn;
 fi
 
+echo -e "\e[00;34m[sendall INFO]\e[00;m: Removing ZZ inclusive Madgraph. Using exclusive Powheg instead"
+if [ -f ZZ_datanames.dn ]; then
+	rm ZZ_datanames.dn;
+fi
+
 VGamma="PhotonVJets_Madgraph"
 if [ "X$runperiod" == "X2012" -o "X$runperiod" == "X2012A" -o "X$runperiod" == "X2012B" ]; 
 then
