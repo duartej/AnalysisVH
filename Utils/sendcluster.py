@@ -158,31 +158,6 @@ if __name__ == '__main__':
 			sys.exit( message )
 		
 		manager = clustermanager(opt.workingdir)
-	
-	#elif args[0] == 'resubmit':
-	#	if opt.workingdir is None:
-	#		message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
-	#		sys.exit( message )
-	#	
-	#	if not os.path.exists(opt.workingdir):
-	#		message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
-	#				+"' does not exists"
-	#		sys.exit( message )
-	#	
-	#	manager = clustermanager(workingdir=opt.workingdir)
-	#
-	#elif args[0] == 'resubmit.stalled':
-	#	if opt.workingdir is None:
-	#		message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"
-	#		sys.exit( message )
-	#	
-	#	if not os.path.exists(opt.workingdir):
-	#		message = "\033[31msendcluster: ERROR\033[m the working path '"+opt.workingdir \
-	#				+"' does not exists"
-	#		sys.exit( message )
-	#	
-	#	manager = clustermanager(workingdir=opt.workingdir)
-	
 	else:
 		message = "\033[31msendcluster: ERROR\033[mNot recognized the action '"+args[0]+"'"
 		sys.exit( message )

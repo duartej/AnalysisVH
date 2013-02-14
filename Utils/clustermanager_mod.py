@@ -404,7 +404,8 @@ class clustermanager(object):
 		self.jobid = self.sendjob(bashscriptname)
 
 		# Creating the status tasks dict
-		self.taskstatus = { 'Done': [], 'Undefined': [], 'r': [], 'qw': [], 'Stalled': [] }
+		self.taskstatus = { 'Done': [], 'Undefined': [], 'r': [], 'qw': [], \
+				'Stalled': [], 'Failed': [] }
 
 		#persistency
 		self.store()
@@ -443,14 +444,15 @@ class clustermanager(object):
 
 		newtasklist = []
 		# Extracting list of jobs failed and not in cluster (XXX)
-		for task,filestr in self.outputfiles.iteritems():
-			if not os.path.isfile(filestr):
+		for task in list(set(self.taskstatus["Failed"])):
+		#for task,filestr in self.outputfiles.iteritems():
+		#	if not os.path.isfile(filestr):
 				newtasklist.append(task)
 
 		# Checking the list of jobs are already defined
 		for taskstr in newtasklist:
 			task = int(taskstr)
-			if task not in self.taskidevt.keys():
+			if task not in map(lambda x: x[0],self.taskidevt):
 				message = "\033[1;31mclustermanager ERROR\033[1;m Not possible"
 				message += " re-send a task which wasn't previously defined."
 				message += " First submit a job"
@@ -463,10 +465,6 @@ class clustermanager(object):
 				message += " Canceling re-submit..."
 				raise RuntimeError(message)
 		# send the jobs
-		#self.managerresubmit[RESUBMITED] = clustermanager(dataname=self.dataname,\
-		#		cfgfilemap=self.cfgfilemap,njobs=self.njobs,workingdir=self.cwd,\
-		#		finalstate=self.finalstate,analysistype=self.analysistype,\
-		#		fakeable=self.fakeable,taskidevt=newtaskidevt)
 		taskranges = getedges(newtasklist)
 		self.jobsid = []
 		message = "\033[1;34m[clustermanager INFO]\033[1;m Re-submit '%s'" % self.dataname
@@ -476,6 +474,10 @@ class clustermanager(object):
 			message += "(%i,%i)," % (tasktup[0],tasktup[1])
 		message = message[:-1]+"]"
 		print message
+		# Clearing the taskstatus list
+		for taskid in newtasklist:
+			self.taskstatus["Failed"].remove(taskid)
+
 		self.store()
 
 		# coming back
@@ -496,7 +498,6 @@ class clustermanager(object):
 			p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
 			print "\033[1;33m[clustermanager.__checkjob INFO]\033[1;m: Re-submitting "\
 					" task job in error status: %s.%i" % (self.jobid,taskid)
-		#status = 'Undefined'
 
 
 	def __doHarvest(self):
@@ -516,8 +517,12 @@ class clustermanager(object):
 		foundoutfiles = []
 
 		jobsdict = self.getstat(self.hostname)
+		getexceptionerr = []
 		for taskid,dummy in self.taskidevt:
-			foundoutfiles.append( self.__checkjob(jobsdict,taskid) )
+			try:
+				foundoutfiles.append( self.__checkjob(jobsdict,taskid) )
+			except RuntimeError,e:
+				getexceptionerr.append( e.args[0] )
 			# __checkjob returning None object if the task it wasn't finished
 			if not foundoutfiles[-1]:
 				foundoutfiles = foundoutfiles[:-1]
@@ -527,7 +532,7 @@ class clustermanager(object):
 		outputmessage = ''
 		textstatusdict = { "r": getcolor("Running",32), "qw": getcolor("Queued",30), \
 				"Undefined": getcolor("Undefined",35), "Done": getcolor("Done",34),
-				"Stalled": getcolor("Stalled",31) }
+				"Stalled": getcolor("Stalled",33), "Failed": getcolor("Failed",31) }
 		for status,tasklistunord in self.taskstatus.iteritems():
 			tasklist = sorted(list(set(tasklistunord)))
 			if len(tasklist) == 0:
@@ -544,6 +549,16 @@ class clustermanager(object):
 			self.__gatherfiles()
 		# persistency
 		self.store()
+
+		# If we got exceptions, dump the info
+		if len(getexceptionerr) != 0:
+			message = '\033[31mclustermanager.__checkjob: Something went wrong in the cluster\033[1;m: '
+			message += 'Tasks: ['
+			for i in getexceptionerr:
+				message += "%s," % (i.split(":")[-1].split()[2])
+			message = message[:-1]+"]"
+			message += " are already finished but there is no output root file"
+			raise RuntimeError(message)
 	
 	def __doDelete(self):
 		"""::method __doDelete() 
@@ -643,7 +658,15 @@ class clustermanager(object):
 
 		# be sure to be an int
 		taskid = int(_taskid)
-
+		
+		# Resubmision case
+		if type(self.jobid) == list:
+			# Checking every id
+			for jobid in self.jobsid:
+				swapjobid = self.jobid
+				self.jobid = jobid
+				self.__checkjob(jobsdict,taskid)
+				self.jobid = swapjobid
 		try:
 			jobidpresent = jobsdict[self.jobid]
 			rawstatus = jobsdict[self.jobid][taskid]
@@ -664,6 +687,14 @@ class clustermanager(object):
 				message += "' is already finished but there is no output root file '"
 				message += self.outputfiles[taskid]+"'\n"
 				message += "Check the cluster outputs file"
+				# Update the status
+				self.taskstatus['Failed'].append(taskid)
+				# And remove it from the other dicts
+				for outstatus,tasklist in filter(lambda (x,y): x != 'Failed', self.taskstatus.iteritems()):
+					try:
+						self.taskstatus[outstatus].remove(taskid)
+					except ValueError:
+						pass
 				raise RuntimeError( message )
 			# Gathering the file outputs in order to add
 			self.taskstatus["Done"].append(taskid)
@@ -676,7 +707,7 @@ class clustermanager(object):
 			return self.outputfiles[taskid]
 
 		# Parsing status
-		if rawstatus == "r":
+		if rawstatus == "r" or rawstatus == 'Rr':
 			status = 'r'
 		elif rawstatus == 't':
 			status = 'Stalled'
@@ -693,7 +724,7 @@ class clustermanager(object):
 		#	self.taskstatus["Done"].append(taskid)
 		#	return self.outputfiles[taskid]
 		else:
-			if self.hostname.find("ifca") and rawstatus == "Eqw":
+			if self.hostname.find("ifca") and (rawstatus == "Eqw" or rawstatus == 'ERq'):
 				from subprocess import Popen,PIPE
 
 				command = [ 'qmod','-cj',self.jobid+"."+str(taskid) ]
