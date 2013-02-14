@@ -17,6 +17,8 @@
    + getrounded
    + psitest
    + getsamplenames
+   + builtmetasamples
+   + getmetasamplecomponents
 """
 
 
@@ -186,8 +188,8 @@ class processedsample(object):
 		self.Nskim = None
 		# Including the luminosity, efficiency weights,,...
 		if "Data.root" in self.filename \
-				or "Fakes.root" in self.filename \
-				or "Fakes_Nt3.root" in self.filename:
+				or self.filename.find('Fakes') != -1 \
+				or os.path.basename(self.filename).find('PP') == 0:
 			weight = 1.0
 		else:
 			# 1) Load the InputParameters
@@ -198,21 +200,25 @@ class processedsample(object):
 			xs = array('d',[0.0])
 			luminosity = array('d',[0.0])
 			neventsample = array('i',[0])
-			self.Nsample = neventsample[0]
 			neventsskim  = array('i',[0])
-			self.Nskim = neventsskim[0]
 			ip = f.Get("Set Of Parameters")
 			ip.TheNamedDouble("CrossSection",xs)
 			self.xs = xs[0]
+			if self.title.find('ZZ4') == 0:
+				self.xs = 0.0154
+			elif self.title.find('ZZ2') == 0:
+				self.xs = 0.0308
 			ip.TheNamedInt("NEventsSample",neventsample)
 			ip.TheNamedInt("NEventsTotal",neventsskim)
 			ip.TheNamedDouble("Luminosity",luminosity)
+			self.Nsample = neventsample[0]
+			self.Nskim = neventsskim[0]
 			try: 
 				# Forcing the lumi inputed by the user (if any)
 				luminosity = [ self.luminosity ]
 			except AttributeError:
 				pass
-			weight  = xs[0]*luminosity[0]/neventsample[0]
+			weight  = self.xs*luminosity[0]/self.Nsample
 
 		self.weight = weight
 		try:
@@ -382,11 +388,11 @@ class processedsample(object):
 			raise RuntimeError,"column.getvalue:: the cut '"+cutname+"' is not "+\
 					"defined"
 
-	def getrealvalue(self,cutname):
+	def getrealvalue(self,cutname=None):
 		""".. method:: getrealvalue(cutname) -> (val,err)
 		
 		Returns the yield and its error for a given cut, without normalize to
-		the luminosity
+		the luminosity. If no cutname is introduced it uses the last cut
 
 		:param cutname: the name of the cut where to extract the yield
 		:type cutname: str
@@ -394,6 +400,8 @@ class processedsample(object):
 		:return: the yield and its error at the cutname level
 		:rtype: tuple of floats
 		"""
+		if cutname == None:
+			cutname = self.getcutlist()[-1]
 		try:
 			return tuple(map(lambda x: x/self.weight,self.rowvaldict[cutname]))
 		except KeyError:
@@ -551,6 +559,15 @@ class processedsample(object):
 			sysdict = getattr(systematics_mod,"SYS"+self.samplename)
 		except AttributeError:
 			return 0.0
+
+		# if channel is lll square sum of sys
+		if channel == 'lll':
+			sumsys2 = 0.0
+			for ch in [ 'eee', 'eem', 'mme', 'mmm']:
+				sumsys2 = self.gettotalsys(pathmodulesys,ch)**2.0
+			self.syserr = sqrt(sumsys2)
+			return self.syserr
+
 
 		sumsys2 = 0.0
 		for sysname in sysdict.keys():
@@ -1152,11 +1169,94 @@ def getsamplenames(topfolder):
 			continue
 	return list(set(datanames))
 
+def builtmetasamples(premsamples,availablesamp,metasamples=None):
+	""".. function::builtmetasamples(premsamples,availablesamp[,metasamples]) \
+			-> { metaname: [ sample1, sample2, ...], ... }
+	Built a dictionary with the name of a metasample which is built from other
+	real samples
 
+	:param premsamples: list of pre-built metasamples, which have to be in the metasamples
+	                    input argument or dictionary with with the names of the metasamples
+			    and the list of samples forming it
+	:type premsamples: list(str) or dict(str,list(str))
+	:param availablesamp: list of samples availables inside the working folder
+	:type availablesamp: list(str)
+	:param metasamples: dictionary of metasamples to be updated
+	:type metasamples: dict(str,list(str))
+
+	:return: dictionary with the metasample name as keys and the values are the list of 
+	         the real sample composing it
+	:rtype: dict(str,list(str))		
+	"""
+	import glob
+
+	if not metasamples:
+		metasamples = {}
+
+	# Pre-built metasamples
+	if type(premsamples) == list:
+		for name in premsamples:
+			if not name.lower() in metasamples.keys():
+				message = "\033[1;31mbuiltmetasample ERROR\033[1;m Invalid metasample name"
+				message += ": '%s'. " % name
+				message += " Valids names are " 
+				for i in metsamples.keys():
+					message += "'%s'" % i
+				raise RuntimeError(message)
+	elif type(premsamples) == dict:
+		# Check the samples are available
+		for metaname,namelist in premsamples.iteritems():
+			for name in namelist:
+				if not name in availablesamp:
+					message = "\033[1;31mbuiltmetasample ERROR\033[1;m Metasample "
+					message += "'%s' " % metaname
+					message += "should be built using '%s' which is not " % name
+					message += "present in the working directory.\n"
+					raise RuntimeError(message)
+			# check we don't have some metasamples with the same name
+			if metaname in metasamples.keys():
+				message =  '\033[1;31mplothisto ERROR\033[1;m Sample "%s" introduced with'
+				message += ' -S option and in -m option. Incompatible behaviour'
+				raise RuntimeError(message)			
+		# build the metasamples from the dict of pre-metasamples
+		metasamples.update(premsamples)
+
+	return metasamples
 		
-	
+def getmetasamplecomponents(metasamplename):
+	"""..function:: getmetasamplecomponents(metasamplename) -> [ 'sample1', 'sample2', .... ]
+	Giving a name of a metasample (a sample not present in the working directory), it return
+	the list of real samples (samples which are present in the working directory) and compose
+	the metasample
 
+	:param metasamplename: name of the meta-sample
+	:type metasamplename: str
 
+	:return: the list of real sample composing the meta-sample
+	:rtype: list(str)
 
+	FIXME PROBABLY NOT USED ANYMORE
+	"""
+	components = []
+	if metasample == "DY" and not isusersrequest:
+		components = [ "DYee_Powheg", "DYmumu_Powheg", "DYtautau_Powheg" ]
+	elif metasample == "Z+Jets" and not isusersrequest:
+		components = [ "Zee_Powheg", "Zmumu_Powheg", "Ztautau_Powheg" ]
+	elif metasample == "VGamma" and not isusersrequest:
+		components = [ "ZgammaToElElMad", "ZgammaToMuMuMad", "ZgammaToTauTauMad",\
+				"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
+	elif metasample == "Other" and not isusersrequest:
+		#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
+		components = [ "WJets_Madgraph" ] #, 'WW' ] FIXED WW embeded in data-driven
+	elif metasample in self.usermetasample.keys():
+		components = self.usermetasample[metasample]
+	else:
+		message  = "\033[31mgetsamplecomponents ERROR\033[m '"+metasample+"'" 
+		message += " not recognized. Current valid metasamples are:"
+		message += " 'DY' 'Z+Jets' 'Other' and user introduced '"
+		message += str(self.usermetasample.keys())+"'"
+		raise RuntimeError,message
+
+	return components
 
 
