@@ -9,4 +9,7 @@ bin
 _darcs
 libs
 python
+doc
+doc.tar.gz
+setup.sh
 .gitignore
