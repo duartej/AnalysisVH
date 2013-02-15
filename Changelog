@@ -1,0 +1,191 @@
+*********************************************************************************
+*** Tag releases guidelines: vXX.YY                                            **
+***                                                                            ** 
+***     XX: Increases by one with every change that breaks the precedent tag.  **
+***         It means, that using exactly the same configuration files and the  **
+***         the same scripts, the executables launched have a runtime error    **
+***         or return no-sense results.                                        **
+***                                                                            **
+***     YY: Increases by one with an indetermined bunch of improvements. The   ** 
+***         ouptput will probably change (because new functionalities, bug     ** 
+***         fixes, ...), but it doesn't break with the last tag release.       **
+***                                                                            **
+*********************************************************************************
+
+
+********************
+********************
+**   Changelog    **
+********************
+********************
+
+Feb. 15th 2013-- Tag release v04.04: Synchronization with IRB group
+   * Analysis improvements:
+      - Inclusion of scale factors
+      - Inclusion of the MC WZ and ZZ for the subtraction in the fakes
+      estimation
+      - Inclusion of MC trigger weighting
+      - Inclusion of PPP, PPF PFF and FFF full calculation
+      - Deprecated f/(1-f)Nt2 fakes calculation in favor of eq. 5
+      - Switch to VBTF muons for 2011 analysis
+      - Inclusion of systematics calculation throught the configuration ip
+      files
+      - Inclusion of 2012 analysis (functional but still work in progress)
+      - Synchronization with IRB group:
+        + Muon loose definition iso moved from 0.4 to 1.0
+	+ Blacklist events which should be dropped because some processing
+	filters
+      - New mass window M_Z+-20
+      - Added ZZ Powheg inclusive samples, deprecating the inclusive madgraph
+   * Management improvements:
+      - deprecated Utils/promptsubstract.py in favour of Utils/nt3subtract.py,
+      a more gneral and powerful subtractor
+      - deprecated TResultsTable
+      - new processedsample class, starting point of each analysis processed
+      output file
+      - script to delete jobs
+      - improved sendcluster script allowing resubmision of jobs and better
+      output control
+      - systematic is attached to a working directory, instead of being a
+      python module. They are calculated every time it needs
+      - sendall and collect incorporates the sending and collecting of the
+      systematic
+
+Jun. 14th 2012-- Tag release v04.03: Changed default FR matrices. Cosmethics improvements
+   * Analysis improvements:
+      - Nominals FR matrices: (muons and electrons)
+        + ZJets (before MET cut): 35 (30-muons 'cause do not have it)
+	+ ttbar (after MET cut): 50
+      - Included PPP (ZZ and WZ) substraction to the Fake estimation
+      - Included the check: at least one lepton pass the higher-pt trigger requirement  (when
+        AtLeast3Leptons level)
+      - Included the VGamma (Zgamma + Wgamma) sample 
+      - Changed to the [71,111] mass range of Z (PDG-mass +-20)
+      - Using BLUE method to calculate a combined cross-section
+   * Management improvements:
+      - WManager class manage all kind of factors to be weighted in an event (scale factors, fake
+        rates, ...). Deprecated the FOManager
+      - Almost all post-processors scripts moved to python 
+      - python scripts which can be used as modules (via import) and contain useful functions 
+        or classes are names as: 'somename_mod.py' and they are installed in the system (launching
+	the setup script, it is possible to use them)	
+      - Added several scripts:
+        + Utils/promptsubstract.py   Extract PPP contribution to the Fakes samples. Also creates a
+	                             warning file inside the modified 'cluster_Fakes' directory 
+				     where the raw numbers before the substraction are there
+	+ Utils/plothistopy.py       New python script to plot (instead the old .cc one)
+	+ Utils/xscalc.py            Cross-section calculation script
+	+ Utils/bluemethod.py        Calculation of combined cross-section with the BLUE method
+	+ Utils/LatinoStyle_mod.py   Default cosmethics style (it could be used as python module) 
+	+ Utils/functionspool_mod.py Pool of useful functions (it could be used as python module)
+	+ Utils/systematics_mod.py   Centralized module where to put the systematics values
+	+ Utils/kstest.py            Do a Kolmogorov-Smirnov test (very dependent of the input files)
+	+ Utils/setZgammaXS.py       Provisional script to deal with the incorrect cross-section 
+	                             quoted in the spreadsheet for the VGamma samples	                             
+        + Utils/pdfsystematics.cc    Calculate the systematic due to the PDF (not final version yet)
+      - A lot of cosmethics improvements
+
+Apr. 03rd 2012-- Tag release v04.02: Scale factors incorporation and changes in default sample definitions
+   * Analysis improvements:
+      - Incorporated the WManager class which controls the scale factors (and ideally whatever 
+        efficiency related. So it would superseed the FOManager class, but still not solve some
+	problems so FOManager is still working): Inclusion of scale factors
+      - WZ Analysis has changed the pre-selection cut from require AT LEAST 3 leptons to 
+        EXACTLY 3 leptons
+      - BDT based-id electrons included in the analysis, removing the cut-based id electrons
+      - Changed WZ sample to be an exclusive (fully leptonic) Madgraph (Fall11)
+      - Changed (in all the places where required) the default luminosity to the new value: 4922.0pb-1
+   * Management improvements: 
+      - Shown in the harvesting process (or standard output of runanalysis) the number of muons
+        and electrons whose where selected as no Tight in the Fake sample
+      - Changed default ouput format to .pdf
+      - New script 'getsystematics' to extract the relative differences of several samples (to be 
+        used as systematic extraction)
+      - New output table format, more compact, besides the old one. Added a new column which shown
+        Nobs-Nbkg
+
+Feb. 08th 2012-- Tag release v04.01: Improvements in the analysis and Fakes incorporation
+   * Analysis improvements: 
+      - Anti internal breamsstraulhung cut
+      - Z and W candidate cut levels (in WZ analysis)
+   * Management improvements:
+      - New scripts for send, collect all the samples at once
+      - New histograms added
+   * Fakes incorporation:  it is possible to extract a first estimation of fake background using 
+   the new -F option in runanalysis. The estimation is done assuming:
+      1. p = 1 (prompt ratio)
+      2. TTnT ---> nT ==> weight per event: f/(1-f) where f=f(pt,eta) of the noTight lepton of the
+         event
+      - The manager of this new functionality is FOManager class
+      - Also, added new options to the sendcluster, plothisto, printable, ... scripts to deal with
+        this new mode 
+
+Nov. 16th 2011--  Tag release v2.0 : Deprecated selector dependence of each file
+  * Not needed to created a selector specific for each data file, getting directly the values via
+  the name of the branch. It slows the process a factor ~2.3. Nevertheless, it introduces clarity and
+  do not break the workflow creating a selector for each file (or group of files), also portability
+  between the different types of ntuples. It takes ~20m to process ~1.1M when the v01.00 took ~7m to
+  process ~1.1M of events.
+Nov. 19th 2011-- Tag release v02.01: Included the mixing signatures
+  * Still missing deep checks, but shows reasonable results
+Nov. 25th 2011-- Tag release v03.00: Included the AnalysisBase class
+  * Each concrete analysis inherits from AnalysisBase which take account the interaction with the data
+  * It is needed to virtualize some methods in AnalysisBase in order to let choose the concrete analysis
+  what wants to store
+Dec. 19th 2011-- Tag release v04.00: WZ analysis stable
+  * Deep cleaning of WZ analysis and incorporation of new cuts (dR internal bremsstralung). Results show
+  good agreement data-MC (see WZ2011_MCFall11 dir)
+  * CutLevels is promoted to a package (out of WH_Analysis), the class keeps the cuts order of every 
+  analysis.
+  * Deprecated TResultsTable package in favor of printtable.py script
+  * Analysis workflow up to now:
+     1. Call 'datamanagercreator -r <2011|2011A|2011B> -f <mmm|mme|eem|eee>' to create the 
+     datafiles containing the path to the root files (Name_datanames.dn)
+     2. Create a directory for each final state
+     3. Launch 'sendall SIGNAL', where SIGNAL=WZ or WH
+     4. Collect all outputs with 'collectall SIGNAL'
+     5. Merge all final states into the one (lepton final state) using 'merge3leptonsfs -d dirch1,dirch2,...'
+     6. Do the plots and merge all final states using 'plotall SIGNAL' where SIGNAL can be WHnnn or WZ.
+        nnn is the mass hypothesis
+   You can see what are the actual process calling in each script
+
+Nov. 10th 2011--  Tag release v0.2 : Freeze version with MiniTrees (before change to Latinos)
+  * Improved sendcluster utility (to send analysis to cluster and gather the outputs)
+  * Added haddPlus utility, hadd improved version to deal with InputParamters and TCounterUI
+    objects
+  * Fixed some methods in order to make the plot utilities work with the outputs
+Nov. 11th 2011--  Tag release v0.3 : First version with Latinos
+  * TreeManager include electron methods
+Nov. 13th 2011--  Tag release v1.0 : Analysis independence of the final state
+  * AnalysisVH (will be) base class for a concrete final state analysis, independently of 
+  the final state signature
+  * TreeManager extracts directly the data members of a TChain without build the Tree structure
+  of a file. TO BE DEPRECATED: 
+                              - wrappers methods to get the datamembers of a TChain
+			      - construction of the TreeManagerMiniTrees code, and as consequence
+			      there will be no longer need to launch the datamanagercreator (it will
+			      be renamed to extractdatafiles or something like that)
+
+Nov. 10th 2011--  Tag release v0.2 : Freeze version with MiniTrees (before change to Latinos)
+  * Improved sendcluster utility (to send analysis to cluster and gather the outputs)
+  * Added haddPlus utility, hadd improved version to deal with InputParamters and TCounterUI
+    objects
+  * Fixed some methods in order to make the plot utilities work with the outputs
+Nov. 11th 2011--  Tag release v0.3 : First version with Latinos
+  * TreeManager include electron methods
+Nov. 13th 2011--  Tag release v1.0 : Analysis independence of the final state
+  * AnalysisVH (will be) base class for a concrete final state analysis, independently of 
+  the final state signature
+  * TreeManager extracts directly the data members of a TChain without build the Tree structure
+  of a file. TO BE DEPRECATED: 
+                              - wrappers methods to get the datamembers of a TChain
+			      - construction of the TreeManagerMiniTrees code, and as consequence
+			      there will be no longer need to launch the datamanagercreator (it will
+			      be renamed to extractdatafiles or something like that)
+     
+Nov. 9th 2011 --  Tag release v0.1 : First version working
+  * Synchronised with original-PROOF code (IFCA-UO/WH  MAIN r1.11)
+  * Found a bug in PROOF's code: line 566 'imuon' should be 'i' (r1.12)
+
+TODO:
+  See open issues at https://github.com/duartej/AnalysisVH/issues 
