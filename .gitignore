@@ -1,0 +1,12 @@
+*.o
+*.d
+*.so
+*_cc
+*dict.cxx
+.*
+*dict.h
+bin
+_darcs
+libs
+python
+.gitignore
