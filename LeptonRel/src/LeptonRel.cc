@@ -1,17 +1,19 @@
 #include "LeptonRel.h"
 
 LeptonRel::LeptonRel(const unsigned int & index) 
-	: _p4(0), _index(index), _q(-999), _leptontype(UNDEFINED),_name("")
+	: _p4(0), _category(_undefined),_index(index), _q(-999), _leptontype(UNDEFINED),_name("")
 {
 }
 
 LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index) 
-	: _p4(new TLorentzVector(p)), _index(index), _q(-999), _leptontype(UNDEFINED),_name("")
+	: _p4(new TLorentzVector(p)), _category(_undefined), _index(index), _q(-999), _leptontype(UNDEFINED),_name("")
 {
 }
 
-LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, const int & charge, const LeptonTypes & leptontype)
-	: _p4(new TLorentzVector(p)), _index(index), _q(charge), _leptontype(leptontype)
+LeptonRel::LeptonRel(const TLorentzVector & p, const unsigned int & index, 
+		const int & charge, const LeptonTypes & leptontype,
+		const unsigned int & category)
+	: _p4(new TLorentzVector(p)), _category(category), _index(index), _q(charge), _leptontype(leptontype)
 {
 	if( _leptontype == MUON )
 	{
@@ -33,6 +35,7 @@ LeptonRel::LeptonRel(const LeptonRel & lp)
 	{
 		this->_p4 = 0;
 	}
+	this->_category = lp._category;
 	this->_index = lp._index;
 	this->_q = lp._q;
 	this->_leptontype = lp._leptontype;
@@ -62,6 +65,7 @@ LeptonRel & LeptonRel::operator=(const LeptonRel & l1)
 	}
 	
 	this->_p4 = new TLorentzVector(*(l1._p4));
+	this->_category = l1._category;
 	this->_index = l1._index;
 	this->_q = l1._q;
 	this->_leptontype = l1._leptontype;
@@ -73,9 +77,11 @@ LeptonRel & LeptonRel::operator=(const LeptonRel & l1)
 
 bool LeptonRel::operator ==(const LeptonRel & l1) const
 {
-	// Just the index and the leptontype is enough to check if we 
+	// Just the index, the category and the leptontype is enough to check if we 
 	// have the same object
-	if( (this->_index == l1.index()) &&  (this->_leptontype == l1.leptontype()) )
+	if( (this->_category == l1.category()) && 
+			(this->_index == l1.index()) &&  
+			(this->_leptontype == l1.leptontype()) )
 	{
 		return true;
 	}
