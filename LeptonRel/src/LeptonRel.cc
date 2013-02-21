@@ -77,11 +77,9 @@ LeptonRel & LeptonRel::operator=(const LeptonRel & l1)
 
 bool LeptonRel::operator ==(const LeptonRel & l1) const
 {
-	// Just the index, the category and the leptontype is enough to check if we 
+	// Just the index  and the leptontype is enough to check if we 
 	// have the same object
-	if( (this->_category == l1.category()) && 
-			(this->_index == l1.index()) &&  
-			(this->_leptontype == l1.leptontype()) )
+	if( (this->_index == l1.index()) &&  (this->_leptontype == l1.leptontype()) )
 	{
 		return true;
 	}
