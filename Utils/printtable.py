@@ -8,7 +8,7 @@ from cosmethicshub_mod import LEGENDSDICT as TITLEDICT
 from functionspool_mod import processedsample
 TITLEDICT["Other"]="Other bkg"
 
-ORDERCOLUMNS = [ "Fakes", "ZZ", "Other" ]
+ORDERCOLUMNS = [ "PPP", "PPF", "Fakes", "ZZ", "Other" ]
 
 
 class format(object):
@@ -74,11 +74,13 @@ class format(object):
 		self.format = format
 
 		
-class table(object):
+class table(processedsample):
 	"""
 	"""
 	def __init__(self,data,signal,**keywords):
-		"""..class:: table(data,signal[,format="tex|html", isreduced=True|False, wildcardfiles="dir",join="metasample"]) 
+		"""..class:: table(data,signal[,format="tex|html",\
+				isreduced=True|False, wildcardfiles="dir",join="metasample",\
+				subtract=metasample,force=listofsamples]) 
 		
 		The table is composed by several 'processedsample' instances (see functionspool_mod module), and is 
 		going to be built as
@@ -107,28 +109,35 @@ class table(object):
 			     metasample names and the values are list containing the samples to
 			     merge.
 		:type join: str| [ str, str, ...] | { str: [ str, str, ... ], ... }
+		:param subtract: analogous parameter than join but to subtract
+		:type subtract:  dict(str,list(str))
+		:param force: list of samples to be kept in the table although are inside the
+		              subtract list
+		:type force: list(str)
 		"""
 		import glob
 		import ROOT
 		import os
 		global TITLEDICT
 
-		# First checkings:
-		if not os.getenv("VHSYS"):
-			raise "\033[31mtable ERROR\033[m Initialize your"+\
-					" environment (VHSYS env variable needed)"
 
 		formatprov = None
 
-		validkeywords = [ "format", "isreduced", "join", "wildcardfiles" ]
+		validkeywords = [ "format", "isreduced", "join", "wildcardfiles", \
+				"signalmc", "subtract", "force", "datadriven"]
 		wildcardfiles = "*.root" # Per default
 		join = []
+		subtract = {}
+		subtractmeta = []
+		keepforce = []
 		self.usermetasample = {}
+		self.signalmc = None
+		self.nsignalcolumn = True
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
 				message  = "\033[31mtable ERROR\033[m Incorrect instantiation of 'table'"
 				message += " class. Valid keywords are: "+str(validkeywords)
-				raise message
+				raise RuntimeError(message)
 
 			if key == 'format':
 				formatprov = value
@@ -148,7 +157,25 @@ class table(object):
 					join = self.usermetasample.keys()
 				else:
 					join.append(value)
-
+			elif key == "subtract":
+				subtract = value
+			elif key == "force":
+				keepforce=value
+			elif key == 'signalmc': 
+				self.signalmc = value
+			elif key == 'datadriven':
+				if value == 'PPF':
+					self.nsignalcolumn = True
+				elif value == 'PPP':
+					self.nsignalcolumn = False
+		# Update the usermetasample
+		for metaname,listsamples in subtract.iteritems():
+			if self.usermetasample.has_key(metaname):
+				message = '\033[1;31mtable ERROR[1;m Conflicts between merge and subtract'
+				message += ' sample'
+				raise RuntimeError(message)
+			self.usermetasample[metaname] = listsamples
+			subtractmeta.append(metaname)
 
 		# available filenames
 		self.filenames = glob.glob(wildcardfiles)
@@ -156,7 +183,6 @@ class table(object):
 		# Just to be sure that only use one WH signal (adapted 2012 MC samples)
 		if signal.find("WH") == 0 or signal.find("wztt") == 0:
 			#Extract the other WH signals
-			#potentialSfiles = filter(lambda x : x.find("WH") != -1,self.filenames)
 			# Common between 2011 and 2012 MC signal samples names
 			# FIXME: Add all the signals in the last columns 
 			potentialSfiles = filter(lambda x : x.find("ToWW") != -1,self.filenames)
@@ -170,7 +196,6 @@ class table(object):
 			self.importantcutslist = [ 'Pre-selection', 'DeltaR','ZVeto', 'MET']
 		else:
 			# Added the important cuts to be used in the reduced table case
-			# FIXME WARNING HARDCODED!! --> THis is a temporal patch...
 			self.importantcutsdict = { 'Pre-selection' : 'Exactly3Leptons',
 					'Z' : 'HasZCandidate',  'W': 'MET' }
 			self.importantcutslist = [ 'Pre-selection', 'Z', 'W' ]
@@ -214,14 +239,17 @@ class table(object):
 			if i in self.columntitles:
 				continue
 			# Signal and data will be put after
-			if i == self.signal or i == self.data:
+			if i == self.signal or i == self.data or i == self.signalmc:
 				continue
 			self.columntitles.append(i)
 		# -- Adding the other columns
 		self.columntitles.append( "TotBkg" )
 		self.columntitles.append( self.data )
-		self.columntitles.append( "Data-TotBkg" )
+		if self.nsignalcolumn:
+			self.columntitles.append( "Data-TotBkg" )
 		self.columntitles.append( self.signal )
+		if self.signalmc:
+			self.columntitles.append( self.signalmc )
 		# -- Avoiding repetition (mainly for  DDD-DDM case)
 		dummy = map(lambda x: self.columntitles.remove(x),
 				set(filter(lambda x: self.columntitles.count(x) > 1, self.columntitles)))
@@ -262,7 +290,28 @@ class table(object):
 			# And add to the columntitles data member if not in there
 			if not metasample in self.columntitles:
 				self.columntitles.insert(index,metasample)
+		#2_1) Subtract some samples
+		for metasample in subtractmeta:
+			samplestodelete = []
+			for sample in self.getsamplecomponents(metasample):
+				try:
+					self.columns[metasample] -= self.columns[sample]
+					if sample not in keepforce:
+						samplestodelete.append( sample )
+				except KeyError:
+					# Protecting the case where the pre-defined
+					# samples aren't there (for instance WJets_Madgraph
+					# in the 'Other' metasample)
+					pass
+			# Erase the samples merged 
+			for s2remove in samplestodelete:
+				self.columns.pop(s2remove)
+				index=self.columntitles.index(s2remove)
+				self.columntitles.remove(s2remove)
 
+			# And add to the columntitles data member if not in there
+			if not metasample in self.columntitles:
+				self.columntitles.insert(index,metasample)
 		# format specific
 		self.format = format()
 		if formatprov:
@@ -292,7 +341,7 @@ class table(object):
 					"WgammaToElNuMad", "WgammaToMuNuMad", "WgammaToTauNuMad" ]
 		elif metasample == "Other" and not isusersrequest:
 			#components = [ "TbarW_DR", "TW_DR", "WW", "WJets_Madgraph" ]
-			components = [ "WJets_Madgraph" ] #, 'WW' ] FIXED WW embeded in data-driven
+			components = [ "WJets_Madgraph" ] 
 		elif metasample in self.usermetasample.keys():
 			components = self.usermetasample[metasample]
 		else:
@@ -303,7 +352,6 @@ class table(object):
 			raise RuntimeError,message
 
 		return components
-
 
 	def getMSvalerr(self, cut,sample):
 		""".. function::getMSvalerr( cut, sample ) -> valueanderror
@@ -333,7 +381,10 @@ class table(object):
 		if sample == "TotBkg":
 			val = 0.0
 			err2 = 0.0
-			for s in filter(lambda x: x != self.data and x != self.signal and x != "TotBkg" and x != "Data-TotBkg",self.samples):
+			for s in filter(lambda x: x != self.data and \
+					x != self.signalmc and \
+					x != self.signal and x != "TotBkg" and \
+					x != "Data-TotBkg",self.samples):
 				(v,e) = self.columns[s].getvalue(cut)
 				val += v
 				err2 += e**2.0
@@ -542,7 +593,9 @@ class table(object):
 
 if __name__ == '__main__':
 	import sys
+	import os
 	from optparse import OptionParser
+	from functionspool_mod import getsamplenames,parsermetasamples
 	import glob
 	
 	#Comprobando la version (minimo 2.4)
@@ -556,21 +609,31 @@ if __name__ == '__main__':
 	
 	usage  ="usage: printtable <WZ|WHnnn|Fakes> [options]"
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(output="table.tex",isreduced=False,dataname="Data",wildcardfiles="cluster_*/Results/*.root")
+	parser.set_defaults(output="table.tex",isreduced=False,dataname="Data",\
+			wildcardfiles="cluster_*/Results/*.root",\
+			datadriven='PPF')
 	parser.add_option( '-f', '--filename', action='store', type='string', dest='output', help="Output filename, the suffix defines the format," \
 			" can be more than one comma separated" )
 	parser.add_option( '-r', action='store_true', dest='isreduced', help="More printable version of the table, where several samples have been merged" \
 			" into one. Shortcut for '-j [DY,Z+Jetsj,Other]" )
 	parser.add_option( '-d', action='store', dest='dataname', help='Name of the sample to be used in the role of "data" [Default: Data]')
+	parser.add_option( '-e', action='store', dest='datadriven', metavar="PPF|PPP", \
+			help='Describe what data-driven estimation was used. Using PPF, the '\
+			'table is containing a extra row/column with "Data-Total Background"')
+	parser.add_option( '-s', action='store', dest='signalmc', help='Name of the sample to be used '\
+			'as MC signal, when dealing with PPP estimation')
 	parser.add_option( '-n', action='store', dest='wildcardfiles', help='Path where to find the root '\
 			'filenames to extract the table, it could be wildcards. \033[33mWARNING:\033[m'\
 			' if uses wildcards, be sure to be included between quotes: "whatever*"'\
 			' [Default: "cluster_*/Results/*.root"]')
-	parser.add_option( '-j', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
-			help='Merge two or more samples into one unique metasample,'\
-			' it could be a str defining a pre-built metasample: "DY" "Z+Jets" "Other";'\
-			' it could be a list of strings comma separated which are defining more than one pre-built'\
-			' metasample; or could be metasample names and a list of samples')
+	parser.add_option( '-m', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
+			help=parsermetasamples())
+	parser.add_option( '-S', action='store', dest='subtract', metavar="MS1@S1,S1,...::MS2@...", \
+			help='Subtract to the MS sample the S samples listed'\
+			' Note that the sample subtracted are going to be deleted from the plot, if you want to'\
+			' keep any of them, you have to use the option --force')
+	parser.add_option( "--force", action='store', dest='force', metavar='SAMPLE1,SAMPLE2,...',\
+			help='Force keeping in the plot the samples subtracted using the option "-S"')
 	parser.add_option( '-a', "--addname", action='store', dest='samplenames', 
 			metavar="newname1@oldname1[,newname2@oldname2,...]",
 			help='Change the name which a sample'\
@@ -601,21 +664,40 @@ if __name__ == '__main__':
 	if signal.find("WZ") == 0:
 		signal = signal.replace("WZ","WZTo3LNu")
 
+	signalmc = None
+	if opt.signalmc:
+		signalmc = opt.signalmc
+		if signalmc.find("WZ") == 0:
+			signalmc = signalmc.replace("WZ","WZTo3LNu")
+
 	if opt.join:
-		if opt.join.find("@") != -1:
-			# Dictionary build
-			keyvallist = opt.join.split("::")
-			join = {}
-			for items in keyvallist:
-				kv = items.split("@")
-				join[kv[0]] = kv[1].split(",")
-			# FIXME: Comprobacion de errores?
-		elif opt.join.find(","):
-			join = opt.join.split(",")
-		else:
-			join = opt.join
+		join = parsermetasamples(opt.join)
 	else:
 		join = []
+
+	subtract = {}
+	if opt.subtract:
+		for listofsamples in opt.subtract.split("::"):
+			refsample = listofsamples.split('@')[0]
+			try:
+				sampleslist = listofsamples.split('@')[1].split(",")
+			except IndexError:
+				message = '\033[1;31mprinttable ERROR\033[1;m Invalid syntax for the'
+				message += ' -S option. Option catched as \'%s\'' % opt.subtract
+				raise SyntaxError(message)
+			subtract[refsample] = [ x for x in sampleslist ] 
+	forcekeep = []
+	if opt.force and len(subtract) == 0:
+		message = '\033[1;33mprinttable WARNING\033[1;m Ignoring --force option, it should'
+		message += ' be called with -S option...' 
+	elif opt.force:
+		available = getsamplenames(os.getcwd())
+		forcekeep = opt.force.split(",")
+		for sname in forcekeep:
+			if sname not in available:
+				message = '\033[1;31mplothisto ERROR\033[1;m Force keep sample "%s"' % sname
+				message += ' with --force option. But it is not available'
+				raise RuntimeError(message)
 
 	# If the user wants to incorporate some names 
 	if opt.samplenames:
@@ -629,12 +711,15 @@ if __name__ == '__main__':
 			TITLEDICT[oldnew_list[1]]=oldnew_list[0]
 			dosomething=True
 		if not dosomething:
-			sys.exit(message)
+			raise RuntimeError(message)
 
 
 	print "\033[34mprinttable INFO\033[m Creating yields table for "+signal+" analysis",
 	sys.stdout.flush()
-	t = table(opt.dataname,signal,isreduced=opt.isreduced,wildcardfiles=opt.wildcardfiles,join=join)
+	t = table(opt.dataname,signal,isreduced=opt.isreduced,\
+			wildcardfiles=opt.wildcardfiles,join=join,\
+			subtract=subtract,force=forcekeep,signalmc=signalmc,
+			datadriven=opt.datadriven)
 	print "( ",
 	sys.stdout.flush()
 	for fileoutput in opt.output.split(","):
