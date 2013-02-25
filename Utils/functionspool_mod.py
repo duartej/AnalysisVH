@@ -309,15 +309,18 @@ class processedsample(object):
 			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
 			addeddict[cutname] = (val,swap)
 
-		result = processedsample("",nobuilt=True)
-		result.rowvaldict = addeddict
-		result.cutordered = self.cutordered
-		result.rowvaldictReferenced = self.rowvaldict.copy()
-		result.showall = self.showall
-		result.weight = self.weight
-		result.luminosity = self.luminosity
+#		result = processedsample("",nobuilt=True)
+#		result.rowvaldict = addeddict
+#		result.cutordered = self.cutordered
+#		result.rowvaldictReferenced = self.rowvaldict.copy()
+#		result.showall = self.showall
+#		result.weight = self.weight
+#		result.luminosity = self.luminosity
+		self.rowvaldictReferenced = self.rowvaldict.copy()
+		self.rowvaldict = addeddict
 
-		return result
+		#return result
+		return self
 
 
 	def __sub__(self,other):
@@ -357,15 +360,19 @@ class processedsample(object):
 			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
 			addeddict[cutname] = (val,swap)
 
-		result = processedsample("",nobuilt=True)
-		result.rowvaldict = addeddict
-		result.cutordered = self.cutordered
-		result.rowvaldictReferenced = self.rowvaldict.copy()
-		result.showall = self.showall
-		result.weight = self.weight
-		result.luminosity = self.luminosity
+#		result = processedsample("",nobuilt=True)
+#		result.rowvaldict = addeddict
+#		result.cutordered = self.cutordered
+#		result.rowvaldictReferenced = self.rowvaldict.copy()
+#		result.showall = self.showall
+#		result.weight = self.weight
+#		result.luminosity = self.luminosity
 
-		return result
+#		return result
+		self.rowvaldictReferenced = self.rowvaldict.copy()
+		self.rowvaldict = addeddict
+
+		return self
 
 	def getvalue(self,cutname=None):
 		""".. method:: getvalue(cutname=None) -> (val,err)
@@ -586,6 +593,17 @@ class processedsample(object):
 		return self.syserr
 
 
+def listdec(input_, output_):
+	"""..function:: listdec( listcomplex ) -> list
+	Decompose a list mady of any kind of list or atomic values into
+	a list made only of atomic values
+	"""
+	if type(input_) is list:
+		for subitem in input_:
+			listdec(subitem, output_)
+	else:
+		output_.append(input_)
+
 
 def getweight(f,lumi=None):
 	"""..function::getweight(f,[lumi=None]) -> float
@@ -652,8 +670,9 @@ def extractyields(fileroot,**keywords):
 	if type(fileroot) != list:
 		filelist.append(fileroot)
 	elif type(fileroot) == list:
-		for i in fileroot:
-			filelist.append(i)
+		listdec(fileroot,filelist)
+		#for i in fileroot:
+		#	filelist.append(i)
 	else:
 		message  = "\033[1;31mextractyields ERROR\033 Not valid argument type for '%s'"
 		message += " argument. It must be a list of string or a string denoting the"
@@ -909,7 +928,14 @@ def getxserrorsrel(workingpath,**keywords):
 			s = i.split("cluster_")[-1]
 			p = os.path.join(i,"Results/"+s+".root")
 			samplerootdir[s] = p
-
+		# Patch to include the Powheg ZZ
+		if not samplerootdir.has_key('ZZ'):
+			zzpowhegs = map(lambda (n,froot): n, filter(lambda (name,froot): name.find('ZZ') == 0, \
+					samplerootdir.iteritems()))
+			samplerootdir['ZZ'] = map(lambda name: samplerootdir[name], zzpowhegs)
+			# and removing the powheg entries
+			dum = map(lambda x: samplerootdir.pop(x), zzpowhegs)
+		
 		# ================= 1. Extract yields
 		# -- get the table built by the printtable script
 		#asciirawtable = gettablecontent(os.path.join(workingpath,pathchannel),channel)
@@ -1168,6 +1194,41 @@ def getsamplenames(topfolder):
 			datanames += names
 			continue
 	return list(set(datanames))
+
+def parsermetasamples(line2parse=None):
+	"""..function:: parsermetasamples()
+	"""
+	if not line2parse:
+		# Return a help string
+		help = 'Merge two or more samples into one unique metasample, '
+		help+= 'it could be a str defining a pre-built metasample: '
+		help+= '"DY" "Z+Jets" "Other"; it could be a list of strings '
+		help+= 'comma separated which are defining more than one pre-'
+		help+= 'built metasample; or could be metasample names and a'
+		help+= 'list of samples'
+		return help
+
+	if line2parse.find('@') != -1:
+		# dictionary build
+		join = {}
+		for listofsamples in line2parse.split("::"):
+			refsample = listofsamples.split('@')[0]
+			try: 
+				sampleslist = listofsamples.split('@')[-1].split(',')
+			except IndexError:
+				message = '\033[1;31mparsermetasamples ERROR\033[1;m Invalid syntax: '
+				message += '"%s". The syntax must be S1@s1,s2,..::S2@p1,p2,p3..' % line2parse
+				raise SyntaxError(message)
+			join[refsample] = [ x for x in sampleslist ]
+	elif join.find(','):
+		# list of pre-built samples
+		joing = line2parse.split(',')
+	else:
+		# a unique pre-built sample
+		join = line2parse
+
+	return join
+
 
 def builtmetasamples(premsamples,availablesamp,metasamples=None):
 	""".. function::builtmetasamples(premsamples,availablesamp[,metasamples]) \
