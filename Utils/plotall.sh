@@ -82,7 +82,7 @@ fi
 
 autobin=""
 fakemode=""
-isreduced="-j DY,Z+Jets,Other"
+isreduced="-m DY,Z+Jets,Other"
 fakeasdata=""
 ctsample=""
 
@@ -93,8 +93,8 @@ while getopts l:r:Ffach opt;
 			l)	luminosity=$OPTARG;;
 			a)	autobin="yes";;
 			F)	fakemode="-F";
-				#isreduced="-j Other@TbarW_DR,TW_DR,WJets_Madgraph,WW";;
-				#isreduced="-j VGamma";;
+				#isreduced="-m Other@TbarW_DR,TW_DR,WJets_Madgraph,WW";;
+				#isreduced="-m VGamma";;
 				isreduced="";;
 			f) 	fakeasdata="yes";
 			        isreduced="";;
@@ -120,10 +120,11 @@ then
 	if [ "$runperiod" == "2011" ];
 	then
 		luminosity=4922.0;
+		isreduced="-m ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2Mu2Tau,ZZ2E2Tau"
 	elif [ "$runperiod" == "2012" ];
 	then
 		luminosity=12103.3
-		isreduced="-j VGamma@WgammaToLNuG,ZgammaToLLG"
+		isreduced="-m VGamma@WgammaToLNuG,ZgammaToLLG"
 	else
 		echo "[plotall] WARNING: the run period introduced is not supported. Changing to '2011'"
 		luminosity=4922.0
@@ -211,11 +212,11 @@ then
 	then
 		signal="TTbar_2L2Nu_Powheg"
 		data="DDM_TTbar"
-		isreduced="-j TTbar@TTbar_2L2Nu_Powheg::DDM_TTbar@TTbar_2L2Nu_Powheg_WEIGHTED"
+		isreduced="-m TTbar@TTbar_2L2Nu_Powheg::DDM_TTbar@TTbar_2L2Nu_Powheg_WEIGHTED"
 	else
 		signal="ZJets"
 		data="DDM_ZJets"
-		isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg::DDM_ZJets@Ztautau_Powheg_WEIGHTED,Zee_Powheg_WEIGHTED,Zmumu_Powheg_WEIGHTED,DYtautau_Powheg_WEIGHTED,DYee_Powheg_WEIGHTED,DYmumu_Powheg_WEIGHTED"
+		isreduced="-m ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg::DDM_ZJets@Ztautau_Powheg_WEIGHTED,Zee_Powheg_WEIGHTED,Zmumu_Powheg_WEIGHTED,DYtautau_Powheg_WEIGHTED,DYee_Powheg_WEIGHTED,DYmumu_Powheg_WEIGHTED"
 	fi
 	# Plotmode 0 to include the signal at the THStack and patching to allow the -d 
 	plotmode="0 -d $data"
@@ -228,7 +229,7 @@ then
 	signal="Fakes"
 	data="Fakes"
 	fakeasdata="-f"
-	isreduced="-j ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg"
+	isreduced="-m ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg"
 
 fi
 
@@ -251,7 +252,7 @@ do
 	for i in $HISTOSNOC;
 	do
 		# open a subshell
-		($plothistoexe $i -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata $isreduced -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -259,7 +260,7 @@ do
 	done;
 	if [ "X$j" == "Xleptonchannel" ];
 	then
-		($plothistoexe fHFlavour -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) & 
+		($plothistoexe fHFlavour -r 1 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata $isreduced -u -o) & 
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -268,7 +269,7 @@ do
 	
 	for i in $HISTOS4B;
 	do
-		($plothistoexe $i $rbinoption4 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption4 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata $isreduced -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
@@ -277,7 +278,7 @@ do
 	
 	for i in $HISTOS8B;
 	do
-		($plothistoexe $i $rbinoption8 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata -u -o) &
+		($plothistoexe $i $rbinoption8 -s $signal -p $plotmode -R $runperiod -l $luminosity $fakemode $fakeasdata $isreduced -u -o) &
 		NPROC=$(checkprocs $NPROC $NCPU)
 		if [ $NPROC -eq 0 ]; then
 			wait;
