@@ -614,13 +614,6 @@ unsigned int ElecSelection::SelectBasicLeptons()
 	// Empty the selected muons vector --> Redundant to be removed
 	_selectedbasicLeptons->clear();
 	
-	// Be ready the notightLeptons if proceed
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
-	{
-		_notightLeptons = new std::vector<LeptonRel>;
-		_registeredcols->push_back(&_notightLeptons);
-	}
-	
 	// Loop over electrons
 	for(unsigned int i=0; i < _data->GetSize<float>("T_Elec_Px"); ++i) 
 	{
@@ -806,9 +799,10 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		
 		if( !isolatedMuon )
 		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
 			{
-				_notightLeptons->push_back(*it);
+				it->setcategory(LeptonRel::FAIL);
+				_selectedIsoLeptons->push_back(*it);
 			}
 			continue;
 		}
@@ -818,14 +812,16 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		// following cut because is not an isolated cut
 		if( ! this->IsPassBDT(i) )
 		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
 			{
-				_notightLeptons->push_back(*it);
+				it->setcategory(LeptonRel::FAIL);
+				_selectedIsoLeptons->push_back(*it);
 			}
 			continue;
 		}
 		
 		// If we got here it means the muon is good
+		it->setcategory(LeptonRel::TIGHT);
 		_selectedIsoLeptons->push_back(*it);
 	}
 	
@@ -845,7 +841,6 @@ unsigned int ElecSelection::SelectGoodIdLeptons()
 	if( _selectedGoodIdLeptons == 0)
 	{
 		this->GetNGoodIdLeptons();
-		//_selectedGoodIdLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -891,6 +886,11 @@ unsigned int ElecSelection::SelectLooseLeptons()
 	}
 	
 	// Note that all the selected basic electrons are loose
+	for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
+			it != _selectedbasicLeptons->end(); ++it)
+	{
+		it->setcategory(LeptonRel::LOOSE);
+	}
 	return _selectedbasicLeptons->size();
 }
 

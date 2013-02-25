@@ -238,34 +238,6 @@ unsigned int CutManager::GetNIsoLeptons()
 	{
 		size = _selectedIsoLeptons->size();
 	}
-	// If we are at fake mode, at this stage it is need
-	// to separate the tight and no tight leptons but
-	// the _selectedGoodIdLeptons have tight+notights
-	if( this->IsInFakeableMode() )
-	{
-		// Build the tight
-		_tightLeptons = new std::vector<LeptonRel>;
-		_registeredcols->push_back(&_tightLeptons);
-		for(unsigned int i = 0; i < size; ++i)
-		{
-			_tightLeptons->push_back( _selectedIsoLeptons->at(i) );
-		}
-		// Plus the notight (if we're don't using all the nLeptons as tights
-		if( _nTights != _nLeptons )
-		{
-			const unsigned int notightsize = _notightLeptons->size();
-			for(unsigned int i = 0; i < notightsize; ++i)
-			{
-				_selectedIsoLeptons->push_back( _notightLeptons->at(i) );
-			}
-			// Keep track of the lepton type if proceed (mixing classes)
-			// Is at this level when _selected Vector has the tight, notight
-			// merged collection
-			//this->SyncronizeLeptonType();  //-- TO BE DEPRECATED??
-			
-			size += notightsize;		
-		}
-	}
 
 	return size;
 }
@@ -283,16 +255,93 @@ unsigned int CutManager::GetNGoodIdLeptons()
 	{
 		size = _selectedGoodIdLeptons->size();
 	}
-	// If we are at fake mode, at this stage it is need
-	// to update the tight and no tight collections with the new
-	// results 
-	if( this->IsInFakeableMode() )
-	{
-		this->UpdateFakeableCollections(_selectedGoodIdLeptons);
-	}
 
 	return size;
 }
+
+//! Get the Tight leptons (passing the PV, Iso and ID cuts)
+std::vector<LeptonRel> * CutManager::GetTightLeptons()
+{
+	// Not in fakeable mode, tight are the total leptons
+	// of the analysis
+	if( ! this->IsInFakeableMode() )
+	{
+		return _selectedGoodIdLeptons;
+	}
+
+	// Check we have the selected good, it has no sense instead
+	if( _selectedGoodIdLeptons == 0 )
+	{
+		std::cerr << "\033[1;31mCutManager::GetTightLeptons ERROR\033[1;m" 
+			<< " Function called before selected the Good Id leptons" 
+			<< " Exiting..." << std::endl;
+		exit(-1);
+	}
+
+	if( _tightLeptons != 0 )
+	{
+		return _tightLeptons;
+	}
+	
+	// Built the vector the first time you call this function
+	_tightLeptons = new std::vector<LeptonRel>;
+	_registeredcols->push_back(&_tightLeptons);
+
+	for(std::vector<LeptonRel>::const_iterator it = _selectedGoodIdLeptons->begin();
+			it != _selectedGoodIdLeptons->end(); ++it)
+	{
+		if( it->category() != LeptonRel::TIGHT )
+		{
+			continue;
+		}
+		_tightLeptons->push_back(*it);
+	}
+
+	return _tightLeptons;
+}
+
+//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
+std::vector<LeptonRel> * CutManager::GetNoTightLeptons()
+{
+	// Not in fakeable mode, no sense calling this function
+	if( ! this->IsInFakeableMode() )
+	{
+		std::cerr << "\033[1;31mCutManager::GetNoTightLeptons ERROR\033[1;m" 
+			<< " No in Fakeable mode, so there are no loose defined." 
+			<< " Exiting..." << std::endl;
+		exit(-1);
+	}
+	// Check we have the selected good, it has no sense instead
+	if( _selectedGoodIdLeptons == 0 )
+	{
+		std::cerr << "\033[1;31mCutManager::GetNoTightLeptons ERROR\033[1;m" 
+			<< " Function called before selected the Good Id leptons" 
+			<< " Exiting..." << std::endl;
+		exit(-1);
+	}
+
+	if( _notightLeptons != 0 )
+	{
+		return _notightLeptons;
+	}
+
+	// Built the vector the first time you call this function
+	_notightLeptons = new std::vector<LeptonRel>;
+	_registeredcols->push_back(&_notightLeptons);
+
+	for(std::vector<LeptonRel>::const_iterator it = _selectedGoodIdLeptons->begin();
+			it != _selectedGoodIdLeptons->end(); ++it)
+	{
+		if( it->category() != LeptonRel::FAIL )
+		{
+			continue;
+		}
+		_notightLeptons->push_back(*it);
+	}
+
+	return _notightLeptons;
+}
+
 
 // Scale factor to be applied to lepton pt (momentum/energy scale systematic)
 void CutManager::SetPtSystematicFactor(const double & smu, 
@@ -322,8 +371,8 @@ bool CutManager::IspassExactlyN()
 
 	if( this->IsInFakeableMode() )
 	{
-		return ( (_tightLeptons->size() == _nTights) &&
-				(_notightLeptons->size() == _nFails) );
+		return ( (this->GetNTightMeasured() == _nTights) &&
+				(this->GetNFailMeasured() == _nFails) );
 	}
 	else
 	{
@@ -333,7 +382,7 @@ bool CutManager::IspassExactlyN()
 }
 
 
-//
+//Check it is pass at least the wanted leptons, but after selectedGoodIdLeptons
 bool CutManager::IspassAtLeastN()
 {
 	// Note that must be at the stage of Good ID
@@ -341,8 +390,8 @@ bool CutManager::IspassAtLeastN()
 			"The CutManager::IspassAtLeastN method must be called AFTER CutManager::GetNGoodIdLeptons" );
 	if( this->IsInFakeableMode() )
 	{
-		return ( (_tightLeptons->size() >= _nTights) &&
-			(_notightLeptons->size() >= _nFails) );		
+		return ( (this->GetNTightMeasured() >= _nTights) &&
+			(this->GetNFailMeasured() >= _nFails) );		
 	}
 	else
 	{
@@ -350,69 +399,10 @@ bool CutManager::IspassAtLeastN()
 	}
 }
 
-//Overloaded method: it is allowed any combination of Tight, Loose
-bool CutManager::IspassAtLeastN(const unsigned int & nLeptons,const unsigned int & nTights)
+//Overloaded method: TO BE DEPRECATED: Now the _selected* collections
+//contain the full number of (tight+notight) lepton, so do not need this function
+bool CutManager::IspassAtLeastN(const unsigned int & nWantedPass,const unsigned int & nCheckToPass)
 {
-	unsigned int size = nTights;
-
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
-	{
-		assert( (_notightLeptons != 0) &&
-				"CutManager::IspassAtLeastN called and it doesn't make sense to called it at this stage" );
-		size += _notightLeptons->size();
-	}
-
-	return size >= nLeptons;
+	return nCheckToPass >= nWantedPass;
 }
-
-// Update the tight and no tight collection, the vector introduced as argument
-// contains the final result:  [ tight1,...,tightN,notight1,..., notightN]
-void CutManager::UpdateFakeableCollections( const std::vector<LeptonRel> * finalcol)
-{
-	if( ! this->IsInFakeableMode() )
-	{
-		return;
-	}
-
-	if( finalcol == 0 || _tightLeptons == 0 || _notightLeptons == 0)
-	{
-		std::cerr << "\033[1;31mCutManager::UpdateFakeableCollections ERROR\033[1;m" 
-			<< "Incoherent use of this function" << std::endl;
-		exit(-1);
-	}
-
-	// Mixing channel: already done
-	if( this->WasAlreadyUpdated() )
-	{
-		return;
-	}
-
-	std::vector<LeptonRel> *tight = new std::vector<LeptonRel>;
-	std::vector<LeptonRel> *notight = new std::vector<LeptonRel>;
-	for(std::vector<LeptonRel>::const_iterator it = finalcol->begin(); it != finalcol->end(); ++it)
-	{
-		if( std::find(_tightLeptons->begin(),_tightLeptons->end(), *it) != 
-				_tightLeptons->end() )
-		{
-			tight->push_back( *it );
-			continue;
-		}
-		if( std::find(_notightLeptons->begin(),_notightLeptons->end(), *it) != 
-				_notightLeptons->end() )
-		{
-			notight->push_back( *it );
-			continue; 
-		}
-	}
-
-	_tightLeptons->clear();
-	*_tightLeptons = *tight;
-	
-	_notightLeptons->clear();
-	*_notightLeptons = *notight;
-
-	delete tight;
-	delete notight;
-}
-
 

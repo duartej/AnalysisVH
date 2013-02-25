@@ -1061,8 +1061,8 @@ double AnalysisBase::GetPPFWeightApprx(const bool & zjetsregion)
 	}
 
 	double puw = 1.0;
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
-			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * fail = fLeptonSelection->GetNoTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = fail->begin(); it != fail->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1092,8 +1092,8 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
-			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * tight = fLeptonSelection->GetTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = tight->begin(); it != tight->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1102,8 +1102,8 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
-			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * fail = fLeptonSelection->GetNoTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = fail->begin(); it != fail->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1112,8 +1112,8 @@ double AnalysisBase::GetPPFWeight(const bool & zjetsregion)
 		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
 	}
 	
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
+	const unsigned int ntight = tight->size();
+	const unsigned int nfailing = fail->size();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 
@@ -1190,8 +1190,8 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
-			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * tight = fLeptonSelection->GetTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = tight->begin(); it != tight->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1200,8 +1200,8 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
-			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * fail = fLeptonSelection->GetNoTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = fail->begin(); it != fail->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1210,9 +1210,8 @@ double AnalysisBase::GetPFFWeight(const bool & zjetsregion)
 		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
 	}
 	
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
-	
+	const unsigned int ntight = tight->size();
+	const unsigned int nfailing = fail->size();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 
@@ -1289,8 +1288,8 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
-			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * tight = fLeptonSelection->GetTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = tight->begin(); it != tight->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1299,8 +1298,8 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
-			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * fail = fLeptonSelection->GetNoTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = fail->begin(); it != fail->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1309,9 +1308,8 @@ double AnalysisBase::GetFFFWeight(const bool & zjetsregion)
 		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
 	}
 	
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
-	
+	const unsigned int ntight = tight->size();
+	const unsigned int nfailing = fail->size();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 
@@ -1378,8 +1376,8 @@ double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
 	std::vector<double> p; // index ordered in tight-noTight
 	std::vector<double> f;
 	// 1. Tight 
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetTightLeptons()->begin(); 
-			it != fLeptonSelection->GetTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * tight = fLeptonSelection->GetTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = tight->begin(); it != tight->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1388,8 +1386,8 @@ double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
 		f.push_back(properFR->GetWeight(ileptontype,pt,eta));
 	}
 	// 2. NoTight (or failing)
-	for(std::vector<LeptonRel>::iterator it = fLeptonSelection->GetNoTightLeptons()->begin(); 
-			it != fLeptonSelection->GetNoTightLeptons()->end(); ++it)
+	const std::vector<LeptonRel> * fail = fLeptonSelection->GetNoTightLeptons();
+	for(std::vector<LeptonRel>::const_iterator it = fail->begin(); it != fail->end(); ++it)
 	{
 		const double pt  = it->getP4().Pt();
 		const double eta = it->getP4().Eta();
@@ -1398,8 +1396,8 @@ double AnalysisBase::GetPPPWeight(const bool & zjetsregion)
 		f.push_back( properFR->GetWeight(ileptontype,pt,eta) );
 	}
 	
-	const unsigned int ntight = fLeptonSelection->GetNAnalysisTightLeptons();
-	const unsigned int nfailing = fLeptonSelection->GetNAnalysisNoTightLeptons();
+	const unsigned int ntight = tight->size();
+	const unsigned int nfailing = fail->size();
 	// Weights applied to each lepton as map-> index: weight
 	// Estimated as prompt pass (tight) and fail (no tight)
 	std::map<int,double> wPromptPass; 

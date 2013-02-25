@@ -308,13 +308,6 @@ unsigned int LeptonMixingSelection::SelectBasicLeptons()
 	const int nselectedMuons = fMuonSelection->GetNBasicLeptons();
 	const int nselectedElecs = fElecSelection->GetNBasicLeptons();
 	
-	// Be ready the notightLeptons if proceed
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
-	{
-		_notightLeptons = new std::vector<LeptonRel>;
-		_registeredcols->push_back(&_notightLeptons);
-	}
-
 	// ordering by Pt
 	// -- Muons
 	std::map<double,LeptonRel> ordermap;
@@ -390,10 +383,6 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		{
 			if( ! isfound(*it,fMuonSelection->_closeToPVLeptons) )
 			{
-				if( _samplemode == CutManager::FAKEABLESAMPLE )
-				{
-					_notightLeptons->push_back(*it);
-				}
 				continue;
 			}
 		}
@@ -401,14 +390,9 @@ unsigned int LeptonMixingSelection::SelectLeptonsCloseToPV()
 		{
 			if( ! isfound(*it,fElecSelection->_closeToPVLeptons) )
 			{
-				if( _samplemode == CutManager::FAKEABLESAMPLE )
-				{
-					_notightLeptons->push_back(*it);
-				}
 				continue;
 			}
 		}
-
 		_closeToPVLeptons->push_back(*it);
 	}
 
@@ -427,7 +411,6 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	if( _selectedIsoLeptons == 0)
 	{
 		this->GetNIsoLeptons();
-		//_selectedIsoLeptons = new std::vector<int>;
 	}
 	
 	// First check is already was run over close to PV muons
@@ -436,15 +419,13 @@ unsigned int LeptonMixingSelection::SelectIsoLeptons()
 	{
 		this->SelectLeptonsCloseToPV();
 	}
+
 	// Muons
 	fMuonSelection->GetNIsoLeptons();
 	// Electrons
 	fElecSelection->GetNIsoLeptons();
-	//Loop over selected muons
+
 	//Loop over selected leptons
-for(unsigned int i = 0; i < _closeToPVLeptons->size(); ++i)
-{
-} 
 	for(std::vector<LeptonRel>::iterator it = _closeToPVLeptons->begin(); 
 			it != _closeToPVLeptons->end(); ++it)
 	{
@@ -459,18 +440,6 @@ for(unsigned int i = 0; i < _closeToPVLeptons->size(); ++i)
 				continue;
 			}
 			
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
-			{
-				// Otherwise, store the no-tight info 
-				if( ! isfound(*it,fMuonSelection->_tightLeptons) )
-				{
-					_notightLeptons->push_back(*it);
-					// And continue because the GetNIsoLepton function
-					// already take into account to incorporate the notights
-					// to the selected collection
-					continue;
-				}
-			}
 		}
 		else if( it->leptontype() == ELECTRON )
 		{
@@ -480,18 +449,6 @@ for(unsigned int i = 0; i < _closeToPVLeptons->size(); ++i)
 				continue;
 			}
 
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
-			{
-				// Otherwise, store the no-tight info
-				if( ! isfound(*it,fElecSelection->_tightLeptons) )
-				{
-					_notightLeptons->push_back(*it);
-					// And continue because the GetNIsoLepton function
-					// already take into account to incorporate the notights
-					// to the selected collection
-					continue;
-				}
-			}
 		}
 		_selectedIsoLeptons->push_back(*it);
 	}
@@ -525,23 +482,35 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 	// Electrons
 	fElecSelection->GetNGoodIdLeptons();
 	
-	//Loop over selected muons
+	//Loop over selected leptons
 	for(std::vector<LeptonRel>::iterator it = _selectedIsoLeptons->begin(); 
 			it != _selectedIsoLeptons->end(); ++it)
 	{
 		if( it->leptontype() == MUON )
 		{
-			if( ! isfound(*it,fMuonSelection->_selectedGoodIdLeptons) )
+			const std::vector<LeptonRel>::iterator match = 
+				find(fMuonSelection->_selectedGoodIdLeptons->begin(),
+						fMuonSelection->_selectedGoodIdLeptons->end(), *it);
+			// Don't found it, so drop it
+			if( match == fMuonSelection->_selectedGoodIdLeptons->end() )
 			{
 				continue;
 			}
+			// Update category
+			it->setcategory(match->category());
 		}
 		else if( it->leptontype() == ELECTRON )
 		{
-			if( ! isfound(*it,fElecSelection->_selectedGoodIdLeptons) )
+			const std::vector<LeptonRel>::iterator match = 
+				find(fElecSelection->_selectedGoodIdLeptons->begin(),
+						fElecSelection->_selectedGoodIdLeptons->end(), *it);
+			// Don't found it, so drop it
+			if( match == fElecSelection->_selectedGoodIdLeptons->end() )
 			{
 				continue;
-			}			
+			}
+			// Update category
+			it->setcategory(match->category());
 		}
 		
 		// Update the charges
@@ -549,12 +518,6 @@ unsigned int LeptonMixingSelection::SelectGoodIdLeptons()
 		_selectedGoodIdLeptons->push_back(*it);
 	}
 	
-	// Updating the tight, no-tight info if proceed
-	if( this->IsInFakeableMode() )
-	{
-		this->UpdateFakeableCollections();
-	}
-
 	return _selectedGoodIdLeptons->size();
 }
 
@@ -616,67 +579,3 @@ unsigned int LeptonMixingSelection::SelectLooseLeptons()
 }
 
 
-// Particular method for the mixing channel, note it is overloaded
-void LeptonMixingSelection::UpdateFakeableCollections()
-{
-	if( ! this->IsInFakeableMode() )
-	{
-		return;
-	}
-
-	if(_tightLeptons == 0 || _notightLeptons == 0)
-	{
-		std::cerr << "\033[1;31mCutManager::UpdateFakeableCollections ERROR\033[1;m" 
-			<< "Incoherent use of this function" << std::endl;
-		exit(-1);
-	}
-
-	std::vector<LeptonRel> *notight = new std::vector<LeptonRel>;
-	for(std::vector<LeptonRel>::iterator it = _notightLeptons->begin(); 
-			it != _notightLeptons->end(); ++it)
-	{
-		CutManager * tmp = 0;
-		if( it->leptontype() == MUON )
-		{
-			tmp = fMuonSelection;
-		}
-		else
-		{
-			tmp = fElecSelection;
-		}
-
-		if( std::find(tmp->GetNoTightLeptons()->begin(),tmp->GetNoTightLeptons()->end(), *it ) !=
-				tmp->GetNoTightLeptons()->end() )
-		{
-			notight->push_back( *it );
-		}		
-	}
-	_notightLeptons->clear();
-	*_notightLeptons = *notight;
-	delete notight;
-	notight = 0;
-	
-	std::vector<LeptonRel> *tight = new std::vector<LeptonRel>;
-	for(std::vector<LeptonRel>::iterator it = _tightLeptons->begin(); 
-			it != _tightLeptons->end(); ++it)
-	{
-		CutManager * tmp = 0;
-		if( it->leptontype() == MUON )
-		{
-			tmp = fMuonSelection;
-		}
-		else
-		{
-			tmp = fElecSelection;
-		}
-		if( std::find(tmp->GetTightLeptons()->begin(),tmp->GetTightLeptons()->end(), *it ) !=
-				tmp->GetTightLeptons()->end() )
-		{
-			tight->push_back( *it );
-		}
-	}
-	_tightLeptons->clear();
-	*_tightLeptons = *tight;
-	delete tight;
-	tight=0;
-}	

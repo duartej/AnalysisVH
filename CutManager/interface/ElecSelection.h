@@ -86,7 +86,7 @@ class ElecSelection : public CutManager
 		bool IsPassBDT( const unsigned int & index ) const;
 		
 		//! Update fakeables collection, taking into account the lepton type 
-		virtual bool WasAlreadyUpdated() { return false; }
+		//virtual bool WasAlreadyUpdated() { return false; }
 		
 		//! Select basic muons: 
 		//! - with pt > MinPt and fabs(eta) < eta 

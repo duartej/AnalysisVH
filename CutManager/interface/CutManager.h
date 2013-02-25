@@ -99,6 +99,7 @@ class CutManager
 		//! the first argument is the number of leptons we want to be passed, 
 		//! the second argument is the number of tight leptons we have (so
 		//! the function will add the number of no tight leptons if proceed)
+		//! TO BE DEPRECATED (the GetN* methods already return the full tight+notight)
 		bool IspassAtLeastN(const unsigned int & nLeptons, const unsigned int & nTight);
 
 		//! Return true if we are in FAKEABLESAMPLE mode
@@ -110,13 +111,13 @@ class CutManager
 		//! leptons if fakeable mode is active
 		virtual std::vector<LeptonRel> * GetGoodLeptons() const { return _selectedGoodIdLeptons; }
 		//! Get the Tight leptons (passing the PV, Iso and ID cuts)
-		inline virtual std::vector<LeptonRel> * GetTightLeptons() const { return _tightLeptons; }
+		std::vector<LeptonRel> * GetTightLeptons();
+		//! Get the number of measured tight leptons
+		inline const unsigned int GetNTightMeasured() { return this->GetTightLeptons()->size(); }
 		//! Get the noTight leptons (not passing the PV, Iso and ID cuts)
-		inline virtual std::vector<LeptonRel> * GetNoTightLeptons() const { return _notightLeptons; }
-		//! Get the i-essim index of the Tight lepton --> ??
-		//const unsigned int GetTightIndex(const unsigned int & i) const;
-		//! Get the i-essim index of the NoTight lepton ---> ??
-		//const unsigned int GetNoTightIndex(const unsigned int & i) const;
+		std::vector<LeptonRel> * GetNoTightLeptons();
+		//! Get the number of measured fail leptons
+		inline const unsigned int GetNFailMeasured() { return this->GetNoTightLeptons()->size(); }
 		//! Get the number of total leptons which are considered in this analysis
 		inline const unsigned int GetNAnalysisLeptons() { return _nLeptons; }
 		//! Get the number of total Tight leptons which are considered in this analysis
@@ -156,10 +157,6 @@ class CutManager
 		//! mode == CutManager::FAKEABLESAMPLE
 		virtual unsigned int SelectLooseLeptons() = 0; 
 		
-
-		//! Update fakeables collection, taking into account the lepton type (fake mode active)
-		void UpdateFakeableCollections( const std::vector<LeptonRel> * finalcol );
-		virtual bool WasAlreadyUpdated() = 0;
 
 		//! Container of the data
 		TreeManager * _data;

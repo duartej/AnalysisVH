@@ -92,7 +92,7 @@ class MuonSelection : public CutManager
 		bool IsPassMETCut(const double & MET) const;
 		
 		//! Update fakeables collection, taking into account the lepton type 
-		virtual bool WasAlreadyUpdated() { return false; }
+		//virtual bool WasAlreadyUpdated() { return false; }
 
 		// Select basic muons: 
 		// - with pt > MinPt and fabs(eta) < eta 

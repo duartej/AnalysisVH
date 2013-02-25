@@ -12,8 +12,6 @@ const double kZMass = 91.1876; // TO BE INCLUDED IN THE CONFIG
 MuonSelection::MuonSelection( TreeManager * data, const int & nTights, const int & nLeptons,
 		const char * runperiod) : 
 	CutManager(data,nTights,nLeptons,runperiod),
-	//_muonID(MuonID::VBTF),  // FIXME: Entered via argument?? or is good to be hardcoded?
-	//_muonID(MuonID::HWWID),  // FIXME: Entered via argument?? or is good to be hardcoded?
 	_muonID(-1),
 	kMinMuPt1(-1),
 	kMinMuPt2(-1),      
@@ -498,14 +496,6 @@ unsigned int MuonSelection::SelectBasicLeptons()
 	// Empty the selected muons vector --> Redundant to be removed
 	_selectedbasicLeptons->clear();
 	
-	// Be ready the notightLeptons if proceed
-	if( _samplemode == CutManager::FAKEABLESAMPLE )
-	{
-		_notightLeptons = new std::vector<LeptonRel>;
-		_registeredcols->push_back(&_notightLeptons);
-	}
-
-	
 	// Loop over muons
 	for(unsigned int i=0; i < _data->GetSize<float>("T_Muon_Px"); ++i) 
 	{
@@ -522,7 +512,6 @@ unsigned int MuonSelection::SelectBasicLeptons()
 		
 		//[Cut in Eta and Pt]
 		//-------------------
-		//if( ! this->IsPassAcceptanceCuts(i,Mu.Pt(),Mu.Eta()) )
 		if( fabs(mu.getP4().Eta()) >= kMaxAbsEta || mu.getP4().Pt() <= kMinMuPt3 )
 		{
 			continue;
@@ -622,21 +611,22 @@ unsigned int MuonSelection::SelectLeptonsCloseToPV()
 		// + R2: PT <  20
 		if(ptMu >= 20.0 && fabs(IPMu) > kMaxMuIP2DInTrackR1 ) 
 		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons))
 			{
-				_notightLeptons->push_back(*it);
+				it->setcategory(LeptonRel::FAIL);
+				_closeToPVLeptons->push_back(*it);
 			}
 			continue;
 		}
 		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
 		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
 			{
-				_notightLeptons->push_back(*it);
+				it->setcategory(LeptonRel::FAIL);
+				_closeToPVLeptons->push_back(*it);
 			}
 			continue;
 		}
-		
 		// If we got here it means the muon is good
 		_closeToPVLeptons->push_back(*it);
 	}
@@ -737,13 +727,15 @@ unsigned int MuonSelection::SelectIsoLeptons()
 		
 		if( !isolatedMuon )
 		{
-			if( _samplemode == CutManager::FAKEABLESAMPLE )
+			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
 			{
-				_notightLeptons->push_back(*it);
+				it->setcategory(LeptonRel::FAIL);
+				_selectedIsoLeptons->push_back(*it);
 			}
 			continue;
 		}
 		// If we got here it means the muon is good
+		it->setcategory(LeptonRel::TIGHT);
 		_selectedIsoLeptons->push_back(*it);
 	}
 
@@ -762,7 +754,6 @@ unsigned int MuonSelection::SelectGoodIdLeptons()
 	if( _selectedGoodIdLeptons == 0)
 	{
 		this->GetNGoodIdLeptons();
-		//_selectedGoodIdLeptons = new std::vector<int>;
 	}
 
 	//Empty the vector of indices --> Redundant
@@ -875,6 +866,7 @@ unsigned int MuonSelection::SelectLooseLeptons()
 	for(unsigned int k = 0; k < tokeep.size(); ++k)
 	{
 		_selectedbasicLeptons->push_back( tokeep[k] );
+		_selectedbasicLeptons->back().setcategory(LeptonRel::LOOSE);
 	}
 
 	return _selectedbasicLeptons->size();

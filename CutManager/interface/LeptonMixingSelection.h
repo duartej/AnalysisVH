@@ -60,15 +60,6 @@ class LeptonMixingSelection : public CutManager
 		virtual std::vector<std::string> GetCodenames() const;
 		//virtual std::vector<std::string> GetCodenames(const LeptonTypes & leptontype) const;
 		
-		//-- Selection
-		//---------------------------------------------
-		//! Get The lepton type for the i-esim lepton (tight+notight) -- TO BE DEPRECATED
-		//virtual LeptonTypes GetLeptonType(const unsigned int & index) const; 
-		//! Get The lepton type for the i-esim tight lepton  -- TO BE DEPRECATED
-		//virtual LeptonTypes GetTightLeptonType(const unsigned int & index) const;  
-		//! Get The lepton type for the i-esim no tight lepton -- TO BE DEPRECATED
-		//virtual LeptonTypes GetNoTightLeptonType(const unsigned int & index) const; 
-
 		//! Overloaded Reset method in order to deal with the extra data members
 		//! used by this class
 		virtual void Reset();
@@ -95,13 +86,6 @@ class LeptonMixingSelection : public CutManager
 		virtual unsigned int SelectGoodIdLeptons();
 		// Loose leptons 
 		virtual unsigned int SelectLooseLeptons();
-
-		//! Update fakeables collection, taking into account the lepton type 
-		virtual bool WasAlreadyUpdated() { return true; }
-		
-		//! Update fakeables collections, concrete method for this class
-		void UpdateFakeableCollections();
-		
 
 		//! The muon cut manager
 		MuonSelection * fMuonSelection;
