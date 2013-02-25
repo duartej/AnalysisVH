@@ -64,12 +64,16 @@ def nt3call(folder,signal):
 	os.chdir(cwd)
 
 
-def getdifferences(samplesnames,baselinefolder,comparedfolder,sysdict = None):
+def getdifferences(samplesnames,baselinefolder,comparedfolder,sysdict = None, **keywords):
 	""".. getdifferences(samplesnames,baselinefolder,comparedfolder) -> (dict(s
 	"""
 	from functionspool_mod import processedsample
 	import os
 
+	metasamples = {}
+	if keywords.has_key('metasamples'):
+		metasamples = keywords['metasamples']
+	
 	# Get some previous info
 	# --- who is the analysis folder
 	analysisdir = filter(lambda x: type(x) == list, [baselinefolder]+[comparedfolder])[0]
@@ -86,11 +90,12 @@ def getdifferences(samplesnames,baselinefolder,comparedfolder,sysdict = None):
 	# --- get signal name-
 	signal = ''.join(ch for ch in channelsfolders[0] if ch != "m" and ch != "e")
 
+
 	# Do it per channel
 	sysdict = {}
 	for channeldir in channelsfolders:
 		print ".",
-		for dataname in samplesnames:
+		for dataname in filter(lambda x: x not in metasamples.keys(), samplesnames):
 			filebase = baselinetop+"/"+channeldir+"/"+"cluster_"+dataname+\
 					"/Results/"+dataname+".root"
 
@@ -105,6 +110,25 @@ def getdifferences(samplesnames,baselinefolder,comparedfolder,sysdict = None):
 				sysdict["SYS"+dataname][channel] = sysrel
 			except KeyError:
 				sysdict["SYS"+dataname] = { channel: sysrel }
+		# And the metasamples
+		for metaname,realsamples in metasamples.iteritems():
+			metaprocessbase = processedsample('',nobuilt=True)
+			metaprocesscomp = processedsample('',nobuilt=True)
+			for realname in realsamples:
+				filebase = baselinetop+"/"+channeldir+"/"+"cluster_"+realname+\
+						"/Results/"+realname+".root"
+				metaprocessbase += processedsample(filebase,showall=True)
+				filecomp = comparedtop+"/"+channeldir+"/"+"cluster_"+realname+\
+					"/Results/"+realname+".root"
+				metaprocesscomp += processedsample(filecomp,showall=True)
+			diffsample = metaprocessbase-metaprocesscomp
+			channel = channeldir.replace(signal,"")
+			lastcut = diffsample.getcutlist()[-1]
+			sysrel = diffsample.getsysrelative(lastcut)
+			try:
+				sysdict["SYS"+metaname][channel] = sysrel
+			except KeyError:
+				sysdict["SYS"+metaname] = { channel: sysrel }
 	print ""
 
 	return sysdict
@@ -205,7 +229,7 @@ if __name__ == '__main__':
 	from optparse import OptionParser,OptionGroup
 	import glob
 	import os
-	from functionspool_mod import getsamplenames
+	from functionspool_mod import getsamplenames,parsermetasamples
 	from math import sqrt
 	
 	#Opciones de entrada
@@ -217,7 +241,8 @@ if __name__ == '__main__':
 	usage +="\nThe ouput is [....]"
 
 	parser = OptionParser(usage=usage)
-	
+	parser.add_option( '-m', action='store', dest='join', metavar="MS|MS1,MS2,...|MS1@S1,..,SN::MS2@S2_1,...,S2_2::...", \
+			help=parsermetasamples())	
 	(opt,args) = parser.parse_args()
 
 	if len(args) < 1:
@@ -235,6 +260,12 @@ if __name__ == '__main__':
 	if not os.path.isdir(syspath):
 		message= "\033[31mresumesys ERROR\033[m Invalid given path '%s'"% args[0]
 		raise RuntimeError(message)
+
+	# samples to be considered as one
+	if opt.join:
+		join = parsermetasamples(opt.join)
+	else:
+		join = {}
 
 	# Extract the systematics presents
 	sysdefined = presentsys(syspath)
@@ -270,6 +301,20 @@ if __name__ == '__main__':
 		fdown = filter(lambda x: x.find("_DOWN") != -1,sysfoldertuple)[0]
 		# -- Extract the datasamples names present in the systematic folders
 		datasamples = getsamplenames(fup)
+		# -- Updating if there are metasamples defined
+		usingmetasamples = {}
+		# Substitute real samples by metasamples
+		for metaname,realnames in join.iteritems():
+			usingmetasamples[metaname] = realnames
+			dum = []
+			for realname in realnames:
+				try:
+					datasamples.remove(realname)
+				except ValueError:
+					dum = usingmetasamples.pop(metaname)
+					break
+			if len(dum) == 0:
+				datasamples.append(metaname)
 		print "\033[34mresumesys INFO\033[m ---+ Datasamples afected:",
 		for name in datasamples:
 			print name,
@@ -279,13 +324,12 @@ if __name__ == '__main__':
 				syscommondict[sysdictname] = { sysname: {}}
 			elif not syscommondict[sysdictname].has_key(sysname):
 				syscommondict[sysdictname][sysname] = {}
-
 		print ""
 		# -- Do the calculation: (Nominal-Sys)/Nominal per channel
 		print "\033[34mresumesys INFO\033[m ---+ Extracting DOWN variation",
-		sysdict_d = getdifferences(datasamples,nominalfolders,fdown)
+		sysdict_d = getdifferences(datasamples,nominalfolders,fdown,metasamples=usingmetasamples)
 		print "\033[34mresumesys INFO\033[m ---+ Extracting UP variation",
-		sysdict_u = getdifferences(datasamples,fup,nominalfolders)
+		sysdict_u = getdifferences(datasamples,fup,nominalfolders,metasamples=usingmetasamples)
 		# -- Get the mean of the variations
 		for sample,channeldict_u in sysdict_u.iteritems():
 			channeldict_d = sysdict_d[sample]
