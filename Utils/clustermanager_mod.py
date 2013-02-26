@@ -822,7 +822,7 @@ class clustermanager(object):
 
 		# Check if we are done: NEW 
 		try:
-			if len(copyself.taskstatus["Done"]) == len(copyself.outputfiles.keys()):
+			if len(list(set(copyself.taskstatus["Done"]))) == len(copyself.outputfiles.keys()):
 				message = "clustermanager.retrieve: The job is already DONE!"
 				print message
 				d.close()
