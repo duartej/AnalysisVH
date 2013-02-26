@@ -221,9 +221,16 @@ if __name__ == '__main__':
 	for folder in path:
 		previousdir=os.getcwd()
 		os.chdir(folder)
-		# Find the samples and the folder
-		clustername = 'cluster_'+opt.dataname
-		rootmainterm = clustername+"/Results/"+opt.dataname+".root"
+		# Find the samples and the folder-- Find if exists an explicit
+		# Nt mainterm
+		mainsamplename = opt.dataname+'_'+mainterm
+		clustername    = 'cluster_'+mainsamplename
+		rootmainterm   = clustername+'/Results/'+mainsamplename+'.root'
+		if not os.path.isfile(rootmainterm):
+			# Using as main term the samplename without any distintive
+			mainsamplename = opt.dataname
+			clustername = 'cluster_'+opt.dataname
+			rootmainterm = clustername+"/Results/"+opt.dataname+".root"
 		ntsamplename = opt.dataname+"_"+lowterm
 		clustername_Nt = 'cluster_'+ntsamplename
 		rootlowterm = clustername_Nt+"/Results/"+ntsamplename+".root"
@@ -233,7 +240,7 @@ if __name__ == '__main__':
 			message = "\033[31mnt3subtract ERROR\033[m Malformed folder structure:"\
 					" Not found the FAKES file "\
 					"'%s'' inside the folder '%s'" % (rootmainterm,folder)
-			sys.exit(message)
+			raise RuntimeError(message)
 		# Including the raw main term info to be print in the warning file
 		psnt2 = processedsample(fakesample)
 		cutordered = psnt2.getcutlist()
@@ -312,7 +319,7 @@ if __name__ == '__main__':
 		warningfile = "CAVEAT: Directory tree created automatically from 'nt3subtract'\n"
 		warningfile+= "         script. You can find the original file inside the '"+nametarfile+"' file.\n"
 		warningfile+= "WARNING: do not untar the "+nametarfile+" file at the same level you found it because"\
-				"you will\n"
+				" you will\n"
 		warningfile+= "        destroy the fake substracted folder\n"
 		warningfile+= "Events yields are weighted but not normalized to any luminosity (when MC)\n"
 		warningfile+= "="*60+"\n"
