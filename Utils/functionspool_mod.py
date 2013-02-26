@@ -273,7 +273,7 @@ class processedsample(object):
 
 	
 	def __add__(self,other):
-		""".. operator+(other) -> column 
+		""".. operator+(self,other) -> processedsample
 
 		Adding up the rowvaldict, so the two columns have to contain the
 		same rows. Note that
@@ -309,22 +309,62 @@ class processedsample(object):
 			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
 			addeddict[cutname] = (val,swap)
 
-#		result = processedsample("",nobuilt=True)
-#		result.rowvaldict = addeddict
-#		result.cutordered = self.cutordered
-#		result.rowvaldictReferenced = self.rowvaldict.copy()
-#		result.showall = self.showall
-#		result.weight = self.weight
-#		result.luminosity = self.luminosity
+		# Creating the new instance
+		result = processedsample("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+		result.rowvaldictReferenced = self.rowvaldict.copy()
+		result.showall = self.showall
+		result.weight = self.weight
+		result.luminosity = self.luminosity
+
+		return result
+	
+	def __iadd__(self,other):
+		""".. operator+(self,other) -> self
+
+		Adding up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
+		"""
+		from math import sqrt
+		# Checks
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise TypeError("Cannot be added because they don't have the same"+\
+						" row composition")
+			hasdict=True
+		except AttributeError:
+			hasdict=False
+
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
+		
+		addeddict = {}
+		for cutname,(val,err) in self.rowvaldict.iteritems():
+			val  += other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
+			addeddict[cutname] = (val,swap)
+
 		self.rowvaldictReferenced = self.rowvaldict.copy()
 		self.rowvaldict = addeddict
 
-		#return result
 		return self
 
 
 	def __sub__(self,other):
-		""".. operator-(other) -> events
+		""".. operator-(self,other) -> processedsample
 
 		Substracting up the rowvaldict, so the two columns have to contain the
 		same rows. Note that
@@ -360,15 +400,54 @@ class processedsample(object):
 			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
 			addeddict[cutname] = (val,swap)
 
-#		result = processedsample("",nobuilt=True)
-#		result.rowvaldict = addeddict
-#		result.cutordered = self.cutordered
-#		result.rowvaldictReferenced = self.rowvaldict.copy()
-#		result.showall = self.showall
-#		result.weight = self.weight
-#		result.luminosity = self.luminosity
+		result = processedsample("",nobuilt=True)
+		result.rowvaldict = addeddict
+		result.cutordered = self.cutordered
+		result.rowvaldictReferenced = self.rowvaldict.copy()
+		result.showall = self.showall
+		result.weight = self.weight
+		result.luminosity = self.luminosity
 
-#		return result
+		return result
+
+	
+	def __isub__(self,other):
+		""".. operator-(self,other) -> self
+
+		Substracting up the rowvaldict, so the two columns have to contain the
+		same rows. Note that
+
+		:param other: a eventsn instance
+		:type other: events
+
+		:return: a events instance
+		:rtype:  events
+
+		"""
+		from math import sqrt
+		# Checks
+		# Allowing the a += b operation (when a was instantied using
+		# the 'nobuilt=True' argument, in this case rowvaldict=None
+		try:
+			if set(self.rowvaldict.keys()) != set(other.rowvaldict.keys()):
+				raise(TypeError,"Cannot be substracted because they don't have the same"+\
+						" row composition")
+			hasdict=True
+		except AttributeError:
+			hasdict=False
+
+		# Case when self was called as a += b
+		if not hasdict:
+			self.rowvaldict = other.rowvaldict
+			self.cutordered = other.cutordered
+			return self			
+		
+		addeddict = {}
+		for cutname,(val,err) in self.rowvaldict.iteritems():
+			val  -= other.rowvaldict[cutname][0]
+			swap = sqrt(err**2.0+other.rowvaldict[cutname][1]**2.0)
+			addeddict[cutname] = (val,swap)
+
 		self.rowvaldictReferenced = self.rowvaldict.copy()
 		self.rowvaldict = addeddict
 
@@ -1319,5 +1398,4 @@ def getmetasamplecomponents(metasamplename):
 		raise RuntimeError,message
 
 	return components
-
 
