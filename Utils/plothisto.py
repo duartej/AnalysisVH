@@ -48,7 +48,8 @@ class histoclass(processedsample):
 
 		self.cm      = 7   # Center of mass per default
 
-		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "metaname", "add", "cm" ]
+		validkeywords = [ "title", "lumi", 'issignal', 'isdata', "metaname", "add", "cm" ,\
+				"nobuilt" ]
 		for key,value in keywords.iteritems():
 			if not key in keywords.keys():
 				message  = "\033[31mhistoclass ERROR\033[m Incorrect instantiation of 'class'"
@@ -74,6 +75,9 @@ class histoclass(processedsample):
 				self.latexchannel = self.channel.replace("m","#mu")
 			if key == 'cm':
 				self.cm = value
+			if key == 'nobuilt':
+				processedsample.__init__(self,'',nobuilt=True)
+				return
 
 
 		filerootname = os.path.join(os.path.abspath("cluster_"+self.samplename),\
@@ -154,9 +158,59 @@ class histoclass(processedsample):
 		if self.histogram:
 			self.histogram.Delete()
 		del self
-
+	
 	def __add__(self,other):
-		""".. operator+(other) -> histoclass
+		""".. operator+(self,other) -> histoclass instance
+
+		r = self+other
+		
+		Adding two classes: adding its histograms
+
+		:param other: a histoclass instance
+		:type other: histoclass
+
+		:return: a histoclass instance
+		:rtype:  histoclass
+
+		"""
+		# Check: the only way of adding samplesclass is
+		if self.samplename != other.samplename:
+			message = "\033[31mhistoclass.__add__ ERROR\033[m Impossible to add "
+			message += " samples with a different name histoclass 1: %s histoclass 2: %s" % (self.samplename,other.samplename)
+			raise RuntimeError(message)
+		
+		# Instantiting the results
+		result = histoclass('',self.histoname,nobuilt=True)
+		# Scaling the histograms in order to deal with the histo addition
+		# Note that when one of the two histoclass instances have already
+		# been adding previously, the weight is None
+		weightself = self.weight
+		if not self.weight:
+			# To avoid double scaling
+			weightself = 1.0
+		weightother = other.weight
+		if not other.weight:
+			# Also avoiding double scaling
+			weightother = 1.0
+		# Copying the histogram
+		result.histogram = self.histogram.Clone(self.histoname+'_addedhisto')
+		# And scaling
+		result.histogram.Scale(weightself*self.SIGNALFACTOR)
+		other.histogram.Scale(weightother*other.SIGNALFACTOR)
+		# Adding histograms
+		result.histogram.Add(other.histogram)
+		# Calling the base __add__
+		super(histoclass,result).__add__(other)
+		# Marking as an add histo, in order not to reweight when call 
+		# the sethistoattr method
+		result.weight = None
+
+		return result
+
+	def __iadd__(self,other):
+		""".. operator+(self,other) -> self  
+
+		self+=other
 		
 		Adding two classes: adding its histograms
 
@@ -188,8 +242,8 @@ class histoclass(processedsample):
 		other.histogram.Scale(weightother*other.SIGNALFACTOR)
 		# Adding histograms
 		self.histogram.Add(other.histogram)
-		# Calling the base __add__
-		super(histoclass,self).__add__(other)
+		# Calling the base __iadd__
+		super(histoclass,self).__iadd__(other)
 		# Marking as an add histo, in order not to reweight when call 
 		# the sethistoattr method
 		self.weight = None
@@ -197,7 +251,9 @@ class histoclass(processedsample):
 		return self
 	
 	def __sub__(self,other):
-		""".. operator-(other) -> histoclass
+		""".. operator-(self,other) -> histoclass
+
+		result = self-other
 		
 		Subtracting two classes: subtracting its histograms.
 
@@ -209,6 +265,54 @@ class histoclass(processedsample):
 
 		"""
 		# Check: the only way of adding samplesclass is
+		if self.samplename != other.samplename:
+			message = "\033[31mhistoclass.__sub__ ERROR\033[m Impossible to sub "
+			message += " samples with a different name histoclass 1:"
+			message += " %s histoclass 2: %s" % (self.samplename,other.samplename)
+			raise RuntimeError(message)
+		
+		# Instantiting the results
+		result = histoclass('',self.histoname,nobuilt=True)		
+		# Scaling the histograms in order to deal with the histo addition
+		# Note that when one of the two histoclass instances have already
+		# been adding previously, the weight is None
+		weightself = self.weight
+		if not self.weight:
+			# To avoid double scaling
+			weightself = 1.0
+		weightother = other.weight
+		if not other.weight:
+			# Also avoiding double scaling
+			weightother = 1.0
+		# Copying the histogram
+		result.histogram = self.histogram.Clone(self.histoname+'_subtractedhisto')
+		# And scaling
+		result.histogram.Scale(weightself*self.SIGNALFACTOR)
+		other.histogram.Scale(weightother.weight*other.SIGNALFACTOR)
+		# Subtracting histograms
+		result.histogram.Add(other.histogram,-1.0)
+		# Calling the base __sub__
+		super(histoclass,result).__sub__(other)
+		# And marking the weight as a subtracted sample
+		result.weight = None
+
+		return result
+	
+	def __isub__(self,other):
+		""".. self.operator-(other) -> histoclass
+
+		self -= other
+		
+		Subtracting two classes: subtracting its histograms.
+
+		:param other: a histoclass instance
+		:type other: histoclass
+
+		:return: a histoclass instance
+		:rtype:  histoclass
+
+		"""
+		# Check: the only way of subtracting samplesclass is
 		if self.samplename != other.samplename:
 			message = "\033[31mhistoclass.__sub__ ERROR\033[m Impossible to sub "
 			message += " samples with a different name histoclass 1:"
@@ -231,7 +335,7 @@ class histoclass(processedsample):
 		# Adding histograms
 		self.histogram.Add(other.histogram,-1.0)
 		# Calling the base __sub__
-		super(histoclass,self).__sub__(other)
+		super(histoclass,self).__isub__(other)
 		# And marking the weight as a subtracted sample
 		self.weight = None
 
@@ -335,7 +439,7 @@ def getinfotext(sampledict,datasample,signalsample,isofficial):
 					sample.samplename != datasample.samplename:
 				nevtbkg += sample.getvalue()[0]
 		
-		Ndata = datasample.getvalue()
+		Ndata = datasample.getvalue()[0]
 		datastat = "%s: %.0f" % (datasample.samplename,Ndata)
 		#lumstat  = "Lumi: %.1f fb^{-1}" % (datasample.lumi/1000.0)
 		ndec = 0
