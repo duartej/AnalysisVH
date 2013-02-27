@@ -161,7 +161,7 @@ void AnalysisWZ::Initialise()
 		TString drname  = Form("fHDeltaRGenRecoLepton%i", i+1);
 		TString drtitle = Form("#Delta R for #mu %i", i+1);
 		fHPtLepton[i]  = CreateH1D(ptname,  pttitle, 150, 0, 150);
-		fHEtaLepton[i] = CreateH1D(etaname, etatitle, 100, -5, 5);
+		fHEtaLepton[i] = CreateH1D(etaname, etatitle, 100, -2.6, 2.6);
 		fHDeltaRGenRecoLepton[i] = CreateH1D(drname, drtitle, 150, 0, 5);
 	}
 	
