@@ -38,6 +38,8 @@ if __name__ == '__main__':
 			" Used with the '-k' option")
 	group.add_option( '-k', '--fakeasdata', action='store_true', dest='fakeasdata', help="Fakeable mode ALLOWING whatever datasample (not only"+\
 			" the so called Fakes) to be created the N,T sample. So it must use with the '-F' option.")
+	group.add_option( '-D', action= 'store',dest='datadriven',metavar='<PPP|PPF|PFF|FFF>', \
+			help='Data-driven estimation to use. Only valid when "-F" option was called [Default: PPF]')
 	group.add_option( '-d', '--dataname',  action='store', type='string', dest='dataname', help='Name of the data (see runanalysis -h). Also'
 			' not using this option, the script will use all the datafiles *_datanames.dn found in the working directory to launch process')
 	group.add_option( '-j', '--jobs',  action='store', type='int',    dest='jobsNumber', help='Number of jobs. Not using this option, the script'
@@ -108,6 +110,17 @@ if __name__ == '__main__':
 		# Also fakeable or not:
 		if not opt.fakeable:
 			opt.fakeable=False
+		else:
+			# Just to be use when datadriven
+			if not opt.datadriven:
+				# Default
+				datadriven='PPF'
+			else:
+				datadriven = opt.datadriven
+		if not opt.fakeable and opt.datadriven:
+			# Send a warning, has no sense call this option
+			print "\033[33;1msendcluster: WARNING\033[0m The '-D' option"+\
+					" must be called with '-F' option present. Ignoring it..."
 		# Checking the correct use of -k option 
 		if opt.fakeasdata:
 			if not opt.fakeable:
@@ -134,7 +147,7 @@ if __name__ == '__main__':
 			manager.append( clustermanager(dataname=dataname,cfgfilemap=leptoncfgmap,\
 					njobs=opt.jobsNumber,\
 					finalstate=opt.finalstate, \
-					analysistype=opt.antype,fakeable=fakeable) )
+					analysistype=opt.antype,fakeable=fakeable,datadriven=datadriven) )
 	elif args[0] == 'harvest':
 		if opt.workingdir is None:
 			message = "\033[31msendcluster: ERROR\033[m the '--cw' option is mandatory"

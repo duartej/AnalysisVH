@@ -137,7 +137,7 @@ class clustermanager(object):
 		
 		validkeys = [ 'dataname', 'cfgfilemap', 'njobs', 'precompile',\
 				'finalstate', 'analysistype',
-				'fakeable' ]
+				'fakeable', 'datadriven' ]
 		
 		if workingdir != '':
 			self.cwd = os.path.abspath(workingdir)
@@ -154,6 +154,7 @@ class clustermanager(object):
 		self.outputfiles= {}
 		self.leptoncfgfilemap = {}
 		self.fakeable = False
+		self.datadriven = None
 		self.hostname = socket.gethostname()
 		# Checking the environment, and setting self.basedir self.pkgdir
 		self.__checkenv()
@@ -200,6 +201,8 @@ class clustermanager(object):
 				except AttributeError:
 					self.nLeptons = None
 					self.nTights = None
+			elif key == 'datadriven':
+				self.datadriven = value
 		# Some needed data
 		try:
 			dum = self.dataname
@@ -966,7 +969,7 @@ class clustermanager(object):
 		lines += executable+" "+self.dataname+" -a "+self.analysistype+" -c "+self.cfgnames+\
 				" -d "+self.filedatanames+" -l "+self.finalstate+" -o "+outputname+PROVoutputfile+"\n"
 		if self.fakeable:
-			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights+"\n"
+			lines = lines[:-1]+" -F "+self.nLeptons+","+self.nTights+" -D "+self.datadriven+"\n"
 	
 		filename = self.dataname+".sh"
 		f = open(filename,"w")
