@@ -38,6 +38,7 @@ const float PUVARSYS = 0.05;
 AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParameters*> ipmap, 
 		CutManager * selectioncuts, const unsigned int & finalstate ) :
 	CMSAnalysisSelector(data),
+	GetDataDrivenWeight(0),
 	_nLeptons(3), //FIXME: argumento de entrada ? --> No dependera de la SignatureFS
 	fIsData(false),
 	fIsWH(false),
@@ -62,6 +63,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_cutvalue(-1),
 	_eventnumber(-1),
 	_runnumber(-1),
+	_datadriven(""),
 	_evtlisttree(0),
 	_wcharge(0),
 	_jetname(""),
@@ -241,6 +243,23 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		fFO = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] );
 		fFOZJetsRegion = new WManager( WManager::FR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS], true );
 		fPO = new WManager( WManager::PR, fRunPeriod, muonid, systypemode[AnalysisBase::FRSYS] ); 
+		_datadriven = std::string(fInputParameters->TheNamedString("Datadriven"));
+		if( _datadriven == "PPP" )
+		{
+			GetDataDrivenWeight = &AnalysisBase::GetPPPWeight;
+		}
+		else if( _datadriven == "PPF" )
+		{
+			GetDataDrivenWeight = &AnalysisBase::GetPPFWeight;
+		}
+		else if( _datadriven == "PFF" )
+		{
+			GetDataDrivenWeight = &AnalysisBase::GetPFFWeight;
+		}
+		else if( _datadriven == "FFF" )
+		{
+			GetDataDrivenWeight = &AnalysisBase::GetFFFWeight;
+		}
 	}
 
 	// The Inputparameters have to be initialized before, just to complete it
@@ -805,7 +824,7 @@ void AnalysisBase::Summary()
 	}
 	if( fLeptonSelection->IsInFakeableMode() ) 
 	{
-		std::cout << " + FAKEABLE MODE ENABLED: | " << std::endl;
+		std::cout << " + FAKEABLE MODE ENABLED: | " << _datadriven << " ESTIMATION" << std::endl;
 		if( fFS == SignatureFS::_iFSmmm ||
 				fFS == SignatureFS::_iFSeem || SignatureFS::_iFSmme )
 		{

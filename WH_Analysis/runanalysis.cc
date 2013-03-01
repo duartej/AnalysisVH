@@ -139,7 +139,7 @@ std::pair<treeTypes,std::vector<TString> > extractdatafiles(const char * dataNam
 // FIXME: Necesito incluir una nueva variable fija: tipo de lepton
 // lo que devuelva sera un par<Lepton,inputPar>
 InputParameters * setparameters(const std::vector<TString> & datafiles, const TString & dataName,
-		const char * cfgfile, const char * nameIPinstance="Set Of Parameters")
+		const char * cfgfile, const char * datadriven,const char * nameIPinstance="Set Of Parameters")
 {
 	// Introduce the analysis parameters
 	//TreeType treeType = kMiniTrees;
@@ -179,6 +179,12 @@ InputParameters * setparameters(const std::vector<TString> & datafiles, const TS
 
 	// + Data Name
 	ip->SetNamedString("DataName", dataName.Data());
+
+	// + The datadriven estimation to be used if we are in Fake mode
+	if( datadriven != 0 )
+	{
+		ip->SetNamedString("Datadriven",datadriven);
+	}
 	
 	///////////////////////////////
 	// NAME OF ANALYSIS CLASS. 
@@ -213,6 +219,8 @@ void display_usage()
 	std::cout << "                             configurations file " << std::endl;
 	std::cout << "    -d dataname.dn           filename containing the files for the 'dataname'" << std::endl;
 	std::cout << "    -l <mmm|eee|mme|eem>     Final state signature (mmm per default)" << std::endl;
+	std::cout << "    -D <PPP|PPF|PFF|FFF>     Fake mode activated, the data-driven estimation." << 
+		" Mandatory option if -F is activated [Default:PPF]" << std::endl;
 	std::cout << "    -F N,T                   Fake mode activated, N=number of leptons," << 
 		"T=number of tight leptons" << std::endl;
 	std::cout << "    -o output.root           output root file " << std::endl;
@@ -236,6 +244,7 @@ int main(int argc, char *argv[])
 	const char * fsSignature    = "mmm";
 	const char * antype    = "WH";
 	std::vector<int> * fakeable = 0;
+	const char * datadriven = "PPF";
 
 	bool getOF = false;
 
@@ -325,6 +334,22 @@ int main(int argc, char *argv[])
 				usedargs.insert(i+1);
 				i++;
 			}
+			if( strcmp(argv[i],"-D") == 0 )
+			{
+				datadriven = argv[i+1];
+				if( strcmp(datadriven,"PPF") != 0
+						&& strcmp(datadriven,"PPP") != 0 
+						&& strcmp(datadriven,"PFF") != 0
+						&& strcmp(datadriven,"FFF") != 0 )
+				{
+					std::cerr << "\033[31mrunanalysis ERROR:\033[m Not valid data-driven '" << datadriven
+						<< "' Valid values are 'PPP' 'PPF' 'PFF' 'FFF'" << std::endl;
+					return -1;
+				}
+				usedargs.insert(i);
+				usedargs.insert(i+1);
+				i++;
+			}
 			if( strcmp(argv[i],"-F") == 0 )
 			{
 				// Extracting the number of leptons 
@@ -400,6 +425,12 @@ int main(int argc, char *argv[])
 			<< std::endl;
 		display_usage();
 		return -1;
+	}
+
+	// if we aren't in fakes mode, delete datadriven mode
+	if( fakeable == 0 )
+	{
+		datadriven = 0;
 	}
 
 	// Case FAKE: some checks
@@ -484,7 +515,7 @@ int main(int argc, char *argv[])
 				<< std::endl;
 			return -1;
 		}
-		ipmap[lepton] = setparameters(datafiles,TString(dataName),cfgfile->second.c_str());
+		ipmap[lepton] = setparameters(datafiles,TString(dataName),cfgfile->second.c_str(),datadriven);
 	}
 	TChain * tchaindataset = 0;
 	// Data: FIXME: Extract this info from a centralized way (TreeManager?)

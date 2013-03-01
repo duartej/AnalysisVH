@@ -186,6 +186,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		double GetPFFWeight(const bool & zjetsregion = false);
 		//! FFF estimation evaluated using the full calculation
 		double GetFFFWeight(const bool & zjetsregion = false);
+		//! 
+		typedef double (AnalysisBase::*fddweight)(const bool & zjetsregion);
+		fddweight GetDataDrivenWeight;
+
 
 	private:
 		AnalysisBase();
@@ -275,6 +279,9 @@ class AnalysisBase : public CMSAnalysisSelector
 		unsigned int _cutvalue;
 		int _eventnumber;
 		int _runnumber;
+
+		//! If in fakeable mode, the estimation evaluated
+		std::string _datadriven;
 
 		//! Tree to store some useful info for the selected events
 		TTree * _evtlisttree;
