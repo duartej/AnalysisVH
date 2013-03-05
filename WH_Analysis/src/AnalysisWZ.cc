@@ -769,10 +769,9 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	_histos[fHZInvMassAfterWCand]->Fill(invMassLL,puw);
 	_histos[fHMETAfterWCand]->Fill(met,puw);
 	// Getting the highest pt lepton to W-candidate (if there are more than one)
-	const int iWcand = wcandidate.rbegin()->second;	
+	const unsigned int iWcand = wcandidate.rbegin()->second;	
 	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
 	
- 	
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
 		// Change the region from ZJets -> ttbar
@@ -805,10 +804,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//Store event info, just in data case
 	if( fIsData )
 	{
-		const TLorentzVector zcand1 = lep1Z.getP4();
-		const TLorentzVector zcand2 = lep2Z.getP4();
-		const TLorentzVector wcand  = (*theLeptons)[iWcand].getP4();
-		this->StoresEvtInf(zcand1,zcand2,wcand,transverseMassW[iWcand],METV);
+		this->StoresEvtInf(lep1Z,lep2Z,(*theLeptons)[iWcand],transverseMassW[iWcand],METV);
 	}
 
 

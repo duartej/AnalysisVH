@@ -96,6 +96,10 @@ struct EvtInfo
         int evt;
         int channel;
 
+	double zlep1cat;
+	double zlep2cat;
+	double wlepcat;
+
         double zmass;
         double zlep1pt;
         double zlep1eta;
@@ -162,8 +166,8 @@ class AnalysisBase : public CMSAnalysisSelector
 		virtual void StoresCut(const unsigned int & cut,const float & weight);
 		//! Method to fill the tree containing relevant event information for the 
 		//! selected events
-		virtual void StoresEvtInf(const TLorentzVector & zcand1, const TLorentzVector & zcand2, 
-				const TLorentzVector & wcand,
+		virtual void StoresEvtInf(const LeptonRel & zcand1, const LeptonRel & zcand2, 
+				const LeptonRel & wcand,
 				const double & transversmass, const TLorentzVector & METV);
 		virtual void Summary();
 

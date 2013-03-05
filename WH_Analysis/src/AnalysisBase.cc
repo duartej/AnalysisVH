@@ -335,7 +335,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 
 	// The tree for Event info
 	_evtlisttree = new TTree("evtlist","Event selected info");
-	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zmass/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
+	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zlep1cat/D:zlep2cat/D:wlepcat/D:zmass/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
 }
 
 AnalysisBase::~AnalysisBase()
@@ -917,32 +917,37 @@ void AnalysisBase::StoresCut(const unsigned int & cut, const float & weight)
 	_cutweight = 1;
 }
 
-void AnalysisBase::StoresEvtInf(const TLorentzVector & zcand1, const TLorentzVector & zcand2,
-		const TLorentzVector & wcand, const double & transversmass, const TLorentzVector & METV)
+void AnalysisBase::StoresEvtInf(const LeptonRel & zcand1, const LeptonRel & zcand2,
+		const LeptonRel & wcand, const double & transversmass, const TLorentzVector & METV)
 {
         _evtinfo.run = fData->Get<int>("T_Event_RunNumber");
         _evtinfo.lumi = fData->Get<int>("T_Event_LuminosityBlock");
         _evtinfo.evt  = fData->Get<int>("T_Event_EventNumber");
         _evtinfo.channel = fFS;
+	
+	_evtinfo.wlepcat  = wcand.category();
+	_evtinfo.zlep1cat = zcand1.category();
+	_evtinfo.zlep2cat = zcand2.category();
 
-        _evtinfo.zmass = (zcand1+zcand2).M();
-        _evtinfo.zlep1pt = zcand1.Pt();
-        _evtinfo.zlep1eta = zcand1.Eta();
-        _evtinfo.zlep1phi = zcand1.Phi();
+        _evtinfo.zmass = (zcand1.getP4()+zcand2.getP4()).M();
+        _evtinfo.zlep1pt = zcand1.getP4().Pt();
+        _evtinfo.zlep1eta = zcand1.getP4().Eta();
+        _evtinfo.zlep1phi = zcand1.getP4().Phi();
 
-        _evtinfo.zlep2pt = zcand2.Pt();
-        _evtinfo.zlep2eta = zcand2.Eta();
-        _evtinfo.zlep2phi = zcand2.Phi();
+        _evtinfo.zlep2pt = zcand2.getP4().Pt();
+        _evtinfo.zlep2eta = zcand2.getP4().Eta();
+        _evtinfo.zlep2phi = zcand2.getP4().Phi();
 
         _evtinfo.wmt = transversmass;
-        _evtinfo.wleppt = wcand.Pt();
-        _evtinfo.wlepeta = wcand.Eta();
-        _evtinfo.wlepphi = wcand.Phi();
+        _evtinfo.wleppt = wcand.getP4().Pt();
+        _evtinfo.wlepeta = wcand.getP4().Eta();
+        _evtinfo.wlepphi = wcand.getP4().Phi();
 
         _evtinfo.metet = METV.Pt();
         _evtinfo.metphi= METV.Phi();
-	
+
 	_evtlisttree->Fill();
+	_evtlisttree->Show(0);
 }
 
 
