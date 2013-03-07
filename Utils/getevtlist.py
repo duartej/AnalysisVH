@@ -15,6 +15,10 @@ class evtinfo(object):
 		self.evt      = -1
 		self.channel  = -1 
 
+		self.zlep1cat = -1
+		self.zlep2cat = -1
+		self.wlepcat  = -1
+
 		self.zmass    = -1
 		self.zlep1pt  = -1
         	self.zlep1eta = -1 
@@ -31,11 +35,14 @@ class evtinfo(object):
         	self.metet    = -1
         	self.metphi   = -1
 
-		self.ordereddm = [ "run","lumi","evt","channel","zmass","zlep1pt",\
+		self.ordereddm = [ "run","lumi","evt","channel","zlep1cat","zlep2cat","wlepcat",\
+				"zmass","zlep1pt",\
 				"zlep1eta","zlep1phi","zlep2pt","zlep2eta","zlep2phi",\
 				"wmt","wleppt","wlepeta","wlepphi","metet","metphi" ]
-		self.dmtype = [ "i","i","i","i",".2f",".2f",".2f",".2f",".2f",".2f",".2f",\
+		self.dmtype = [ "i","i","i","i","i","i","i",".2f",".2f",".2f",".2f",".2f",".2f",".2f",\
 				".2f",".2f",".2f",".2f",".2f",".2f" ]
+
+		self.oldversion=False
 
 
 	def __str__(self):
@@ -46,9 +53,14 @@ class evtinfo(object):
 		if self.channel == -1:
 			raise RuntimeError("\033[1;31evtinfo ERROR\033[1;m TTree not initialized")
 		for index in xrange(0,len(self.ordereddm)):
-			formatdm = "%"+self.dmtype[index]+" "
 			attrname = self.ordereddm[index]
-			value = self.__getattribute__(attrname).GetValue(0)
+			try:
+				value = self.__getattribute__(attrname).GetValue(0)
+			except AttributeError:
+				# Compatibility with the previous version without category
+				self.oldversion=True
+				continue
+			formatdm = "%"+self.dmtype[index]+" "
 			if attrname == "channel":
 				if value == 3:
 					value = 1
@@ -90,22 +102,28 @@ def evtinfowrite(inputfile,outputfile):
 		#TO BE DEPRECATED (strip)
 		evti.__setattr__(leaf.GetName().strip(),leaf)
 	
-	lines = "#"
-	for i in evti.ordereddm:
-		lines += " "+i
-	lines += "\n"
+	lines = ''
 	for i in xrange(0,nentries):
 		t.GetEntry(i)
 
 		lines += evti.__str__()
 		if i % 10 == 0:
 			print "%i-event processed (%i Event Number)" % (i,evti.evt.GetValue(0))
+	
+	preamble = "#"
+	for i in evti.ordereddm:
+		if evti.oldversion and i.find('cat') != -1:
+			continue
+		preamble += " "+i
+	preamble += "\n"
+
+	finallines = preamble+lines
 
 	f.Close()
 	f.Delete()
 
 	ftxt = open(outputfile,"w")
-	ftxt.writelines(lines)
+	ftxt.writelines(finallines)
 	ftxt.close()
 
 	return nentries
