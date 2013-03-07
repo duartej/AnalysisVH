@@ -34,6 +34,11 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"wzttH120ToWW": "WH, M_{H}=120",
 		"wzttH125ToWW": "WH, M_{H}=125",
 		"wzttH130ToWW": "WH, M_{H}=130",
+		"Fakes_Nt2": "N_{t2}",
+		"Fakes_Nt3": "N_{t3}",
+		"PPP": "PPP est.",
+		"PPF": "PPF est.",
+		"TTbar_2L2Nu_Powheg_Nt2": "DDM t#bar{t}"
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -70,13 +75,18 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"TW": kGreen-2, "TbarW": kGreen+4,
 		"DDM_ZJets": kOrange-3,
 		"DDM_TTbar": kOrange+5,
+		"TTbar_2L2Nu_Powheg_Nt2": kOrange+5,
 		"PhotonVJets_Madgraph": kGreen-5,
 		"VGamma": kGreen-5,
 		"WHToWW2L120": kRed-4,
 		"WHToWW2L130": kRed-3,
 		"wzttH120ToWW": kRed-4,
 		"wzttH125ToWW": kRed-2,
-		"wzttH130ToWW": kRed-3
+		"wzttH130ToWW": kRed-3,
+		"Fakes_Nt2": kAzure-6,
+		"Fakes_Nt3": kAzure-5,
+		"PPP": kAzure-7,
+		"PPF": kAzure-5,
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
