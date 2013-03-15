@@ -18,9 +18,10 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 		const int & systematics ) :
 	_runperiod(runperiod),
 	_muonid(muonid),
-	_wtype(weighttype)
+	_wtype(weighttype),
+	_systematic(systematics)
 {
-	this->init(systematics,false);
+	this->init(false);
 }
 
 WManager::WManager(const unsigned int & weighttype, const std::string & runperiod, 
@@ -29,10 +30,11 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 		const bool & isZJetsRegion ) :
 	_runperiod(runperiod),
 	_muonid(muonid),
-	_wtype(weighttype)
+	_wtype(weighttype),
+	_systematic(systematics)
 {
 	// Check coherence
-	if( systematics != WManager::UP && systematics != WManager::DOWN && systematics != 0)
+	if( _systematic != WManager::UP && _systematic != WManager::DOWN && _systematic != 0)
 	{
 		std::cerr << "\033[1;31mWManager ERROR\033[1;m Not understood '"
 			<< " sytematic variation '" << systematics << "'. Valid"
@@ -40,10 +42,10 @@ WManager::WManager(const unsigned int & weighttype, const std::string & runperio
 			<< std::endl;
 		exit(-1);
 	}
-	this->init(systematics,isZJetsRegion);
+	this->init(isZJetsRegion);
 }
 
-void WManager::init(const int & systematic,const bool & isZJetsRegion )
+void WManager::init(const bool & isZJetsRegion )
 {
 	// Check coherence
 	if( _runperiod.find("2011") != std::string::npos &&
@@ -72,8 +74,8 @@ void WManager::init(const int & systematic,const bool & isZJetsRegion )
 	_filesnames[MUON] = this->getfile(MUON,isZJetsRegion);
 	_filesnames[ELECTRON] = this->getfile(ELECTRON,isZJetsRegion);
 
-	this->setweightfile(MUON,_filesnames[MUON].c_str(),systematic);
-	this->setweightfile(ELECTRON,_filesnames[ELECTRON].c_str(),systematic);
+	this->setweightfile(MUON,_filesnames[MUON].c_str());
+	this->setweightfile(ELECTRON,_filesnames[ELECTRON].c_str());
 }
 
 
@@ -86,7 +88,7 @@ WManager::~WManager()
 			delete it->second;
 			it->second = 0;
 		}
-	}	
+	}
 }
 
 std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsRegion)
@@ -171,7 +173,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	return thefile;
 }
 
-void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename, const int & systematic)
+void WManager::setweightfile(const LeptonTypes & leptontype, const char * filename)
 {
 	// Forcing the ownership to WManager instead of TFile,
 	// in order not to enter in conflict with the TreeManager TFile
@@ -253,21 +255,17 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 			double finalweight = f;
 			// Building systematics if proceed, adding the error contribution
 			// so when call getWeight the value is already the (value+-error)
-			if( systematic )
+			if( _systematic )
 			{
-				if( systematic == WManager::UP )
+				if( _systematic == WManager::UP )
 				{
 					finalweight += prov->GetBinError(globalbin);
 				}
-				else if( systematic == WManager::DOWN )
+				else if( _systematic == WManager::DOWN )
 				{
 					finalweight -= prov->GetBinError(globalbin);
 				}
 			}
-			/*if( _wtype == WManager::FR )  ---> Comment when full calculation
-			{
-			        finalweight = finalweight/(1.0-finalweight);
-			}*/
 			const int globalbinOut = prov->FindBin(ptOut,eta);
 			_weights[leptontype]->SetBinContent(globalbinOut,finalweight);
 		}
@@ -282,7 +280,6 @@ void WManager::setweightfile(const LeptonTypes & leptontype, const char * filena
 	delete f;
 }
 
-
 const double WManager::GetWeight(const LeptonTypes & lt, const double & pt, const double & eta)
 {
 	if( _weights[lt] == 0 )
@@ -292,12 +289,12 @@ const double WManager::GetWeight(const LeptonTypes & lt, const double & pt, cons
 		exit(-1);
 	}
 	
-	int bin = _weights[lt]->FindBin(pt,fabs(eta));
+	const int bin = _weights[lt]->FindBin(pt,fabs(eta));
 	double w = _weights[lt]->GetBinContent(bin);
-	
-	// FIXME: Also return error --> std::pair
+
 	return w;
 }
+
 
 //! Get the internal string name of the weight type
 const std::string WManager::getstrtype( const unsigned int & wt) const

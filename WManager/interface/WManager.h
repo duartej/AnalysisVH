@@ -77,10 +77,10 @@ class WManager
 	
 	private:
 		//! Initialize the class, decoupling both constructors
-		void init(const int & sytematics,const bool & isZJetsRegionFRMatrix); 
+		void init(const bool & isZJetsRegionFRMatrix); 
 
 		//! Set the root file where to find the TH2F with the weights
-		void setweightfile(const LeptonTypes & lt, const char * filename, const int & systematic);
+		void setweightfile(const LeptonTypes & lt, const char * filename);
 		
 		//! get the complete path to the weight maps
 		std::string getfile(const unsigned int & lepton, const bool & isZJetsRegionFRMatrix = false);
@@ -98,6 +98,9 @@ class WManager
 		unsigned int _wtype;
 		//! Weight map
 		std::map<LeptonTypes,TH2F*> _weights;
+
+		//! Systematics extraction (UP or DOWN)
+		int _systematic;
 
 		//! Informational file names
 		std::map<LeptonTypes,std::string> _filesnames;
