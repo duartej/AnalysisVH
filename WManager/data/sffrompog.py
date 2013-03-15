@@ -15,10 +15,46 @@ VBTFMUON="TIGHT_nH10_2011"
 ISOMUON ="combRelPFISO12_2011"
 
 
+def extractnomultdict(pfile,sftype,runperiod=None):
+	"""
+	Extract the relevant info from the pickle file following the convention
+	of the Muon POG twiki page: not multiplying sf
+	"""
+	import pickle
+	from math import sqrt
+
+	f = open(pfile)
+	gendict = pickle.load(f)
+
+	#muon=VBTFMUON
+	#iso =ISOMUON
+	if sftype != VBTFMUON and sftype != ISOMUON:
+		message = '\033[1;33msffrompog ERROR\033[1;m Not defined the SF type '
+		message += '%s' % sftype
+	
+	if runperiod:
+		sftype += runperiod
+
+	sfdict  = { 'METAINFO': {'pt_binning' : sorted(gendict[sftype]['pt_abseta<1.2'].keys()),\
+			'eta_binning': [ '0_1.2', '1.2_2.5' ] } }
+	for etabin, etadict in filter(lambda (x,y): x.find('pt_abseta') != -1, gendict[sftype].iteritems()):
+		if etabin == 'pt_abseta<1.2':
+			eta = 0.6
+		else:
+			eta = 1.9
+		sfdict[eta] = {}
+		for ptbin, dictpt in sorted(etadict.iteritems()):
+			provdict =dictpt[SF]
+			sfval  = provdict[SFVALUE]
+			errlo = provdict[SFERRLO]
+			errhi = provdict[SFERRHI]
+			sfdict[eta][ptbin]=(provdict['pt'],sfval,errlo,errhi)
+	return sfdict
+
 def extractdict(pfile,runperiod=None):
 	"""
 	Extract the relevant info from the pickle file following the convention
-	of the Muon POG twiki page
+	of the Muon POG twiki page, multiplying the components of the sf (is*id)
 	"""
 	import pickle
 	from math import sqrt
@@ -91,7 +127,7 @@ def merge(sfA,lumiA,sfB,lumiB,outputfile):
 
 if __name__ == "__main__":
 	from optparse import OptionParser,OptionGroup
-	import os
+	import os,sys
 
 	#Opciones de entrada
 	usage = "sffrompog file [options]"
@@ -104,7 +140,9 @@ The script will  merge the two scale factors using sf=(sf_A*LumiA+sf_B*LumiB)/(L
 where LumiA=2.111 and LumiB=2.811. Although previously the scale factors per run period have been
 re-factorized (the id and iso components) using sf=sf_A*sf_B'"""
 	parser = OptionParser(usage=usage)
-	parser.set_defaults(outputfile='MuSF_2011_vbtf.root')
+	parser.set_defaults(outputfile='MuSF_2011_vbtf.root',split=False)
+	parser.add_option('-s', action='store_true', dest='split',\
+			help='Create root files without merge the different components (iso-id)')
 	parser.add_option('-r', '--runperiod', action='store', dest='runperiod',
 			help='Run period to be used: A|B. If this option is not activated'\
 					' the scale factors are calculated merging both periods.')
@@ -119,7 +157,18 @@ re-factorized (the id and iso components) using sf=sf_A*sf_B'"""
 	
 	# FIXME: Valores approximados, tengo que preguntar...
 	LumiA = 2230.3
-	LumiB = 2740.0		
+	LumiB = 2740.0
+
+	if opt.split:
+		# generate the root files split in 
+		suffixout = { VBTFMUON: 'id', ISOMUON: 'iso' }
+		f = lambda x,y: x.replace('.root','_'+suffixout[y]+'.root')
+		for i in [ VBTFMUON, ISOMUON ]:
+			sfAdict = extractnomultdict(args[0],i,"A")
+			sfBdict = extractnomultdict(args[0],i,"B")
+
+			merge(sfAdict,LumiA,sfBdict,LumiB,f(opt.outputfile,i))
+		sys.exit(0)
 
 	if opt.runperiod:
 		if opt.runperiod not in [ "A","B"]:
