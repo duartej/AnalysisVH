@@ -110,6 +110,7 @@ if __name__ == '__main__':
 		# Also fakeable or not:
 		if not opt.fakeable:
 			opt.fakeable=False
+			datadriven=None
 		else:
 			# Just to be use when datadriven
 			if not opt.datadriven:
