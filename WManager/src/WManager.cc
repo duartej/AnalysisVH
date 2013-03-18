@@ -121,12 +121,12 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	if( lepton == MUON )
 	{
 		thefile += "Mu";
-		jetzregion = "jet30";
+		jetzregion = "jet15";
 	}
 	else
 	{
 		thefile += "Ele";
-		jetzregion = "jet35";
+		jetzregion = "jet15";
 	}
 	
 	// 2. the weight type
