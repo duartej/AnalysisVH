@@ -473,7 +473,7 @@ class clustermanager(object):
 		message = "\033[1;34m[clustermanager INFO]\033[1;m Re-submit '%s'" % self.dataname
 		message += " Tasks: ["
 		for tasktup in taskranges:
-			self.jobsid.append( self.sendjob(self.bashscriptname,tasktup) )
+			self.jobsid.append( (self.sendjob(self.bashscriptname,tasktup),tasktup[0],tasktup[1]) )
 			message += "(%i,%i)," % (tasktup[0],tasktup[1])
 		message = message[:-1]+"]"
 		print message
@@ -499,7 +499,7 @@ class clustermanager(object):
 		for taskid in listtask:
 			command = [ 'qmod','-rj',self.jobid+"."+str(taskid) ]
 			p = Popen( command ,stdout=PIPE,stderr=PIPE ).communicate()
-			print "\033[1;33m[clustermanager.__checkjob INFO]\033[1;m: Re-submitting "\
+			print "\033[1;33m[clustermanager.__doResubmit_Stalled INFO]\033[1;m: Re-submitting "\
 					" task job in error status: %s.%i" % (self.jobid,taskid)
 
 
@@ -527,8 +527,12 @@ class clustermanager(object):
 			except RuntimeError,e:
 				getexceptionerr.append( e.args[0] )
 			# __checkjob returning None object if the task it wasn't finished
-			if not foundoutfiles[-1]:
-				foundoutfiles = foundoutfiles[:-1]
+			# Controlling the output files is empty (i.e. the first job fails)
+			try:
+				if not foundoutfiles[-1]:
+					foundoutfiles = foundoutfiles[:-1]
+			except IndexError:
+				pass
 		print "\033[34;1m[clustermanager INFO]\033[m Checking the job status for dataname '"+self.dataname+"'"
 		# Print status 
 		getcolor = lambda x,color: "\033["+str(color)+";1m"+x+"\033[m"
@@ -555,13 +559,36 @@ class clustermanager(object):
 
 		# If we got exceptions, dump the info
 		if len(getexceptionerr) != 0:
-			message = '\033[31mclustermanager.__checkjob: Something went wrong in the cluster\033[1;m: '
+			message = '\033[31mclustermanager.__doHarvest: Something went wrong in the cluster\033[1;m: '
 			message += 'Tasks: ['
+			failedtasks = {}
 			for i in getexceptionerr:
+				failedtasks[int(i.split(":")[-1].split()[2].replace("'",""))] = False
 				message += "%s," % (i.split(":")[-1].split()[2])
 			message = message[:-1]+"]"
 			message += " are already finished but there is no output root file"
-			raise RuntimeError(message)
+			# building the dict of resubmitted jobs if any. The data-member
+			# self.jobsid is created when resubmit action is perform
+			try:
+				dum=self.jobsid
+				for (id,taskinit,taskend) in dum:
+					for _task in failedtasks.keys():
+						if _task in xrange(taskinit,taskend+1):
+							failedtasks[_task] = True
+			except AttributeError:
+				raise RuntimeError(message)
+			
+			# Check the failed jobs were re-submitted
+			if len(filter(lambda x: x,failedtasks.values())) == 0:
+				raise RuntimeError(message)
+			else:
+				message = '\033[34mclustermanager.__doHarvest: Waiting for resubmit tasks\033[1;m: '
+				message += '['
+				for _task in sorted(failedtasks.keys()):
+					message += '%i,' % _task
+				message = message[:-1]+"]"
+				print message
+
 	
 	def __doDelete(self):
 		"""::method __doDelete() 
@@ -653,7 +680,7 @@ class clustermanager(object):
 		print "\033[1;34m[clustermanager INFO]\033[1;m",self.dataname,": Harvest completed"
 	
 	
-	def __checkjob(self, jobsdict,_taskid,functional=False):
+	def __checkjob(self, jobsdict,_taskid):
 		"""..method:: __checkjob(taskid)
 		Check and update the status of a job
 		"""
@@ -662,28 +689,6 @@ class clustermanager(object):
 		# be sure to be an int
 		taskid = int(_taskid)
 		
-		# Resubmision case
-		# -- CODING... STILL SOME ISSUES TO RESOLVE XXX
-		#try:
-		#	# If we are checking a job in the list
-		#	if functional:
-		#		raise AttributeError
-		#	# Checking every id
-		#	for jobid in self.jobsid:
-		#		swapjobid = self.jobid
-		#		self.jobid = jobid
-		#		print "HOLA"
-		#		retvalue = self.__checkjob(jobsdict,taskid,True)
-		#		if retvalue != None:
-		#			self.jobsid.remove(self.jobid)
-		#			return retvalue
-		#		print "\033[31mclustermanager.__checkjob: resubmitted task '%i'"\
-		#				" is still in cluster" % taskid
-		#		self.jobid = swapjobid
-		#	return None
-		#except AttributeError:
-		#	pass
-
 		try:
 			jobidpresent = jobsdict[self.jobid]
 			rawstatus = jobsdict[self.jobid][taskid]
@@ -1010,7 +1015,7 @@ class clustermanager(object):
 			taskidend  = self.taskidevt[-1][0]
 
 		# OJO NO HE PUESTO REQUERIMIENTOS DE MEMORIA, CPU...
-		print "Sending to cluster: "+bashscript
+		print "Sending to cluster[%s] Tasks:%i-%i" % (bashscript,taskidinit,taskidend)
 		if self.hostname.find("uniovi") != -1:
                         import os
 			command = [ 'qsub','-V','-d',os.getcwd(), \
