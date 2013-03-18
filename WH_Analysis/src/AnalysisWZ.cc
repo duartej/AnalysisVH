@@ -714,7 +714,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	const double phi = fData->Get<float>("T_METPFTypeI_Phi");
 	const double px = met*cos(phi);
 	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,0.0); 
+	TLorentzVector METV(px,py,0.0,0.0);  //FIXME!!!! Bug --> E=met (correct 
 
 	std::map<int,double> transverseMassW;
 	std::map<double,int> wcandidate;
@@ -805,6 +805,12 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	if( fIsData )
 	{
 		this->StoresEvtInf(lep1Z,lep2Z,(*theLeptons)[iWcand],transverseMassW[iWcand],METV);
+	}
+
+	//Store weight info, just for signal?
+	if( ! fIsData )
+	{
+		this->StoresWeightInf(lep1Z,lep2Z,(*theLeptons)[iWcand]);
 	}
 
 

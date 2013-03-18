@@ -75,20 +75,6 @@ const TString kProcesses[] = { "WH",
                          "Z/W+Jets, WZ+Jets and ttbar",
                          "Other" };
 
-/*const TString kFinalStates[] = {
-  "e e e",
-  "#mu #mu #mu",
-  "#tau #tau #tau",
-  "e e #mu",
-  "e e #tau",
-  "#mu #mu e",
-  "#mu #mu #tau",
-  "#tau #tau e",
-  "#tau #tau #mu",
-  "e #mu #tau",
-  "Unknown"
-};
-*/
 struct EvtInfo
 {
         int run;
@@ -115,6 +101,25 @@ struct EvtInfo
 
         double metet;
         double metphi;
+};
+
+struct WeightInfo
+{
+        int run;
+        int lumi;
+        int evt;
+        int channel;
+
+	double ntruepu;
+
+	double zlep1pt;
+	double zlep1eta;
+
+	double zlep2pt;
+	double zlep2eta;
+
+	double wleppt;
+	double wlepeta;
 };
 
 
@@ -169,6 +174,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		virtual void StoresEvtInf(const LeptonRel & zcand1, const LeptonRel & zcand2, 
 				const LeptonRel & wcand,
 				const double & transversmass, const TLorentzVector & METV);
+		//! Method to fill the tree containing relevant information to re-build the
+		//! weights (just for lepton systematics)
+		virtual void StoresWeightInf(const LeptonRel & zcand1, const LeptonRel & zcand2, 
+				const LeptonRel & wcand);
 		virtual void Summary();
 
 		//! Method to extract the trigger weight 
@@ -290,6 +299,10 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Tree to store some useful info for the selected events
 		TTree * _evtlisttree;
 		EvtInfo _evtinfo;
+
+		//! Tree ti store info related to weight recalculation (systematics)
+		TTree * _weighttree;
+		WeightInfo _weightinfo;
 
 		//! W Charge sign, when want to distinguish between them. 
 		int _wcharge;

@@ -65,6 +65,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	_runnumber(-1),
 	_datadriven(""),
 	_evtlisttree(0),
+	_weighttree(0),
 	_wcharge(0),
 	_jetname(""),
 	_issysrun(false),
@@ -336,6 +337,10 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// The tree for Event info
 	_evtlisttree = new TTree("evtlist","Event selected info");
 	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zlep1cat/D:zlep2cat/D:wlepcat/D:zmass/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
+	
+	// The tree for Weight info
+	_weighttree = new TTree("weighttree","Event selected info");
+	_weighttree->Branch("weightinfo",&_weightinfo.run,"run/I:lumi/I:evt/I:channel/I:ntruepu/D:zlep1pt/D:zlep1eta/D:zlep2pt/D:zlep2eta/D:wleppt/D:wlepeta/D");
 }
 
 AnalysisBase::~AnalysisBase()
@@ -370,6 +375,12 @@ AnalysisBase::~AnalysisBase()
 	{
 		delete _evtlisttree;
 		_evtlisttree = 0;
+	}
+
+	if( _weighttree != 0 )
+	{
+		delete _weighttree;
+		_weighttree = 0;
 	}
 
 	if( fFO != 0 )
@@ -469,6 +480,8 @@ void AnalysisBase::SaveOutput( const char * outputname )
 		_cuttree->Write();
 		// Also the event info tree
 		_evtlisttree->Write();
+		// And the weight tree
+		_weighttree->Write();
 
 		histoAnalysis.Close();
 	}
@@ -551,9 +564,8 @@ bool AnalysisBase::initializeSys(const std::string & variation)
 	}
 
 	return true;
-
 }
-	
+
 const double AnalysisBase::GetMET(const std::vector<LeptonRel> * const theLeptons) const
 {
 	const double met = (double)fData->Get<float>("T_METPFTypeI_ET");
@@ -947,9 +959,30 @@ void AnalysisBase::StoresEvtInf(const LeptonRel & zcand1, const LeptonRel & zcan
         _evtinfo.metphi= METV.Phi();
 
 	_evtlisttree->Fill();
-	_evtlisttree->Show(0);
 }
 
+
+void AnalysisBase::StoresWeightInf(const LeptonRel & zcand1, const LeptonRel & zcand2,
+		const LeptonRel & wcand)
+{
+        _weightinfo.run = fData->Get<int>("T_Event_RunNumber");
+        _weightinfo.lumi = fData->Get<int>("T_Event_LuminosityBlock");
+        _weightinfo.evt  = fData->Get<int>("T_Event_EventNumber");
+        _weightinfo.channel = fFS;
+
+	_weightinfo.ntruepu = (double)fData->Get<int>("T_Event_nTruePU");
+	
+        _weightinfo.zlep1pt = zcand1.getP4().Pt();
+        _weightinfo.zlep1eta = zcand1.getP4().Eta();
+
+        _weightinfo.zlep2pt = zcand2.getP4().Pt();
+        _weightinfo.zlep2eta = zcand2.getP4().Eta();
+
+        _weightinfo.wleppt = wcand.getP4().Pt();
+        _weightinfo.wlepeta = wcand.getP4().Eta();
+
+	_weighttree->Fill();
+}
 
 void AnalysisBase::FillHistoPerCut(const unsigned int & cut,const double & puw, const unsigned int & fs) 
 {
