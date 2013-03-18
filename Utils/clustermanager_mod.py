@@ -653,7 +653,7 @@ class clustermanager(object):
 		print "\033[1;34m[clustermanager INFO]\033[1;m",self.dataname,": Harvest completed"
 	
 	
-	def __checkjob(self, jobsdict,_taskid):
+	def __checkjob(self, jobsdict,_taskid,functional=False):
 		"""..method:: __checkjob(taskid)
 		Check and update the status of a job
 		"""
@@ -663,13 +663,27 @@ class clustermanager(object):
 		taskid = int(_taskid)
 		
 		# Resubmision case
-		if type(self.jobid) == list:
-			# Checking every id
-			for jobid in self.jobsid:
-				swapjobid = self.jobid
-				self.jobid = jobid
-				self.__checkjob(jobsdict,taskid)
-				self.jobid = swapjobid
+		# -- CODING... STILL SOME ISSUES TO RESOLVE XXX
+		#try:
+		#	# If we are checking a job in the list
+		#	if functional:
+		#		raise AttributeError
+		#	# Checking every id
+		#	for jobid in self.jobsid:
+		#		swapjobid = self.jobid
+		#		self.jobid = jobid
+		#		print "HOLA"
+		#		retvalue = self.__checkjob(jobsdict,taskid,True)
+		#		if retvalue != None:
+		#			self.jobsid.remove(self.jobid)
+		#			return retvalue
+		#		print "\033[31mclustermanager.__checkjob: resubmitted task '%i'"\
+		#				" is still in cluster" % taskid
+		#		self.jobid = swapjobid
+		#	return None
+		#except AttributeError:
+		#	pass
+
 		try:
 			jobidpresent = jobsdict[self.jobid]
 			rawstatus = jobsdict[self.jobid][taskid]
