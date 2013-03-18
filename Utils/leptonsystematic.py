@@ -67,6 +67,7 @@ class weight(object):
 		"""
 		import ROOT
 		import os
+		from math import sqrt
 
 		#defaul run period
 		self.runperiod = '2011'
@@ -112,8 +113,8 @@ class weight(object):
 				f.Delete()
 		
 		# Some modifications (mimic WManager class):
-		for dictoffiles in self.__sf__.values():
-			for h in dictoffiles.values():
+		for leptonflavor,dictoffiles in self.__sf__.iteritems():
+			for sftype,h in dictoffiles.iteritems():
 				ptLowmax = h.GetXaxis().GetBinCenter(h.GetNbinsX())
 				for ptbin in xrange(1,h.GetNbinsX()+2):
 					ptIn = h.GetXaxis().GetBinCenter(ptbin)
@@ -125,7 +126,23 @@ class weight(object):
 						globalbin = h.FindBin(ptIn,eta)
 						globalbinout = h.FindBin(ptOut,eta)
 						h.SetBinContent(globalbinout,h.GetBinContent(globalbin))
-						h.SetBinError(globalbinout,h.GetBinError(globalbin))
+						error = h.GetBinError(globalbin)
+						# Including the systematic uncertainties on T&P recommended by MuonPOG
+						# https://twiki.cern.ch/twiki/CMS/MuonTagAndProbe
+						# Adding to the statistic in quadrature
+						if leptonflavor == 'Muon':
+							if sftype == 'id':
+								if ptIn <= 20:
+									error = sqrt(error**2+\
+											(h.GetBinContent(globalbin)*0.015)**2.0)
+								else:
+									error = sqrt(error**2.+\
+											(h.GetBinContent(globalbin)*0.005)**2.0)
+							elif sftype == 'iso':
+								if ptIn > 20:
+									error = sqrt(error**2.+\
+											(h.GetBinContent(globalbin)*0.002)**2.0)
+						h.SetBinError(globalbinout,error)
 
 	def __call__(self,leptype,sftype,pt,eta,):
 		"""method:: weight(leptype,sftype,pt,eta) -> (central,err)
@@ -145,7 +162,6 @@ class weight(object):
 		:return: the scale factor central value and its sigma
 		:rtype: tuple(float,float)
 		"""
-
 		bin = self.__sf__[leptype][sftype].FindBin(pt,abs(eta))
 
 		return (self.__sf__[leptype][sftype].GetBinContent(bin),\
