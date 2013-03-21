@@ -558,7 +558,14 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 	const double deltaEtaIn    = _data->Get<float>("T_Elec_deltaEtaIn",index);
 	const double HtoE          = _data->Get<float>("T_Elec_HtoE",index);
 
-	const double pt   = _data->Get<float>("T_Elec_Pt",index);
+	// Probably this will disappear because there was no discussion
+	// in the 2012 data period with respect the electron calibration
+	std::string ptelec = "T_UncalibElec_Pt";
+	if( _runperiod.find("2012") != std::string::npos )
+	{
+		ptelec = "T_Elec_Pt";
+	}
+	const double pt   = _data->Get<float>(ptelec.c_str(),index);
 	const double absSCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 
 	bool ispass = false;
@@ -627,10 +634,17 @@ unsigned int ElecSelection::SelectBasicLeptons()
 		LeptonRel elec(ElecP4,i);
 		elec.setleptontype(ELECTRON);
 		
+		// Probably this will disappear because there was no discussion
+		// in the 2012 data period with respect the electron calibration
+		float ptelec = elec.getP4().Pt();
+		if( _runperiod.find("2011") != std::string::npos )
+		{
+			ptelec = _data->Get<float>("T_UncalibElec_Pt",i);
+		}
 		
 		//[Cut in Eta and Pt]
 		//-------------------
-		if( fabs(elec.getP4().Eta()) >= kMaxAbsEta || elec.getP4().Pt() <= kMinMuPt3 )
+		if( fabs(elec.getP4().Eta()) >= kMaxAbsEta || ptelec <= kMinMuPt3 )
 		{
 			continue;
 		}
@@ -678,8 +692,12 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		unsigned int i = it->index();
 
 		//Build 4 vector for muon (por que no utilizar directamente Pt
-		// FIXME: Not needed: just extract Pt
-		const double ptMu = it->getP4().Pt();
+		//const double ptMu = it->getP4().Pt();
+		float ptElec = it->getP4().Pt();
+		if( _runperiod.find("2011") != std::string::npos )
+		{
+			ptElec = _data->Get<float>("T_UncalibElec_Pt",i);
+		}
 
 		//[Require muons to be close to PV] 
 		//-------------------
@@ -695,11 +713,11 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		// Apply cut on PV depending on region
 		// + R1: PT >= 20
 		// + R2: PT <  20
-		if(ptMu >= 20.0 && fabs(IPMu) > kMaxMuIP2DInTrackR1 ) 
+		if(ptElec >= 20.0 && fabs(IPMu) > kMaxMuIP2DInTrackR1 ) 
 		{
 			continue;
 		}
-		else if(ptMu < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
+		else if(ptElec < 20.0  && fabs(IPMu) > kMaxMuIP2DInTrackR2 ) 
 		{
 			continue;
 		}
@@ -745,6 +763,11 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		//-------------------
 		const char * isonamestr = "T_Elec_eleSmurfPF";
 		double elecpt = it->getP4().Pt();
+		if( _runperiod.find("2011") != std::string::npos )
+		{
+			elecpt = _data->Get<float>("T_UncalibElec_Pt",i);
+		}
+
 		if( _runperiod.find("2012") != std::string::npos )
 		{
 			isonamestr = "T_Elec_pfComb";
@@ -809,7 +832,8 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		
 		// Technically it is in this function when the no tights must be totally
 		// filled altough conceptually is not here where we have to use the 
-		// following cut because is not an isolated cut
+		// following cut because is not an isolated cut.
+		// Hereafter, the use of the calibrated Pt is allowed
 		if( ! this->IsPassBDT(i) )
 		{
 			if( _samplemode == CutManager::FAKEABLESAMPLE && (_nTights != _nLeptons) )
