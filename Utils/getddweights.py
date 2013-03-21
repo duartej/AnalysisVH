@@ -29,6 +29,7 @@ class evtinfo(object):
 		Encapsulating the evtinfo tree filling in the 
 		data analysis
 		"""
+		self.blacklist=None
 		self.run      = -1
 		self.lumi     = -1
 		self.evt      = -1
@@ -60,6 +61,26 @@ class evtinfo(object):
 				"wmt","wleppt","wlepeta","wlepphi","metet","metphi" ]
 		self.dmtype = [ "i","i","i","i","i","i","i",".2f",".2f",".2f",".2f",".2f",".2f",".2f",\
 				".2f",".2f",".2f",".2f",".2f",".2f" ]
+
+	def setblacklist(self,eventlist):
+		"""..method:: blacklist(eventlist) 
+		Given a list of tuples containing (run,lumi,event) or a
+		list of events [event1,....]. The events are blacklisted
+		and not considered in the get method
+		"""
+		if not eventlist:
+			return
+		self.blacklist = []
+		# eventlist is a str
+		for i in eventlist.replace("[","").replace("]","").split("),"):
+			tuplelist = i.replace("(","").replace(")","").split(",")
+			self.blacklist.append( int(tuplelist[2]) )
+
+	def getblacklist(self):
+		"""..method:: getblacklist
+		Returns a list of blacklisted events
+		"""
+		return self.blacklist
 	
 	def get(self,attrname):
 		"""method:: get(attrname) -> value
@@ -293,7 +314,7 @@ class estimator(object):
 
 
 
-def datadriven(inputfile):
+def datadriven(inputfile,blacklisted=None):
 	"""function:: datadriven(inputfile) -> (totalweight,list(meas),list(channel),nentries)
 	Calculated the weights for the data-driven event by event, adding up the events. Also
 	extracts the measurament signature (how many fail and tight leptons has the inputfile) 
@@ -318,6 +339,7 @@ def datadriven(inputfile):
 	evtinfobranch = t.GetBranch("evtinfo")
 	# init instance struc
 	evti = evtinfo()
+	evti.setblacklist(blacklisted)
 	# Initialize the leaves
 	for leaf in t.GetListOfLeaves():
 		evti.__setattr__(leaf.GetName(),leaf)
@@ -325,12 +347,14 @@ def datadriven(inputfile):
 	totalweight = { 'FFF': 0.0, 'PFF': 0.0, 'PPF': 0.0, 'PPP': 0.0 }
 	measurement = set()
 	channelset = set()
+	evalentries = 0
 	for i in xrange(0,nentries):
 		t.GetEntry(i)
-
-		#if i % 10 == 0:
-		#	print "%i-event processed (%i Event Number)" % (i,evti.evt.GetValue(0))
-
+		# Check blacklisted list
+		if blacklisted and evti.get('evt') in evti.getblacklist():
+			print "Event blacklisted, skipping..."
+			continue
+		evalentries += 1
 		# extract pt,eta,category and channel
 		channel = evti.get('channel')
 		channelset.add( CHANNELSTR[channel] )
@@ -358,7 +382,7 @@ def datadriven(inputfile):
 	f.Close()
 	f.Delete()
 
-	return totalweight,list(measurement),list(channelset),nentries
+	return totalweight,list(measurement),list(channelset),evalentries
 
 if __name__ == '__main__':
 	import os,sys
@@ -378,7 +402,7 @@ if __name__ == '__main__':
 	usage+="\nExtract the weights for the data-driven estimation based in a"
 	usage+=" processed sample. The sample should be a 'Fakes' one."
         parser = OptionParser(usage=usage)
-        parser.set_defaults(verbose=False)
+        parser.set_defaults(verbose=False,blacklist=None)
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
 			help='Folder (or list of folders) where to find the Nt0, Nt1, Nt2 and Nt3'\
 			' Fakes measurements. Incompatible option with "-s"')
@@ -386,6 +410,8 @@ if __name__ == '__main__':
 			help='This option assumes that inside the current directory is going'\
 			' to find the channel folder structure with the Nt0, Nt1, Nt2 and Nt3' \
 			' calculations, where each channel folder begins with SIGNAL')
+	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='[(run,lumi,evt),..]|[evt,..]',\
+			help='Events to be not considered in the data-driven')
 	parser.add_option( '-v', '--verbose', action='count', dest='verbose', help='Verbose mode'\
 			', get also the number of raw events (not weighted) at each cut')
 
@@ -417,7 +443,7 @@ if __name__ == '__main__':
 			# Extract the data/mc folders
 			print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
 					(rf)
-			totalent,measurement,channelstr,rawentries = datadriven(rf)
+			totalent,measurement,channelstr,rawentries = datadriven(rf,opt.blacklist)
 
 			# Get the measurament, number of tight: 101
 			if len(measurement) != 1:
@@ -459,7 +485,7 @@ if __name__ == '__main__':
 		print "\033[1;34mgetddweights INFO\033[1;m Raw entries by channel and measurement"
 		m = '%10s  ' % ''
 		for ch in sorted(rawentrieschannel.keys()):
-			m += '|| %6s ' % ch
+			m += ' || %2s ' % ch
 		m += '\n'
 		for ntight in sorted(rawentrieschannel.values()[0].keys()):
 			m += '%8sNt%i  ' % ('',ntight)
@@ -495,13 +521,14 @@ if __name__ == '__main__':
 		m += '%10s' % (est)
 		for ch in ['3e', '2e', '2m', '3m']:
 			try:
-				m += '  || %3.4f ' % (channelest[est][ch])
+				numtostr = "%2.4f" % channelest[est][ch]
+				m += '  || %8s' % numtostr
 			except KeyError:
 				m += '  || %8s ' % ('-')
 				sumchannel[ch] = 0.0
 		m +='\n'
 	m += '%12s' % (' ')
 	for ch in ['3e', '2e', '2m', '3m']:
-		m += '|| %3.4f  ' % sumchannel[ch]
+		m += '|| % 2.4f  ' % sumchannel[ch]
 	print m
 	
