@@ -1359,6 +1359,13 @@ def builtmetasamples(premsamples,availablesamp,metasamples=None):
 				message += ' -S option and in -m option. Incompatible behaviour'
 				raise RuntimeError(message)			
 		# build the metasamples from the dict of pre-metasamples
+		# -- before that check that we are not double counting anything
+		repeated = filter(lambda (n,sampleslist): set(sampleslist) in map(lambda x: set(x),premsamples.values()),\
+				metasamples.iteritems())
+		if len(repeated) != 0:
+			# Find the repeated metasample and get rid of it
+			for (n,sampleslist) in repeated:
+				metasamples.pop(n)
 		metasamples.update(premsamples)
 
 	return metasamples
