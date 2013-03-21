@@ -223,6 +223,65 @@ class sf(object):
 		self.__valueup__     = initval
 		self.__valuedown__   = initval
 		self.__sigmaoversf__ = 0.0
+	
+	def __add__(self,other):
+		""".. operator+(self,other) -> sf
+
+		Adding up the yields (weighted)
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
+		"""
+		# Check coherence: only can be added if
+		if self.__leptontype__ != other.__leptontype__ and \
+				self.__leptonid__ != other.__leptonid and \
+				self.__sftype__ != other.__sftype__:
+			message = '\033[1;31msf __add__ operator ERROR\033[1;m '
+			message+= 'Cannot be added two instances with one of this'
+			message+= ' datamember differents: lepton-id, lepton-flavor or'
+			message+= ' scale factor type'
+			raise RuntimeError(message)
+		# Creating the new instance
+		result = self.copy()
+
+		result.__value__       += other.__value__
+		result.__valueup__     += other.__valueup__
+		result.__valuedown__   += other.__valuedown__
+		result.__sigmaoversf__ += other.__sigmaoversf__
+		
+		return result
+	
+	def __iadd__(self,other):
+		""".. operator+(self,other) -> self
+
+		Adding up the weighted yields
+
+		:param other: a column instance
+		:type other: column
+
+		:return: a column instance
+		:rtype:  column
+
+		"""
+		# Check coherence: only can be added if
+		if self.__leptontype__ != other.__leptontype__ and \
+				self.__leptonid__ != other.__leptonid and \
+				self.__sftype__ != other.__sftype__:
+			message = '\033[1;31msf __add__ operator ERROR\033[1;m '
+			message+= 'Cannot be added two instances with one of this'
+			message+= ' datamember differents: lepton-id, lepton-flavor or'
+			message+= ' scale factor type'
+			raise RuntimeError(message)
+
+		self.__value__       += other.__value__
+		self.__valueup__     += other.__valueup__
+		self.__valuedown__   += other.__valuedown__
+		self.__sigmaoversf__ += other.__sigmaoversf__
+		
 
 	def __str__(self):
 		"""method:: __str__() -> str
@@ -317,6 +376,7 @@ def extractsystematics(inputfile,mode='FU'):
 	"""
 	"""
 	import ROOT
+	import sys
 
 	# Check valid modes
 	if not mode in [ 'FU', 'PU' ]:
@@ -345,13 +405,23 @@ def extractsystematics(inputfile,mode='FU'):
 
 	SFTYPES  = { 'Muon': w.getsftypes('Muon'), 'Elec': w.getsftypes('Elec') }
 	sfvariations = {}
-	yields = 0.0
-
+	
+	point = nentries/100
+	k = 0
 	for entry in xrange(0,nentries):
 		t.GetEntry(entry)
-
-		if entry % 1000 == 0:
-			print "%i-event processed (%i Event Number)" % (entry,wi.evt.GetValue(0))
+		
+		# Progress bar
+		if point == 0:
+			entersnow = False
+		else:
+			entersnow = (entry % 5*point) == 0
+		
+		if entersnow:
+			sys.stdout.write("\r\033[1;34mleptonsystematic INFO\033[1;m Processing '"+\
+					inputfile+" [ "+"\b"+str(entry/point).rjust(3)+"%]")
+			sys.stdout.flush()
+		# Progress bar end
 		# extract pt,eta,category and channel
 		channel = wi.get('channel')
 		leptons = CHANNEL[channel]
@@ -380,13 +450,11 @@ def extractsystematics(inputfile,mode='FU'):
 					currsf[(sftype,leptontype)] = sf(-1,leptontype,sftype,1.0,mode='PU')
 
 		# Using this info to weight
-		currentyield = 1.0
 		sfw = []
 		for i in xrange(len(leptons)):
 			for sftype in SFTYPES[leptons[i]]:
 				_sfw,_errweight = w(leptons[i],sftype,pt[i],eta[i])
 				sfw.append( (_sfw,_errweight,sftype,i) )
-				currentyield *= _sfw
 		if mode == 'FU':
 			for (_sfw,errweight,sftype,leptonid) in sfw:
 				for sfobject in currsf.values():
@@ -402,18 +470,29 @@ def extractsystematics(inputfile,mode='FU'):
 				sfvariations[(sftype,i)].addevent(sfobject)
 			except KeyError:
 				sfvariations[(sftype,i)] = sfobject.copy()
-
-		yields += currentyield
 	
 	f.Close()
 	f.Delete()
+	strchannel = ''
+	if nentries == 0:
+		message = "\033[1;33mleptonsystematics WARNING\033[1;m The sample '%s' has 0"\
+				% inputfile.split("/")[-1].replace(".root","")
+		message+= " events passed the analysis cuts. No output is provided"
+		print message
+	else:
+		for i in leptons:
+			strchannel += i.lower()[0]
+		sys.stdout.write("\n")
+		sys.stdout.flush()
 
-	return yields,sfvariations
+	return sfvariations,strchannel
 
-def processresult(yields,sfdict):
+def processresult(sfdict):
 	"""
 	"""
 	from math import sqrt
+	
+	yields = sfdict.values()[0].__value__
 	relerr = lambda x: abs(x-yields)/yields
 
 	relerrdict = {}
@@ -427,12 +506,71 @@ def processresult(yields,sfdict):
 			relerrdict[(id,sfobject.__leptontype__)] = {sftype: val}
 	return relerrdict
 
+def updatesysfile(foldertostore,sysdict):
+	"""..function updatesysfile(sysdict) 
+	
+	Build or update the file which is going to be used by any other script needing systematics
+	"""
+	import os,sys
+	from datetime import date
+	import glob
+	
+	today = date.today()
+	fileout = os.path.join(foldertostore,"systematics_mod.py")
+	# Check if there is already 
+	try:
+		sysfile = glob.glob(foldertostore+"/systematics_mod.py")[0]
+	except IndexError:
+		message = '\033[1;31mupdatesysfile ERROR\033[1;m There is no "systematics_mod.py" file'
+		message+= ' in "%s" folder. Please send first the "resumesys" utility to create it' % foldertostore
+		raise RuntimeError(message)
+	#Copying the module
+	f = open(sysfile)
+	lines = f.readlines()
+	
+	# Check there wasn't a previous modification by this function. The function should act
+	# over the original systematics_mod
+	if len(filter(lambda x: x.find("MODIFIED BY 'leptonsystematic'") != -1,lines)) != 0:
+		message = '\033[1;31mupdatesysfile ERROR\033[1;m The "systematics_mod.py" file'
+		message+= ' was already modified by this function. This behaviour is not accepted.'
+		message+= ' This function must act only over the original systematics_mod.py file'
+		message+= ' created by the "resumesys" utility'
+		f.close()
+		raise RuntimeError(message)
+
+	# Include a comment related with this update
+	lines[3] = lines[3][:-1]+" || MODIFIED BY 'leptonsystematic': "+today.strftime("%2d-%2m-%Y")+"\n"
+	f.close()
+	
+	# Update the samples
+	for name,channeldict in sysdict.iteritems():
+		# find the line where starts the SYSname dict
+		try:
+			lineheader = filter(lambda x: lines[x].find('SYS'+name+' = {') != -1,xrange(len(lines)))[0]
+		except IndexError:
+			continue
+		newline = "\t'LEPTON': { "
+		for channel,value in channeldict.iteritems():
+			newline += channel+': '+str(value)+', '
+		# Check we have all the channels
+		for channel in [ 'eee' , 'eem' ,'mme', 'mmm' ]:
+			if not channel in channeldict.keys():
+				newline+= channel+': 0.0, '
+		newline = newline[:-2]+' }\n'
+		lines.insert(lineheader+1,newline)
+	# Backup copy
+	os.rename(sysfile,sysfile.replace('.py','_backup_py'))
+	print "\033[1;34mupdatesysfile INFO\033[1;m Created backup file 'systematics_mod_backup_py"
+	f = open(sysfile,'w')
+	f.writelines(lines)
+	f.close()
 
 if __name__ == '__main__':
 	import os,sys
 	import glob
 	from optparse import OptionParser
 	from math import sqrt
+	from functionspool_mod import parsermetasamples
 
         #Comprobando la version (minimo 2.4)
         vX,vY,vZ,_t,_t1 = sys.version_info
@@ -444,19 +582,23 @@ if __name__ == '__main__':
 	usage+="\nCalculate the systematic propagation of the lepton scale factors"
 	usage+="\n"
         parser = OptionParser(usage=usage)
-        parser.set_defaults(verbose=False,mode='FU')
+        parser.set_defaults(mode='FU',update=False)
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
-			help='Folder (or list of folders) where to find the Nt0, Nt1, Nt2 and Nt3'\
-			' Fakes measurements. Incompatible option with "-s"')
+			help='Folder (or list of folders) where to find the "cluster_*/Results/*.root"'\
+			' files. Incompatible option with "-s"')
 	parser.add_option( '-s', '--signal', action='store',dest='signal',\
 			help='This option assumes that inside the current directory is going'\
-			' to find the channel folder structure with the Nt0, Nt1, Nt2 and Nt3' \
-			' calculations, where each channel folder begins with SIGNAL')
+			' to find the channel folder structure with the cluster_*/Results/*.root' \
+			' files, where each channel folder begins with SIGNAL')
 	parser.add_option( '-m', '--mode', action='store',dest='mode',metavar='FU|PU',\
 			help='Set the sytematic mode: FU (Fully Uncorrelated) consideres each lepton and'\
 			' each scale factor independently. PU (Partial Uncorrelated), only consider'\
 			' as independent the scale factor, all the leptons with the same flavour are variated'\
 			' at the same direction simultaneously (Default:FU)')
+	parser.add_option( '--merge', action='store',dest='merge',help=parsermetasamples())
+	parser.add_option( '-u', '--update', action='store_true', dest='updatemod', help='Update'\
+			', the systematic_mod.py file, previously created with the "resumesys" utility,'\
+			' with the values for the LEPTON key')
 	parser.add_option( '-v', '--verbose', action='count', dest='verbose', help='Verbose mode'\
 			', get also the number of raw events (not weighted) at each cut')
 
@@ -484,22 +626,60 @@ if __name__ == '__main__':
 		raise RuntimeError(message)
 
 	samplesoutput = {}
+	vetodata = lambda x,y: x.split("/")[-1].replace(".root","") != y
+	vetofakes= lambda x: vetodata(x,"Fakes_Nt3") and vetodata(x,"Fakes_Nt2") \
+			and vetodata(x,"Fakes_Nt1") and vetodata(x,"Fakes_Nt0") \
+			and vetodata(x,"Fakes")
 	for i in folders:
-		rootfiles = glob.glob(i+'/cluster_*/Results/*.root')
+		prerootfiles = glob.glob(i+'/cluster_*/Results/*.root')
+		#rootfiles = filter(lambda x: x.split("/")[-1].replace(".root","") != 'Data' and \
+		#		x.split("/")[-1].replace(".root","").find("Fakes") == -1 ,prerootfiles)
+		#rootfiles = filter(lambda x: x.split("/")[-1].replace(".root","") == "WZTo3LNu" ,prerootfiles)
+		rootfiles = filter(lambda x: vetodata(x,"Data") and vetofakes(x),prerootfiles)
 		if len(rootfiles) == 0:
-			rootfiles = [ args[0] ]
+			try:
+				rootfiles = [ args[0] ]
+			except IndexError:
+				message = '\033[1;31mleptonsystematics ERROR\033[1;m Script not '
+				message+= 'properly called. See help usage'
+				raise RuntimeError(message)
 		samplesoutput[i] = {}
 		for rf in rootfiles:
 			# Extract the data/mc folders
-			print "\033[1;34mleptonsystematic INFO\033[1;m Evaluating scale factor systematics from '%s'" % \
-					(rf)
+			#mesout = "\033[1;34mleptonsystematic INFO\033[1;m Evaluating scale factor systematics from '%s'" \
+			#		% rf
+			#		" [%3s%s]" % (rf,'0'.rjust(3),'%')
+			#sys.stdout.write(mesout)
 			name = rf.split('/')[-1].replace('.root','')
 			samplesoutput[i][name] = extractsystematics(rf,opt.mode)
-	
+			if samplesoutput[i][name][1] == '':
+				# There wasn't any event passed the cuts
+				samplesoutput[i].pop(name)
+	# Considering a sample as sum of several samples
+	if opt.merge:
+		mergesample = parsermetasamples(opt.merge)
+		for metaname,realnames in mergesample.iteritems():
+			for i in folders:
+				for realname in filter(lambda x: x in samplesoutput[i].keys(),realnames):
+					try:
+						samplesoutput[i][metaname][1] += samplesoutput[i][realname][1]
+					except KeyError:
+						samplesoutput[i][metaname] = (samplesoutput[i][realname][0],samplesoutput[i][realname][1].copy())
+					samplesoutput[i].pop(realnames)
+
+
+	# if no update the systematics_mod file, activate verbose
+	# to see anything,...
+	if not opt.updatemod:
+		opt.verbose = 1
+	sysdict = {}
 	for folder,samplesdict in samplesoutput.iteritems():
-		print "\033[1;34mleptonsystematic INFO\033[1;m '%s':" % (folder.split("/")[-1])
-		for name,(yields,sfobject) in samplesdict.iteritems():
-			relerrdict = processresult(yields,sfobject)
+		if opt.verbose > 0:
+			print "\033[1;34mleptonsystematic INFO\033[1;m '%s':" % (folder.split("/")[-1])
+		for name,(sfobject,channel) in samplesdict.iteritems():
+			if opt.verbose > 0:
+				print "\033[1;34mleptonsystematic INFO\033[1;m [%s]" % (name)
+			relerrdict = processresult(sfobject)
 			sumup2 = 0.0
 			message = ''
 			for (ind,leptontype),sfdict in relerrdict.iteritems():
@@ -516,8 +696,21 @@ if __name__ == '__main__':
 						message += '%4.1f%s (%5s) ' % (value*100.0,'%',sftype)
 						sumup2 += value**2.0
 				message += '\n'
-			print message[:-1]
-			print 'Total squared systematic: %4.1f%s' % (sqrt(sumup2)*100.0,'%')
+			sqrtsum = sqrt(sumup2)
+			if opt.verbose > 0:
+				print message[:-1]
+				print 'Total squared systematic: %4.1f%s' % (sqrtsum*100.0,'%')
+			try:
+				sysdict[name][channel] = sqrtsum
+			except KeyError:
+				sysdict[name] = {channel: sqrtsum }
+	# Update the systematic module
+	if opt.updatemod:
+		print "\033[1;34mleptonsystematics INFO\033[1;m Updating the systematics_mod.py"\
+				" file with the LEPTON systematic"
+		updatesysfile(os.getcwd(),sysdict)
+
+
 
 	
 	
