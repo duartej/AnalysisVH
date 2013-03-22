@@ -22,6 +22,9 @@ CHANNEL = { 0: ('Elec','Elec','Elec'), 3: ('Elec','Elec','Muon'),\
 
 CHANNELSTR = { 0: '3e', 3: '2e', 5: '2m', 1: '3m' }
 
+# (nt0,nt1,nt2,nt3)
+RULES = { 'PPP': (-1.0,1.0,-1.0,1.0), 'PPF': (1.0,-1.0,1.0,-1.0),\
+		'PFF': (-1.0,1.0,-1.0,1.0), 'FFF': (1.0,-1.0,1.0,-1.0) }
 
 class evtinfo(object):
 	def __init__(self):
@@ -477,7 +480,7 @@ if __name__ == '__main__':
 				print "Nt%i contribution to the: " % (ntights)
 				message = ''
 				for i in [ 'PPP', 'PPF', 'PFF', 'FFF' ]:
-					message += "           +  %4s estimation: %10.6f\n" % (i,totalent[i])
+					message += "           +  %4s estimation: %10.6f\n" % (i,RULES[i][ntights]*totalent[i])
 				print message[:-1]
 				print "="*50
 	if opt.verbose >= 1:
@@ -499,9 +502,6 @@ if __name__ == '__main__':
 	if len(totalchannel.values()[0].values()) == 1:
 		sys.exit(0)
 	
-	# (nt0,nt1,nt2,nt3)
-	RULES = { 'PPP': (-1.0,1.0,-1.0,1.0), 'PPF': (1.0,-1.0,1.0,-1.0),\
-			'PFF': (-1.0,1.0,-1.0,1.0), 'FFF': (1.0,-1.0,1.0,-1.0) }
 	channelest = {}
 	sumchannel = {}
 	for ch,totaldmeas in totalchannel.iteritems():
