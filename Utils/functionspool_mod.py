@@ -9,6 +9,7 @@
 
    + br
    + processedsample
+   + pywmanager
    + getweight
    + gettablecontent
    + extractyields
@@ -843,6 +844,141 @@ def getpassevts(rootfile,cutlevel=-1,**keywords):
 		callfunct = "s.getrealvalue(cut)"
 	
 	return eval(callfunct)
+
+class pywmanager(object):
+	"""
+	Class to deal with the weights of the leptons.Pythonization of the
+	WManager class
+	"""
+	def __init__(self,weighttype,**keywords):
+		"""class:: wmanager(weighttype[,runperiod]) -> weight instance
+		Once the instance is created, it is possible to call 
+		directly to extract the Prompt-rate or Fake-rate given
+		a lepton and its pt,eta
+		"""
+		import ROOT
+		import os
+
+		# Known weights types
+		self.wts = [ 'SF', 'FR', 'PR', 'TR_leading', 'TR_trailing' ]
+		if not weighttype in self.wts:
+			message = '\033[1;31mpywmanager ERROR\033[1;m "%s" ' %weighttype
+			message+= 'is not a valid weight type: ['
+			for i in self.wts:
+				message+= i+' '
+			message = message[:-1]+"]"
+			raise RuntimeError(message)
+		self.weighttype = weighttype
+
+		#defaul run period
+		self.runperiod = '2011'
+		
+		self.jet = ''
+
+		validkeywords = [ 'runperiod', 'jet' ]
+		for key,value in keywords:
+			if key == 'runperiod':
+				self.runperiod = value
+			if key == 'jet' and self.weighttype == 'FR':
+				self.jet = '_jet'+value
+
+		# Loading the fakes and prompt rates
+		pkgfolder = os.getenv("VHSYS")
+		wmanagerdata = os.path.join(pkgfolder,'WManager/data')
+		if self.runperiod == '2011':
+			muonleptontype = 'vbtf'
+		elif self.runperiod == '2012':
+			muonleptontype = 'hwwid'
+		if self.weighttype == 'FR' and self.jet == '':
+			self.jet = '_jet50'
+		
+		headerMu = 'Mu'+self.weighttype+'_'
+		mapfname = os.path.join(wmanagerdata,headerMu+self.runperiod+'_'+muonleptontype+self.jet+'.root')
+
+		ename = lambda x: x.replace('Mu','Ele').replace('_'+muonleptontype,'')
+		getth2 = lambda f: map(lambda x: f.Get(x.GetName()),\
+				filter(lambda x: x.GetClassName() == 'TH2F',f.GetListOfKeys()))[0]
+		
+		# Extract the histos
+		ROOT.TH2.AddDirectory(0)
+		fmu = ROOT.TFile(mapfname)
+		fele= ROOT.TFile(ename(mapfname))
+
+		self.__weights__ = { 'Muon': getth2(fmu), 'Elec': getth2(fele) }
+		
+		# Some modifications:
+		for h in self.__weights__.values():
+			ptLowmax = h.GetXaxis().GetBinCenter(h.GetNbinsX())
+			for ptbin in xrange(1,h.GetNbinsX()+2):
+				ptIn = h.GetXaxis().GetBinCenter(ptbin)
+				ptOut= ptIn
+				if ptIn >= ptLowmax:
+					ptIn = ptLowmax
+				if self.weighttype == 'FR' and ptIn >= 35.0:
+					ptIn = 34.0
+				for etabin in xrange(1,h.GetNbinsY()+2):
+					eta = h.GetYaxis().GetBinCenter(etabin)
+					globalbin = h.FindBin(ptIn,eta)
+					globalbinout = h.FindBin(ptOut,eta)
+					h.SetBinContent(globalbinout,h.GetBinContent(globalbin))
+
+
+	def __call__(self,leptype,pt,eta):
+		"""method:: weight(self,pt,eta) -> (PR,FR)
+		Returns the prompt-rate and fake-rate, given a lepton
+
+		:param leptype: the lepton flavour (Elec, Muon)
+		:type leptype: str (valid names are 'Elec' 'Muon')
+		:param pt: the transverse momentum of the lepton
+		:type pt: float
+		:param eta: the pseudorapity of the lepton
+		:type eta: float
+
+		:return: the prompt-rate and fake-rate 
+		:rtype: tuple(float,float)
+		"""
+
+		bin = self.__weights__[leptype].FindBin(pt,abs(eta))
+
+		return self.__weights__[leptype].GetBinContent(bin)
+	
+	def getlatextable(self,leptype):
+		"""..method:: getlatextable(stype) -> str
+		Returns a string with the latex format table built with
+		the contents of the TH2 histo
+
+		:param stype: fake rates or prompt rates
+		:type stype: str
+		:param leptype: lepton flavour
+		:type leptype: str
+
+		:return: latex table
+		:rtype: str
+		"""
+		if leptype != 'Muon' and leptype != 'Elec':
+			message = "\033[1;31mpywmanager.getlatextable ERROR\033[1;m"
+			message += " Invalid lepton flavor '%s'" % leptype
+			raise RuntimeError(message)
+
+		h = self.__weights__[leptype] 
+
+		table = '\\begin{tabular}{'+'c'*(h.GetNbinsY()+1)+'}\\hline\\hline\n'
+		table += '%10s &' % ''
+		for etabin in xrange(1,h.GetNbinsY()+1):
+			table += '$'+str(h.GetYaxis().GetBinLowEdge(etabin))+'< |\\eta| \leq '+\
+					str(h.GetYaxis().GetBinLowEdge(etabin+1))+'$ & '
+		table = table[:-2]+'\\\\ \\hline \n'
+
+		for ptbin in xrange(1,h.GetNbinsX()+1):
+			table += '$'+str(h.GetXaxis().GetBinLowEdge(ptbin))+'< p_t \leq '+\
+					str(h.GetXaxis().GetBinLowEdge(ptbin+1))+'$ & '
+			for etabin in xrange(1,h.GetNbinsY()+1):
+				table += '$%.4f\\pm%.4f$ & ' % (h.GetBinContent(ptbin,etabin),\
+						h.GetBinError(ptbin,etabin))
+			table = table[:-2]+'\\\\ \n'
+		table += '\end{tabular}\n'
+
+		return table
 
 
 
