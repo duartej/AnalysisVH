@@ -150,8 +150,6 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	const char * sys = fInputParameters->TheNamedString("Systematic");
 	std::map<int,int> systypemode;
 	// Initialize
-	// Systematic related with the scale factors: using sf+-sigma 
-	systypemode[AnalysisBase::LEPTONSYS] = 0;
 	// Systematic related with the fake rate matrices errors, using fr+-sigma
 	systypemode[AnalysisBase::FRSYS] = 0;
 	// Systematic related with the muon momentum scale 
@@ -178,11 +176,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		}
 		_namesys = systr.substr(0,pos_colon);
 		// Checking it is defined
-		if( _namesys == "LEPTONSYS" )
-		{
-			_typesys = AnalysisBase::LEPTONSYS;
-		}
-		else if( _namesys == "FRSYS" )
+		if( _namesys == "FRSYS" )
 		{
 			_typesys = AnalysisBase::FRSYS;
 		}
@@ -206,7 +200,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 		{
 			std::cerr << "\033[1;31mAnalysisBase::AnalysisBase ERROR:\033[1;m Parsing 'Systematic'"
 				<< " from InputParameters with wrong systematic type: '" << systr << "' "
-				<< " Valid arguments are 'LEPTONSYS' 'FRSYS' MMSSYS' 'EESSYS' 'METSYS' 'PUSYS'"
+				<< " Valid arguments are 'FRSYS' MMSSYS' 'EESSYS' 'METSYS' 'PUSYS'"
 				<< std::endl;
 			exit(-1);
 		}
@@ -234,9 +228,9 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	// End parsing systematics
 
 	// Initialize the scale factors and trigger
-	fSF  = new WManager( WManager::SF, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
-	fTRL = new WManager( WManager::TR_LEADING, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
-	fTRT = new WManager( WManager::TR_TRAILING, fRunPeriod, muonid, systypemode[AnalysisBase::LEPTONSYS] );
+	fSF  = new WManager( WManager::SF, fRunPeriod, muonid );
+	fTRL = new WManager( WManager::TR_LEADING, fRunPeriod, muonid );
+	fTRT = new WManager( WManager::TR_TRAILING, fRunPeriod, muonid );
 
 	// Are in fake sample mode?
 	if( fLeptonSelection->IsInFakeableMode() ) 

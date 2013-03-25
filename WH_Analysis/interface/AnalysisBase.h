@@ -144,8 +144,7 @@ class AnalysisBase : public CMSAnalysisSelector
 		//! Systematic types
 		enum
 		{
-			LEPTONSYS=10,       // Scale factors related systematics
-			FRSYS,		    // Fake rates+-1sigma variation of its value
+			FRSYS = 10, 	    // Fake rates+-1sigma variation of its value
 			MMSSYS,		    // Muon Momentum scale systematic
 			EESSYS,             // Electron Energy scale systematic
 			METSYS,		    // MET scale and resolution systematic
