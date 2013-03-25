@@ -281,6 +281,8 @@ class sf(object):
 		self.__valueup__     += other.__valueup__
 		self.__valuedown__   += other.__valuedown__
 		self.__sigmaoversf__ += other.__sigmaoversf__
+
+		return self
 		
 
 	def __str__(self):
@@ -408,6 +410,7 @@ def extractsystematics(inputfile,mode='FU'):
 	
 	point = nentries/100
 	k = 0
+	waswrite=False
 	for entry in xrange(0,nentries):
 		t.GetEntry(entry)
 		
@@ -421,6 +424,7 @@ def extractsystematics(inputfile,mode='FU'):
 			sys.stdout.write("\r\033[1;34mleptonsystematic INFO\033[1;m Processing '"+\
 					inputfile+" [ "+"\b"+str(entry/point).rjust(3)+"%]")
 			sys.stdout.flush()
+			waswrite = True
 		# Progress bar end
 		# extract pt,eta,category and channel
 		channel = wi.get('channel')
@@ -477,13 +481,15 @@ def extractsystematics(inputfile,mode='FU'):
 	if nentries == 0:
 		message = "\033[1;33mleptonsystematics WARNING\033[1;m The sample '%s' has 0"\
 				% inputfile.split("/")[-1].replace(".root","")
-		message+= " events passed the analysis cuts. No output is provided"
-		print message
+		message+= " events passed the analysis cuts. No output is provided\n"
+		sys.stdout.write( message )
+		sys.stdout.flush()
 	else:
 		for i in leptons:
 			strchannel += i.lower()[0]
-		sys.stdout.write("\n")
-		sys.stdout.flush()
+		if waswrite:
+			sys.stdout.write("\n")
+			sys.stdout.flush()
 
 	return sfvariations,strchannel
 
@@ -632,9 +638,6 @@ if __name__ == '__main__':
 			and vetodata(x,"Fakes")
 	for i in folders:
 		prerootfiles = glob.glob(i+'/cluster_*/Results/*.root')
-		#rootfiles = filter(lambda x: x.split("/")[-1].replace(".root","") != 'Data' and \
-		#		x.split("/")[-1].replace(".root","").find("Fakes") == -1 ,prerootfiles)
-		#rootfiles = filter(lambda x: x.split("/")[-1].replace(".root","") == "WZTo3LNu" ,prerootfiles)
 		rootfiles = filter(lambda x: vetodata(x,"Data") and vetofakes(x),prerootfiles)
 		if len(rootfiles) == 0:
 			try:
@@ -646,10 +649,6 @@ if __name__ == '__main__':
 		samplesoutput[i] = {}
 		for rf in rootfiles:
 			# Extract the data/mc folders
-			#mesout = "\033[1;34mleptonsystematic INFO\033[1;m Evaluating scale factor systematics from '%s'" \
-			#		% rf
-			#		" [%3s%s]" % (rf,'0'.rjust(3),'%')
-			#sys.stdout.write(mesout)
 			name = rf.split('/')[-1].replace('.root','')
 			samplesoutput[i][name] = extractsystematics(rf,opt.mode)
 			if samplesoutput[i][name][1] == '':
@@ -659,14 +658,21 @@ if __name__ == '__main__':
 	if opt.merge:
 		mergesample = parsermetasamples(opt.merge)
 		for metaname,realnames in mergesample.iteritems():
+			if len(filter(lambda x: x in samplesoutput.values()[0].keys(),realnames)) == 0:
+				message ='\033[1;33mleptonsystematics WARNING\033[1;m There are no real'
+				message+='samples to merge %s' % opt.merge
+				print message
+				break
 			for i in folders:
 				for realname in filter(lambda x: x in samplesoutput[i].keys(),realnames):
-					try:
-						samplesoutput[i][metaname][1] += samplesoutput[i][realname][1]
-					except KeyError:
-						samplesoutput[i][metaname] = (samplesoutput[i][realname][0],samplesoutput[i][realname][1].copy())
-					samplesoutput[i].pop(realnames)
-
+					if not samplesoutput[i].has_key(metaname):
+						samplesoutput[i][metaname]= ({},samplesoutput[i][realname][1])
+					for key,sfinstance in samplesoutput[i][realname][0].iteritems():
+						try:
+							samplesoutput[i][metaname][0][key] += sfinstance
+						except KeyError:
+							samplesoutput[i][metaname][0][key] = sfinstance.copy()
+					samplesoutput[i].pop(realname)
 
 	# if no update the systematics_mod file, activate verbose
 	# to see anything,...
