@@ -1336,6 +1336,63 @@ def getrounded(n,nsig):
 	
 	return outputstr
 
+def getvalpluserr(value,error,minimum=2):
+	"""
+	"""
+	evalsigdigit=getsignificantdigit(error)
+	if evalsigdigit >= minimum:
+		sigdigit = evalsigdigit
+	else:
+		sigdigit = minimum
+	valnew = '%.*f' % (sigdigit,round(value,sigdigit))
+	errnew = '%.*f' % (sigdigit,round(error,sigdigit))
+
+	return valnew,errnew
+
+def getsignificantdigit(error):
+	"""..function:: getsignificantdigit(error)
+
+	Given a value it returns the position after the dot
+	of the significant digit following the rules:
+	 * if the value >= 2.0 the significant digit is before
+	 the dot
+	 * if the value is between 2.0 and 1.0 the significant
+	 digit is given by the first value after the dot
+	 * for values between 1.0 and 0.0 the significant digit
+	 is the first one going from the dot to right greater than
+	 to 1 and applying since there the two first rules with
+	 the dot moved at the position found
+
+	:param error: value to find the significant digit
+	:type error: float
+
+	:return: the position after the dot where is located the significant
+	         digit
+	:rtype: int
+	"""
+	# Find the most significant digit in the 
+	if error >=  2.0:
+		digitspostdot = 0
+	elif error < 2.0 and error >= 1.0 :#>= 1.5:
+		digitspostdot = 1
+	#elif error < 1.5 and error >= 1.0:
+	#	digitspostdot = 2
+	elif error < 1.0 and error > 0.0:
+		# Convert to exponential format
+		expformat = '%e' % (error) 
+		predot = expformat.split('.')[0]
+		postdot= expformat.split('.')[1]
+		# The exponent gives already the last
+		# significant digit, but just to check
+		# if fulfill the < 1.5 mark
+		digitspostdot = int(abs(float(postdot.split('e')[-1])))
+		# Rebuild the number without the e
+		remnant = float(predot+'.'+postdot.split('e')[0])
+		digitspostdot += getsignificantdigit(remnant)
+	
+	return digitspostdot
+
+
 
 def psitest(predicted,observed):
 	""".. function:: psitest(predicted,observed) -> value
