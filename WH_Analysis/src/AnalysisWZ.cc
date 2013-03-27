@@ -234,13 +234,19 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 
 	// Get PU Weight
 	//----------------------------------------------------------------------
-	//std::string npuname = "T_Event_nPU";
-	std::string npuname = "T_Event_nTruePU";
+	// Note that T_Event_nTruePU should be a float, this is an error
+	// in the ntuple creation, trying to recover the float using AveNTruePU
+	// std::string npuname = "T_Event_nTruePU";
+	std::string npuname = "T_Event_AveNTruePU";
 	double puw(1);
 	const int nPV = fData->GetSize<int>("T_Vertex_z");
 	if(!fIsData)
 	{
-		puw = fPUWeight->GetWeight(fData->Get<int>(npuname.c_str()));
+		//puw = fPUWeight->GetWeight(fData->Get<int>(npuname.c_str()));
+		const float ntruepu = fData->Get<float>(npuname.c_str());
+		// Rounding  to int (As there are no negative numbers)
+		const int ntruepuint = (int)(ntruepu+0.5);
+		puw = fPUWeight->GetWeight(ntruepuint);
 	}
 	
 	// Filling the npv to see how was weighted
