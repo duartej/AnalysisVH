@@ -338,7 +338,8 @@ do
 				fi
 			fi
 		else
-			fakeasdataOPT="-k"
+			fakeasdataOPT="-k";
+			fakeoption="-F 3,2";
 		fi
 
 		fakeoption=""
@@ -352,21 +353,26 @@ do
 					echo -e "\e[00;34m[sendall INFO]\e[00;m Creating the list of vetoed events..."
 					buildblacklist 176304:495908595,179889:234022820 Fakes_datanames.dn
 				fi
+				mv Fakes_datanames.dn .fakes_dn;
 			fi
-			fakeoption="-F 3,2"
+			#fakeoption="-F 3,2"
 		fi
 		#-------------------------------------------------------------
 		echo -e "\e[00;34m[sendall INFO]\e[00;m: Sending $finalstate -- Working directory: $i"; 
 		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 		#-------------------------------------------------------------
-		# The Nt3 term in the PPF equation (to be substracted to Nt2)
+		# The terms in the PPF equation
 		sysnovar=`echo $namejob|cut -d_ -f1`
 		if [[ ("X"$fakeable == "Xyes") || ("X"$fakeasdata == "Xyes") ]];
 		then
 			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
 			then
-				cp Fakes_datanames.dn Fakes_Nt3_datanames.dn
-				sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,3 -k -d Fakes_Nt3
+				for k in 0 1 2 3;
+				do
+					cp .fakes_dn Fakes_Nt${k}_datanames.dn
+					sendcluster submit -a ${signal} -f ${finalstate} -c MUON:../${cfgmmm},ELECTRON:../${cfgeee} -F 3,${k} -k -d Fakes_Nt${k};
+				done
+				rm .fakes_dn
 			fi
 		fi;
 		
