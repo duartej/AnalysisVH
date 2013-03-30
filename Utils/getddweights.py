@@ -67,17 +67,15 @@ class evtinfo(object):
 
 	def setblacklist(self,eventlist):
 		"""..method:: blacklist(eventlist) 
-		Given a list of tuples containing (run,lumi,event) or a
-		list of events [event1,....]. The events are blacklisted
-		and not considered in the get method
+		Given a list of tuples containing (run,lumi,event).
+		The events are blacklisted and not considered in the get method
 		"""
 		if not eventlist:
 			return
 		self.blacklist = []
 		# eventlist is a str
-		for i in eventlist.replace("[","").replace("]","").split("),"):
-			tuplelist = i.replace("(","").replace(")","").split(",")
-			self.blacklist.append( int(tuplelist[2]) )
+		for i in eventlist:
+			self.blacklist.append( int(i[2]) )
 
 	def getblacklist(self):
 		"""..method:: getblacklist
@@ -413,7 +411,7 @@ if __name__ == '__main__':
 			help='This option assumes that inside the current directory is going'\
 			' to find the channel folder structure with the Nt0, Nt1, Nt2 and Nt3' \
 			' calculations, where each channel folder begins with SIGNAL')
-	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='[(run,lumi,evt),..]|[evt,..]',\
+	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='run:lumi:evt,..|evt,..',\
 			help='Events to be not considered in the data-driven')
 	parser.add_option( '-v', '--verbose', action='count', dest='verbose', help='Verbose mode'\
 			', get also the number of raw events (not weighted) at each cut')
@@ -435,6 +433,38 @@ if __name__ == '__main__':
 			message = '\033[1;31mgetddweigths ERROR\033[1;m Input root file mandatory!'
 			raise RuntimeError( message )
 		folders = [ args[0] ]
+
+	# Parsing blacklist events
+	blacklist = None
+	if opt.blacklist:
+		blacklist = []
+		for t in opt.blacklist.split(","):
+			# Is tuple of run:lumi:event splitted by ","
+			rawstr = t.split(":")
+			try:
+				run = rawstr[0]
+				lumi= rawstr[1]
+				evt = rawstr[2]
+			except IndexError:
+				run = -1
+				lumi= -1
+				evt = rawstr[0]
+			blacklist.append( (run,lumi,evt) )
+		if len(blacklist) == 0:
+			message = '\033[1;31mgetddweights ERROR\033[1;m Parse error for option'
+			message+= ' "-b", see help usage'
+			raise RuntimeError(message)
+		# Check the correctness ot the input
+		for t in blacklist:
+			try:
+				run = int(t[0])
+				lumi= int(t[1])
+				evt = int(t[2])
+			except:
+				message = '\033[1;31mgetddweights ERROR\033[1;m Parse error for option'
+				message+= ' "-b", see help usage'
+				raise RuntimeError(message)
+
 	
 	totalchannel = {}
 	rawentrieschannel = {}
@@ -446,7 +476,7 @@ if __name__ == '__main__':
 			# Extract the data/mc folders
 			print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
 					(rf)
-			totalent,measurement,channelstr,rawentries = datadriven(rf,opt.blacklist)
+			totalent,measurement,channelstr,rawentries = datadriven(rf,blacklist)
 
 			# Get the measurament, number of tight: 101
 			if len(measurement) != 1:
