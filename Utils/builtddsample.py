@@ -118,48 +118,6 @@ def builtestimation(addsamples,subsamples, outfilename, lumi=None):
 
 	return addyields,subyields
 
-# Just copied from tarfile.py (if we are below 2.5 python)
-def extractall(self, path=".", members=None):
-        """Extract all members from the archive to the current working
-           directory and set owner, modification time and permissions on
-           directories afterwards. `path' specifies a different directory
-           to extract to. `members' is optional and must be a subset of the
-           list returned by getmembers().
-        """
-	import os
-	import copy
-	import operator
-
-        directories = []
-
-        if members is None:
-		members = self
-		
-	for tarinfo in members:
-		if tarinfo.isdir():
-			# Extract directories with a safe mode.
-			directories.append(tarinfo)
-			tarinfo = copy.copy(tarinfo)
-			tarinfo.mode = 0700
-		self.extract(tarinfo, path)
-		
-	# Reverse sort directories.
-	directories.sort(key=operator.attrgetter('name'))
-	directories.reverse()
-
-        # Set correct owner, mtime and filemode on directories.
-	for tarinfo in directories:
-		dirpath = os.path.join(path, tarinfo.name)
-		try:
-			self.chown(tarinfo, dirpath)
-			self.utime(tarinfo, dirpath)
-			self.chmod(tarinfo, dirpath)
-		except ExtractError, e:
-			if self.errorlevel > 1:
-				raise
-			else:
-				self._dbg(1, "tarfile: %s" % e)
-
 
 if __name__ == '__main__':
 	import sys
@@ -206,8 +164,6 @@ if __name__ == '__main__':
 					" instead of the 'cluster_Fakes' given by default [Default: Fakes]")
 	parser.add_option( '-s', action='store', type='string', dest='signal', 
 			help="<WZ|WH> it describes what subdirectories to search (recall standard structure SIGNALeee/_dd ... " )
-	parser.add_option( '-f', action='store_true', dest='force', 
-			help="Force the creation of the backup file 'fakespool.tar.gz' even if it already exists" )
 	( opt, args ) = parser.parse_args()
 
 	if len(args) == 0:
@@ -250,48 +206,12 @@ if __name__ == '__main__':
 		addrootterms    = map(lambda x: clustername(x)+'/Results/'+x+'.root',addsamplenames)
 		subsamplenames  = map(lambda x: opt.dataname+"_"+x,subtractterms)
 		subrootterms    = map(lambda x: clustername(x)+"/Results/"+x+".root",subsamplenames)
-		# Find the MAIN order sample
-		#fakesample = os.path.join(folder,rootmainterm)
-		#if not os.path.isfile(fakesample):
-		#	message = "\033[31mbuiltddsample ERROR\033[m Malformed folder structure:"\
-		#			" Not found the FAKES file "\
-		#			"'%s'' inside the folder '%s'" % (rootmainterm,folder)
-		#	raise RuntimeError(message)
-		# Including the raw main term info to be print in the warning file
-		#psnt2 = processedsample(fakesample)
-		#cutordered = psnt2.getcutlist()
-		## Using the same kind of yields than the other term
-		#yieldsmain = dict(map( lambda cut: (cut,psnt2.getrealvalue(cut)),cutordered))
-		##yieldsmain = psnt2.rowvaldict
-		## and store
-		#nametarfile = opt.dataname.lower().replace("_","")+"pool.tar.gz"
 		# Find the the samples
 		ntsamples = glob.glob(os.path.join(folder,clustername(opt.dataname)+"*/Results/*"))
 		addfolders = filter(lambda x: os.path.basename(x).replace(".root","").replace(opt.dataname+"_","") \
 				in addterms , ntsamples)
 		subfolders = filter(lambda x: os.path.basename(x).replace(".root","").replace(opt.dataname+"_","")\
 				in subtractterms , ntsamples)
-		#if len(lowfolders) == 0:
-		#	# Checking we didn't use this script before
-		#	if os.path.isfile(nametarfile):
-		#		# Recovering the original samples
-		#		shutil.rmtree(clustername)
-		#		tar = tarfile.open(nametarfile)
-		#		try:
-		#			tar.extractall()
-		#		except AttributeError:
-		#			# By-passing the python2.4
-		#			extractall(tar)
-		#		tar.close()
-		#		if opt.force:
-		#			os.remove(nametarfile)
-		#		# And again do the search
-		#		lowfolders = glob.glob(os.path.join(folder,clustername_Nt+"*"))
-		#	else:
-		#		message = "\033[31mbuiltddsample ERROR\033[m Malformed folder structure:"\
-		#				" Not found the Nti samples files '%s'"\
-		#				" inside the folder '%s'" % (rootlowterm,folder)
-		#		sys.exit(message)
 
 		# --- extract the names of the samples
 		addsamples = dict(map(lambda x: (os.path.basename(x).replace(".root",""),x), addfolders))
@@ -309,41 +229,14 @@ if __name__ == '__main__':
 		fakesubstractedfile = "fsubsprov.root"
 		addyieldsdict,subyieldsdict = builtestimation(addsamples,subsamples,fakesubstractedfile)
 
-		#print "\033[34mbuiltddsample INFO\033[m Generating backup fake folders (%s) "\
-		#		"(%s subfolder)" % (nametarfile,os.path.basename(folder))
-		## Re-organizing the output
-		## --- Don't do it continously (just by demand)
-		#folderstotar = map(lambda x: os.path.basename(x),lowfolders)+[clustername]
-		#if not os.path.isfile(nametarfile) or opt.force:
-		#	tar = tarfile.open(nametarfile,"w:gz")
-		#	for f in folderstotar:
-		#		tar.add(f)
-		#	for s in lowsamples:
-		#		try:
-		#			tar.add(s+"_datanames.dn")
-		#			os.remove(s+"_datanames.dn")
-		#		except OSError:
-		#			# Nothing happened if we don't find 
-		#			pass
-		#	tar.close()
-		#if os.path.exists(nametarfile):
-		#	for f in folderstotar:
-		#		shutil.rmtree(f)
-		#else:
-		#	message  = "\033[33mbuiltddsample: WARNING\033[m I can't manage\n"
-		#	message += "to create the backup %s file\n" % (nametarfile)
-		#	print message
 		## -- The new folder for the Fakes containing the substracted fakes
+		# WARNING: using when Fakes the denomination PPF
 		os.makedirs(clustername(opt.dataname)+"/Results")
 		shutil.move(fakesubstractedfile,clustername(opt.dataname)+"/Results/"+opt.dataname+".root")
 		warningfile = "CAVEAT: Directory tree created automatically from 'builtddsample' script\n"
 		warningfile+= "        using the files:\n"
 		for f in addsamples.values()+subsamples.values():
 			warningfile+= "          %s\n" % f
-		#warningfile+= "         script. You can find the original file inside the '"+nametarfile+"' file.\n"
-		#warningfile+= "WARNING: do not untar the "+nametarfile+" file at the same level you found it because"\
-		#		" you will\n"
-		#warningfile+= "        destroy the fake substracted folder\n"
 		warningfile+= "Events yields are weighted but not normalized to any luminosity (when MC)\n"
 		warningfile+= "="*60+"\n"
 		## Including some useful info: yields low term substracted to the main
