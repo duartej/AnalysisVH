@@ -158,8 +158,17 @@ fi;
 fsdirectories=`ls |grep ${signal:0:2}`
 
 #-------------------------------------------------------------
-# Built the data-driven sample term to Nt2 estimation
+# Built the data-driven sample term to PPF (PPP) estimation
 if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
+	# Move the Fakes Nti to new _dd folder
+	for i in `ls |grep ${signal:0:2}`;
+	do
+		cd $i;
+		mkdir -p _dd
+		mv cluster_Fakes_Nt*/ _dd/
+		cd ..;
+	done
+	# Create the total data-driven 
 	builtddsample -s ${signal:0:2};
 	# And moving the sample to the main channel folder
 	for i in `ls |grep ${signal:0:2}`;
