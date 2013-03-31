@@ -127,84 +127,17 @@ class evtinfo(object):
 
 		return message
 
-class weight(object):
+class weight:
 	"""
-	Class to deal with the weights of a loose lepton. Pythonization of the
-	WManager class
+	Class to deal with the weights of a loose lepton
 	"""
-	def __init__(self,**keywords):
-		"""class:: weight([,runperiod]) -> weight instance
-		Once the instance is created, it is possible to call 
-		directly to extract the Prompt-rate or Fake-rate given
-		a lepton and its pt,eta
+	def __init__(self):
+		"""..class:: weight() 
+		Wrapper to pywmanager with PR and FR
 		"""
-		import ROOT
-		import os
-
-		#defaul run period
-		self.runperiod = '2011'
-
-		validkeywords = [ 'runperiod' ]
-		for key,value in keywords:
-			if key == 'runperiod':
-				self.runperiod = value
-
-		# Loading the fakes and prompt rates
-		pkgfolder = os.getenv("VHSYS")
-		wmanagerdata = os.path.join(pkgfolder,'WManager/data')
-		if self.runperiod == '2011':
-			muonleptontype = 'vbtf'
-		elif self.runperiod == '2012':
-			muonleptontype = 'hwwid'
-		jet = 'jet50'
-		pr = 'MuPR_'
-		fr = 'MuFR_'
-		prfname = os.path.join(wmanagerdata,pr+self.runperiod+'_'+muonleptontype+'.root')
-		frfname = prfname.replace('MuPR_','MuFR_').replace('.root','_'+jet+'.root')
-
-		ename = lambda x: x.replace('Mu','Ele').replace('_'+muonleptontype,'')
-		getth2 = lambda f: map(lambda x: f.Get(x.GetName()),\
-				filter(lambda x: x.GetClassName() == 'TH2F',f.GetListOfKeys()))[0]
-		
-		# Extract the histos
-		ROOT.TH2.AddDirectory(0)
-		fprmu = ROOT.TFile(prfname)
-		ffrmu = ROOT.TFile(frfname)
-		fprele= ROOT.TFile(ename(prfname))
-		frfele= ROOT.TFile(ename(frfname))
-
-		self.__pr__ = { 'Muon': getth2(fprmu), 'Elec': getth2(fprele) }
-		self.__fr__ = { 'Muon': getth2(ffrmu), 'Elec': getth2(frfele) }
-		
-		# Some modifications:
-		for h in self.__pr__.values():
-			ptLowmax = h.GetXaxis().GetBinCenter(h.GetNbinsX())
-			for ptbin in xrange(1,h.GetNbinsX()+2):
-				ptIn = h.GetXaxis().GetBinCenter(ptbin)
-				ptOut= ptIn
-				if ptIn >= ptLowmax:
-					ptIn = ptLowmax
-				for etabin in xrange(1,h.GetNbinsY()+2):
-					eta = h.GetYaxis().GetBinCenter(etabin)
-					globalbin = h.FindBin(ptIn,eta)
-					globalbinout = h.FindBin(ptOut,eta)
-					h.SetBinContent(globalbinout,h.GetBinContent(globalbin))
-
-		for h in self.__fr__.values():
-			ptLowmax = h.GetXaxis().GetBinCenter(h.GetNbinsX())
-			for ptbin in xrange(1,h.GetNbinsX()+2):
-				ptIn = h.GetXaxis().GetBinCenter(ptbin)
-				ptOut= ptIn
-				if ptIn >= ptLowmax:
-					ptIn = ptLowmax
-				if ptIn >= 35.0:
-					ptIn = 34.0
-
-				for etabin in xrange(1,h.GetNbinsY()+2):
-					eta = h.GetYaxis().GetBinCenter(etabin)
-					globalbin = h.FindBin(ptIn,eta)
-					globalbinout = h.FindBin(ptOut,eta)
-					h.SetBinContent(globalbinout,h.GetBinContent(globalbin))
+		from functionspool_mod import pywmanager
+		self.__pr__ = pywmanager('PR')
+		self.__fr__ = pywmanager('FR')
 
 	def __call__(self,leptype,pt,eta):
 		"""method:: weight(self,pt,eta) -> (PR,FR)
@@ -220,11 +153,7 @@ class weight(object):
 		:return: the prompt-rate and fake-rate 
 		:rtype: tuple(float,float)
 		"""
-
-		bin = self.__pr__[leptype].FindBin(pt,abs(eta))
-		binfr = self.__fr__[leptype].FindBin(pt,abs(eta))
-
-		return (self.__pr__[leptype].GetBinContent(bin),self.__fr__[leptype].GetBinContent(binfr))
+		return self.__pr__(leptype,pt,eta),self.__fr__(leptype,pt,eta)
 
 
 class estimator(object):
@@ -314,7 +243,6 @@ class estimator(object):
 		return { 'FFF': fff, 'PFF': pff, 'PPF': ppf, 'PPP': ppp }
 
 
-
 def datadriven(inputfile,blacklisted=None):
 	"""function:: datadriven(inputfile) -> (totalweight,list(meas),list(channel),nentries)
 	Calculated the weights for the data-driven event by event, adding up the events. Also
@@ -353,7 +281,8 @@ def datadriven(inputfile,blacklisted=None):
 		t.GetEntry(i)
 		# Check blacklisted list
 		if blacklisted and evti.get('evt') in evti.getblacklist():
-			print "Event blacklisted, skipping..."
+			print "[CHANNEL %s] Event blacklisted %i, skipping..." % \
+					(CHANNELSTR[evti.get('channel')],evti.get('evt'))
 			continue
 		evalentries += 1
 		# extract pt,eta,category and channel
@@ -469,13 +398,19 @@ if __name__ == '__main__':
 	totalchannel = {}
 	rawentrieschannel = {}
 	for i in folders:
-		rootfiles = glob.glob(i+'/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
-		if len(rootfiles) == 0:
+		rootfilesol = glob.glob(i+'/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
+		rootfilesdd  = glob.glob(i+'/_dd/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
+		if len(rootfilesol) == 0 and len(rootfilesdd) == 0:
 			rootfiles = [ args[0] ]
+		elif len(rootfilesol) == 0:
+			rootfiles = rootfilesdd
+		elif len(rootfilesdd) == 0:
+			rootfiles = rootfilesol
 		for rf in rootfiles:
 			# Extract the data/mc folders
-			print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
-					(rf)
+			if opt.verbose > 0:
+				print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
+						(rf)
 			totalent,measurement,channelstr,rawentries = datadriven(rf,blacklist)
 
 			# Get the measurament, number of tight: 101
@@ -504,7 +439,7 @@ if __name__ == '__main__':
 			except KeyError:
 				rawentrieschannel[channel] = { ntights: rawentries }
 		
-			if opt.verbose >= 2:
+			if opt.verbose > 2:
 				print "="*50
 				print "CHANNEL: %s   Measurement: Nt%i, Raw entries:%i" % (channel,ntights,rawentries)
 				print "Nt%i contribution to the: " % (ntights)
@@ -513,7 +448,7 @@ if __name__ == '__main__':
 					message += "           +  %4s estimation: %10.6f\n" % (i,RULES[i][ntights]*totalent[i])
 				print message[:-1]
 				print "="*50
-	if opt.verbose >= 1:
+	if opt.verbose > 1:
 		print "="*50
 		print "\033[1;34mgetddweights INFO\033[1;m Raw entries by channel and measurement"
 		m = '%10s  ' % ''
@@ -560,5 +495,5 @@ if __name__ == '__main__':
 	m += '%12s' % (' ')
 	for ch in ['3e', '2e', '2m', '3m']:
 		m += '|| % 2.4f  ' % sumchannel[ch]
-	print m
-	
+	if opt.verbose > 0:
+		print m
