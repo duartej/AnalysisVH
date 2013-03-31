@@ -260,7 +260,7 @@ then
 		MCSAMPLES=`echo $MCSAMPLES|sed -e "s/$i//g"`;
 	done
 	# =========== Datasamples needed for the systematics
-	FRSYS="Fakes_Nt0_datanames.dn Fakes_Nt1_datanames.dn Fakes_Nt2_datanames.dn Fakes_Nt3_datanames.dn"
+	FRSYS="Fakes_datanames.dn Fakes_Nt0_datanames.dn Fakes_Nt1_datanames.dn Fakes_Nt2_datanames.dn Fakes_Nt3_datanames.dn"
 	MMSSYS=$MCSAMPLES
 	EESSYS=$MCSAMPLES
 	METSYS=$MCSAMPLES  #" "$DATASAMPLES ---> No estoy seguro
@@ -314,6 +314,7 @@ for folderandname in $LISTOFFOLDERS;
 do
 	workingfolder=`echo $folderandname|cut -d: -f1`
 	namejob=`echo $folderandname|cut -d: -f2`
+	sysnovar=`echo $namejob|cut -d_ -f1`
 	echo "======================================================================"
 	echo -e "\e[00;34m[sendall INFO]\e[00;m: Setting-up and sending jobs for $namejob Analysis"
 	cd $workingfolder;
@@ -362,7 +363,6 @@ do
 		sendcluster submit -a $signal -f $finalstate -c MUON:../$cfgmmm,ELECTRON:../$cfgeee $fakeoption $fakeasdataOPT;
 		#-------------------------------------------------------------
 		# The terms in the PPF equation
-		sysnovar=`echo $namejob|cut -d_ -f1`
 		if [[ ("X"$fakeable == "Xyes") || ("X"$fakeasdata == "Xyes") ]];
 		then
 			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
