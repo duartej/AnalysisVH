@@ -260,7 +260,7 @@ then
 		MCSAMPLES=`echo $MCSAMPLES|sed -e "s/$i//g"`;
 	done
 	# =========== Datasamples needed for the systematics
-	FRSYS="Fakes_datanames.dn Fakes_Nt3_datanames.dn"
+	FRSYS="Fakes_Nt0_datanames.dn Fakes_Nt1_datanames.dn Fakes_Nt2_datanames.dn Fakes_Nt3_datanames.dn"
 	MMSSYS=$MCSAMPLES
 	EESSYS=$MCSAMPLES
 	METSYS=$MCSAMPLES  #" "$DATASAMPLES ---> No estoy seguro
