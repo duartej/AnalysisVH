@@ -158,16 +158,16 @@ fi;
 fsdirectories=`ls |grep ${signal:0:2}`
 
 #-------------------------------------------------------------
-# XXX DEPRECATED XXX 
-# Extracting PPP contribution to Fakes (if needed)
-#if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
-#	promptsubstract -s ${signal:0:2};
-#fi
-# XXX DEPRECATED XXX 
-
-# Extracting the Nt3 term to Nt2 estimation
+# Built the data-driven sample term to Nt2 estimation
 if [ "X${fakeasdata}" != "X" -o "X${fakemode}" != "X" ]; then
-	nt3subtract -s ${signal:0:2};
+	builtddsample -s ${signal:0:2};
+	# And moving the sample to the main channel folder
+	for i in `ls |grep ${signal:0:2}`;
+	do
+		cd $i;
+		mv _dd/cluster_Fakes ./
+		cd ..;
+	done
 fi
 
 
