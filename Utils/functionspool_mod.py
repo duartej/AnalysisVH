@@ -1389,6 +1389,8 @@ def getsignificantdigit(error):
 		# Rebuild the number without the e
 		remnant = float(predot+'.'+postdot.split('e')[0])
 		digitspostdot += getsignificantdigit(remnant)
+	elif error == 0:
+		digitspostdot = 2
 	
 	return digitspostdot
 
