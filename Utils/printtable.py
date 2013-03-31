@@ -375,7 +375,7 @@ class table(processedsample):
 		:rtype : (str,str)
 		"""
 		from math import sqrt
-		from functionspool_mod import getrounded
+		from functionspool_mod import getvalpluserr
 
 		# Dealing with the TotBkg sample which has to be built 
 		if sample == "TotBkg":
@@ -410,90 +410,9 @@ class table(processedsample):
 				val = valdata-valbkg
 				err = sqrt(errdata**2.0+errbkg**2.0)
 
-		# Begin the formatting
-		# Found the last significant value: we get the first value
-		# > 0 
-		#errstr      = str(err)
-		#valstr      = str(val)
-		nafterpoint = 0 
-		# Case > 1.5
-		if abs(err) < 1e-30:
-			return getrounded(val,1000)
-		elif err >= 1.5 and err < 2.0:
-			errstr = getrounded(err,1)
-			valstr = getrounded(val,1)
-			nafterpoint = 1
-		# Case 1 > err > 1.5
-		elif err >= 1.0 and err < 1.5:
-			errstr = getrounded(err,2)
-			valstr = getrounded(val,2)
-			nafterpoint = 2
-		elif err >= 2.0:
-			errstr = getrounded(err,0)
-			valstr = "%i" % round(val)
-			nafterpoint = 0
-		elif err < 1.0 and err > 0.0:
-			getdecimal = False
-			errstrPRE = str(err).split(".")[-1]
-			numbuilt = ''
-			for n,index in zip(errstrPRE,xrange(len(errstrPRE))):
-				nafterpoint += 1
-				if int(n) > 0:
-					numbuilt += n
-				try:
-					dum = int(numbuilt)
-				except ValueError:
-					continue
-				if int(numbuilt) >= 2: 
-					# done
-					# --- Check the first is not 1
-					nsignumberformat = "%.0e"
-					if numbuilt[0] == "1":
-						nsignumberformat = "%.1e"
-					if nafterpoint > 3:
-						errstr = nsignumberformat % err
-						exponent= int(errstr.split("e-")[-1])
-						errstr = errstr.split("e-")[0]
-						# - keeping the integer part 
-						#   FIXME: assume at least 10^-3...
-						valstr = '%i' % val
-						decpart= val-int(valstr)
-						if valstr == '0':
-							valstr = ''
-						if exponent != nafterpoint:
-							missing = nafterpoint-exponent
-							decpartstrformat = "%."+str(exponent+missing)+"f" 
-						else:
-							decpartstrformat = "%."+str(exponent)+"f" 
-						# To rounding properly
-						decpartstrPRE = decpartstrformat % decpart
-						# get only the decimal part
-						decpartstrONLY = decpartstrPRE.split(".")[-1]
-						# Moving down the decimal point
-						decpartstr = ''
-						for i in xrange(exponent):
-							decpartstr += decpartstrONLY[i]
-						decpartstr = str(int(decpartstr))
-
-						if numbuilt[0] == "1":
-							valstr += decpartstr[:-1]+"."+decpartstr[-1]
-						else:
-							valstr += decpartstr
-					else:
-						howmany0     = nafterpoint-len(numbuilt)
-						errstrformat = "%."+str(nafterpoint)+"f"
-						errstr       = errstrformat % err
-						#errstr       = "0."+"0"*howmany0+numbuilt
-						valstrformat = "%."+str(howmany0+len(numbuilt))+"f"
-						valstr  = valstrformat % val
-
-					break
+		valstr,errstr = getvalpluserr(val,err)
+		totalvalstr = valstr+self.format.plusminus+errstr
 	
-		if nafterpoint > 3:
-			totalvalstr = "("+valstr+self.format.plusminus+errstr+")"+self.format.cdot+"10"+\
-					self.format.exponentstart+"-"+str(exponent)+self.format.exponentend
-		else:
-			totalvalstr = valstr+self.format.plusminus+errstr
 		return totalvalstr
 
 
