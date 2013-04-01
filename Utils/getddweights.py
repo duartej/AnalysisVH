@@ -155,6 +155,11 @@ class weight:
 		"""
 		return self.__pr__(leptype,pt,eta),self.__fr__(leptype,pt,eta)
 
+	def getstaterr(self,leptype,pt,eta):
+		"""method:: getstaterr(leptype,pt,eta) --> error
+		"""
+		return self.__pr__.getstaterr(leptype,pt,eta),self.__fr__.getstaterr(leptype,pt,eta)
+
 
 class estimator(object):
 	"""
@@ -169,7 +174,7 @@ class estimator(object):
 		"""
 		self.weights = w
 	
-	def __call__(self,t1,pt1,eta1,cat1,t2,pt2,eta2,cat2,t3,pt3,eta3,cat3):
+	def __call__(self,t1,pt1,eta1,cat1,t2,pt2,eta2,cat2,t3,pt3,eta3,cat3,SYS=None):
 		"""method:: estimator(t1,pt1,eta1,cat1,t2,pt2,eta2,cat3,t3,pt3,eta3,cat3) 
 		                -> { 'PPP': pppval, 'PPF': ppfval, 'PFF': pffval, 'FFF: fffval }
 		Calculates the per-event weight
@@ -202,6 +207,17 @@ class estimator(object):
 		"""
 		prfrtuple = { 1: (self.weights(t1,pt1,eta1),cat1), 2: (self.weights(t2,pt2,eta2),cat2),\
 				3: (self.weights(t3,pt3,eta3),cat3) }
+		if SYS:
+			t = "t"+str(SYS)
+			pt= "pt"+str(SYS)
+			eta="eta"+str(SYS)
+			cat="cat"+str(SYS)
+			prerr,frerr= eval("self.weights.getstaterr("+t+","+pt+","+eta+")")
+			prov = list(prfrtuple[SYS][0])
+			prov[0] += prerr
+			prov[1] += frerr
+			prfrtuple[SYS] = (tuple(prov),prfrtuple[SYS][1])
+			
 		
 		# Build the estimator weights: tights
 		ewtight = map(lambda ww: ww[0], filter(lambda ww: int(ww[1]) == 101,prfrtuple.values()))
@@ -251,6 +267,7 @@ def datadriven(inputfile,blacklisted=None):
 	four possibilities
 	"""
 	import ROOT
+	from math import sqrt
 
 	# Get the weights
 	w = weight()
@@ -274,6 +291,8 @@ def datadriven(inputfile,blacklisted=None):
 		evti.__setattr__(leaf.GetName(),leaf)
 	
 	totalweight = { 'FFF': 0.0, 'PFF': 0.0, 'PPF': 0.0, 'PPP': 0.0 }
+	systematics = dict([(i,totalweight.copy()) for i in xrange(1,4)])
+	statistics  = totalweight.copy()
 	measurement = set()
 	channelset = set()
 	evalentries = 0
@@ -308,16 +327,90 @@ def datadriven(inputfile,blacklisted=None):
 		wevt = est(lepts[0],pt1,eta1,cat1,lepts[1],pt2,eta2,cat2,lepts[2],ptw,etaw,wcat)
 		for key,val in wevt.iteritems():
 			totalweight[key]+=val
+			statistics[key] += val**2.0
+		# Systematics
+		wsys = dict([(i,None) for i in xrange(1,4)])
+		for lepind in xrange(1,4):
+			wsys[lepind] = est(lepts[0],pt1,eta1,cat1,lepts[1],pt2,eta2,cat2,lepts[2],ptw,etaw,wcat,lepind)
+			for key,val in wsys[lepind].iteritems():
+				systematics[lepind][key] += val
 
 	f.Close()
 	f.Delete()
+	# Find the systematics relative. Assuming independence between prompt and fake-rates lepton
+	meansys = dict([(etype,0.0) for etype in totalweight.keys()])
+	for esttype,valnominal in totalweight.iteritems():
+		sumest = 0.0
+		for li,valdict in systematics.iteritems():
+			sumest += valdict[esttype]
+		meansys[esttype] = sumest/float(len(systematics.keys()))
 
-	return totalweight,list(measurement),list(channelset),evalentries
+	return totalweight,statistics,meansys,list(measurement),list(channelset),evalentries
+
+
+def updatesysfile(foldertostore,sysdict):
+	"""..function updatesysfile(sysdict) 
+	
+	Update the file which is going to be used by any other script needing systematics
+	"""
+	import os,sys
+	from datetime import date
+	import glob
+	
+	today = date.today()
+	fileout = os.path.join(foldertostore,"systematics_mod.py")
+	# Check if there is already 
+	try:
+		sysfile = glob.glob(foldertostore+"/systematics_mod.py")[0]
+	except IndexError:
+		message = '\033[1;31mupdatesysfile ERROR\033[1;m There is no "systematics_mod.py" file'
+		message+= ' in "%s" folder. Please send first the "resumesys" utility to create it' % foldertostore
+		raise RuntimeError(message)
+	#Copying the module
+	f = open(sysfile)
+	lines = f.readlines()
+	
+	# Check there wasn't a previous modification by this function. The function should act
+	# over the original systematics_mod
+	if len(filter(lambda x: x.find("MODIFIED BY 'getddweights'") != -1,lines)) != 0:
+		message = '\033[1;31mupdatesysfile ERROR\033[1;m The "systematics_mod.py" file'
+		message+= ' was already modified by this function. This behaviour is not accepted.'
+		message+= ' This function must act only over the original systematics_mod.py file'
+		message+= ' created by the "resumesys" utility'
+		f.close()
+		raise RuntimeError(message)
+
+	# Include a comment related with this update
+	lines[3] = lines[3][:-1]+" || MODIFIED BY 'getddweights': "+today.strftime("%2d-%2m-%Y")+"\n"
+	f.close()
+	
+	# Update the systematics_mod file
+	# find the line where starts the SYSname dicta
+	try:
+		lineheader = filter(lambda x: lines[x].find('# 1. Yields of') == 0,xrange(len(lines)))[0]
+	except IndexError:
+		message = '\033[1;31mupdatesysfile ERROR\033[1;m The "systematics_mod.py" file'
+		message+= ' is not properly formatted. It should contain a line starting by '
+		message+= '\n"# 1. Yields of". Assure the correct format using previously'
+		message+= ' the "resumesys" utility before send this script with the "-u"'
+		message+= ' option'
+		raise RuntimeError(message)
+	newline =  "#    a. the fake rate sample (data-driven bkg). To be included in the STATS\n"
+	newline += "#       Included by 'getddweights'\n"
+	newline += "SYSFakes = "+str(sysdict)+"\n"
+	lines.insert(lineheader+1,newline)
+	# Backup copy
+	os.rename(sysfile,sysfile.replace('.py','_backup_py'))
+	print "\033[1;34mupdatesysfile INFO\033[1;m Created backup file 'systematics_mod_backup_py"
+	f = open(sysfile,'w')
+	f.writelines(lines)
+	f.close()
 
 if __name__ == '__main__':
 	import os,sys
 	import glob
 	from optparse import OptionParser
+	from math import sqrt
 
         #Comprobando la version (minimo 2.4)
         vX,vY,vZ,_t,_t1 = sys.version_info
@@ -342,6 +435,9 @@ if __name__ == '__main__':
 			' calculations, where each channel folder begins with SIGNAL')
 	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='run:lumi:evt,..|evt,..',\
 			help='Events to be not considered in the data-driven')
+	parser.add_option('-u', '--updatesys', action='store', dest='update',metavar='PPP|PPF',\
+			help='Update the systematics_mod python module with the systematics due to contribution'\
+			'PPF or PPP')
 	parser.add_option( '-v', '--verbose', action='count', dest='verbose', help='Verbose mode'\
 			', get also the number of raw events (not weighted) at each cut')
 
@@ -396,6 +492,8 @@ if __name__ == '__main__':
 
 	
 	totalchannel = {}
+	totalsyschan = {}
+	totalstachan = {}
 	rawentrieschannel = {}
 	for i in folders:
 		rootfilesol = glob.glob(i+'/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
@@ -411,7 +509,7 @@ if __name__ == '__main__':
 			if opt.verbose > 0:
 				print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
 						(rf)
-			totalent,measurement,channelstr,rawentries = datadriven(rf,blacklist)
+			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,blacklist)
 
 			# Get the measurament, number of tight: 101
 			if len(measurement) != 1:
@@ -434,6 +532,14 @@ if __name__ == '__main__':
 				totalchannel[channel][ntights] = totalent
 			except KeyError:
 				totalchannel[channel] = { ntights : totalent }
+			try:
+				totalstachan[channel][ntights] = staterr
+			except KeyError:
+				totalstachan[channel] = { ntights : staterr }
+			try:
+				totalsyschan[channel][ntights] = meansys
+			except KeyError:
+				totalsyschan[channel] = { ntights : meansys }
 			try:
 				rawentrieschannel[channel][ntights] = rawentries
 			except KeyError:
@@ -468,32 +574,71 @@ if __name__ == '__main__':
 		sys.exit(0)
 	
 	channelest = {}
+	channelsys = {}
+	channelsta = {}
+	# Total error: stat: related with the number of events = \sum weights^2
+	#              sys:  due to uncertainties in the pr and fr calculations: variation of weights+sigma
+	#                    and compared with the nominal 
+	totalerrorrel = {}
 	sumchannel = {}
 	for ch,totaldmeas in totalchannel.iteritems():
 		sumchannel[ch] = 0.0
 		for est in ['PPP','PPF','PFF','FFF']:
 			summingup = 0.0
+			sysup     = 0.0
+			statup    = 0.0
 			for nt in totaldmeas.keys():
 				summingup += RULES[est][nt]*totaldmeas[nt][est]
+				sysup     += RULES[est][nt]*totalsyschan[ch][nt][est]
+				statup    += RULES[est][nt]*totalstachan[ch][nt][est]
 			try:
 				channelest[est][ch] = summingup
 			except KeyError:
 				channelest[est] = { ch: summingup }
+			try:
+				channelsta[est][ch] = sqrt(statup)
+			except KeyError:
+				channelsta[est] = { ch: sqrt(statup) }
+			try:
+				channelsys[est][ch] = abs(sysup-summingup)
+			except KeyError:
+				channelsys[est] = { ch: abs(sysup-summingup) }
+			try:
+				totalerrorrel[est][ch] = sqrt(channelsys[est][ch]**2.0+channelsta[est][ch]**2.0)/summingup
+			except KeyError:
+				totalerrorrel[est] = { ch: sqrt(channelsys[est][ch]**2.0+channelsta[est][ch]**2.0)/summingup }
 			sumchannel[ch] += channelest[est][ch]
-			
-	m= '%10s  || %8s  || %8s  || %8s  || %8s\n' % ('','3e','2e','2m','3m')
+	
+	m= '%10s  || %15s  || %15s  || %15s  || %15s\n' % ('','3e','2e','2m','3m')
 	for est in ['PPP','PPF','PFF','FFF']:
 		m += '%10s' % (est)
 		for ch in ['3e', '2e', '2m', '3m']:
 			try:
-				numtostr = "%2.4f" % channelest[est][ch]
-				m += '  || %8s' % numtostr
+				numtostr = "%2.4f%s%2.4f" % (channelest[est][ch],"+-",(totalerrorrel[est][ch]*channelest[est][ch]))
+				m += '  || %15s' % numtostr
 			except KeyError:
-				m += '  || %8s ' % ('-')
+				m += '  || %15s ' % ('-')
 				sumchannel[ch] = 0.0
 		m +='\n'
 	m += '%12s' % (' ')
 	for ch in ['3e', '2e', '2m', '3m']:
-		m += '|| % 2.4f  ' % sumchannel[ch]
+		m += '|| % 2.4f         ' % sumchannel[ch]
 	if opt.verbose > 0:
 		print m
+
+	if opt.update:
+		print "\033[1;34mgetddweights INFO\033[1;m Updating the systematics_mod.py"\
+				" file with the FAKES systematic"
+		try:
+			sysdict = totalerrorrel[opt.update]
+		except KeyError:
+			message = "\033[1;34mgetddweights ERROR\033[1;m Valid estimations are 'PPP'"\
+					" or 'PPF' for the '-u' option. See help usage"
+			print RuntimeError(message)
+		# Change key format for sysdict
+		syskeych = {}
+		CHF = { '3m': 'mmm', '2m': 'mme', '2e': 'eem', '3e': 'eee' }
+		for ch,val in sysdict.iteritems():
+			syskeych[CHF[ch]] = val
+		updatesysfile(os.getcwd(),syskeych)
+
