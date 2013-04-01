@@ -126,7 +126,7 @@ rm -f .checkingdones
 if [ ${nlines} == ${nlineswithdone} ];
 then
 	echo -e "\e[00;34m[collectall INFO]\e[00m All SYSTEMATICS calculated, creating 'systematics_mod.py' file"
-	resumesys SYSTEMATICS && leptonsystematic -s $signal -m FU --merge ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2e2Tau,ZZ2Mu2Tau -u && getddweights -s WZ -b 976523703,44243298 -u PPF;
+	resumesys SYSTEMATICS -m ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2e2Tau,ZZ2Mu2Tau && leptonsystematic -s $signal -m FU --merge ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2e2Tau,ZZ2Mu2Tau -u && getddweights -s WZ -b 976523703,44243298 -u PPF;
 fi
 	
 
