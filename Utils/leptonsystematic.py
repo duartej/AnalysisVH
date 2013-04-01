@@ -557,7 +557,7 @@ def updatesysfile(foldertostore,sysdict):
 			continue
 		newline = "\t'LEPTON': { "
 		for channel,value in channeldict.iteritems():
-			newline += channel+': '+str(value)+', '
+			newline += "'"+channel+"': "+str(value)+", "
 		# Check we have all the channels
 		for channel in [ 'eee' , 'eem' ,'mme', 'mmm' ]:
 			if not channel in channeldict.keys():
