@@ -921,11 +921,12 @@ class pywmanager(object):
 					globalbin = h.FindBin(ptIn,eta)
 					globalbinout = h.FindBin(ptOut,eta)
 					h.SetBinContent(globalbinout,h.GetBinContent(globalbin))
+					h.SetBinError(globalbinout,h.GetBinError(globalbin))
 
 
 	def __call__(self,leptype,pt,eta):
-		"""method:: weight(self,pt,eta) -> (PR,FR)
-		Returns the prompt-rate and fake-rate, given a lepton
+		"""method:: weight(self,pt,eta) -> value
+		Returns the value, given a lepton
 
 		:param leptype: the lepton flavour (Elec, Muon)
 		:type leptype: str (valid names are 'Elec' 'Muon')
@@ -934,13 +935,32 @@ class pywmanager(object):
 		:param eta: the pseudorapity of the lepton
 		:type eta: float
 
-		:return: the prompt-rate and fake-rate 
-		:rtype: tuple(float,float)
+		:return: the value of the map corresponding to pt,eta bin
+		:rtype: float
 		"""
 
 		bin = self.__weights__[leptype].FindBin(pt,abs(eta))
 
 		return self.__weights__[leptype].GetBinContent(bin)
+
+	def getstaterr(self,leptype,pt,eta):
+		"""method:: weight(self,pt,eta) -> value
+		Returns the statistical error associated to a pt,eta bin
+
+		:param leptype: the lepton flavour (Elec, Muon)
+		:type leptype: str (valid names are 'Elec' 'Muon')
+		:param pt: the transverse momentum of the lepton
+		:type pt: float
+		:param eta: the pseudorapity of the lepton
+		:type eta: float
+
+		:return: the value of the map corresponding to pt,eta bin
+		:rtype: float
+		"""
+		bin = self.__weights__[leptype].FindBin(pt,abs(eta))
+
+		return self.__weights__[leptype].GetBinError(bin)
+
 	
 	def getlatextable(self,leptype):
 		"""..method:: getlatextable(stype) -> str
