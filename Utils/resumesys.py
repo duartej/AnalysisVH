@@ -191,9 +191,9 @@ def createsysfile(sysdict, foldertostore):
 	lines += "# == SYSTEMATICS for WZ analysis =============================================\n"
 	lines += "# Relative error with respect the \n"
 	lines += "# 1. Yields of\n"
-	lines += "#    a. the fake rate sample (data-driven bkg). To be included in the STATS\n"
-	lines += "SYSFakes = "+str(sysdict["SYSFakes"]["FR"])+"\n"
-	order = [ 'b', 'c', 'd', 'e', 'f' ]
+	#lines += "#    a. the fake rate sample (data-driven bkg). To be included in the STATS\n"
+	#lines += "SYSFakes = "+str(sysdict["SYSFakes"]["FR"])+"\n"
+	#order = [ 'b', 'c', 'd', 'e', 'f' ]
 	ordername = zip(order,filter(lambda x: x != "SYSFakes",sysdict.keys()))
 	for i,name in ordername:
 		lines += "#    "+i+". the "+name.replace("SYS","")+" MC sample (note the stat has to be"\
@@ -289,9 +289,9 @@ if __name__ == '__main__':
 	# -- And get the name of the signal
 	signal = os.path.split(nominalfolders[0])[1][:2]
 	# -- need to do the fakes-nt3 for the FRSYS
-	if sysdefined.has_key("FR"):
-		for d in sysdefined["FR"]:
-			nt3call(d,signal)
+	#if sysdefined.has_key("FR"):
+	#	for d in sysdefined["FR"]:
+	#		nt3call(d,signal)
 
 	syscommondict = {}
 	# For each systematics evaluate the difference with respect the nominal

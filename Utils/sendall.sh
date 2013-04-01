@@ -45,7 +45,7 @@ OPTIONS:
          usual jobs, a SYSTEMATICS directory is created on the top directory,
 	 containing a folder for each systematic with the same channel folders
 	 structure as the regular jobs. 
-	 'sysname' should be FRSYS MMSSYS EESSYS METSYS PUSYS all
+	 'sysname' should be MMSSYS EESSYS METSYS PUSYS all
 	 all will launch all the known systematics [Default: all]
    [-S]: Flag to restrict the jobs sending only to the systematics ones. 
          This option can be used it '-s' option has been called, and it 
@@ -260,7 +260,6 @@ then
 		MCSAMPLES=`echo $MCSAMPLES|sed -e "s/$i//g"`;
 	done
 	# =========== Datasamples needed for the systematics
-	FRSYS="Fakes_datanames.dn Fakes_Nt0_datanames.dn Fakes_Nt1_datanames.dn Fakes_Nt2_datanames.dn Fakes_Nt3_datanames.dn"
 	MMSSYS=$MCSAMPLES
 	EESSYS=$MCSAMPLES
 	METSYS=$MCSAMPLES  #" "$DATASAMPLES ---> No estoy seguro
@@ -268,7 +267,7 @@ then
 
 	if [ "X$SYSTEMATICS" == "Xall" ] ;
 	then
-		SYSLIST="FRSYS MMSSYS EESSYS METSYS PUSYS"
+		SYSLIST="MMSSYS EESSYS METSYS PUSYS"
 	else
 		SYSLIST=$SYSTEMATICS
 	fi
@@ -346,7 +345,7 @@ do
 		fakeoption=""
 		if [ "X$fakeable" == "Xyes" ];
 		then
-			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
+			if [[ ($namejob == "REGULAR") ]];
 			then
 				datamanagercreator Fakes -r $runperiod -f $finalstate;
 				if [[ ($ALREADYBLACKLIST != "true" ) && ($dilepton == "mm") && ($runperiod == "2011") ]];
@@ -365,7 +364,7 @@ do
 		# The terms in the PPF equation
 		if [[ ("X"$fakeable == "Xyes") || ("X"$fakeasdata == "Xyes") ]];
 		then
-			if [[ ($namejob == "REGULAR") || ($sysnovar == "FRSYS") ]];
+			if [[ ($namejob == "REGULAR") ]];
 			then
 				for k in 0 1 2 3;
 				do
