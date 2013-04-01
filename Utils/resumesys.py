@@ -193,7 +193,7 @@ def createsysfile(sysdict, foldertostore):
 	lines += "# 1. Yields of\n"
 	#lines += "#    a. the fake rate sample (data-driven bkg). To be included in the STATS\n"
 	#lines += "SYSFakes = "+str(sysdict["SYSFakes"]["FR"])+"\n"
-	#order = [ 'b', 'c', 'd', 'e', 'f' ]
+	order = [ 'b', 'c', 'd', 'e', 'f' ]
 	ordername = zip(order,filter(lambda x: x != "SYSFakes",sysdict.keys()))
 	for i,name in ordername:
 		lines += "#    "+i+". the "+name.replace("SYS","")+" MC sample (note the stat has to be"\
