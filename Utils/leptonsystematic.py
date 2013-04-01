@@ -562,7 +562,7 @@ def updatesysfile(foldertostore,sysdict):
 		for channel in [ 'eee' , 'eem' ,'mme', 'mmm' ]:
 			if not channel in channeldict.keys():
 				newline+= channel+': 0.0, '
-		newline = newline[:-2]+' }\n'
+		newline = newline[:-2]+' },\n'
 		lines.insert(lineheader+1,newline)
 	# Backup copy
 	os.rename(sysfile,sysfile.replace('.py','_backup_py'))
