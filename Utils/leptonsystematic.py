@@ -561,7 +561,7 @@ def updatesysfile(foldertostore,sysdict):
 		# Check we have all the channels
 		for channel in [ 'eee' , 'eem' ,'mme', 'mmm' ]:
 			if not channel in channeldict.keys():
-				newline+= channel+': 0.0, '
+				newline+= "'"+channel+"': 0.0, "
 		newline = newline[:-2]+' },\n'
 		lines.insert(lineheader+1,newline)
 	# Backup copy
