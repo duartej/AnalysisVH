@@ -10,9 +10,9 @@ def adduperrors(xserror,xs,verbose=False):
 	xsabserror = { "sys": {}, "stat": {}, "lumi": {}, "total": {} }
 	channels = xserror.values()[0].keys()
 	
-	# Note that the asymetric errors are taken as mean
-	evalsyserr = lambda errtupleval,ch: ((errtupleval[0]+errtupleval[1])/2.0*xs[ch])**2.0
-	evalrelsyserr = lambda errtupleval: ((errtupleval[0]+errtupleval[1])/2.0)**2.0
+	# Note that the asymetric errors: take the bigger between them
+	evalsyserr    = lambda errtupleval,ch: (max(errtupleval[0],errtupleval[1])*xs[ch])**2.0
+	evalrelsyserr = lambda errtupleval: (max(errtupleval[0],errtupleval[1]))**2.0
 
 	# -- Initializing
 	for channel in channels:
