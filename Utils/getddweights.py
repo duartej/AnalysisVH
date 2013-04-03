@@ -407,6 +407,17 @@ def updatesysfile(foldertostore,sysdict):
 	f.writelines(lines)
 	f.close()
 
+def store(dd_dict,dd_errdict,filename=".datadriven"):
+	"""
+	"""
+	import shelve
+
+	d = shelve.open(filename,writeback=True)
+	d["datadriven"] = dd_dict
+	d["relerr"] = dd_errdict
+
+	d.close()
+
 if __name__ == '__main__':
 	import os,sys
 	import glob
@@ -621,7 +632,18 @@ if __name__ == '__main__':
 			except KeyError:
 				totalerrorrel[est] = { ch: sqrt(channelsys[est][ch]**2.0+channelsta[est][ch]**2.0)/summingup }
 			sumchannel[ch] += channelest[est][ch]
-	
+	# Persistency
+	CHF = { '3m': 'mmm', '2m': 'mme', '2e': 'eem', '3e': 'eee' }
+	ddst = {}
+	ddest = {}
+	for est, chdict in channelest.iteritems():
+		ddst[est] = {}
+		ddest[est]= {}
+		for ch,val in chdict.iteritems():
+			ddst[est][CHF[ch]] = val
+			ddest[est][CHF[ch]] = totalerrorrel[est][ch]
+	store(ddst,ddest)
+
 	m= '%10s  || %15s  || %15s  || %15s  || %15s\n' % ('','3e','2e','2m','3m')
 	for est in ['PPP','PPF','PFF','FFF']:
 		m += '%10s' % (est)
@@ -650,7 +672,6 @@ if __name__ == '__main__':
 			print RuntimeError(message)
 		# Change key format for sysdict
 		syskeych = {}
-		CHF = { '3m': 'mmm', '2m': 'mme', '2e': 'eem', '3e': 'eee' }
 		for ch,val in sysdict.iteritems():
 			syskeych[CHF[ch]] = val
 		updatesysfile(os.getcwd(),syskeych)
