@@ -518,16 +518,23 @@ if __name__ == '__main__':
 			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,blacklist)
 
 			# Get the measurament, number of tight: 101
-			if len(measurement) != 1:
+			if len(measurement) > 1:
 				print "\033[1;33mgetddweigths WARNING\033[1;m Number"\
 						" of measured type of leptons inconsistent"
 				print "Found: ",
 				for i in measurement:
 					print map(lambda x: int(x),i),
 				print
+			elif len(measurement) == 0:
+				message = "\033[1;31mgetddweigths ERROR\033[1;m There is"
+				message+= " no data-driven measurement in the samples, probably\n"
+				message+= " wasn't a data sample so the data-driven tree wasn't"
+				message+= " filled"
+				raise RuntimeError(message)
+
 			ntights = len(filter(lambda x: int(x) == 101,measurement[0]))
 		
-			if len(channelstr) != 1:
+			if len(channelstr) > 1:
 				print "\033[1;33mgetddweigths WARNING\033[1;m Number of channels more than one!"
 				print "          Found: ",
 				for i in channelstr:
