@@ -12,6 +12,7 @@ given the Nt0, Nt1, Nt2 and Nt3 measurements. The script should be launched in a
 give as option the folder) which contains the SGch standard structure (SGch stands for 
 SG:=name of the process, WZ for instance, and ch:=channel, eee,mme,eem,mmm for instance). 
 Below each of the SGch folders there should are the 'cluster_Fakes_Nti' directories, i=0,..,3.
+Note thet Fakes could be substituted by any name by using option -d
 """
 # Maximum short int (in 64b c++ compiler), to fix
 # the negative event number bug
@@ -423,7 +424,7 @@ if __name__ == '__main__':
         
 	usage="usage: %prog filename.root <PPP|PPF|PFF|FFF> [options]\n"
 	usage+="\nExtract the weights for the data-driven estimation based in a"
-	usage+=" processed sample. The sample should be a 'Fakes' one."
+	usage+=" processed sample. The sample should be a 'Fakes' one (or the one defined by -d option)"
         parser = OptionParser(usage=usage)
         parser.set_defaults(verbose=False,blacklist=None)
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
@@ -435,6 +436,8 @@ if __name__ == '__main__':
 			' calculations, where each channel folder begins with SIGNAL')
 	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='run:lumi:evt,..|evt,..',\
 			help='Events to be not considered in the data-driven')
+	parser.add_option('-d', '--dataname', action='store', dest='dataname',\
+			help='Using the sample name DATANAME to obtain the estimation instead of "Fakes"')
 	parser.add_option('-u', '--updatesys', action='store', dest='update',metavar='PPP|PPF',\
 			help='Update the systematics_mod python module with the systematics due to contribution'\
 			'PPF or PPP')
@@ -489,6 +492,9 @@ if __name__ == '__main__':
 				message = '\033[1;31mgetddweights ERROR\033[1;m Parse error for option'
 				message+= ' "-b", see help usage'
 				raise RuntimeError(message)
+	dataname = 'Fakes'
+	if opt.dataname:
+		dataname=opt.dataname
 
 	
 	totalchannel = {}
@@ -496,8 +502,8 @@ if __name__ == '__main__':
 	totalstachan = {}
 	rawentrieschannel = {}
 	for i in folders:
-		rootfilesol = glob.glob(i+'/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
-		rootfilesdd  = glob.glob(i+'/_dd/cluster_Fakes_Nt*/Results/Fakes_Nt*.root')
+		rootfilesol = glob.glob(i+'/cluster_'+dataname+'_Nt*/Results/'+dataname+'_Nt*.root')
+		rootfilesdd  = glob.glob(i+'/_dd/cluster_'+dataname+'_Nt*/Results/'+dataname+'_Nt*.root')
 		if len(rootfilesol) == 0 and len(rootfilesdd) == 0:
 			rootfiles = [ args[0] ]
 		elif len(rootfilesol) == 0:
