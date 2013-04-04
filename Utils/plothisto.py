@@ -331,7 +331,7 @@ class histoclass(processedsample):
 			# Also avoiding double scaling
 			weightother = 1.0
 		self.histogram.Scale(weightself*self.SIGNALFACTOR)
-		other.histogram.Scale(weightother.weight*other.SIGNALFACTOR)
+		other.histogram.Scale(weightother*other.SIGNALFACTOR)
 		# Adding histograms
 		self.histogram.Add(other.histogram,-1.0)
 		# Calling the base __sub__
