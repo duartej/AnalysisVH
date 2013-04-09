@@ -437,7 +437,7 @@ if __name__ == '__main__':
 	usage+="\nExtract the weights for the data-driven estimation based in a"
 	usage+=" processed sample. The sample should be a 'Fakes' one (or the one defined by -d option)"
         parser = OptionParser(usage=usage)
-        parser.set_defaults(verbose=False,blacklist=None,opt.jet='50')
+        parser.set_defaults(verbose=False,blacklist=None,jet='50')
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
 			help='Folder (or list of folders) where to find the Nt0, Nt1, Nt2 and Nt3'\
 			' Fakes measurements. Incompatible option with "-s"')
