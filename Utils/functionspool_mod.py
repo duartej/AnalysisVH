@@ -1230,8 +1230,6 @@ def getxserrorsrel(workingpath,**keywords):
 			dum = map(lambda x: samplerootdir.pop(x), zzpowhegs)
 		
 		# ================= 1. Extract yields
-		# -- get the table built by the printtable script
-		#asciirawtable = gettablecontent(os.path.join(workingpath,pathchannel),channel)
 		# -- Signal:
 		# ----- Get data and all the others backgrounds
 		dataroot = samplerootdir["Data"]
@@ -1242,17 +1240,9 @@ def getxserrorsrel(workingpath,**keywords):
 		Ntotbkg, Ntotbkgerr = extractyields(bkgroots)
 		Nsig = Ndata-Ntotbkg
 		Nsigerr = sqrt(Ndataerr**2.0+Ntotbkgerr**2.0)
-#		Nsig,Nsigerr = extractyields(dataroot,addfilelist=bkgroots)
-		#try:
-		#	Nsig,Nsigerr = extractyields(asciirawtable,"Data-Total Bkg.")
-		#except RuntimeError:
-		#	# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
-		#	Nsig,Nsigerr = extractyields(asciirawtable,"Data-TotBkg")
-		#	#Nsig,Nsigerr = extractyields(asciirawtable,"Nobs-Nbkg")
 		# updating the stat part
 		STAT[channel] = Nsigerr/Nsig
 		# -- ZZ: 
-		#Nzz,Nzzerr = extractyields(asciirawtable,"ZZ")
 		Nzz,Nzzerr = extractyields(samplerootdir["ZZ"])
 		# updating the stat part 
 		SYSZZ["Stat"][channel] = Nzzerr/Nzz
@@ -1265,16 +1255,25 @@ def getxserrorsrel(workingpath,**keywords):
 		#	Nf,Nferr = extractyields(asciirawtable,"Fakes")
 		# -- WZ: 
 		Nwz,Nwzerr = extractyields(samplerootdir[signal+"To3LNu"])
-		#Nwz,Nwzerr=extractyields(asciirawtable,signal)
 		# updating the stat part
 		SYSWZ["Stat"][channel] = Nwzerr/Nwz
 
 		# --- Calculate the actual xs
-		eff = Npass/Ngen
+		#cc = { 'eee': 1.001051827459740437, 'eem':1.013215023467648899, \
+	        #		'mme': 0.9980503654056391213, 'mmm': 1.018441060526911661 }
+		#cc = { 'eee': 0.990021, 'eem':1.00176 , 'mme': 0.989431, 'mmm': 1.00626 }
+
+		# Branching ratio correction factor due to the WZTo3LNu MC sample bug
+		brcfactor = { 'eee': 1.0, 'eem': 1.0, 'mme': 1.0, 'mmm': 1.0}
+		if mcprod == "Fall11":
+			brcfactor = { 'eee': 1.00352, 'eem': 0.992499, 'mme': 1.00634, 'mmm': 0.987805}
+		eff = Npass/Ngen*brcfactor[channel]
+		print "%s: Ae=%.6f" % (channel,(eff*BR.WZ23lnu/BR.getlightbr(channel)))
+		#eff = Npass/Ngen
 		xsmean = xs(Nsig,eff,Lumi)
 		xsmeasure[channel] = xsmean
 		# ==================== 2. calculate the WZ and ZZ systematics to be merged into one
-		for sysname in xserrors.iterkeys():
+		for sysname in filter(lambda x: x != "Lumi", xserrors.iterkeys()):
 			# 2.1. ZZ systematics
 			try:
 				# Systematics dependents of the flavour
@@ -1309,8 +1308,8 @@ def getxserrorsrel(workingpath,**keywords):
 			Npassup = Npass*(1.0+wzsys)
 			Npassdown = Npass*(1.0-wzsys)
 			#      and applying to the efficiency
-			effup  = Npassup/Ngen
-			effdown= Npassdown/Ngen
+			effup  = Npassup/Ngen*brcfactor[channel]
+			effdown= Npassdown/Ngen*brcfactor[channel]
 			# 2.3. Rebuild the systematic table where now the errors 
 			# are relatives to the cross-section and they have been merge
 			# (WZ,ZZ) into one and unique 
@@ -1344,6 +1343,7 @@ def getxserrorsrel(workingpath,**keywords):
 
 		# 5. Lumi systematic (already considered within the WZ and ZZ systematics,
 		#    note that N propto Lumi, so getting the lumi sys is equivalent to the yield
+		xserrors["Lumi"][channel] = (SYSWZ["Lumi"][channel],SYSWZ["Lumi"][channel])
 		
 	return (xsmeasure,xserrors)
 
