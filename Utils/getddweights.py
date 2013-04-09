@@ -132,13 +132,13 @@ class weight:
 	"""
 	Class to deal with the weights of a loose lepton
 	"""
-	def __init__(self):
+	def __init__(self,jet='50'):
 		"""..class:: weight() 
 		Wrapper to pywmanager with PR and FR
 		"""
 		from functionspool_mod import pywmanager
 		self.__pr__ = pywmanager('PR')
-		self.__fr__ = pywmanager('FR')
+		self.__fr__ = pywmanager('FR',jet=jet)
 
 	def __call__(self,leptype,pt,eta):
 		"""method:: weight(self,pt,eta) -> (PR,FR)
@@ -260,7 +260,7 @@ class estimator(object):
 		return { 'FFF': fff, 'PFF': pff, 'PPF': ppf, 'PPP': ppp }
 
 
-def datadriven(inputfile,blacklisted=None):
+def datadriven(inputfile,jet,blacklisted=None):
 	"""function:: datadriven(inputfile) -> (totalweight,list(meas),list(channel),nentries)
 	Calculated the weights for the data-driven event by event, adding up the events. Also
 	extracts the measurament signature (how many fail and tight leptons has the inputfile) 
@@ -271,7 +271,7 @@ def datadriven(inputfile,blacklisted=None):
 	from math import sqrt
 
 	# Get the weights
-	w = weight()
+	w = weight(jet)
 	# And the estimator calculator
 	est = estimator(w)
 	
@@ -437,7 +437,7 @@ if __name__ == '__main__':
 	usage+="\nExtract the weights for the data-driven estimation based in a"
 	usage+=" processed sample. The sample should be a 'Fakes' one (or the one defined by -d option)"
         parser = OptionParser(usage=usage)
-        parser.set_defaults(verbose=False,blacklist=None)
+        parser.set_defaults(verbose=False,blacklist=None,opt.jet='50')
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
 			help='Folder (or list of folders) where to find the Nt0, Nt1, Nt2 and Nt3'\
 			' Fakes measurements. Incompatible option with "-s"')
@@ -447,6 +447,9 @@ if __name__ == '__main__':
 			' calculations, where each channel folder begins with SIGNAL')
 	parser.add_option('-b', '--blacklist', action='store', dest='blacklist',metavar='run:lumi:evt,..|evt,..',\
 			help='Events to be not considered in the data-driven')
+	parser.add_option('-j', '--jetcutoff', action='store', dest='jet',\
+			help='Use fake rate matrices extracted with the leading jet energy cut-off=JET'\
+			' [Default: 50]')
 	parser.add_option('-d', '--dataname', action='store', dest='dataname',\
 			help='Using the sample name DATANAME to obtain the estimation instead of "Fakes"')
 	parser.add_option('-u', '--updatesys', action='store', dest='update',metavar='PPP|PPF',\
@@ -526,7 +529,7 @@ if __name__ == '__main__':
 			if opt.verbose > 0:
 				print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
 						(rf)
-			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,blacklist)
+			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,opt.jet,blacklist)
 
 			# Get the measurament, number of tight: 101
 			if len(measurement) > 1:
