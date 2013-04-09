@@ -934,7 +934,7 @@ class pywmanager(object):
 		self.jet = ''
 
 		validkeywords = [ 'runperiod', 'jet' ]
-		for key,value in keywords:
+		for key,value in keywords.iteritems():
 			if key == 'runperiod':
 				self.runperiod = value
 			if key == 'jet' and self.weighttype == 'FR':
