@@ -302,6 +302,9 @@ class processedsample(object):
 		if not hasdict:
 			self.rowvaldict = other.rowvaldict
 			self.cutordered = other.cutordered
+			self.filename   = other.filename
+			self.weight     = other.weight
+			self.luminosity = other.luminosity
 			return self			
 		
 		addeddict = {}
@@ -318,6 +321,12 @@ class processedsample(object):
 		result.showall = self.showall
 		result.weight = self.weight
 		result.luminosity = self.luminosity
+		try:
+			result.filename.append( other.filename )
+			result.__operation.append( 1 )
+		except AttributeError:
+			result.filename = [ self.filename, other.filename ]
+			result.__operation = [ 1 ]
 
 		return result
 	
@@ -346,10 +355,13 @@ class processedsample(object):
 		except AttributeError:
 			hasdict=False
 
-		# Case when self was called as a += b
+		# Case when self was called using self with 'nobuilt'
 		if not hasdict:
 			self.rowvaldict = other.rowvaldict
 			self.cutordered = other.cutordered
+			self.filename   = other.filename
+			self.weight     = other.weight
+			self.luminosity = other.luminosity
 			return self			
 		
 		addeddict = {}
@@ -360,6 +372,12 @@ class processedsample(object):
 
 		self.rowvaldictReferenced = self.rowvaldict.copy()
 		self.rowvaldict = addeddict
+		try:
+			self.filename.append( other.filename )
+			self.__operation.append( 1 )
+		except AttributeError:
+			self.filename = [ self.filename, other.filename ]
+			self.__operation = [ 1 ]
 
 		return self
 
@@ -393,6 +411,9 @@ class processedsample(object):
 		if not hasdict:
 			self.rowvaldict = other.rowvaldict
 			self.cutordered = other.cutordered
+			self.filename   = other.filename
+			self.weight     = other.weight
+			self.luminosity = other.luminosity
 			return self			
 		
 		addeddict = {}
@@ -408,6 +429,12 @@ class processedsample(object):
 		result.showall = self.showall
 		result.weight = self.weight
 		result.luminosity = self.luminosity
+		try:
+			result.filename.append( other.filename )
+			result.__operation.append( -1 )
+		except AttributeError:
+			result.filename = [ self.filename, other.filename ]
+			result.__operation = [ -1 ]
 
 		return result
 
@@ -441,6 +468,9 @@ class processedsample(object):
 		if not hasdict:
 			self.rowvaldict = other.rowvaldict
 			self.cutordered = other.cutordered
+			self.filename   = other.filename
+			self.weight     = other.weight
+			self.luminosity = other.luminosity
 			return self			
 		
 		addeddict = {}
@@ -451,6 +481,12 @@ class processedsample(object):
 
 		self.rowvaldictReferenced = self.rowvaldict.copy()
 		self.rowvaldict = addeddict
+		try:
+			self.filename.append( other.filename )
+			self.__operation.append( -1 )
+		except AttributeError:
+			self.filename = [ self.filename, other.filename ]
+			self.__operation = [ -1 ]
 
 		return self
 
@@ -487,6 +523,11 @@ class processedsample(object):
 		:return: the yield and its error at the cutname level
 		:rtype: tuple of floats
 		"""
+		if type(self.filename) == list:
+			print "\033[1;33mprocessedsample.getrealvalue WARNING\033[1;m"\
+					" The value returned by this function is probably "\
+					"malformed when dealing with composite processedsamples."\
+					" Use with caution!"
 		if cutname == None:
 			cutname = self.getcutlist()[-1]
 		try:
@@ -595,7 +636,16 @@ class processedsample(object):
 		"""
 		import ROOT
 
-		f = ROOT.TFile(self.filename)
+		# Check if we have a sum/subtract of processedsamples
+		_rootfiles = []
+		if type(self.filename) == list:
+			_rootfiles = [ self.filename[0] ]
+			for i in xrange(1,len(self.filename)):
+				_rootfiles.append(self.filename[i])
+		else:
+			_rootfiles = [self.filename]
+
+		f = ROOT.TFile(_rootfiles[0])
 		# Extract the histo
 		histogram = f.Get(histoname)
 		histogram.Scale(self.weight)
@@ -605,6 +655,14 @@ class processedsample(object):
 		
 		histogram.SetDirectory(0)
 		f.Close()
+
+		# Start the add/sub
+		for i in xrange(1,len(_rootfiles)):
+			f = ROOT.TFile(_rootfiles[i])
+			h = f.Get(histoname)
+			h.Scale(self.weight)
+			histogram.Add(h,self.__operation[i-1])
+			f.Close()
 
 		return histogram
 
