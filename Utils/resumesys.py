@@ -330,12 +330,13 @@ if __name__ == '__main__':
 		sysdict_d = getdifferences(datasamples,nominalfolders,fdown,metasamples=usingmetasamples)
 		print "\033[34mresumesys INFO\033[m ---+ Extracting UP variation",
 		sysdict_u = getdifferences(datasamples,fup,nominalfolders,metasamples=usingmetasamples)
-		# -- Get the mean of the variations
+		# -- Get the highest variation
 		for sample,channeldict_u in sysdict_u.iteritems():
 			channeldict_d = sysdict_d[sample]
 			for ch,value_u in channeldict_u.iteritems():
 				value_d = channeldict_d[ch]
-				syscommondict[sample][sysname][ch] = sqrt((value_u)**2.0+(value_d)**2.0)/2.0
+				#syscommondict[sample][sysname][ch] = sqrt((value_u)**2.0+(value_d)**2.0)/2.0
+				syscommondict[sample][sysname][ch] = max(value_u,value_d)
 	
 	# -- File creation: systematics_mod.py
 	createsysfile(syscommondict,anabsnominalfolder)
