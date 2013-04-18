@@ -466,6 +466,13 @@ bool ElecSelection::IsInsideZWindow( const double & invariantMass ) const
 // BDT Electrons
 bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 {
+	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+	// To be used when systematic EES is active
+	double scaleEES = _sebr;
+	if( absSCeta > 1.479 )
+	{
+		scaleEES = _see;
+	}
 	// Probably this will disappear because there was no discussion
 	// in the 2012 data period with respect the electron calibration
 	std::string ptelec = "T_UncalibElec_Pt";
@@ -475,8 +482,7 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 	}
 
 	//Variables:
-	double pt       = _data->Get<float>(ptelec.c_str(),index);
-	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+	double pt       = _data->Get<float>(ptelec.c_str(),index)*scaleEES;
 	
 	// systematics
 	if( this->_modifypt )
@@ -558,6 +564,13 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 	const double deltaEtaIn    = _data->Get<float>("T_Elec_deltaEtaIn",index);
 	const double HtoE          = _data->Get<float>("T_Elec_HtoE",index);
 
+	const double absSCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+	// To be used when systematic EES is active
+	double scaleEES = _sebr;
+	if( absSCeta > 1.479 )
+	{
+		scaleEES = _see;
+	}
 	// Probably this will disappear because there was no discussion
 	// in the 2012 data period with respect the electron calibration
 	std::string ptelec = "T_UncalibElec_Pt";
@@ -565,8 +578,7 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 	{
 		ptelec = "T_Elec_Pt";
 	}
-	const double pt   = _data->Get<float>(ptelec.c_str(),index);
-	const double absSCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
+	const double pt   = _data->Get<float>(ptelec.c_str(),index)*scaleEES;
 
 	bool ispass = false;
 	
@@ -696,7 +708,13 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		float ptElec = it->getP4().Pt();
 		if( _runperiod.find("2011") != std::string::npos )
 		{
-			ptElec = _data->Get<float>("T_UncalibElec_Pt",i);
+			// To be used when systematic EES is active
+			double scaleEES = _sebr;
+			if( it->getP4().Eta() > 1.479 )
+			{
+				scaleEES = _see;
+			}
+			ptElec = _data->Get<float>("T_UncalibElec_Pt",i)*scaleEES;
 		}
 
 		//[Require muons to be close to PV] 
@@ -765,7 +783,13 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		double elecpt = it->getP4().Pt();
 		if( _runperiod.find("2011") != std::string::npos )
 		{
-			elecpt = _data->Get<float>("T_UncalibElec_Pt",i);
+			// To be used when systematic EES is active
+			double scaleEES = _sebr;
+			if( it->getP4().Eta() > 1.479 )
+			{
+				scaleEES = _see;
+			}
+			elecpt = _data->Get<float>("T_UncalibElec_Pt",i)*scaleEES;
 		}
 
 		if( _runperiod.find("2012") != std::string::npos )

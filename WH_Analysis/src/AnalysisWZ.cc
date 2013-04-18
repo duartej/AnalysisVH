@@ -720,7 +720,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	const double phi = fData->Get<float>("T_METPFTypeI_Phi");
 	const double px = met*cos(phi);
 	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,0.0);  //FIXME!!!! Bug --> E=met (correct 
+	TLorentzVector METV(px,py,0.0,met);
 
 	std::map<int,double> transverseMassW;
 	std::map<double,int> wcandidate;
