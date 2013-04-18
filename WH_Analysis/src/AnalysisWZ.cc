@@ -808,7 +808,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 
 	//Store event info, just in data case
-	if( fIsData )
+	if( fIsData || fLeptonSelection->IsInFakeableMode() )
 	{
 		this->StoresEvtInf(lep1Z,lep2Z,(*theLeptons)[iWcand],transverseMassW[iWcand],METV);
 	}
