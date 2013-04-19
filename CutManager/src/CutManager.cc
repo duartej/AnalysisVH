@@ -14,10 +14,10 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_samplemode(CutManager::NORMALSAMPLE),
 	_nTights(-1),
 	_nFails(-1),
-	_modifypt(false),
-	_smu(1.0),
-	_sebr(1.0),
-	_see(1.0),
+	_modifypt(new bool(false)),
+	_smu(new double(1.0)),
+	_sebr(new double(1.0)),
+	_see(new double (1.0)),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
@@ -62,6 +62,18 @@ CutManager::~CutManager()
 
 	delete _registeredcols;
 	_registeredcols = 0;
+
+	delete _modifypt;
+	_modifypt = 0;
+
+	delete _smu;
+	_smu = 0;
+
+	delete _sebr;
+	_sebr = 0;
+
+	delete _see;
+	_see = 0;
 }
 
 
@@ -174,7 +186,7 @@ unsigned int CutManager::GetNBasicLeptons()
 	}
 
 	// Putting the pt-scale when systematics
-	if( this->_modifypt )
+	if( *(this->_modifypt) )
 	{
 		for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
 				it != _selectedbasicLeptons->end(); ++it)
@@ -183,16 +195,16 @@ unsigned int CutManager::GetNBasicLeptons()
 			switch(it->leptontype())
 			{
 				case(MUON):
-					f = this->_smu;
+					f = *(this->_smu);
 					break;
 				case(ELECTRON):
 					if( fabs(it->getP4().Eta()) < 1.479 )
 				        {
-						f = this->_sebr;
+						f = *(this->_sebr);
 					}
 					else
 					{
-						f = this->_see;
+						f = *(this->_see);
 					}
 					break;
 				default:
@@ -347,10 +359,10 @@ std::vector<LeptonRel> * CutManager::GetNoTightLeptons()
 void CutManager::SetPtSystematicFactor(const double & smu, 
 		const double & sebarrel, const double & seendcap)
 {
-	_modifypt = true;
-	_smu = smu;
-	_sebr= sebarrel;
-	_see = seendcap;
+	*(this->_modifypt) = true;
+	*(this->_smu) = smu;
+	*(this->_sebr)= sebarrel;
+	*(this->_see) = seendcap;
 }
 
 

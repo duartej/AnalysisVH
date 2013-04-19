@@ -468,10 +468,10 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 {
 	const double absSCeta = fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 	// To be used when systematic EES is active
-	double scaleEES = _sebr;
+	double scaleEES = *_sebr;
 	if( absSCeta > 1.479 )
 	{
-		scaleEES = _see;
+		scaleEES = *_see;
 	}
 	// Probably this will disappear because there was no discussion
 	// in the 2012 data period with respect the electron calibration
@@ -483,19 +483,6 @@ bool ElecSelection::IsPassBDT( const unsigned int & index ) const
 
 	//Variables:
 	double pt       = _data->Get<float>(ptelec.c_str(),index)*scaleEES;
-	
-	// systematics
-	if( this->_modifypt )
-	{
-		if( absSCeta < 1.479 )
-		{
-			pt = pt*this->_sebr;
-		}
-		else
-		{
-			pt = pt*this->_see;
-		}
-	}
 	
 	const char * mvanamestr = "T_Elec_BDT";
 	double regionloweta = 1.0;
@@ -566,10 +553,10 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 
 	const double absSCeta= fabs(_data->Get<float>("T_Elec_SC_Eta",index));
 	// To be used when systematic EES is active
-	double scaleEES = _sebr;
+	double scaleEES = *_sebr;
 	if( absSCeta > 1.479 )
 	{
-		scaleEES = _see;
+		scaleEES = *_see;
 	}
 	// Probably this will disappear because there was no discussion
 	// in the 2012 data period with respect the electron calibration
@@ -709,10 +696,10 @@ unsigned int ElecSelection::SelectLeptonsCloseToPV()
 		if( _runperiod.find("2011") != std::string::npos )
 		{
 			// To be used when systematic EES is active
-			double scaleEES = _sebr;
+			double scaleEES = *_sebr;
 			if( it->getP4().Eta() > 1.479 )
 			{
-				scaleEES = _see;
+				scaleEES = *_see;
 			}
 			ptElec = _data->Get<float>("T_UncalibElec_Pt",i)*scaleEES;
 		}
@@ -784,10 +771,10 @@ unsigned int ElecSelection::SelectIsoLeptons()
 		if( _runperiod.find("2011") != std::string::npos )
 		{
 			// To be used when systematic EES is active
-			double scaleEES = _sebr;
+			double scaleEES = *_sebr;
 			if( it->getP4().Eta() > 1.479 )
 			{
-				scaleEES = _see;
+				scaleEES = *_see;
 			}
 			elecpt = _data->Get<float>("T_UncalibElec_Pt",i)*scaleEES;
 		}

@@ -180,10 +180,10 @@ class CutManager
 		unsigned int _nFails;
 
 		//! data member to deal with momentum/energy scale systematics
-		bool _modifypt;
-		double _smu;
-		double _sebr;
-		double _see;
+		bool * _modifypt;
+		double * _smu;
+		double * _sebr;
+		double * _see;
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
 		//! Vector of leptons which pass the basic selection (Loose)

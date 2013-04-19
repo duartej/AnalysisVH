@@ -450,7 +450,7 @@ std::pair<double,bool> MuonSelection::GetMuonIsolationOverPt( const int & i ) co
 		return std::pair<double,int>(_data->Get<float>("T_Muon_MVARings",i),true);
 	}
 
-	double isovariableoverpt = 1.0/(_data->Get<float>("T_Muon_Pt",i)*_smu);
+	double isovariableoverpt = 1.0/(_data->Get<float>("T_Muon_Pt",i)*(*_smu));
 	if( this->_muonID == MuonID::HWWID )
 	{
 		isovariableoverpt *= _data->Get<float>("T_Muon_muSmurfPF",i);

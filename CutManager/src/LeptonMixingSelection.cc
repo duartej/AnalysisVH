@@ -19,6 +19,16 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 { 
 	fMuonSelection = new MuonSelection(data,nTights,nLeptons,runperiod);
 	fElecSelection = new ElecSelection(data,WPlowpt,WPhighpt,nTights,nLeptons,runperiod);
+	// Systematic propagation
+	fMuonSelection->_modifypt = this->_modifypt;
+	fMuonSelection->_smu      = this->_smu;
+	fMuonSelection->_sebr     = this->_sebr;
+	fMuonSelection->_see      = this->_see;
+	
+	fElecSelection->_modifypt = this->_modifypt;
+	fElecSelection->_smu      = this->_smu;
+	fElecSelection->_sebr     = this->_sebr;
+	fElecSelection->_see      = this->_see;
 }
 
 //Constructor BDT-based electrons: 
@@ -31,6 +41,16 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data,
 { 
 	fMuonSelection = new MuonSelection(data,nTights,nLeptons,runperiod);
 	fElecSelection = new ElecSelection(data,nTights,nLeptons,runperiod);
+	// Systematic propagation
+	fMuonSelection->_modifypt = this->_modifypt;
+	fMuonSelection->_smu      = this->_smu;
+	fMuonSelection->_sebr     = this->_sebr;
+	fMuonSelection->_see      = this->_see;
+	
+	fElecSelection->_modifypt = this->_modifypt;
+	fElecSelection->_smu      = this->_smu;
+	fElecSelection->_sebr     = this->_sebr;
+	fElecSelection->_see      = this->_see;
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()
