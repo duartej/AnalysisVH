@@ -18,6 +18,7 @@ CutManager::CutManager( TreeManager * data, const int & nTights, const int & nLe
 	_smu(new double(1.0)),
 	_sebr(new double(1.0)),
 	_see(new double (1.0)),
+	_mixedclass(false),
 	_selectedbasicLeptons(0),
 	_closeToPVLeptons(0),
 	_selectedIsoLeptons(0),
@@ -184,9 +185,8 @@ unsigned int CutManager::GetNBasicLeptons()
 	{
 		size = this->SelectLooseLeptons();
 	}
-
 	// Putting the pt-scale when systematics
-	if( *(this->_modifypt) )
+	if( (! this->_mixedclass) && (*this->_modifypt) )
 	{
 		for(std::vector<LeptonRel>::iterator it = _selectedbasicLeptons->begin();
 				it != _selectedbasicLeptons->end(); ++it)

@@ -184,6 +184,10 @@ class CutManager
 		double * _smu;
 		double * _sebr;
 		double * _see;
+		
+		//! Derived class reflection: for systematic momentum/energy scale
+		//! in order to avoid double scaling in the LeptonMixing class
+		bool _mixedclass;
 
 		//! Selection datamembers (in parenthesis the meaning when fake mode active)
 		//! Vector of leptons which pass the basic selection (Loose)

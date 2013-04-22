@@ -29,6 +29,9 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data, const int & WP
 	fElecSelection->_smu      = this->_smu;
 	fElecSelection->_sebr     = this->_sebr;
 	fElecSelection->_see      = this->_see;
+	
+	//! Avoiding the double scaling in energy/momentum scale systematic
+	_mixedclass = true;
 }
 
 //Constructor BDT-based electrons: 
@@ -51,6 +54,9 @@ LeptonMixingSelection::LeptonMixingSelection( TreeManager * data,
 	fElecSelection->_smu      = this->_smu;
 	fElecSelection->_sebr     = this->_sebr;
 	fElecSelection->_see      = this->_see;
+	
+	//! Avoiding the double scaling in energy/momentum scale systematic
+	_mixedclass = true;
 }
 
 LeptonMixingSelection::~LeptonMixingSelection()
