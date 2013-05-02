@@ -46,7 +46,6 @@ def getprobability(S,dof):
 	return Math.chisquared_cdf(S,dof)
 
 
-
 def geterrorarray(xs,xserrors):
 	""".. function:: geterrorarray(xs,xserrors) --> (E,Esys)
 	Calculate the arrays (to fill later the matrices) of absolute errors and returns
@@ -66,6 +65,28 @@ def geterrorarray(xs,xserrors):
 	:rtype: (dict(str:array(float)),dict(srt:array(float)))
 	"""
 	from array import array
+	# ========= ERROR MATRIX ====================================
+	# Matrix composed by all the sources of errors in each 
+	# column/row. 
+	# E_{ij} = r\sigma_{i}\sigma_{j}
+	#
+	# where i=source of error (row), j=source of error (column) and
+	# r=correlation coefficient
+	# We are only dealing with full correlated errors (r=1) or 
+	# non-correlated (r=0). Note that the diagonal elements are 
+	# the usual square sigma errors
+	# 
+	# Note that each index is running over all the source of errors
+	# and channel. As example, we are going to have a EES systematic
+	# error for all the channels:
+	# 3mEES=1, 2mEES=2, 2eEES=3, 3eEES=4 
+	# and the error matrix contain a menor with 4*4 = 16 elements 
+	# related with this systematic:
+	# ( 11 12 13 14 )
+	# ( 21 22 23 24 )
+	# ( 31 32 33 34 )
+	# ( 41 42 43 44 )
+
 	# ========= ERROR MATRIX INITIALIZATION =====================
 	# -- Separate the error array into three contributions: sys,lumi,stat
 	#    plus the total of them
@@ -76,19 +97,23 @@ def geterrorarray(xs,xserrors):
 			                        for itype in xserrors.keys()])
 	
 	# Note that the asymetric errors are taken as mean
+	# FIXME: a better approach would be using the maximum of each error, so I need to
+	# create a non-lambda function to deal with that
 	evalsyserr = lambda sysname,lchannel,rchannel: ((xserrors[sysname][lchannel][0]*xs[lchannel])*(xserrors[sysname][rchannel][0]*xs[rchannel])+\
 			(xserrors[sysname][lchannel][1]*xs[lchannel])*(xserrors[sysname][rchannel][1]*xs[rchannel]))/2.0
 
 	# -- CORRELATIONS: DECIDING WHAT IS CORRELATED
-	#    We say two systematics are fully correlated between two channels when the variation of the error in one channel 
+	#    We say two systematics are fully correlated between two 
+	#    channels when the variation of the error in one channel 
 	#    is the same as the variation of the error of the other channel
+	#    Notation: lval= left channel (row)
+	#              rval= right channel (column)
+	#    
+	#    When we have uncorrelated systematics, we force to fill the element
+	#    only when the channels are the same (diagonal elements filled only)
 	for id,(lval,rval) in IDCHANNELMATRIX.iteritems():
 		# - 1. Lepton eff. - Asumming fully correlation between channels 
 		arrayEsys["LEPTON"][id] = evalsyserr("LEPTON",lval,rval)
-		# - 2. Trigger eff.: fully correlated when Z->ll channels, i.e., eee with eee and eem (and viceversa)
-		#                    and mmm with mmm and mme. 
-		#if lval[:-1] == rval[:-1]:
-		#	arrayEsys["TriggerEff"][id] = evalsyserr("TriggerEff",lval,rval)
 		# - 3. Electron Energy Scale: assuming fully correlation between electronic channels (contains at least an electron)
 		if lval.find('e') != -1 and rval.find('e') != -1:
 			arrayEsys["EES"][id] = evalsyserr("EES",lval,rval)
@@ -104,6 +129,8 @@ def geterrorarray(xs,xserrors):
 		# - 8. Fakeable object method: assuming not correlation between channels
 		if lval == rval:
 			arrayEsys["DDMMC"][id] = evalsyserr("DDMMC",lval,rval)
+		# - 8a. Fakeable object method: statistical errors, no correlation
+		arrayEsys["Fakes"][id] = evalsyserr("Fakes",lval,rval)
 		# - 9. Luminosity effect: assuming fully corration between all channels
 		arrayEsys["Lumi"][id] = evalsyserr("Lumi",lval,rval)
 		# - 10.Statistics, not correlated
@@ -117,6 +144,8 @@ def geterrorarray(xs,xserrors):
 	for errorname,arrayvalues in arrayEsys.iteritems():
 		whereitgoes = ""
 		if errorname == "STATS":
+			whereitgoes="stat"
+		elif errorname == "Fakes":
 			whereitgoes="stat"
 		elif errorname == "Lumi":
 			whereitgoes="lumi"
