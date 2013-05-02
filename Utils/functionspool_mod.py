@@ -1198,9 +1198,9 @@ def getxserrorsrel(workingpath,**keywords):
 		# to the fact we want to present a pure light leptonic measures (i.e., W->l and Z->ll but l=e,mu)
 		# Inclusive or exclusive measures
 		if xstype == "inclusive":
-			correct = 1.0#*(1.-taufrac[channel])
+			correct = 1.0
 		else:
-			correct = BR.getlightbr(channel)#*(1.0-taufrac[channel])
+			correct = BR.getlightbr(channel)
 
 		# XS calculation lambda function
 		xs = lambda N,eff,lumi: xsraw(N,eff,lumi)*correct
@@ -1246,33 +1246,27 @@ def getxserrorsrel(workingpath,**keywords):
 		Nzz,Nzzerr = extractyields(samplerootdir["ZZ"])
 		# updating the stat part 
 		SYSZZ["Stat"][channel] = Nzzerr/Nzz
-		# -- Fakes:
+		# -- Fakes (to be embbeded in STAT):
 		Nf,Nferr = extractyields(samplerootdir["Fakes"])
-		#try:
-		#	Nf,Nferr = extractyields(asciirawtable,"Data-driven")
-		#except RuntimeError:
-		#	# TO BE DEPRECATED WHEN ALL FILES ARE UPDATED
-		#	Nf,Nferr = extractyields(asciirawtable,"Fakes")
 		# -- WZ: 
 		Nwz,Nwzerr = extractyields(samplerootdir[signal+"To3LNu"])
 		# updating the stat part
 		SYSWZ["Stat"][channel] = Nwzerr/Nwz
 
 		# --- Calculate the actual xs
-		#cc = { 'eee': 1.001051827459740437, 'eem':1.013215023467648899, \
-	        #		'mme': 0.9980503654056391213, 'mmm': 1.018441060526911661 }
-		#cc = { 'eee': 0.990021, 'eem':1.00176 , 'mme': 0.989431, 'mmm': 1.00626 }
-
 		# Branching ratio correction factor due to the WZTo3LNu MC sample bug
 		brcfactor = { 'eee': 1.0, 'eem': 1.0, 'mme': 1.0, 'mmm': 1.0}
 		if mcprod == "Fall11":
 			brcfactor = { 'eee': 1.00352, 'eem': 0.992499, 'mme': 1.00634, 'mmm': 0.987805}
 		eff = Npass/Ngen*brcfactor[channel]
-		print "%s: Ae=%.6f" % (channel,(eff*BR.WZ23lnu/BR.getlightbr(channel)))
-		#eff = Npass/Ngen
+		#print "%s: Ae=%.6f" % (channel,(eff*BR.WZ23lnu/BR.getlightbr(channel)))
 		xsmean = xs(Nsig,eff,Lumi)
 		xsmeasure[channel] = xsmean
 		# ==================== 2. calculate the WZ and ZZ systematics to be merged into one
+		# ZZ systematics are affecting the Nsignal (numerator of xs formula)
+		# WZ systematics are affecting the A*e (efficiency, denominator of xs formula)
+		# We are considering that some systematics are affecting at the same time
+		# the numerator and denominator (correlated)
 		for sysname in filter(lambda x: x != "Lumi", xserrors.iterkeys()):
 			# 2.1. ZZ systematics
 			try:
@@ -1280,7 +1274,7 @@ def getxserrorsrel(workingpath,**keywords):
 				if (sysname == "EES" and channel.find("e") == -1) or \
 						(sysname == "MMS" and channel.find("m") == -1):
 					raise KeyError
-				# the statistics are considered with the NsigerVr
+				# the statistics are considered with the Nsigerr
 				if sysname == "Stat":
 					raise KeyError
 				zsys= SYSZZ[sysname][channel]
@@ -1292,6 +1286,7 @@ def getxserrorsrel(workingpath,**keywords):
 			dNzz = Nzz*zsys
 			Nsigdown = Nsig-dNzz
 			Nsigup   = Nsig+dNzz
+			# 2.1.2 Missing other backgrounds here...FIXME
 			# 2.2 WZ systematic
 			try:
 				# Systematics dependents of the flavour
@@ -1315,34 +1310,37 @@ def getxserrorsrel(workingpath,**keywords):
 			# (WZ,ZZ) into one and unique 
 			# --- Systematics: using Npassup,Npassdown,effup,effdown
 			syscomb = []
-			for n in [ Nsigup, Nsigdown ]:
-				for e in [ effup, effdown ]:
-					# keep the sign in order to discriminate between
-					# positive and negative assymetric error
-					syscomb.append( (xs(n,e,Lumi)-xsmean)/xsmean )
+			for (n,e) in [ (Nsig,effup),(Nsig,effdown) ]:
+				syscomb.append( (xs(n,e,Lumi)-xsmean)/xsmean )
+			for (n,e) in [ (Nsigup,eff),(Nsigdown,eff) ]:
+				syscomb.append( (xs(n,e,Lumi)-xsmean)/xsmean )
 			sysmin = abs(min(syscomb))
 			sysmax = max(syscomb)
 			xserrors[sysname][channel] = (sysmax,sysmin)
 
+		#-- Remaining systematics
+
 		# 3. Fakeable object systematics
-		try:
-			frsys = SYSFakes[channel]
-		except ValueError:
-			# Keeping compatibility
-			frsys = DDMMC[channel]
-		dNf = Nf*frsys
-		# affecting to the signal yield
+		#   a. Embebed in stat
+		frstat = SYSFakes[channel]
+		dNf = Nf*frstat
+		# ------ affecting to the signal yield
 		Nsigdown = Nsig-dNf
 		Nsigup   = Nsig+dNf
-		#xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 		xserrors["Fakes"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
+		#   b. systematics with closure test
+		frsys = DDMMC[channel]	
+		dNf = Nf*frsys
+		# ------ affecting to the signal yield
+		Nsigdown = Nsig-dNf
+		Nsigup   = Nsig+dNf
+		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 
 		# 4. Statistics: using signal statistical errors (already included here the ZZ Stat)
 		xserrors["STATS"][channel] = (abs(xs(Nsig+Nsigerr,eff,Lumi)-xsmean)/xsmean,
 				abs(xs(Nsig-Nsigerr,eff,Lumi)-xsmean)/xsmean)
 
-		# 5. Lumi systematic (already considered within the WZ and ZZ systematics,
-		#    note that N propto Lumi, so getting the lumi sys is equivalent to the yield
+		# 5. Lumi systematic
 		xserrors["Lumi"][channel] = (SYSWZ["Lumi"][channel],SYSWZ["Lumi"][channel])
 		
 	return (xsmeasure,xserrors)
