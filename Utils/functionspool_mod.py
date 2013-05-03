@@ -1083,7 +1083,6 @@ def getxserrorsrel(workingpath,**keywords):
 	         errors with respect to the cross-section
 	:rtype: dict(dict(str:(float,float)))
 	"""
-	#from systematics_mod import SYSZZ,SYSWZ,DDMMC,STAT
 	import os
 	from math import sqrt
 	import sys
@@ -1100,6 +1099,11 @@ def getxserrorsrel(workingpath,**keywords):
 	mcprod = "Fall11" 
 	sysinfolder = True # describes if the utility resumesys was used and therefore creates the
 	                   # systematics_mod in the analysis folder
+	mcbackgrounds = [ 'ZZ', 'PhotonVJets_Madgraph' ]
+	if mcprod == "Summer12":
+		# FIXME: TO BE UPDATED 
+		mcbackgrounds = [ 'ZZ', 'PhotonVJets_Madgraph' ]
+
 	for key,value in keywords.iteritems():
 		if not key in validkeywords:
 			message = "\033[33;1mgetxserrosrel ERROR\033[m Not valid keyword argument '%s' " % key
@@ -1124,11 +1128,26 @@ def getxserrorsrel(workingpath,**keywords):
 	# And do the import (remove the pyc to use the last version)
 	if os.path.isfile("systematics_mod.pyc"):
 		os.remove("systematics_mod.pyc")
-	from systematics_mod import SYSZZ,SYSWZ,DDMMC,STAT
+
+	sys_mod = __import__("systematics_mod")
+	SYSWZ = sys_mod.SYSWZ
+	DDMMC = sys_mod.DDMMC
+	STAT  = sys_mod.STAT
 	try:
-		from systematics_mod import SYSFakes
-	except: 
+		#from systematics_mod import SYSFakes
+		SYSFakes = sys_mod.SYSFakes
+	except AttributeError: 
 		pass
+	# Backgrounds sys
+	SYSMCBKG = {}
+	for bkg in mcbackgrounds:
+		try:
+			SYSMCBKG[bkg] = eval("sys_mod.SYS"+bkg)
+		except AttributeError:
+			message = "\033[31;1mgetxserrorsrel ERROR\033[m The sample '%s' " % bkg
+			message += "was not evaluated its systematics (not present at 'systematic_mod.py'"
+			message += " file)"
+			raise RuntimeError(message)
 
 	# =========================================================
 	# Note that the sys is going to absorb the WZ, ZZ and Fakes,
@@ -1136,7 +1155,7 @@ def getxserrorsrel(workingpath,**keywords):
 	# (also included Stat and lumi	)
 	xserrors = {}
 	xsmeasure = {}
-	for sysname in  list(set(SYSZZ.keys()+SYSWZ.keys())):
+	for sysname in  list(set(SYSMCBKG.items()[0][1].keys()+SYSWZ.keys())):
 		xserrors[sysname] = {}
 	# plus the fake rate (old description)
 	xserrors["DDMMC"] = {}
@@ -1242,10 +1261,20 @@ def getxserrorsrel(workingpath,**keywords):
 		Nsigerr = sqrt(Ndataerr**2.0+Ntotbkgerr**2.0)
 		# updating the stat part
 		STAT[channel] = Nsigerr/Nsig
-		# -- ZZ: 
-		Nzz,Nzzerr = extractyields(samplerootdir["ZZ"])
-		# updating the stat part 
-		SYSZZ["Stat"][channel] = Nzzerr/Nzz
+		# --- MonteCarlo backgrounds
+		Nbkg = {}
+		Nbkgerr = {}
+		for bkg in mcbackgrounds:
+			# FIXME: Control the sample is in there!!!
+			_Nb,_Nerr = extractyields(samplerootdir[bkg])
+			Nbkg[bkg] = _Nb
+			Nbkgerr[bkg] = _Nerr
+			# updating the stat part 
+			try:
+				SYSMCBKG[bkg]["Stat"][channel] = _Nerr/_Nb
+			except ZeroDivisionError:
+				# No event passed the cuts
+				SYSMCBKG[bkg]["Stat"][channel] = 0.0
 		# -- Fakes (to be embbeded in STAT):
 		Nf,Nferr = extractyields(samplerootdir["Fakes"])
 		# -- WZ: 
@@ -1263,12 +1292,13 @@ def getxserrorsrel(workingpath,**keywords):
 		xsmean = xs(Nsig,eff,Lumi)
 		xsmeasure[channel] = xsmean
 		# ==================== 2. calculate the WZ and ZZ systematics to be merged into one
-		# ZZ systematics are affecting the Nsignal (numerator of xs formula)
+		# MC Backgrounds systematics are affecting the Nsignal (numerator of xs formula)
 		# WZ systematics are affecting the A*e (efficiency, denominator of xs formula)
 		# We are considering that some systematics are affecting at the same time
 		# the numerator and denominator (correlated)
 		for sysname in filter(lambda x: x != "Lumi", xserrors.iterkeys()):
-			# 2.1. ZZ systematics
+			# 2.1. MC Backgrounds systematics
+			bkgsys = {}
 			try:
 				# Systematics dependents of the flavour
 				if (sysname == "EES" and channel.find("e") == -1) or \
@@ -1277,19 +1307,23 @@ def getxserrorsrel(workingpath,**keywords):
 				# the statistics are considered with the Nsigerr
 				if sysname == "Stat":
 					raise KeyError
-				zsys= SYSZZ[sysname][channel]
+				for bkg in mcbackgrounds:
+					bkgsys[bkg]= SYSMCBKG[bkg][sysname][channel]
 			except KeyError:
-				# Systematic not present at ZZ
-				zsys = 0.0
-			# --- ZZ sys affecting to the signal yields
+				# Systematic not present at MC backgrounds
+				for bkg in mcbackgrounds:
+					bkgsys[bkg] = 0.0
+			# --- MC backgrounds sys affecting to the signal yields
 			#        evaluate the up and down variation on the signal
 			#     Note that Nsig = N_data-Nzz-Nbkg --> 
 			#       Nsigdown = N_data-Nzz(1-zsys)-... = N_data-Nzz-Nbkg+Nzz*zsys=
 			#                      = Nsig+Nzz*zsys=Nsig+dNzz
-			dNzz = Nzz*zsys
-			Nsigdown = Nsig+dNzz
-			Nsigup   = Nsig-dNzz
-			# 2.1.2 Missing other backgrounds here...FIXME
+			Nsigdown = Nsig
+			Nsigup   = Nsig
+			for bkg in mcbackgrounds:
+				dNbkg = Nbkg[bkg]*bkgsys[bkg]
+				Nsigdown += dNbkg
+				Nsigup   -= dNbkg
 			# 2.2 WZ systematic
 			try:
 				# Systematics dependents of the flavour
