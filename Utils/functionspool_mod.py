@@ -1283,9 +1283,12 @@ def getxserrorsrel(workingpath,**keywords):
 				zsys = 0.0
 			# --- ZZ sys affecting to the signal yields
 			#        evaluate the up and down variation on the signal
+			#     Note that Nsig = N_data-Nzz-Nbkg --> 
+			#       Nsigdown = N_data-Nzz(1-zsys)-... = N_data-Nzz-Nbkg+Nzz*zsys=
+			#                      = Nsig+Nzz*zsys=Nsig+dNzz
 			dNzz = Nzz*zsys
-			Nsigdown = Nsig-dNzz
-			Nsigup   = Nsig+dNzz
+			Nsigdown = Nsig+dNzz
+			Nsigup   = Nsig-dNzz
 			# 2.1.2 Missing other backgrounds here...FIXME
 			# 2.2 WZ systematic
 			try:
