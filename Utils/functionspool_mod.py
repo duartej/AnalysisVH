@@ -1310,9 +1310,7 @@ def getxserrorsrel(workingpath,**keywords):
 			# (WZ,ZZ) into one and unique 
 			# --- Systematics: using Npassup,Npassdown,effup,effdown
 			syscomb = []
-			for (n,e) in [ (Nsig,effup),(Nsig,effdown) ]:
-				syscomb.append( (xs(n,e,Lumi)-xsmean)/xsmean )
-			for (n,e) in [ (Nsigup,eff),(Nsigdown,eff) ]:
+			for (n,e) in [ (Nsigup,effup),(Nsigdown,effdown) ]:
 				syscomb.append( (xs(n,e,Lumi)-xsmean)/xsmean )
 			sysmin = abs(min(syscomb))
 			sysmax = max(syscomb)
