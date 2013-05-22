@@ -10,10 +10,13 @@
    + br
    + processedsample
    + pywmanager
+   + listdec
    + getweight
    + gettablecontent
    + extractyields
    + getpassevts
+   + getdatadriven
+   + getratioerrorsrel
    + getxserrorsrel
    + getrounded
    + psitest
@@ -733,7 +736,7 @@ class processedsample(object):
 
 def listdec(input_, output_):
 	"""..function:: listdec( listcomplex ) -> list
-	Decompose a list mady of any kind of list or atomic values into
+	Decompose a list made of any kind of list or atomic values into
 	a list made only of atomic values
 	"""
 	if type(input_) is list:
@@ -766,6 +769,7 @@ def gettablecontent(workingpath,channel,signal="WZ"):
 	""".. function:: gettablecontent(workingpath,channel) --> lines
 	Extract the content of the standard tex table which should exist
 	in every processed folder (after plotall)
+	==== TO BE DEPRECATED ====
 
 	:param workingpath: the parent path, just contain the channels folders
 	:type workinpath: string
@@ -831,6 +835,7 @@ def extractyieldsfromtable(asciirawtable,titlerow):
 	
 	From a the lines of the table in .tex format (the reduced one of the standard output), 
 	the yields of the titlerow' row will be extracted
+	==== TO BE DEPRECATED ====
 
 	:param asciirawtable: lines in the .tex reduced table output from the standard analysis chain
 	:type asciirawtable: str
@@ -939,6 +944,9 @@ class pywmanager(object):
 				self.runperiod = value
 			if key == 'jet' and self.weighttype == 'FR':
 				self.jet = '_jet'+value
+				if value == '35':
+					# Protecting different electron-muon case
+					self.jet = '_jet30'
 
 		# Loading the fakes and prompt rates
 		pkgfolder = os.getenv("VHSYS")
@@ -954,6 +962,9 @@ class pywmanager(object):
 		mapfname = os.path.join(wmanagerdata,headerMu+self.runperiod+'_'+muonleptontype+self.jet+'.root')
 
 		ename = lambda x: x.replace('Mu','Ele').replace('_'+muonleptontype,'')
+		if self.jet == '_jet30':
+			# Protecting the electron fake rate :: 35
+			ename = lambda x: x.replace('Mu','Ele').replace('_'+muonleptontype,'').replace('_jet30','_jet35')
 		getth2 = lambda f: map(lambda x: f.Get(x.GetName()),\
 				filter(lambda x: x.GetClassName() == 'TH2F',f.GetListOfKeys()))[0]
 		
@@ -1058,6 +1069,63 @@ class pywmanager(object):
 
 		return table
 
+def getdatadriven(channel):
+	""".. function:: getdatadriven(channel) -> dd,err
+
+	Extract from a stored file in the working directory, the
+	data-driven PPP estimation and its errors, calculated previosly
+	from the getddweights script
+
+	:channel param: the channel name
+	:channel type: str
+
+	:return: the data-driven estimation for the PPP contribution and its
+	         error for the given channel 
+	:rtype: tuple(float,float)
+	"""
+	import shelve
+	d = shelve.open('.datadriven')
+	if not d.has_key("datadriven") or not d.has_key('relerr'):
+		message = "\033[1;31mgetdatadriven ERROR]\033[1;m Not found the" \
+				+" data-driven dict"
+		raise RuntimeError(message)
+
+	dd = d["datadriven"]
+	err= d["relerr"]
+
+	return dd["PPP"][channel],err["PPP"][channel]
+
+def getratioerrorsrel(workingpath):
+	""".. function:: getratioerrorsrel(workingpath) -> (ratio,xsratio)
+	
+	Extract the ratio and its errors in the suitable format needed by
+	'bluemethod' script from a file residing in the 'workingpath'. The
+	file, called '.errorswz' has been created by a call to the 'getwzratio'
+	script
+
+
+	:param workingpath: folder where to find the '.errorswz' file (shelve standard)
+
+	:return: a complex dictionary containing all the systematics merged and statistics with relative 
+	         errors with respect to the wz ratio
+	:rtype: dict(dict(str:(float,float)))
+	"""
+	import shelve
+	import os
+	
+	f = os.path.join(workingpath,'.errorswz')
+	if not os.path.isfile(f):
+		message = "\033[33;1mgetratioerrorsrel ERROR\033[m The file '.errorswz' has not been" 
+		message+= " found in the given path '%s'. Be sure to launch" % workingpath
+		message+= " the 'getwzratio' script before launching this one! Exiting..."
+		raise RuntimeError(message)
+
+	d = shelve.open(f)
+	errwzratio = d['errwzratio']
+	wzratio = d['wzratio']
+	d.close()
+
+	return wzratio,errwzratio
 
 
 def getxserrorsrel(workingpath,**keywords):
