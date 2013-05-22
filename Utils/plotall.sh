@@ -121,6 +121,10 @@ then
 	then
 		luminosity=4922.0;
 		isreduced="-m ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2Mu2Tau,ZZ2E2Tau"
+		if [ "X$fakemode" == "X" ];
+		then
+			isreduced=$isreduced"::ZJets@Ztautau_Powheg,Zee_Powheg,Zmumu_Powheg,DYtautau_Powheg,DYee_Powheg,DYmumu_Powheg";
+		fi
 	elif [ "$runperiod" == "2012" ];
 	then
 		luminosity=12103.3
