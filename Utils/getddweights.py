@@ -540,11 +540,13 @@ if __name__ == '__main__':
 					print map(lambda x: int(x),i),
 				print
 			elif len(measurement) == 0:
-				message = "\033[1;31mgetddweigths ERROR\033[1;m There is"
+				message = "\033[1;33mgetddweigths WARNING\033[1;m There is"
 				message+= " no data-driven measurement in the samples, probably\n"
 				message+= " wasn't a data sample so the data-driven tree wasn't"
-				message+= " filled"
-				raise RuntimeError(message)
+				message+= " filled or there is any event passing the cuts..."
+				print message
+				continue
+				#raise RuntimeError(message)
 
 			ntights = len(filter(lambda x: int(x) == 101,measurement[0]))
 		
@@ -591,7 +593,11 @@ if __name__ == '__main__':
 		for ntight in sorted(rawentrieschannel.values()[0].keys()):
 			m += '%8sNt%i  ' % ('',ntight)
 			for ch in sorted(rawentrieschannel.keys()):
-				m += '|| %3i ' % rawentrieschannel[ch][ntight]
+				try:
+					m += '|| %3i ' % rawentrieschannel[ch][ntight]
+				except KeyError:
+					m += '|| %3s ' % '---' 
+				#m += '|| %3i ' % rawentrieschannel[ch][ntight]
 			m += '\n'
 		print m
 		print "="*50
@@ -618,6 +624,8 @@ if __name__ == '__main__':
 				summingup += RULES[est][nt]*totaldmeas[nt][est]
 				sysup     += RULES[est][nt]*totalsyschan[ch][nt][est]
 				statup    += RULES[est][nt]*totalstachan[ch][nt][est]
+			# Covering pathological cases
+			statup = abs(statup)
 			try:
 				channelest[est][ch] = summingup
 			except KeyError:
