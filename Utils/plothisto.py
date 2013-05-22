@@ -8,7 +8,7 @@ from functionspool_mod import processedsample
 
 
 TEXTSIZE=0.03  # See TAttText class (Text Size), it means the 3% of the lenght or width
-HISTOSWITHBINWIDTH = { "fHMET": 10 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
+HISTOSWITHBINWIDTH = { "fHMET": 15 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
 ORDEREDBKG = [ 'PPP', 'PPF', 'Fakes', 'ZZ', 'Vgamma' ]
 
 
@@ -539,7 +539,8 @@ def getlegend(sampledict,nameordered,plottype):
 	for name in filter(lambda x: x != datasample.samplename and x != signalsample.samplename,\
 			nameordered):
 		# If there are no contribution, skip it
-		if sampledict[name].getvalue()[0] < 1e-3:
+		#if sampledict[name].getvalue()[0] < 1e-3:
+		if sampledict[name].histogram.GetEntries() < 1e-5:
 			todelete.append(name)
 			continue
 		legend.AddEntry(sampledict[name].histogram,\
@@ -754,7 +755,6 @@ def plotallsamples(sampledict,**keywords):
 	# ---- END Setting up attributes, order to be plot, etc... END --
 	#================================================================
 
-
 	#================================================================
 	# ---- ROOT objects definitions
 	# -- Main object where all samples are stacked
@@ -863,18 +863,18 @@ def plotallsamples(sampledict,**keywords):
 		errors.SetFillStyle(3345)
 
 		errors.SetXTitle(datasample.xtitle)
-		errors.GetXaxis().SetTitleSize(0.14)
+		errors.GetXaxis().SetTitleSize(0.15)
 		errors.GetXaxis().SetLabelSize(0.14)
 		errors.GetYaxis().SetNdivisions(205);
 		errors.GetYaxis().SetTitle("N_{data}/N_{est}");
-		errors.GetYaxis().SetTitleSize(0.14);
-		errors.GetYaxis().SetTitleOffset(0.2);
+		errors.GetYaxis().SetTitleSize(0.15);
+		errors.GetYaxis().SetTitleOffset(0.3);
 		errors.GetYaxis().SetLabelSize(0.14);
 		# The second pad
 		canvas.cd()
 		paddown = ROOT.TPad("paddown_"+histoname,"paddown",0,0.03,1,0.25)
 		paddown.SetTopMargin(0)
-		paddown.SetBottomMargin(0.3)
+		paddown.SetBottomMargin(0.5) # 0.3
 		paddown.Draw()
 		paddown.cd()
 
