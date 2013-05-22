@@ -130,7 +130,8 @@ def geterrorarray(xs,xserrors):
 		if lval == rval:
 			arrayEsys["DDMMC"][id] = evalsyserr("DDMMC",lval,rval)
 		# - 8a. Fakeable object method: statistical errors, no correlation
-		arrayEsys["Fakes"][id] = evalsyserr("Fakes",lval,rval)
+		if lval == rval:
+			arrayEsys["Fakes"][id] = evalsyserr("Fakes",lval,rval)
 		# - 9. Luminosity effect: assuming fully corration between all channels
 		arrayEsys["Lumi"][id] = evalsyserr("Lumi",lval,rval)
 		# - 10.Statistics, not correlated
@@ -167,12 +168,15 @@ def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 	"""
 	from array import array
 	from math import sqrt
-	from functionspool_mod import getxserrorsrel,BR
+	from functionspool_mod import getxserrorsrel,getratioerrorsrel,BR
 	import ROOT
 	
 	nchannels = len(IDCHANNEL.keys())
 	# Get cross-section and its relative-errors
-	xs,xserrors = getxserrorsrel(workingpath,xstype=whatuse,mcprod=mcprod)
+	if whatuse == 'ratio':
+		xs,xserrors = getratioerrorsrel(workingpath)
+	else:
+		xs,xserrors = getxserrorsrel(workingpath,xstype=whatuse,mcprod=mcprod)
 	### ========== INITIALIZATIONS =============================
 	### Arrays to be used to fill the matrices: arrayName  
 	### --- U: link between observable and measure 
@@ -228,9 +232,9 @@ def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 	errors = dict(map(lambda (key,x): (key,sqrt(x)), variances.iteritems()))
 		
 	
-	if whatuse == "inclusive":
-		print "\033[33;1mbluemethod WARNING\033[m Inclusive cross-section"\
-				" calculation is not well-understood. See 'bluemethod -v'"
+	#if whatuse == "inclusive":
+	#	print "\033[33;1mbluemethod WARNING\033[m Inclusive cross-section"\
+	#			" calculation is not well-understood. See 'bluemethod -v'"
 
 	if verbose:
 		newline = "\033[32;2mbluemethod VERBOSE\033[m "
@@ -242,6 +246,8 @@ def bluemethod(workingpath,zoutrange,whatuse,mcprod,verbose):
 		message += newline+"S-estimator:: %.2f, i.e., prob. of %.0f%s that our combination"\
 				" is consistent with our measures" % (S,getprobability(S,nchannels-1)*100,"%")
 		if whatuse == "exclusive":
+			print "\033[33;1mbluemethod WARNING\033[m Exclusive cross-section"\
+				" calculation is not well-understood."
 			message += "\n"
 			BRprompt = ((BR.W2e+BR.W2m+BR.W2tau)/3.0*BR.Z2ll)
 			xswz  = xsmean/BRprompt
@@ -264,7 +270,7 @@ if __name__ == '__main__':
 	
 	#Opciones de entrada
 	parser = OptionParser()
-	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,xstype="exclusive",mcprod="Summer12",verbose=False)
+	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,xstype="inclusive",mcprod="Summer12",verbose=False)
 	parser.add_option( '-w', '--workingdir', action='store', type='string', dest='workingpath',\
 			help="Working directory. It must exist the usual folder structure")
 	parser.add_option( '-z', '--ZrangeasinMC', action='store_true', dest='zoutrange',\
@@ -273,8 +279,8 @@ if __name__ == '__main__':
 			" the script is going to use the phase space used in the WZ Monte Carlo sample"\
 			" creation.")
 	parser.add_option( '-x', '--xs', action='store', dest='xstype',\
-			help="The type of cross-section to be combined. Valid keywords: 'WZinclusive' 'WZexclusive'."\
-			" [Default 'exclusive']")
+			help="The type of cross-section to be combined. Valid keywords: 'inclusive' 'exclusive' or"\
+			" 'ratio' [Default 'inclusive']")
 	parser.add_option( '-m', '--mcprod', action='store', type='string', dest='mcprod',\
 			help="The MC production to be used as signal. This affects the number of"\
 			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
@@ -283,9 +289,9 @@ if __name__ == '__main__':
 	
 	(opt,args) = parser.parse_args()
 
-	if opt.xstype != "exclusive" and opt.xstype != "inclusive":
+	if opt.xstype != "exclusive" and opt.xstype != "inclusive" and opt.xstype != 'ratio':
 		message= "\033[31mbluemethod ERROR\033[m Not valid argument for the '-x' option. Valid arguments:"\
-				" 'WZexclusive' 'WZinclusive'"
+				" 'exclusive' 'inclusive' 'ratio'"
 		raise RuntimeError(message)
 
 	print "\033[34mbluemethod INFO\033[m Combining the %s cross-section at '%s'" % (opt.xstype,opt.workingpath)
