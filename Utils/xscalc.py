@@ -86,7 +86,7 @@ def xscalc(path,zoutrange,format,mcprod,lumi,sysinfolder,verbose):
 	xsabserrors = adduperrors(xsrelerrors,xs,verbose)
 	xsWZabserrors = adduperrors(xsWZrelerrors,xsWZ,verbose)
 	if hasprint:
-		print "Legend: value+-(stat)+-(sys_up,sys_down)+-(lumi)"
+		print "Legend: value+-(stat)+-(sys)+-(lumi)"
 		print "Cross-section for WZ*BR(channel) || Cross-section for WZ "
 	outmessage = ""
 	xscalcdict = {}
@@ -132,7 +132,7 @@ if __name__ == '__main__':
 	#Opciones de entrada
 	parser = OptionParser()
 	parser.set_defaults(workingpath=os.getcwd(),zoutrange=False,format="tex",mcprod="Summer12",\
-			sysnotcalculated=False,verbose=False)
+			sysnotcalculated=False,verbose=False,persistency=False)
 	parser.add_option( '-w', '--workingdir', action='store', type='string', dest='workingpath',\
 			help="Working directory. It must exist the usual folder structure")
 	parser.add_option( '-z', '--ZrangeasinMC', action='store_true', dest='zoutrange',\
@@ -152,7 +152,11 @@ if __name__ == '__main__':
 			" and instead you will use a dummy systematic module containing zeros.")
 	parser.add_option( '-f', '--format', action='store', type='string', dest='format',\
 			help="Output format, it could be 'tex' or 'html'. Per default: 'tex'")
-	parser.add_option( '-v', '--verbpse', action='store_true', dest='verbose',\
+	parser.add_option( '-p', '--persistency', action='store_true', dest='persistency',\
+			help="Store the output of this script in a file '.xscalcdict' which"\
+			" can be opened with the 'shelve' module. The file contains the"\
+			" inclusive and exclusive cross-section with its errors")
+	parser.add_option( '-v', '--verbose', action='store_true', dest='verbose',\
 			help="Activate verbosity, show the relative and absolute errors splitted by source'")
 
 	(opt,args) = parser.parse_args()
@@ -182,4 +186,12 @@ if __name__ == '__main__':
 	# working directory?
 	sysinfolder = not opt.sysnotcalculated
 
-	xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod,lumi,sysinfolder,opt.verbose)
+	xscalcdict = xscalc(opt.workingpath,opt.zoutrange,opt.format,opt.mcprod,lumi,sysinfolder,opt.verbose)
+	
+	# Store dict if it was ordered
+	if opt.persistency:
+		import shelve
+		d = shelve.open('.xscalcdict',writeback=True)
+		d['xscalcdict'] = xscalcdict
+		d.close()
+
