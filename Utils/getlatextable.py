@@ -20,7 +20,9 @@ if __name__ == '__main__':
 	usage+="\nFR (fake rates), TR_leading (trigger eff. for leading lepton), TR_trailing,"
 	usage+='\nTR_trailing (trigger eff. for trailing lepton)'
         parser = OptionParser(usage=usage)
-        parser.set_defaults(wt='PR,FR')
+        parser.set_defaults(wt='PR,FR',runperiod='2011')
+	parser.add_option( '-r', '--runperiod', action='store',dest='runperiod',metavar='2011|2012',\
+			help='Run period [Default: 2011]')
 	parser.add_option( '-t', '--types', action='store',dest='wt',metavar='T1[,T2,..]',\
 			help='Weight types to dump the tables. Valid names are "PR",'\
 			'"FR","SF","TR_leading","TR_trailing"')
@@ -28,7 +30,7 @@ if __name__ == '__main__':
         ( opt, args ) = parser.parse_args()
 
 	for t in opt.wt.split(","):
-		w = pywmanager(t)
+		w = pywmanager(t,runperiod=opt.runperiod)
 		for l in [ 'Muon', 'Elec']:
 			print "%s %s" % (l,t)
 			print w.getlatextable(l)
