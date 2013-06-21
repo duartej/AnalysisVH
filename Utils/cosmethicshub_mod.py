@@ -38,7 +38,11 @@ LEGENDSDICT = { "WW": "WW", "WZTo3LNu": "WZ#rightarrow3l#nu", "WJets_Madgraph": 
 		"Fakes_Nt3": "N_{t3}",
 		"PPP": "PPP est.",
 		"PPF": "PPF est.",
-		"TTbar_2L2Nu_Powheg_Nt2": "DDM t#bar{t}"
+		#"TTbar_2L2Nu_Powheg_Nt2": "DDM t#bar{t}"
+		"WWZJets":"WWZ",
+		"WZZJets":"WZZ",
+		"WWWJets":"WWW",
+		"VVV":"VVV",
 		}
 
 PAVECOORD = {'fHNRecoLeptons': 'UPRIGHT', 'fHNSelectedLeptons': 'UPRIGHT',
@@ -75,7 +79,7 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"TW": kGreen-2, "TbarW": kGreen+4,
 		"DDM_ZJets": kOrange-3,
 		"DDM_TTbar": kOrange+5,
-		"TTbar_2L2Nu_Powheg_Nt2": kOrange+5,
+		#"TTbar_2L2Nu_Powheg_Nt2": kOrange+5,
 		"PhotonVJets_Madgraph": kGreen-5,
 		"VGamma": kGreen-5,
 		"WHToWW2L120": kRed-4,
@@ -87,6 +91,10 @@ COLORSDICT = { "WW" : kRed+4, "WZTo3LNu": kOrange-2, "WJets_Madgraph": kAzure+3,
 		"Fakes_Nt3": kAzure-5,
 		"PPP": kAzure-7,
 		"PPF": kAzure-5,
+		"WWWJets":kRed-4,
+		"WWZJets":kRed-3,
+		"WZZJets":kRed-2,
+		"VVV":kRed-3,
 		}
 
 UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
@@ -98,7 +106,10 @@ UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
 		"LEADINGJETET": "(GeV/c)",
 		"DELTAPHIWMET": "",
 		"MAXDELTAPHILP1LP2": "", "MINDELTAPHILP1LP2": "",
-		"MAXDELTARLP1LP2":"", "MINDELTARLP1LP2":""
+		"MAXDELTARLP1LP2":"", "MINDELTARLP1LP2":"",
+		"ZPT": "(GeV/c)",
+		"PTLEADINGJET": "(GeV/c)",
+		"ETJETMATCHED": "(GeV/c)",
 		}
 
 VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
@@ -112,5 +123,8 @@ VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"TRI": "M_{lll}", # TRILEPTONMASS
 		"HT": "H_{T}",
 		"LEADINGJETET": "E_{T} lead. jet",
-		"DELTAPHIWMET": "#Delta#phi(l_{W},MET)"
+		"DELTAPHIWMET": "#Delta#phi(l_{W},MET)",
+		"ZPT": "Z p_{t}",
+		"PTLEADINGJET": "Leading jet p_{t}",
+		"ETJETMATCHED": "p_{t}",
 		}
