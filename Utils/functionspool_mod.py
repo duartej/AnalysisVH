@@ -1485,12 +1485,13 @@ def getxserrorsrel(workingpath,**keywords):
 		xserrors["Fakes"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 		#   b. systematics with closure test
 		frsys = DDMMC[channel]	
-		dNf = Nf*frsys
 		# ------ affecting to the signal yield
 		if isppp:
+			dNf = NsigDD*frsys
 			Nsigdown = NsigDD-dNf-Ntotbkg
 			Nsigup   = NsigDD+dNf-Ntotbkg
 		elif not isppp:
+			dNf = Nf*frsys
 			Nsigdown = Nsig-dNf
 			Nsigup   = Nsig+dNf
 		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
