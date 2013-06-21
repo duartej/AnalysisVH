@@ -69,7 +69,6 @@ def xscalc(path,zoutrange,format,mcprod,lumi,sysinfolder,verbose):
 		message =  "\033[31mxscalc ERROR\033[m The '%s' path has not the expected folder structure"
 		message += " (leptonchannel SIGNALeee SIGNALeem SIGNALmme SIGNALmmm)"
 		raise RuntimeError(message)
-	
 	xsWZ,xsWZrelerrors = getxserrorsrel(path,xstype="inclusive",mcprod=mcprod,lumi=lumi,sysinfolder=sysinfolder)
 	xs,xsrelerrors = getxserrorsrel(path,xstype="exclusive",mcprod=mcprod,lumi=lumi,sysinfolder=sysinfolder)
 	# -- 
@@ -145,7 +144,7 @@ if __name__ == '__main__':
 			" generated events inside the Z mass range [71,111]. Per default: 'Summer12'")
 	parser.add_option( '-l', '--lumi', action='store', type='string', dest='lumi',\
 			help="Luminosity to be used [in pb-1]. Per defaults it is used '4922.0' if -m Fall11"\
-			" and '12103.3' if -m Summer12")
+			" and '19604.5' if -m Summer12")
 	parser.add_option( '-n', '--nsys', action='store_true', dest='sysnotcalculated',\
 			help="Flag indicating that the systematics were NOT calculated (with 'resumesys' utility)."\
 			" Activating this option you are avoiding the use of the module created by 'resumesys'"\
@@ -171,7 +170,7 @@ if __name__ == '__main__':
 		if opt.mcprod == "Fall11":
 			opt.lumi = "4922.0"
 		elif opt.mcprod == "Summer12":
-			opt.lumi = "12103.3"
+			opt.lumi = "19604.5"
 		else:
 			message = "\033[31;1mxscalc ERROR\033[m MC production not supported."\
 					" Valid values are 'Fall11' 'Summer12'" % opt.format

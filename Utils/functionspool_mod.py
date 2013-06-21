@@ -149,7 +149,7 @@ class processedsample(object):
 				self.title = value
 			if key == 'showall':
 				self.showall = value
-			if key == 'lumi':
+			if key == 'lumi' and value:
 				self.luminosity = float(value)
 			if key == 'nobuilt':
 				self.title = None
@@ -209,9 +209,13 @@ class processedsample(object):
 			ip.TheNamedDouble("CrossSection",xs)
 			self.xs = xs[0]
 			if self.title.find('ZZ4') == 0:
-				self.xs = 0.0154
+				runperiod=int(ip.TheNamedString('RunPeriod'))
+				if runperiod == 2011:
+					self.xs = 0.0154
 			elif self.title.find('ZZ2') == 0:
-				self.xs = 0.0308
+				runperiod=int(ip.TheNamedString('RunPeriod'))
+				if runperiod == 2011:
+					self.xs = 0.0308
 			ip.TheNamedInt("NEventsSample",neventsample)
 			ip.TheNamedInt("NEventsTotal",neventsskim)
 			ip.TheNamedDouble("Luminosity",luminosity)
@@ -758,7 +762,7 @@ def getweight(f,lumi=None):
 	:return: the weigth needed to apply to the sample to match the luminosity
 	:rtype: float
 	"""
-	ps = processedsample(f)
+	ps = processedsample(f,lumi=lumi)
 	weight = ps.getweight()
 	del ps
 
@@ -801,13 +805,20 @@ def extractyields(fileroot,**keywords):
 	"""
 	from math import sqrt
 	# List of backgrounds to be added as one
+	lumi=None
 	validkeywords = [ "lumi" ]
 	for key,value in keywords.iteritems():
 		if not key in keywords.keys():
 			message  = "\033[1;31mextractyields ERROR\033 Incorrect call of 'extractyields' function"
 			message += " class. Valid keywords are: "+str(validkeywords)
 			raise RuntimeError(message)
+		if key == "lumi":
+			try:
+				lumi=float(value)
+			except TypeError:
+				pass
 	
+	# List of backgrounds to be added as one
 	filelist = []
 	if type(fileroot) != list:
 		filelist.append(fileroot)
@@ -820,7 +831,7 @@ def extractyields(fileroot,**keywords):
 		message += " argument. It must be a list of string or a string denoting the"
 		message += " root file path"
 		raise RuntimeError(message)
-	psum = [ processedsample(i) for i in filelist ]
+	psum = [ processedsample(i,lumi=lumi) for i in filelist ]
 	sumofsamples = psum[0]
 	for i in xrange(1,len(filelist)):
 		sumofsamples += psum[i]
@@ -1162,6 +1173,7 @@ def getxserrorsrel(workingpath,**keywords):
 	channellist = [ "eee", "eem", "mme", "mmm" ] 
 	signal="WZ"
 	Lumi= 4922.0 #pb-1
+	lumiautoset= True
 	allzrange = False 
 	xstype = "exclusive"
 	mcprod = "Fall11" 
@@ -1170,7 +1182,7 @@ def getxserrorsrel(workingpath,**keywords):
 	mcbackgrounds = [ 'ZZ', 'PhotonVJets_Madgraph' ]
 	if mcprod == "Summer12":
 		# FIXME: TO BE UPDATED 
-		mcbackgrounds = [ 'ZZ', 'PhotonVJets_Madgraph' ]
+		mcbackgrounds = [ 'ZZ', 'VGamma' ]
 
 	for key,value in keywords.iteritems():
 		if not key in validkeywords:
@@ -1181,7 +1193,8 @@ def getxserrorsrel(workingpath,**keywords):
 		elif key == "signal":
 			signal = value
 		elif key == "lumi":
-			Lumi = value
+			Lumi = float(value)
+			lumiautoset=False
 		elif key == "allzrange":
 			allzrange = value
 		elif key == "xstype":
@@ -1264,6 +1277,9 @@ def getxserrorsrel(workingpath,**keywords):
 			#Ngen = 810349.0 # extracted using the 17.81 pb got from MCFM
 		elif mcprod == "Summer12":
 			Ngen = 1449067.0 # see https://github.com/duartej/AnalysisVH/issues/40
+			# If the user didn't introduce the lumi, let's do it
+			if lumiautoset:
+				Lumi = 19604.5
 		print "\033[33;1mgetxserrorsrel WARNING\033[m HARDCODED number of WZ->3lnu events generated within the"\
 				" Z range mass [71,111]: %d" % Ngen
 	else:
@@ -1315,18 +1331,52 @@ def getxserrorsrel(workingpath,**keywords):
 			samplerootdir['ZZ'] = map(lambda name: samplerootdir[name], zzpowhegs)
 			# and removing the powheg entries
 			dum = map(lambda x: samplerootdir.pop(x), zzpowhegs)
+		# Patch to include the VGamma
+		if samplerootdir.has_key('ZgammaToLLG') and not samplerootdir.has_key('VGamma'):
+			vgammas = map(lambda (n,froot): n, filter(lambda (name,froot): name.find('gammaToL') != -1, \
+					samplerootdir.iteritems()))
+			samplerootdir['VGamma'] = map(lambda name: samplerootdir[name], vgammas)
+			# and removing the powheg entries
+			dum = map(lambda x: samplerootdir.pop(x), vgammas)
 		
 		# ================= 1. Extract yields
-		# -- Signal:
-		# ----- Get data and all the others backgrounds
-		dataroot = samplerootdir["Data"]
-		bkgroots = map(lambda (x,y): y,filter(lambda (x,y): x != "Data" and x != "WZTo3LNu",\
-				samplerootdir.iteritems()))
-		# ----- And extract the values
-		Ndata,Ndataerr = extractyields(dataroot)
-		Ntotbkg, Ntotbkgerr = extractyields(bkgroots)
-		Nsig = Ndata-Ntotbkg
-		Nsigerr = sqrt(Ndataerr**2.0+Ntotbkgerr**2.0)
+		# -- Signal: Try to extract the N_PPP estimation
+		isppp=None
+		try:
+			NsigDD,NsigrelerrDD = getdatadriven(channel)
+			isppp=True
+		except RuntimeError:
+			# The NPPP contribution is not present,
+			# so do using the NPPF, but warned the user
+			wm = "\033[33;1mgetxserrorsrel WARNING\033[m"
+			wm += " The PPP estimation is not present in the folder.\n"
+			wm += "If you want to calculate using the PPP estimation,\n"
+			wm += "send before the 'getddweights' script" 
+			print wm
+			print "I will proceed anyway with the calculations using PPF"
+			isppp=False
+		# Using PPP
+		if isppp:
+			# Note returning the relative error-> converting to absolute
+			NsigerrDD = NsigDD*NsigrelerrDD
+			# ----- Get backgrounds
+			bkgroots = map(lambda (x,y): y,filter(lambda (x,y): x != "Data" and x != "WZTo3LNu"\
+					and x != "Fakes" ,samplerootdir.iteritems()))
+			# ----- And extract the values
+			Ntotbkg, Ntotbkgerr = extractyields(bkgroots)
+			# ---- Subtract the MC PPP background to the data-driven
+			Nsig = NsigDD-Ntotbkg
+			Nsigerr = sqrt(NsigerrDD**2.0+Ntotbkgerr**2.0)
+		elif not isppp:
+			# ----- Get data and all the others backgrounds
+			dataroot = samplerootdir["Data"]
+			bkgroots = map(lambda (x,y): y,filter(lambda (x,y): x != "Data" and x != "WZTo3LNu",\
+					samplerootdir.iteritems()))
+			# ----- And extract the values
+			Ndata,Ndataerr = extractyields(dataroot)
+			Ntotbkg, Ntotbkgerr = extractyields(bkgroots,lumi=Lumi)
+			Nsig = Ndata-Ntotbkg
+			Nsigerr = sqrt(Ndataerr**2.0+Ntotbkgerr**2.0)
 		# updating the stat part
 		STAT[channel] = Nsigerr/Nsig
 		# --- MonteCarlo backgrounds
@@ -1334,7 +1384,7 @@ def getxserrorsrel(workingpath,**keywords):
 		Nbkgerr = {}
 		for bkg in mcbackgrounds:
 			# FIXME: Control the sample is in there!!!
-			_Nb,_Nerr = extractyields(samplerootdir[bkg])
+			_Nb,_Nerr = extractyields(samplerootdir[bkg],lumi=Lumi)
 			Nbkg[bkg] = _Nb
 			Nbkgerr[bkg] = _Nerr
 			# updating the stat part 
@@ -1346,7 +1396,7 @@ def getxserrorsrel(workingpath,**keywords):
 		# -- Fakes (to be embbeded in STAT):
 		Nf,Nferr = extractyields(samplerootdir["Fakes"])
 		# -- WZ: 
-		Nwz,Nwzerr = extractyields(samplerootdir[signal+"To3LNu"])
+		Nwz,Nwzerr = extractyields(samplerootdir[signal+"To3LNu"],lumi=Lumi)
 		# updating the stat part
 		SYSWZ["Stat"][channel] = Nwzerr/Nwz
 
@@ -1356,6 +1406,8 @@ def getxserrorsrel(workingpath,**keywords):
 		if mcprod == "Fall11":
 			brcfactor = { 'eee': 1.00352, 'eem': 0.992499, 'mme': 1.00634, 'mmm': 0.987805}
 		eff = Npass/Ngen*brcfactor[channel]
+		print "\033[1;34mgetxserrorrel INFO\033[1;m Accept.Xeff.[%s channel]=%.9f+/-%.9f" % \
+				(channel,eff,eff*brcfactor[channel]*sqrt(1.0/Npass+1.0/Ngen))
 		#print "%s: Ae=%.6f" % (channel,(eff*BR.WZ23lnu/BR.getlightbr(channel)))
 		xsmean = xs(Nsig,eff,Lumi)
 		xsmeasure[channel] = xsmean
@@ -1435,8 +1487,12 @@ def getxserrorsrel(workingpath,**keywords):
 		frsys = DDMMC[channel]	
 		dNf = Nf*frsys
 		# ------ affecting to the signal yield
-		Nsigdown = Nsig-dNf
-		Nsigup   = Nsig+dNf
+		if isppp:
+			Nsigdown = NsigDD-dNf-Ntotbkg
+			Nsigup   = NsigDD+dNf-Ntotbkg
+		elif not isppp:
+			Nsigdown = Nsig-dNf
+			Nsigup   = Nsig+dNf
 		xserrors["DDMMC"][channel] = ((xs(Nsigup,eff,Lumi)-xsmean)/xsmean,(xsmean-xs(Nsigdown,eff,Lumi))/xsmean)
 
 		# 4. Statistics: using signal statistical errors (already included here the ZZ Stat)
