@@ -81,4 +81,16 @@ SYSPhotonVJets_Madgraph = {
 	'Stat': {'eee': 0.0, 'eem': 0.0, 'mmm': 0.0, 'mme': 0.0},
 	'THEORETICAL': {'eee': 0.13, 'eem': 0.13, 'mmm': 0.13, 'mme': 0.13}
      }
+#    c. the VGamma MC sample (note the stat has to be extracted from the table/plots...
+SYSVGamma = {
+	'LEPTON': { 'mme': 0.0169711548939, 'eee': 0.0, 'eem': 0.0, 'mmm': 0.0 },
+	'MET': {'mmm': 0.0, 'mme': 0.0053445138663609582, 'eem': 0.0, 'eee': 0.0},
+	'MMS': {'mmm': 0.0, 'mme': 5.7245401027545236e-05, 'eem': 0.0, 'eee': 0.0},
+	'EES': {'mmm': 0.0, 'mme': 0.0, 'eem': 0.0, 'eee': 0.0},
+	'PU': {'mmm': 0.0, 'mme': 0.35887707236994559, 'eem': 0.0, 'eee': 0.0},
+	'Lumi': {'eee': 0.022, 'eem': 0.022, 'mmm': 0.022, 'mme': 0.022},
+	'PDF': {'eee': 0.014, 'eem': 0.014, 'mmm': 0.014, 'mme': 0.014},
+	'Stat': {'eee': 0.0, 'eem': 0.0, 'mmm': 0.0, 'mme': 0.0},
+	'THEORETICAL': {'eee': 0.13, 'eem': 0.13, 'mmm': 0.13, 'mme': 0.13}
+     }
 SYSFakes = {'mme': 0.17912962957537293, 'mmm': 0.14181759623670595, 'eee': 0.21940891934010551, 'eem': 0.19133099776071952}
