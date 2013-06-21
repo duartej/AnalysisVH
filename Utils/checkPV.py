@@ -100,11 +100,11 @@ if __name__ == '__main__':
                 sys.exit( message )
         
         parser = OptionParser()
-        parser.set_defaults(luminosity="12103.3")
+        parser.set_defaults(luminosity="19604.5")
         parser.add_option( '-d', action='store', dest='folder', help='Paths'\
                         ' where to find the standard folder structure "cluster_blbalb"')
 	parser.add_option( '-l', action='store', dest='luminosity', help='Luminosity to be used'\
-			' [Default: 12103.3')
+			' [Default: 19604.5')
 	parser.add_option( '-p', action='store', dest='printsamples', help='List of samples to'\
 			' be printed and compared with the data')
 
