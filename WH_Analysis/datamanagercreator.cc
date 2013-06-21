@@ -47,7 +47,7 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		exit(-1);
 	}
 	std::string production = "MC_Fall11/WZ11";
-	std::string production2012 = "MC_Summer12_53X/WH";
+	std::string production2012 = "MC_Summer12_53X/WH/CalibratedE";
 	std::string runpath;
 	std::vector<std::string> filenames;
 	std::map<std::string,std::vector<std::string> > mappathfiles;
@@ -334,6 +334,56 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		}
 		mappathfiles[runpath] = filenames;
 	}
+	else if( strcmp(runperiod,"2012D") == 0 )
+	{
+		runpath = "../"+production2012;
+		if( strcmp(finalstate,"mmm") == 0 )
+		{
+			filenames.push_back("Tree_DoubleMuD"); 
+		}
+		else if( strcmp(finalstate,"eee") == 0 )
+		{
+			filenames.push_back("Tree_DoubleElectronD");
+		}
+		else if( strcmp(finalstate,"mme") == 0  )
+		{
+			std::map<std::string,std::vector<std::string> > mapmuons = 
+				getdatapathfiles("2012D","mmm");
+			// Just checking things are consistent
+			if( mapmuons.size() != 1)
+			{
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapmuons.begin()->second.begin(),mapmuons.begin()->second.end() );
+		}
+		else if( strcmp(finalstate,"eem") == 0  )
+		{
+			std::map<std::string,std::vector<std::string> > mapelec = 
+				getdatapathfiles("2012D","eee");
+			// Just checking things are consistent
+			if( mapelec.size() != 1)
+			{
+				std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
+					<< " this shows some inconsistency in the code. Contact the developer"
+					<< std::endl;
+				exit(-4);
+			}
+			filenames.insert( filenames.end(), 
+					mapelec.begin()->second.begin(),mapelec.begin()->second.end() );
+		}
+		else
+		{
+			std::cerr << "\033[31mgetdatapathfile ERROR\033[m Not recognized"
+				" finalstate '"  << finalstate << "'"
+				<< " See \033[37datamanagercreator -h\033[m" << std::endl;
+			exit(-1);
+		}
+		mappathfiles[runpath] = filenames;
+	}
 	else if( strcmp(runperiod,"2012") == 0 )
 	{
 		std::map<std::string,std::vector<std::string> > map2012A = 
@@ -342,8 +392,11 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			getdatapathfiles("2012B",finalstate);
 		std::map<std::string,std::vector<std::string> > map2012C = 
 			getdatapathfiles("2012C",finalstate);
+		std::map<std::string,std::vector<std::string> > map2012D = 
+			getdatapathfiles("2012D",finalstate);
 		// Just checking things are consistent
-		if( map2012A.size() != 1 && map2012B.size() != 1 && map2012C.size() != 1 )
+		if( map2012A.size() != 1 && map2012B.size() != 1 && map2012C.size() != 1 && 
+				map2012D.size() != 1)
 		{
 			std::cerr << "\033[31mgetdatapathfiles ERROR\033[m Some weird error;"
 				<< " this shows some inconsistency in the code. Contact the developer"
@@ -352,7 +405,8 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 		}
 		mappathfiles[map2012A.begin()->first] = map2012A.begin()->second;
 		if( (map2012A.begin()->first == map2012B.begin()->first) && 
-			(map2012A.begin()->first == map2012C.begin()->first) )
+			(map2012A.begin()->first == map2012C.begin()->first) && 
+			(map2012A.begin()->first == map2012D.begin()->first) )
 		{
 			// We can't use the same structure than 2011 because the directory was different 
 			// for each period:  Now must be appendded 
@@ -364,12 +418,17 @@ std::map<std::string,std::vector<std::string> > getdatapathfiles(const char * ru
 			lastit = mappathfiles[labelname].end();  // New last element
 			std::vector<std::string> v2012C = map2012C.begin()->second;
 			mappathfiles[labelname].insert(lastit,v2012C.begin(),v2012C.end());
+			// D -period (labelname is the same for all, see the if condition)
+			lastit = mappathfiles[labelname].end();  // New last element
+			std::vector<std::string> v2012D = map2012D.begin()->second;
+			mappathfiles[labelname].insert(lastit,v2012D.begin(),v2012D.end());
 		}
 		else
 		{
 			// As 2011
 			mappathfiles[map2012B.begin()->first] = map2012B.begin()->second;
 			mappathfiles[map2012C.begin()->first] = map2012C.begin()->second;
+			mappathfiles[map2012D.begin()->first] = map2012D.begin()->second;
 		}
 	}
 	else
@@ -465,7 +524,7 @@ const std::vector<TString> * extractdatafiles(TString dataName, const char * run
 			// The MC_Summer12 datafiles are not following the standard
 			// notation of the 2011 files (the rush of production...), so
 			// I'm patching everywhere to deal with it. This is another patch...
-			dm->SetSkim("WH");
+			dm->SetSkim("WH/CalibratedE");
 		}
 		else
 		{
@@ -740,6 +799,14 @@ int main(int argc, char *argv[])
 
 	//Data 
 	knowndata.insert("Data");
+
+	// Extra VVV files for 2012
+	if( strncmp(runperiod,"2012",4) == 0 )
+	{
+		knowndata.insert("WZZJets");
+		knowndata.insert("WWZJets");
+		knowndata.insert("WWWJets");
+	}
 
 	// Creating the .dn
 	bool wasprocessed = false;
