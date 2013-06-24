@@ -21,6 +21,9 @@ MAXINT = 4294967295
 CHANNEL = { 0: ('Elec','Elec','Elec'), 3: ('Elec','Elec','Muon'),\
 		5: ('Muon','Muon','Elec'), 1: ('Muon','Muon','Muon') }
 
+# Using the pdgId sum of each lepton 
+STANDARDCH = { 0: 33, 3: 35, 5: 37, 1: 39 }
+
 CHANNELSTR = { 0: '3e', 3: '2e', 5: '2m', 1: '3m' }
 
 # (nt0,nt1,nt2,nt3)
@@ -44,6 +47,7 @@ class evtinfo(object):
 		self.wlepcat  = -1
 
 		self.zmass    = -1
+		self.zpt      = -1
 		self.zlep1pt  = -1
         	self.zlep1eta = -1 
         	self.zlep1phi = -1
@@ -60,7 +64,7 @@ class evtinfo(object):
         	self.metphi   = -1
 
 		self.ordereddm = [ "run","lumi","evt","channel","zlep1cat","zlep2cat","wlepcat",\
-				"zmass","zlep1pt",\
+				"zmass","zpt","zlep1pt",\
 				"zlep1eta","zlep1phi","zlep2pt","zlep2eta","zlep2phi",\
 				"wmt","wleppt","wlepeta","wlepphi","metet","metphi" ]
 		self.dmtype = [ "i","i","i","i","i","i","i",".2f",".2f",".2f",".2f",".2f",".2f",".2f",\
@@ -128,12 +132,12 @@ class evtinfo(object):
 
 		return message
 
-class weight:
+class weightclass:
 	"""
 	Class to deal with the weights of a loose lepton
 	"""
 	def __init__(self,jet='50'):
-		"""..class:: weight() 
+		"""..class:: weightclass() 
 		Wrapper to pywmanager with PR and FR
 		"""
 		from functionspool_mod import pywmanager
@@ -141,7 +145,7 @@ class weight:
 		self.__fr__ = pywmanager('FR',jet=jet)
 
 	def __call__(self,leptype,pt,eta):
-		"""method:: weight(self,pt,eta) -> (PR,FR)
+		"""method:: weightclass(self,pt,eta) -> (PR,FR)
 		Returns the prompt-rate and fake-rate, given a lepton
 
 		:param leptype: the lepton flavour (Elec, Muon)
@@ -260,7 +264,70 @@ class estimator(object):
 		return { 'FFF': fff, 'PFF': pff, 'PPF': ppf, 'PPP': ppp }
 
 
-def datadriven(inputfile,jet,blacklisted=None):
+class zptrootfile(object):
+	""".. class::zptrootfile
+
+	Creates a root file with a tree containing:
+	  * zpt: transverse momentum of a Z lepton system
+	  * ddweight: data-driven ddweight
+	  * channel: channel which pass [33: eee, 35:eem, 37:mme, 39:mmm]
+	"""
+	def __init__(self,outputname):
+		"""... zptrootfile(ddest,channel,outputname=None)
+
+		Initializes the root file, ready to be filled
+
+		:param ddest:
+		:type ddest:
+		:param channel:
+		:type channel:
+		:param outputname:
+		:type outputname:
+		"""
+		import ROOT
+		import array
+
+		# Check the ddest is known
+		#if ddest not in [ 'PPP', 'PPF', 'PFF', 'FFF' ]:
+		#	message = '\033[1;31mzptrootfile ERROR\033[1;m There is no "%s" estimation known' % ddest
+		#	message += ' Just use any of: "PPP", "PPF", "PFF" or "FFF"'
+		#	raise RuntimeError(message)
+
+		self.rootfile = ROOT.TFile.Open(outputname,'RECREATE')
+		# create variables
+		self.zpt = array.array('d',[0.0])
+		self.ddweight = array.array('d',[0.0])
+		self.channel = array.array('i',[0])
+		# create Tree and branches
+		self.tree = ROOT.TTree("zpttree","Zpt for PPF estimation")
+		self.tree.Branch("zpt",self.zpt,"zpt/D")
+		self.tree.Branch("ddweight",self.ddweight,"ddweight/D")
+		self.tree.Branch("channel",self.channel,"channel/I")
+
+	def fill(self,zpt,ddweight,channel):
+		""" .. method::fill(zpt,ddweight,channel) 
+
+		Filling the tree
+		"""
+
+		self.zpt[0] = zpt
+		self.ddweight[0] = ddweight
+		self.channel[0] = channel
+
+		self.tree.Fill()
+
+	def __del__(self):
+		""" .. method::__del__
+
+		Overload to write the rootfile, if it wasn't explicitly
+		done with write function
+		"""
+		self.rootfile.Write()
+		self.rootfile.Close()
+		self.rootfile.Delete()
+
+
+def datadriven(inputfile,jet,blacklisted=None,**keywords):
 	"""function:: datadriven(inputfile) -> (totalweight,list(meas),list(channel),nentries)
 	Calculated the weights for the data-driven event by event, adding up the events. Also
 	extracts the measurament signature (how many fail and tight leptons has the inputfile) 
@@ -270,8 +337,14 @@ def datadriven(inputfile,jet,blacklisted=None):
 	import ROOT
 	from math import sqrt
 
+	zptclass=None
+	for i,val in keywords.iteritems():
+		if i == "storezpt":
+			outputname = inputfile.split(".root")[0].replace('/','_')+'.root'
+			zptclass=zptrootfile(outputname)
+
 	# Get the weights
-	w = weight(jet)
+	w = weightclass(jet)
 	# And the estimator calculator
 	est = estimator(w)
 	
@@ -335,9 +408,18 @@ def datadriven(inputfile,jet,blacklisted=None):
 			wsys[lepind] = est(lepts[0],pt1,eta1,cat1,lepts[1],pt2,eta2,cat2,lepts[2],ptw,etaw,wcat,lepind)
 			for key,val in wsys[lepind].iteritems():
 				systematics[lepind][key] += val
+		# Filling zpt root file if needed
+		if zptclass:
+			zpt = evti.get('zpt')
+			ddweight= wevt['PPF']
+			chstd = STANDARDCH[channel]
+			
+			zptclass.fill(zpt,ddweight,chstd)
 
 	f.Close()
 	f.Delete()
+	if zptclass:
+		del zptclass
 	# Find the systematics relative. Assuming independence between prompt and fake-rates lepton
 	meansys = dict([(etype,0.0) for etype in totalweight.keys()])
 	for esttype,valnominal in totalweight.iteritems():
@@ -418,6 +500,8 @@ def store(dd_dict,dd_errdict,filename=".datadriven"):
 
 	d.close()
 
+
+
 if __name__ == '__main__':
 	import os,sys
 	import glob
@@ -437,7 +521,7 @@ if __name__ == '__main__':
 	usage+="\nExtract the weights for the data-driven estimation based in a"
 	usage+=" processed sample. The sample should be a 'Fakes' one (or the one defined by -d option)"
         parser = OptionParser(usage=usage)
-        parser.set_defaults(verbose=False,blacklist=None,jet='50')
+        parser.set_defaults(verbose=False,blacklist=None,jet='50',zpt=False)
 	parser.add_option( '-f', '--folder', action='store',dest='folders',metavar='FOLDER1[,...]',\
 			help='Folder (or list of folders) where to find the Nt0, Nt1, Nt2 and Nt3'\
 			' Fakes measurements. Incompatible option with "-s"')
@@ -455,6 +539,8 @@ if __name__ == '__main__':
 	parser.add_option('-u', '--updatesys', action='store', dest='update',metavar='PPP|PPF',\
 			help='Update the systematics_mod python module with the systematics due to contribution'\
 			'PPF or PPP')
+	parser.add_option('-z', '--zpt', action='store_true', dest='zpt', \
+			help='Creates a root file with a tree storing Zpt, weights for the dd and the channel')
 	parser.add_option( '-v', '--verbose', action='count', dest='verbose', help='Verbose mode'\
 			', get also the number of raw events (not weighted) at each cut')
 
@@ -529,7 +615,7 @@ if __name__ == '__main__':
 			if opt.verbose > 0:
 				print "\033[1;34mgetddweigths INFO\033[1;m Evaluating data-driven estimations from '%s'" % \
 						(rf)
-			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,opt.jet,blacklist)
+			totalent,staterr,meansys,measurement,channelstr,rawentries = datadriven(rf,opt.jet,blacklist,storezpt=opt.zpt)
 
 			# Get the measurament, number of tight: 101
 			if len(measurement) > 1:
