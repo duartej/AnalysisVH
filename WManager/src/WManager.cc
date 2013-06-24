@@ -114,7 +114,8 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	}
 	
 	std::string thefile(std::string(pkgpath)+"/WManager/data/");
-	std::string jetzregion;
+	std::string jetzregion("jet15");
+	std::string finalregion("jet50");
 
 	// Build the name given the inputs
 	// 1. Lepton type
@@ -122,11 +123,19 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	{
 		thefile += "Mu";
 		jetzregion = "jet15";
+		if( this->_runperiod.find("2012") != std::string::npos )
+		{
+			finalregion = "jet15";
+		}
 	}
 	else
 	{
 		thefile += "Ele";
 		jetzregion = "jet15";
+		if( this->_runperiod.find("2012") != std::string::npos )
+		{
+			finalregion = "jet35";
+		}
 	}
 	
 	// 2. the weight type
@@ -137,7 +146,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 	thefile += this->_runperiod;
 
 	// 3!. If muons and 2011, check the  id
-	if( lepton == MUON and this->_runperiod.find("2011") != std::string::npos )
+	if( lepton == MUON ) //and this->_runperiod.find("2011") != std::string::npos )
 	{
 		// Coherence
 		if( _muonid == "" )
@@ -163,7 +172,7 @@ std::string WManager::getfile(const unsigned int & lepton, const bool & isZJetsR
 		}
 		else
 		{
-			thefile += "jet50";
+			thefile += finalregion;
 		}
 	}
 
