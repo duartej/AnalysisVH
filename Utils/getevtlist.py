@@ -20,6 +20,7 @@ class evtinfo(object):
 		self.wlepcat  = -1
 
 		self.zmass    = -1
+		self.zpt      = -1
 		self.zlep1pt  = -1
         	self.zlep1eta = -1 
         	self.zlep1phi = -1
@@ -36,7 +37,7 @@ class evtinfo(object):
         	self.metphi   = -1
 
 		self.ordereddm = [ "run","lumi","evt","channel","zlep1cat","zlep2cat","wlepcat",\
-				"zmass","zlep1pt",\
+				"zmass","zpt","zlep1pt",\
 				"zlep1eta","zlep1phi","zlep2pt","zlep2eta","zlep2phi",\
 				"wmt","wleppt","wlepeta","wlepphi","metet","metphi" ]
 		self.dmtype = [ "i","i","i","i","i","i","i",".2f",".2f",".2f",".2f",".2f",".2f",".2f",\
