@@ -8,7 +8,9 @@ from functionspool_mod import processedsample
 
 
 TEXTSIZE=0.03  # See TAttText class (Text Size), it means the 3% of the lenght or width
-HISTOSWITHBINWIDTH = { "fHMET": 15 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10 }
+HISTOSWITHBINWIDTH = { "fHMET": 15 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10,
+		"fHLeadingJetPtAfterZCand": 30, "fHLeadingJetPtAfterZCand": 30, "fHLeadingJetPt": 30,
+		"fHPtLeptonZleading": 10, "fHPtLeptonZtrailing":10, "fHPtLeptonW":10}
 ORDEREDBKG = [ 'PPP', 'PPF', 'Fakes', 'ZZ', 'Vgamma' ]
 
 
@@ -103,8 +105,12 @@ class histoclass(processedsample):
 					UNITDICT.keys())[0]
 		except IndexError:
 			# guessing 
-			unitguesslist = filter(lambda x: self.histoname.upper().split("LEPTON")[0].find(x) != -1,\
+			unitguesslist = filter(lambda x: self.histoname.upper().split("LEPTON")[0].find(x) == 2,\
 					UNITDICT.keys())
+			# FIXME: PATCH change the name to leadingjetpt
+			#if "PTLEADINGJET" in unitguesslist:
+			#	unitguess = "PTLEADINGJET"
+			#elif len(unitguesslist) > 0:  #JUST FIXED, BUT NOT TESTED...
 			if len(unitguesslist) > 0:
 				unitguess = unitguesslist[0]
 			else:
@@ -1060,6 +1066,9 @@ if __name__ == '__main__':
 		ttbarname = "TTbar_Madgraph"
 		tWname    = "TW"
 		tbarWname = "TbarW"
+		# Default luminosity
+		if opt.luminosity == 4922.0:
+			opt.luminosity = 19604.5
 
 	# -- Some pre-built metasamples
 	ZJETSLIST = map(lambda x: x+"_Powheg", ["DYee", "DYmumu",\

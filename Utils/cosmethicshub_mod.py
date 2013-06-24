@@ -108,7 +108,7 @@ UNITDICT = { "MET": "(GeV/c)", "PT": "(GeV/c)", "ETA": "", "PHI": "",
 		"MAXDELTAPHILP1LP2": "", "MINDELTAPHILP1LP2": "",
 		"MAXDELTARLP1LP2":"", "MINDELTARLP1LP2":"",
 		"ZPT": "(GeV/c)",
-		"PTLEADINGJET": "(GeV/c)",
+		"LEADINGJETPT": "(GeV/c)",
 		"ETJETMATCHED": "(GeV/c)",
 		}
 
@@ -125,6 +125,6 @@ VARDICT = { "MET": "E_{t}^{miss}", "PT": "p_{t}", "ETA": "#eta", "PHI": "#phi",
 		"LEADINGJETET": "E_{T} lead. jet",
 		"DELTAPHIWMET": "#Delta#phi(l_{W},MET)",
 		"ZPT": "Z p_{t}",
-		"PTLEADINGJET": "Leading jet p_{t}",
+		"LEADINGJETPT": "Leading jet p_{t}",
 		"ETJETMATCHED": "p_{t}",
 		}

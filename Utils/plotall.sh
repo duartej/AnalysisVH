@@ -27,7 +27,7 @@ OPTIONS:
 
    [-r]: Run period: 2011 or 2012 [Default: 2011]
    [-l]: Set the luminosity. [Default: 4922.0 (for 2011 run period)
-                                       12103.3 (for 2012 run period)]
+                                       19604.5 (for 2012 run period)]
    [-a]: Activate the autobinning
    [-F]: Activate the fake mode (Z+Jets,DY, WW and tbar{t} = PPF)
    [-f]: Activate fakeable mode: the Fakes data sample is considered
@@ -127,8 +127,10 @@ then
 		fi
 	elif [ "$runperiod" == "2012" ];
 	then
-		luminosity=12103.3
+		luminosity=19604.5
 		isreduced="-m VGamma@WgammaToLNuG,ZgammaToLLG"
+		isreduced=$isreduced"::ZZ@ZZ4E,ZZ4Mu,ZZ4Tau,ZZ2E2Mu,ZZ2Mu2Tau,ZZ2E2Tau"
+		isreduced=$isreduced"::VVV@WWZJets,WWWJets,WZZJets"
 	else
 		echo "[plotall] WARNING: the run period introduced is not supported. Changing to '2011'"
 		luminosity=4922.0
@@ -147,11 +149,11 @@ HISTOSGEN="fHGenFinalState fHGenFinalStateNoTaus fHGenWElectrons fHGenWMuons fHG
 fHGenPtLepton_1_0 fHGenPtLepton_2_0 fHGenPtLepton_3_0"
 HISTOSLEP="fHNRecoLeptons fHNSelectedLeptons"
 
-HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNJets fHNPrimaryVertices fHNPrimaryVerticesAfter3Leptons"
+HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNJets fHNJetsPreSel fHNJetsAfterZCand fHNJetsAfterWCand fHNPrimaryVertices fHNPrimaryVerticesAfter3Leptons fHNPrimaryVerticesAfterZCand"
 HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3 fHEtaLepton1 fHEtaLepton2 fHEtaLepton3"
 if [ "$1" == "WZ" ];
 then
-	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand" # fHIsoLepton fHD0Lepton"
+	HISTOS4B="$HISTOS4B fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand fHZPt fHZPtAfterZCand fHZPtAfterWCand fHLeadingJetPtAfterZCand fHLeadingJetPtAfterWCand fHLeadingJetPt fHPtLeptonZleading fHPtLeptonZtrailing fHPtLeptonW" # fHIsoLepton fHD0Lepton"
 	HISTOS8B=""
 	plotmode=0
 else

@@ -44,9 +44,9 @@ class AnalysisWZ : public AnalysisBase
 			fHEtJetMatchedLeptonPreSel,//Et of the jet matching a lepton at preselection
 			fHEtJetMatchedLeptonAfterZ,//Et of the jet matching a lepton after z candidate
 			fHEtJetMatchedLepton,     //Et of the jet matching a lepton after all cuts
-			fHPtLeadingJetAfterZCand, // Pt of the leading jet after z candidate
-			fHPtLeadingJetAfterWCand, // Pt of the leading jet after W candidate
-			fHPtLeadingJet,           // Pt of the leading jet after all cuts
+			fHLeadingJetPtAfterZCand, // Pt of the leading jet after z candidate
+			fHLeadingJetPtAfterWCand, // Pt of the leading jet after W candidate
+			fHLeadingJetPt,           // Pt of the leading jet after all cuts
 			fHZInvMass,               //Invariant mass of leptons in/out of Z peak after all cust
 			fHZInvMassAfterZCand,     //Invariant mass of leptons in/out of Z peak
 			fHZInvMassAfterWCand,     //Invariant mass of leptons in/out of Z peak

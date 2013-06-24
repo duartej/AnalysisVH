@@ -239,9 +239,9 @@ void AnalysisWZ::Initialise()
 	_histos[fHEtJetMatchedLeptonAfterZ] = CreateH1D("fHEtJetMatchedLeptonAfterZ","Jet E_{T}",200,0,100);
 	_histos[fHEtJetMatchedLepton] = CreateH1D("fHEtJetMatchedLepton","Jet E_{T}",200,0,100);
 	// Et for the leading jet (not matched with a lepton)
-	_histos[fHPtLeadingJetAfterZCand] = CreateH1D("fHPtLeadingJetAfterZCand","Leaging Jet p_{T}",200,0,400);
-	_histos[fHPtLeadingJetAfterWCand] = CreateH1D("fHPtLeadingJetAfterWCand","Leading Jet p_{T}",200,0,400);
-	_histos[fHPtLeadingJet] = CreateH1D("fHPtLeadingJet","Leading Jet p_{T}",200,0,400);
+	_histos[fHLeadingJetPtAfterZCand] = CreateH1D("fHLeadingJetPtAfterZCand","Leaging Jet p_{T}",200,0,400);
+	_histos[fHLeadingJetPtAfterWCand] = CreateH1D("fHLeadingJetPtAfterWCand","Leading Jet p_{T}",200,0,400);
+	_histos[fHLeadingJetPt] = CreateH1D("fHLeadingJetPt","Leading Jet p_{T}",200,0,400);
 }
 
 //---------------------------------------------------------------------
@@ -738,7 +738,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Leading jet Pt
 	if( isleadingjet )
 	{
-		_histos[fHPtLeadingJetAfterZCand]->Fill(leadingjetPt,puw);
+		_histos[fHLeadingJetPtAfterZCand]->Fill(leadingjetPt,puw);
 	}
 	// Z pt 
 	const double ZPt = (lep1Z.getP4()+lep2Z.getP4()).Pt();
@@ -829,7 +829,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Leading jet Pt
 	if( isleadingjet )
 	{
-		_histos[fHPtLeadingJetAfterWCand]->Fill(leadingjetPt,puw);
+		_histos[fHLeadingJetPtAfterWCand]->Fill(leadingjetPt,puw);
 	}
 	// Z pt 
 	_histos[fHZPtAfterWCand]->Fill(ZPt,puw);
@@ -868,7 +868,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Leading jet Pt
 	if( isleadingjet )
 	{
-		_histos[fHPtLeadingJet]->Fill(leadingjetPt,puw);
+		_histos[fHLeadingJetPt]->Fill(leadingjetPt,puw);
 	}
 	// Z pt 
 	_histos[fHZPt]->Fill(ZPt,puw);
