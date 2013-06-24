@@ -167,10 +167,11 @@ void AnalysisWZ::Initialise()
 		fHDeltaRGenRecoLepton[i] = CreateH1D(drname, drtitle, 150, 0, 5);
 	}
 
-	// Pt of the lepton after all cuts
-	_histos[fHPtLeptonZleading]  = CreateH1D("fHPtLeptonZleading", "Z leading lepton p_{T}", 120, 0, 300);
-	_histos[fHPtLeptonZtrailing] = CreateH1D("fHPtLeptonZtrailing", "Z leading lepton p_{T}", 120, 0, 300);
-	_histos[fHPtLeptonW]         = CreateH1D("fHPtLeptonW","W lepton p_{T}", 120, 0, 300);
+	// Pt of the lepton after all cuts (and some after W Cand)
+	_histos[fHPtLeptonZleading]   = CreateH1D("fHPtLeptonZleading", "Z leading lepton p_{T}", 120, 0, 300);
+	_histos[fHPtLeptonZtrailing]  = CreateH1D("fHPtLeptonZtrailing", "Z leading lepton p_{T}", 120, 0, 300);
+	_histos[fHPtLeptonWAfterWCand]= CreateH1D("fHPtLeptonWAfterWCand","W lepton p_{T}", 120, 0, 300);
+	_histos[fHPtLeptonW]          = CreateH1D("fHPtLeptonW","W lepton p_{T}", 120, 0, 300);
 	
 	
 	// Selected Isolated Good Muons
@@ -185,7 +186,9 @@ void AnalysisWZ::Initialise()
 	_histos[fHZPt] = CreateH1D("fHZPt", "Z p_{T}",100,0,400);
 	_histos[fHZPtAfterZCand] = CreateH1D("fHZPtAfterZCand", "Z p_{T}",100, 0,400);
 	_histos[fHZPtAfterWCand] = CreateH1D("fHZPtAfterWCand", "Z p_{T}",100,0,400);
-
+	// Pt of the W system
+	_histos[fHWPt] = CreateH1D("fHWPt", "W p_{T}",100,0,400);
+	_histos[fHWPtAfterWCand] = CreateH1D("fHWPtAfterWCand", "W p_{T}",100,0,400);
 	
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",120, 0, 300);
@@ -199,12 +202,23 @@ void AnalysisWZ::Initialise()
 	_histos[fHNJetsAfterWCand] = CreateH1D("fHNJetsAfterWCand", "NJets",9, 0, 8);
 	
 	// W candidate transvers mass
+	_histos[fHTransversMassAfterWCand] = CreateH1D("fHTransversMassAfterWCand","m_{T}",100,0,200);
 	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,200);
+
+	// Deltaphi MET and W Cand
+	_histos[fHDeltaPhiWMETAfterWCand] = CreateH1D("fHDeltaPhiWMETAfterWCand","#Delta#phi(W,MET)",100,0,3.1416);
+	_histos[fHDeltaPhiWMET] = CreateH1D("fHDeltaPhiWMET","#Delta#phi(W,MET)",100,0,3.1416);
+
 	
 	// dR between leading lepton for the Z candidate and the W candidate lepton
 	_histos[fHdRl1Wcand] = CreateH1D("fHdRl1Wcand","dR Z-cand. lepton leading w.r.t. W-cand. lepton",100,0,5);
 	// dR between leading lepton for the Z candidate and the W candidate lepton
 	_histos[fHdRl2Wcand] = CreateH1D("fHdRl2Wcand","dR Z-cand. lepton trailing w.r.t. W-cand. lepton",100,0,5);
+
+	// SOME EXTRA PLOTS post PRE-APPROVAL 
+	_histos[fHPtLeptonWAfterWCand_METlowreg] = CreateH1D("fHPtLeptonWAfterWCand_METlowreg","P_{T} W lepton",100,0,200);
+	_histos[fHDeltaPhiWMETAfterWCand_METlowreg] = CreateH1D("fHDeltaPhiWMETAfterWCand_METlowreg","P_{T} W lepton",100,0,3.1416);
+	_histos[fHTransversMassAfterWCand_METlowreg] = CreateH1D("fHTransversMassAfterWCand_METlowreg","P_{T} W lepton",100,0,200);
 
 	// FIXME: PROVISIONAL --- CHECK PARA MUONES VALDRA PARA TODOS
 	/*TH2F * hprov = fFO->GetFakeMapTemplate(MUON);
@@ -823,7 +837,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	_histos[fHMETAfterWCand]->Fill(met,puw);
 	// Getting the highest pt lepton to W-candidate (if there are more than one)
 	const unsigned int iWcand = wcandidate.rbegin()->second;	
-	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
+	_histos[fHTransversMassAfterWCand]->Fill(transverseMassW[iWcand],puw);
 	// Number of jets
 	_histos[fHNJetsAfterWCand]->Fill(nJets,puw);
 	// Leading jet Pt
@@ -833,6 +847,15 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 	// Z pt 
 	_histos[fHZPtAfterWCand]->Fill(ZPt,puw);
+	// W system pt
+	const double WPt = ((*theLeptons)[iWcand].getP4()+METV).Pt();
+	_histos[fHWPtAfterWCand]->Fill(WPt,puw);
+	// W lepton pt 
+	const double WcandPt = (*theLeptons)[iWcand].getP4().Pt();
+	_histos[fHPtLeptonWAfterWCand]->Fill(WcandPt,puw);
+	// DeltaPhi
+	const double deltaphiWMet = (*theLeptons)[iWcand].getP4().DeltaPhi(METV);
+	_histos[fHDeltaPhiWMETAfterWCand]->Fill(deltaphiWMet,puw);
 
 	
 	if( fLeptonSelection->IsInFakeableMode() )
@@ -842,6 +865,14 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		puw *= changedweight;
 	}
 	
+	// Fill post PRE-APPROVAL CUTS for the low MET region
+	if( met < 35.0 )
+	{
+		_histos[fHPtLeptonWAfterWCand_METlowreg]->Fill(WcandPt,puw);
+		_histos[fHDeltaPhiWMETAfterWCand_METlowreg]->Fill(deltaphiWMet,puw);
+		_histos[fHTransversMassAfterWCand_METlowreg]->Fill(transverseMassW[iWcand],puw);
+
+	}
 	// MET
 	//------------------------------------------------------------------
 	std::vector<double> * auxVar = new std::vector<double>;
@@ -882,7 +913,14 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 	_histos[fHPtLeptonZleading]->Fill(zptleading,puw);
 	_histos[fHPtLeptonZtrailing]->Fill(zpttrailing,puw);
-	_histos[fHPtLeptonW]->Fill((*theLeptons)[iWcand].getP4().Pt(),puw);
+	_histos[fHPtLeptonW]->Fill(WcandPt,puw);
+	// W system
+	_histos[fHWPt]->Fill(WPt,puw);
+
+	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
+
+	_histos[fHDeltaPhiWMET]->Fill(deltaphiWMet,puw);
+	// End filling
 
 	//Store event info, just in data case
 	if( fIsData || fLeptonSelection->IsInFakeableMode() )

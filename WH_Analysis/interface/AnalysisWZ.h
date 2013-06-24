@@ -58,15 +58,25 @@ class AnalysisWZ : public AnalysisBase
 			fHZPt,                    // Pt of the Z (lepton system) after all cuts
 			fHPtLeptonZleading,       // Pt of the Z leading lepton after all cuts
 			fHPtLeptonZtrailing,      // Pt of the Z trailing lepton after all cuts
+			fHPtLeptonWAfterWCand,    // Pt of the W lepton after requiring W 
 			fHPtLeptonW,              // Pt of the W lepton after all cuts
+			fHWPtAfterWCand,          // Pt of the W system after W Cand
+			fHWPt,                    // Pt of the W system after all cuts
 			fHNJets,                  // Number of jets after all cuts
 			fHNJetsPreSel,            // Number of jets after all cuts
 			fHNJetsAfterZCand,        // Number of jets after all cuts
 			fHNJetsAfterWCand,        // Number of jets after all cuts
-			fHTransversMass,
+			fHTransversMassAfterWCand,// Transverse mass W lepton and MET after W candidate
+			fHTransversMass,          // Transverse mass W lepton and MET after all cuts
+			fHDeltaPhiWMETAfterWCand, // DeltaPhi between W lepton and MET after W Candidate
+			fHDeltaPhiWMET,           // DeltaPHi between W lepton and MET after all cuts
 			fHNPrimaryVerticesAfterZCand, // Number of vertices after Z cand
 			fHdRl1Wcand,
-			fHdRl2Wcand
+			fHdRl2Wcand,
+			// REQUESTED FROM PRE-APPROVAL ---> After Z candidate has no sense but...
+			fHPtLeptonWAfterWCand_METlowreg,
+			fHDeltaPhiWMETAfterWCand_METlowreg,
+			fHTransversMassAfterWCand_METlowreg
 			//fHIsoLepton,
 			//fHD0Lepton
 		};
