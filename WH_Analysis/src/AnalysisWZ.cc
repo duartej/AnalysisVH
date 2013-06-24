@@ -4,6 +4,7 @@
 #include<iostream>
 #include<functional>
 #include<algorithm>
+#include<set>
 
 #include "AnalysisWZ.h"
 #include "InputParameters.h"
@@ -131,6 +132,7 @@ void AnalysisWZ::Initialise()
 
 	// Number of Primary Vertices in the event: before all cuts
 	_histos[fHNPrimaryVerticesAfter3Leptons] = CreateH1D("fHNPrimaryVerticesAfter3Leptons", "Number of Primary Vertices", 31, 0, 30);
+	_histos[fHNPrimaryVerticesAfterZCand] = CreateH1D("fHNPrimaryVerticesAfterZCand", "Number of Primary Vertices", 31, 0, 30);
 	_histos[fHNPrimaryVertices] = CreateH1D("fHNPrimaryVertices", "Number of Primary Vertices", 31, 0, 30);
 
 	// Reconstructed muons in the event
@@ -164,6 +166,11 @@ void AnalysisWZ::Initialise()
 		fHEtaLepton[i] = CreateH1D(etaname, etatitle, 100, -2.6, 2.6);
 		fHDeltaRGenRecoLepton[i] = CreateH1D(drname, drtitle, 150, 0, 5);
 	}
+
+	// Pt of the lepton after all cuts
+	_histos[fHPtLeptonZleading]  = CreateH1D("fHPtLeptonZleading", "Z leading lepton p_{T}", 120, 0, 300);
+	_histos[fHPtLeptonZtrailing] = CreateH1D("fHPtLeptonZtrailing", "Z leading lepton p_{T}", 120, 0, 300);
+	_histos[fHPtLeptonW]         = CreateH1D("fHPtLeptonW","W lepton p_{T}", 120, 0, 300);
 	
 	
 	// Selected Isolated Good Muons
@@ -173,6 +180,12 @@ void AnalysisWZ::Initialise()
 	_histos[fHZInvMass] = CreateH1D("fHZInvMass", "M^{inv.}_{#mu#mu}",80, 71, 111);
 	_histos[fHZInvMassAfterZCand] = CreateH1D("fHZInvMassAfterZCand", "M^{inv.}_{#mu#mu}",80, 71, 111);
 	_histos[fHZInvMassAfterWCand] = CreateH1D("fHZInvMassAfterWCand", "M^{inv.}_{#mu#mu}",80, 71, 111);
+
+	// Pt of the Z system
+	_histos[fHZPt] = CreateH1D("fHZPt", "Z p_{T}",100,0,400);
+	_histos[fHZPtAfterZCand] = CreateH1D("fHZPtAfterZCand", "Z p_{T}",100, 0,400);
+	_histos[fHZPtAfterWCand] = CreateH1D("fHZPtAfterWCand", "Z p_{T}",100,0,400);
+
 	
 	// Missing ET after inv mass cut
 	_histos[fHMET] = CreateH1D("fHMET", "MET",120, 0, 300);
@@ -180,10 +193,13 @@ void AnalysisWZ::Initialise()
 	_histos[fHMETAfterWCand] = CreateH1D("fHMETAfterWCand", "MET",120, 0, 300);
 
 	// Number of Jets after all cuts
-	_histos[fHNJets] = CreateH1D("fHNJets", "NJets",21, 0, 20);
+	_histos[fHNJets] = CreateH1D("fHNJets", "NJets",9, 0, 8);
+	_histos[fHNJetsPreSel] = CreateH1D("fHNJetsPreSel", "NJets",9, 0, 8);
+	_histos[fHNJetsAfterZCand] = CreateH1D("fHNJetsAfterZCand", "NJets",9, 0, 8);
+	_histos[fHNJetsAfterWCand] = CreateH1D("fHNJetsAfterWCand", "NJets",9, 0, 8);
 	
 	// W candidate transvers mass
-	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,100);
+	_histos[fHTransversMass] = CreateH1D("fHTransversMass","m_{T}",100,0,200);
 	
 	// dR between leading lepton for the Z candidate and the W candidate lepton
 	_histos[fHdRl1Wcand] = CreateH1D("fHdRl1Wcand","dR Z-cand. lepton leading w.r.t. W-cand. lepton",100,0,5);
@@ -217,9 +233,15 @@ void AnalysisWZ::Initialise()
 
 	//_histos[fHIsoLepton] = CreateH1D("fHIsoLepton","#sum Iso_{total}/p_{t}",100,0,0.4);
 	//_histos[fHD0Lepton] = CreateH1D("fHD0Lepton","d_{0}",100,0,0.2);
+
+	// Et for the jet matched with a lepton
 	_histos[fHEtJetMatchedLeptonPreSel] = CreateH1D("fHEtJetMatchedLeptonPreSel","Jet E_{T}",200,0,100);
 	_histos[fHEtJetMatchedLeptonAfterZ] = CreateH1D("fHEtJetMatchedLeptonAfterZ","Jet E_{T}",200,0,100);
 	_histos[fHEtJetMatchedLepton] = CreateH1D("fHEtJetMatchedLepton","Jet E_{T}",200,0,100);
+	// Et for the leading jet (not matched with a lepton)
+	_histos[fHPtLeadingJetAfterZCand] = CreateH1D("fHPtLeadingJetAfterZCand","Leaging Jet p_{T}",200,0,400);
+	_histos[fHPtLeadingJetAfterWCand] = CreateH1D("fHPtLeadingJetAfterWCand","Leading Jet p_{T}",200,0,400);
+	_histos[fHPtLeadingJet] = CreateH1D("fHPtLeadingJet","Leading Jet p_{T}",200,0,400);
 }
 
 //---------------------------------------------------------------------
@@ -485,7 +507,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		// and the trigger weight
 		puw *= this->GetTriggerWeight(theLeptons);
 	}
-
 	// N-primary vertices
 	_histos[fHNPrimaryVerticesAfter3Leptons]->Fill(nPV,puw);
 
@@ -524,6 +545,8 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
 	std::vector<double> jetsmatchedEt;
+	// Ordered no mathced jet by pt
+	std::set<double> jetsnomatchedPt;
 	std::vector<LeptonRel> notightleptons;
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
@@ -561,10 +584,18 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			continue;
 		}
 		
+		jetsnomatchedPt.insert( Jet.Pt() );
 		nJets++;
 	}
+	
+	const bool isleadingjet = ! jetsnomatchedPt.empty();
+	double leadingjetPt = 0.0;
+	if( isleadingjet )
+	{
+		leadingjetPt = *(jetsnomatchedPt.rbegin());
+	}
 	// Storing the number of jets
-	_histos[fHNJets]->Fill(nJets,puw);
+	_histos[fHNJetsPreSel]->Fill(nJets,puw);
 	// And the number of matched jets
 	for(unsigned int i =  0; i < jetsmatchedEt.size(); ++i)
 	{
@@ -664,7 +695,7 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		return std::pair<unsigned int,float>(WZCuts::_iHasZCandidate,puw);
 	}
 	FillHistoPerCut(WZCuts::_iHasZCandidate, puw, fsNTau);
-        
+
 	// + Getting the nearest pair to nominal ZMass
 	// Remember map<double,pair>  (second is the pair)
 	const LeptonRel & lep1Z = ((candidatesZMass.begin())->second).first;
@@ -702,6 +733,19 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	{
 		_histos[fHEtJetMatchedLeptonAfterZ]->Fill(jetsmatchedEt[i],puw);
 	}
+	// Number of jets
+	_histos[fHNJetsAfterZCand]->Fill(nJets,puw);
+	// Leading jet Pt
+	if( isleadingjet )
+	{
+		_histos[fHPtLeadingJetAfterZCand]->Fill(leadingjetPt,puw);
+	}
+	// Z pt 
+	const double ZPt = (lep1Z.getP4()+lep2Z.getP4()).Pt();
+	_histos[fHZPtAfterZCand]->Fill(ZPt,puw);
+	// Number of Primary Vertices
+	_histos[fHNPrimaryVerticesAfterZCand]->Fill(nPV,puw);
+        
 
 	// W selection
 	//------------------------------------------------------------------
@@ -717,10 +761,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 
 	// Some MET stuff we're going to need
-	const double phi = fData->Get<float>("T_METPFTypeI_Phi");
-	const double px = met*cos(phi);
-	const double py = met*sin(phi);
-	TLorentzVector METV(px,py,0.0,met);
+	const double metphi = fData->Get<float>("T_METPFTypeI_Phi");
+	const double metpx = met*cos(metphi);
+	const double metpy = met*sin(metphi);
+	TLorentzVector METV(metpx,metpy,0.0,met);
 
 	std::map<int,double> transverseMassW;
 	std::map<double,int> wcandidate;
@@ -761,7 +805,10 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 		}
 		// Stores transverse mass (W cand., MET)
 		const double lWEt = wcandlep.getP4().Et();
-		const double tMassW = sqrt( lWEt*lWEt + met*met - 2.0*lWEt*met*cos(wcandlep.getP4().Angle(METV.Vect()))); // FIXED BUG!! DeltaPhi --> Angle
+		const double lWEtx= wcandlep.getP4().Px();
+		const double lWEty= wcandlep.getP4().Py();
+		// FIXED WRONG DEFINITION MT
+		const double tMassW = sqrt( (lWEt+met)*(lWEt+met) -(lWEtx+metpx)*(lWEtx+metpx)-(lWEty+metpy)*(lWEty+metpy) );
 		wcandidate[pt] = i;
 		transverseMassW[i] = tMassW;
 	}
@@ -777,6 +824,16 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Getting the highest pt lepton to W-candidate (if there are more than one)
 	const unsigned int iWcand = wcandidate.rbegin()->second;	
 	_histos[fHTransversMass]->Fill(transverseMassW[iWcand],puw);
+	// Number of jets
+	_histos[fHNJetsAfterWCand]->Fill(nJets,puw);
+	// Leading jet Pt
+	if( isleadingjet )
+	{
+		_histos[fHPtLeadingJetAfterWCand]->Fill(leadingjetPt,puw);
+	}
+	// Z pt 
+	_histos[fHZPtAfterWCand]->Fill(ZPt,puw);
+
 	
 	if( fLeptonSelection->IsInFakeableMode() )
 	{
@@ -806,6 +863,26 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	{
 		_histos[fHEtJetMatchedLepton]->Fill(jetsmatchedEt[i],puw);
 	}
+	// Number of jets
+	_histos[fHNJets]->Fill(nJets,puw);
+	// Leading jet Pt
+	if( isleadingjet )
+	{
+		_histos[fHPtLeadingJet]->Fill(leadingjetPt,puw);
+	}
+	// Z pt 
+	_histos[fHZPt]->Fill(ZPt,puw);
+	// Pt of the leptons
+	double zptleading  = lep1Z.getP4().Pt();
+	double zpttrailing = lep2Z.getP4().Pt();
+	if( zptleading < zpttrailing )
+	{
+		zptleading = zpttrailing;
+		zpttrailing= lep1Z.getP4().Pt();
+	}
+	_histos[fHPtLeptonZleading]->Fill(zptleading,puw);
+	_histos[fHPtLeptonZtrailing]->Fill(zpttrailing,puw);
+	_histos[fHPtLeptonW]->Fill((*theLeptons)[iWcand].getP4().Pt(),puw);
 
 	//Store event info, just in data case
 	if( fIsData || fLeptonSelection->IsInFakeableMode() )

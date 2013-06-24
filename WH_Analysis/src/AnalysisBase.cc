@@ -138,7 +138,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 	
 	// If 2011, check the ID for muons
 	std::string muonid("");
-	if( fRunPeriod.find("2011") != std::string::npos )  //FIXME see above: Bug when introducing -c ELECTRON
+	//if( fRunPeriod.find("2011") != std::string::npos )  //FIXME see above: Bug when introducing -c ELECTRON
 	//  only, -- > muonidchar = 0 so initializing a string with the NULL char gives you a segmentation
 	{
 		muonid=muonidchar;		
@@ -330,7 +330,7 @@ AnalysisBase::AnalysisBase(TreeManager * data, std::map<LeptonTypes,InputParamet
 
 	// The tree for Event info
 	_evtlisttree = new TTree("evtlist","Event selected info");
-	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zlep1cat/D:zlep2cat/D:wlepcat/D:zmass/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
+	_evtlisttree->Branch("evtinfo",&_evtinfo.run,"run/I:lumi/I:evt/I:channel/I:zlep1cat/D:zlep2cat/D:wlepcat/D:zmass/D:zpt/D:zlep1pt/D:zlep1eta/D:zlep1phi/D:zlep2pt/D:zlep2eta/D:zlep2phi/D:wmt/D:wleppt/D:wlepeta/D:wlepphi/D:metet/D:metphi/D");
 	
 	// The tree for Weight info
 	_weighttree = new TTree("weighttree","Event selected info");
@@ -672,7 +672,7 @@ void AnalysisBase::InitialiseParameters()
 	{
 		fIsWH = true;
 	}
-	else if(fDataName.Contains("WZ"))
+	else if(fDataName.Contains("WZ") && ! fDataName.Contains("WWZ") && ! fDataName.Contains("WZZ") )
 	{
 		fIsWZ  = true;
 	}
@@ -936,6 +936,7 @@ void AnalysisBase::StoresEvtInf(const LeptonRel & zcand1, const LeptonRel & zcan
 	_evtinfo.zlep2cat = zcand2.category();
 
         _evtinfo.zmass = (zcand1.getP4()+zcand2.getP4()).M();
+        _evtinfo.zpt = (zcand1.getP4()+zcand2.getP4()).Pt();
         _evtinfo.zlep1pt = zcand1.getP4().Pt();
         _evtinfo.zlep1eta = zcand1.getP4().Eta();
         _evtinfo.zlep1phi = zcand1.getP4().Phi();

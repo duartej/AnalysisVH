@@ -87,6 +87,7 @@ struct EvtInfo
 	double wlepcat;
 
         double zmass;
+	double zpt;
         double zlep1pt;
         double zlep1eta;
         double zlep1phi;

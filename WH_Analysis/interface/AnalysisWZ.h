@@ -44,14 +44,27 @@ class AnalysisWZ : public AnalysisBase
 			fHEtJetMatchedLeptonPreSel,//Et of the jet matching a lepton at preselection
 			fHEtJetMatchedLeptonAfterZ,//Et of the jet matching a lepton after z candidate
 			fHEtJetMatchedLepton,     //Et of the jet matching a lepton after all cuts
+			fHPtLeadingJetAfterZCand, // Pt of the leading jet after z candidate
+			fHPtLeadingJetAfterWCand, // Pt of the leading jet after W candidate
+			fHPtLeadingJet,           // Pt of the leading jet after all cuts
 			fHZInvMass,               //Invariant mass of leptons in/out of Z peak after all cust
 			fHZInvMassAfterZCand,     //Invariant mass of leptons in/out of Z peak
 			fHZInvMassAfterWCand,     //Invariant mass of leptons in/out of Z peak
 			fHMET,                    //Missing ET after all cuts
 			fHMETAfterZCand,          // MET affer ZCandidate cut
 			fHMETAfterWCand,
-			fHNJets,                   // Number of jets after all cuts
+			fHZPtAfterZCand,          // Pt of the Z (lepton system) after z candidate
+			fHZPtAfterWCand,          // Pt of the Z (lepton system) after w candidate
+			fHZPt,                    // Pt of the Z (lepton system) after all cuts
+			fHPtLeptonZleading,       // Pt of the Z leading lepton after all cuts
+			fHPtLeptonZtrailing,      // Pt of the Z trailing lepton after all cuts
+			fHPtLeptonW,              // Pt of the W lepton after all cuts
+			fHNJets,                  // Number of jets after all cuts
+			fHNJetsPreSel,            // Number of jets after all cuts
+			fHNJetsAfterZCand,        // Number of jets after all cuts
+			fHNJetsAfterWCand,        // Number of jets after all cuts
 			fHTransversMass,
+			fHNPrimaryVerticesAfterZCand, // Number of vertices after Z cand
 			fHdRl1Wcand,
 			fHdRl2Wcand
 			//fHIsoLepton,
