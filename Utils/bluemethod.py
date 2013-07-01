@@ -124,6 +124,10 @@ def geterrorarray(xs,xserrors):
 		arrayEsys["PU"][id] = evalsyserr("PU",lval,rval)
 		# - 6. PDF sytematic effect: assuming fully correlation between all channels
 		arrayEsys["PDF"][id] = evalsyserr("PDF",lval,rval)
+		# - 6a. Q2 scales for acceptance only: assuming fully correlation between all channels
+		arrayEsys["Qscales"][id] = evalsyserr("Qscales",lval,rval)
+		# - 6a. Q2 scales for acceptance only: assuming fully correlation between all channels
+		arrayEsys["THEORETICAL"][id] = evalsyserr("THEORETICAL",lval,rval)
 		# - 7. MET resolution effect: assuming fully correlation between all channels
 		arrayEsys["MET"][id] = evalsyserr("MET",lval,rval)
 		# - 8. Fakeable object method: assuming not correlation between channels
