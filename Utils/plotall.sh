@@ -153,7 +153,7 @@ HISTOSNOC="fHEventsPerCut fHLeptonCharge fHNJets fHNJetsPreSel fHNJetsAfterZCand
 HISTOS4B="fHMET fHTransversMass fHPtLepton1 fHPtLepton2 fHPtLepton3 fHEtaLepton1 fHEtaLepton2 fHEtaLepton3"
 if [ "$1" == "WZ" ];
 then
-	HISTOS4B="$HISTOS4B fHTransversMassAfterWCand fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand fHZPt fHZPtAfterZCand fHZPtAfterWCand fHLeadingJetPtAfterZCand fHLeadingJetPtAfterWCand fHLeadingJetPt fHPtLeptonZleading fHPtLeptonZtrailing fHPtLeptonW fHWPtAfterWCand fHWPt fHDeltaPhiWMETAfterWCand fHDeltaPhiWMET fHPtLeptonWAfterWCand_METlowreg fHDeltaPhiWMETAfterWCand_METlowreg fHTransversMassAfterWCand_METlowreg" # fHIsoLepton fHD0Lepton"
+	HISTOS4B="$HISTOS4B fHTransversMassAfterWCand fHZInvMass fHZInvMassAfterZCand fHZInvMassAfterWCand fHMETAfterZCand fHMETAfterWCand fHdRl1Wcand fHdRl2Wcand fHZPt fHZPtAfterZCand fHZPtAfterWCand fHLeadingJetPtAfterZCand fHLeadingJetPtAfterWCand fHLeadingJetPt fHPtLeptonZleading fHPtLeptonZtrailing fHPtLeptonW fHPtLeptonWAfterWCand fHWPtAfterWCand fHWPt fHDeltaPhiWMETAfterWCand fHDeltaPhiWMET fHPtLeptonWAfterWCand_METlowreg fHDeltaPhiWMETAfterWCand_METlowreg fHTransversMassAfterWCand_METlowreg" # fHIsoLepton fHD0Lepton"
 	HISTOS8B=""
 	plotmode=0
 else
