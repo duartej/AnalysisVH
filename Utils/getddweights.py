@@ -339,7 +339,7 @@ def datadriven(inputfile,jet,blacklisted=None,**keywords):
 
 	zptclass=None
 	for i,val in keywords.iteritems():
-		if i == "storezpt":
+		if i == "storezpt" and val:
 			outputname = inputfile.split(".root")[0].replace('/','_')+'.root'
 			zptclass=zptrootfile(outputname)
 
