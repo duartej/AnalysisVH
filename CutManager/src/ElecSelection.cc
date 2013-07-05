@@ -603,6 +603,40 @@ bool ElecSelection::IsPassWP( const unsigned int & index ) const
 	return ispass && passconversion && passExpectedHits;
 }
 
+// Public function to return relative iso
+const double ElecSelection::GetRelIso(const unsigned int & i,const LeptonTypes & flavor) const
+{
+	return this->GetElecIsolationOverPt(i);
+}
+
+
+// Extract relative isolation
+const double ElecSelection::GetElecIsolationOverPt(const unsigned int & i) const
+{
+	const char * isonamestr = "T_Elec_eleSmurfPF";
+	double elecpt = _data->Get<float>("T_Elec_Pt",i);
+	if( _runperiod.find("2011") != std::string::npos )
+	{
+		elecpt = _data->Get<float>("T_UncalibElec_Pt",i);
+		// To be used when systematic EES is active (note we must 
+		// to re-do it due to the use of plain branches, not the LeptonRel)
+		double scaleEES = *_sebr;
+		if( _data->Get<float>("T_Elec_SC_Eta",i) > 1.479 )
+		{
+			scaleEES = *_see;
+		}
+		elecpt *= scaleEES;
+	}
+	
+	if( _runperiod.find("2012") != std::string::npos )
+	{
+		isonamestr = "T_Elec_pfComb";
+		elecpt = 1.0;
+	}
+	
+	return (_data->Get<float>(isonamestr,i) )/elecpt;
+}
+
 //---------------------------------------------
 // Select electrons
 // - Return the size of the vector with the index of the muons 
@@ -766,7 +800,8 @@ unsigned int ElecSelection::SelectIsoLeptons()
 
 		//[Require muons to be isolated]
 		//-------------------
-		const char * isonamestr = "T_Elec_eleSmurfPF";
+		const double isolation = GetElecIsolationOverPt(i);
+		// Extract pt to localize the sector 
 		double elecpt = it->getP4().Pt();
 		if( _runperiod.find("2011") != std::string::npos )
 		{
@@ -779,12 +814,6 @@ unsigned int ElecSelection::SelectIsoLeptons()
 			elecpt = _data->Get<float>("T_UncalibElec_Pt",i)*scaleEES;
 		}
 
-		if( _runperiod.find("2012") != std::string::npos )
-		{
-			isonamestr = "T_Elec_pfComb";
-			elecpt = 1.0;
-		}
-		double isolation =(_data->Get<float>(isonamestr,i) )/elecpt;
 		//The eta/pt plane is divided in 4 regions and the cut on isolation
 		//is different in each region
 		// PT ^

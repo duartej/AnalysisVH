@@ -441,6 +441,11 @@ bool MuonSelection::PassHWWMuonID(const int & i) const
 	return Idcuts;
 }
 
+const double MuonSelection::GetRelIso(const unsigned int & i,const LeptonTypes & flavor) const
+{
+	return this->GetMuonIsolationOverPt(i).first;
+}
+
 // Get the muon isolation over pt depending of the ID applied. Also returns if
 // the comparation w.r.t. input sheet values should be done inverse (2012) or not (2011)
 std::pair<double,bool> MuonSelection::GetMuonIsolationOverPt( const int & i ) const

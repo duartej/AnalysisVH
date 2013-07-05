@@ -64,6 +64,9 @@ class ElecSelection : public CutManager
 		//! Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;
 		
+		//! Get Relative isolation of i-electron (good elecs)
+		virtual const double GetRelIso(const unsigned int & index,const LeptonTypes & flavor) const;
+		
 		//-- Selection
 		//---------------------------------------------
 		//! Get the lepton type of the i-esim good lepton (tight+notight)
@@ -84,6 +87,9 @@ class ElecSelection : public CutManager
 		bool IsPassWP( const unsigned int & index ) const;
 		//! Check if pass the BDT Working Point selected
 		bool IsPassBDT( const unsigned int & index ) const;
+
+		//! relative isolation getter
+		const double GetElecIsolationOverPt(const unsigned int & i) const;
 		
 		//! Update fakeables collection, taking into account the lepton type 
 		//virtual bool WasAlreadyUpdated() { return false; }

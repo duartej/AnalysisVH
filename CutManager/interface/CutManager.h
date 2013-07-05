@@ -124,6 +124,10 @@ class CutManager
 		inline const unsigned int GetNAnalysisTightLeptons() { return _nTights; }
 		//! Get the number of total No-Tight leptons which are considered in this analysis
 		inline const unsigned int GetNAnalysisNoTightLeptons() { return _nFails; }
+
+		//! Get relative isolation of i-lepton. The index is relative to the data structure,
+		//! not to the vector of good leptons
+		virtual const double GetRelIso(const unsigned int & index,const LeptonTypes & flavor) const = 0;
 		
 		//! Get the value for the input parameters entered by the user via the InputParameters
 		inline const double GetCut(const std::string & cutname) const { return (*_cuts)[cutname]; }

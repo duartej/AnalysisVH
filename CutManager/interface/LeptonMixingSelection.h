@@ -60,6 +60,9 @@ class LeptonMixingSelection : public CutManager
 		virtual std::vector<std::string> GetCodenames() const;
 		//virtual std::vector<std::string> GetCodenames(const LeptonTypes & leptontype) const;
 		
+		//! Get Relative isolation of i-lepton (good lepton)
+		virtual const double GetRelIso(const unsigned int & index,const LeptonTypes & flavor) const;
+		
 		//! Overloaded Reset method in order to deal with the extra data members
 		//! used by this class
 		virtual void Reset();

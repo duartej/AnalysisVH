@@ -76,6 +76,9 @@ class MuonSelection : public CutManager
 		//! Get the code names of the selection cuts
 		virtual std::vector<std::string> GetCodenames() const;
 
+		//! Get Relative isolation of i-muon (good muons)
+		virtual const double GetRelIso(const unsigned int & i,const LeptonTypes & flavor) const;
+
 	private:
 		// Check if the muon-i pass the Vector Boson Task Force tight muon ID
 		bool PassVBTFTightID(const int & i) const;

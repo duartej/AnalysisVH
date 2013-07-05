@@ -313,6 +313,21 @@ bool LeptonMixingSelection::isfound(const LeptonRel & lepton,
 	return false;
 }
 
+// Get the relative isolation for the i-lepton
+const double LeptonMixingSelection::GetRelIso(const unsigned int & i,const LeptonTypes & flavor) const
+{
+	double isolationRel = 0.0;
+	if( flavor == ELECTRON )
+	{
+		isolationRel = fElecSelection->GetRelIso(i,flavor);
+	}
+	else if( flavor == MUON )
+	{
+		isolationRel = fMuonSelection->GetRelIso(i,flavor);
+	}
+
+	return isolationRel;
+}
 
 //---------------------------------------------
 // Select muons and electrons
