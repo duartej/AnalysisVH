@@ -388,10 +388,12 @@ class histoclass(processedsample):
 			self.histogram.SetLineColor(self.histogram.GetMarkerColor())
 		else:
 			self.histogram.SetFillColor(COLORSDICT[self.samplename])
-			self.histogram.SetLineColor(kBlack)
+			self.histogram.SetLineColor(COLORSDICT[self.samplename])
+			#self.histogram.SetLineColor(kBlack)
 		if self.issignal and ( "ToWW" in self.samplename or "WZ" in self.samplename):
-			self.histogram.SetFillStyle(3254)
-			self.histogram.SetLineColor(COLORSDICT[self.samplename]-1)
+			#self.histogram.SetFillStyle(3254)
+			self.histogram.SetFillStyle(1001)
+			self.histogram.SetLineColor(COLORSDICT[self.samplename])
 
 		return
 
