@@ -91,14 +91,17 @@ struct EvtInfo
         double zlep1pt;
         double zlep1eta;
         double zlep1phi;
+	double zlep1q;
         double zlep2pt;
         double zlep2eta;
         double zlep2phi;
+	double zlep2q;
 
         double wmt;
         double wleppt;
         double wlepeta;
         double wlepphi;
+	double wlepq;
 
         double metet;
         double metphi;
