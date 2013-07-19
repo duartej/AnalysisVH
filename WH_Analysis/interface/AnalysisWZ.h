@@ -76,9 +76,11 @@ class AnalysisWZ : public AnalysisBase
 			// REQUESTED FROM PRE-APPROVAL ---> After Z candidate has no sense but...
 			fHPtLeptonWAfterWCand_METlowreg,
 			fHDeltaPhiWMETAfterWCand_METlowreg,
-			fHTransversMassAfterWCand_METlowreg
+			fHTransversMassAfterWCand_METlowreg,
 			//fHIsoLepton,
 			//fHD0Lepton
+			// EXTRA PLOTS
+			fHRelIsoFakeLeptonAfterZCand
 		};
 		
 		//! Constructor
@@ -99,6 +101,9 @@ class AnalysisWZ : public AnalysisBase
 		//! It returns the number of electron and muons leptons (taking into account the 
 		//! taus decaying to them)
 		const unsigned int setSignalMCInfo(const double & eventweight);
+		//! MC Truth check (just for MC samples): a reco lepton matches with a
+		//! lepton not coming from a W/Z
+		const bool matchedNonPromptLepton(const unsigned int & i, const LeptonTypes & flavor) const;
 		// Number of no tight muons, electrons and events (Nti)
 		int _nTMuons;
 		int _nTElecs;

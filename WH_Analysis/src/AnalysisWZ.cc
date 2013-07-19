@@ -256,6 +256,9 @@ void AnalysisWZ::Initialise()
 	_histos[fHLeadingJetPtAfterZCand] = CreateH1D("fHLeadingJetPtAfterZCand","Leaging Jet p_{T}",200,0,400);
 	_histos[fHLeadingJetPtAfterWCand] = CreateH1D("fHLeadingJetPtAfterWCand","Leading Jet p_{T}",200,0,400);
 	_histos[fHLeadingJetPt] = CreateH1D("fHLeadingJetPt","Leading Jet p_{T}",200,0,400);
+	// Isolation for the jet matched with a lepton plus MC true matching
+	_histos[fHRelIsoFakeLeptonAfterZCand] = CreateH1D("fHRelIsoFakeLeptonAfterZCand","#sum Iso_{total}/p_{t}, fake lepton",
+			50,-0.1,3.0);
 }
 
 //---------------------------------------------------------------------
@@ -555,11 +558,33 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	// Fill charge before rejecting or accepting  
 	_histos[fHLeptonCharge]->Fill(charge, puw);
 	
+	// Extract the isolation for loose leptons
+	std::vector<double> relisomatched;
+	if( ! fIsData )
+	{
+		for(unsigned int j = 0; j < theLeptons->size(); ++j)
+		{
+			const unsigned int indexLepton = (*theLeptons)[j].index();
+			const LeptonTypes flavor = (*theLeptons)[j].leptontype();
+			// Check if matches with a Z/W prompt lepton
+			// If not-> stores the reliso
+			if( matchedNonPromptLepton(indexLepton,flavor) )
+			{
+				const double reliso = fLeptonSelection->GetRelIso(indexLepton,flavor);
+				relisomatched.push_back(reliso);
+			}
+		}
+	}
+	for(unsigned int i =  0; i < relisomatched.size(); ++i)
+	{
+		_histos[fHRelIsoFakeLeptonAfterZCand]->Fill(relisomatched[i],puw);
+	}
+
 	// Jet Veto: Not applied, just counting the number of jets
 	//------------------------------------------------------------------
 	unsigned int nJets = 0;
 	std::vector<double> jetsmatchedEt;
-	// Ordered no mathced jet by pt
+	// Ordered no matched jet by pt
 	std::set<double> jetsnomatchedPt;
 	std::vector<LeptonRel> notightleptons;
 	if( fLeptonSelection->IsInFakeableMode() )
@@ -569,7 +594,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	for(unsigned int k = 0; k < fData->GetSize<float>(std::string("T_"+_jetname+"_Energy").c_str()); ++k) 
 	{
 		TLorentzVector Jet = this->GetTLorentzVector(_jetname.c_str(),k);
-		//FIXME: Add the pt,eta and deltaR cuts in the config file
 		// Leptons not inside the Jets
 		bool leptoninsideJet = false;
 		for(unsigned int j = 0; j < theLeptons->size(); ++j)
@@ -579,13 +603,20 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 				leptoninsideJet = true;
 				// If is a notight lepton, stores the jet Et to plot it distributions
 				if( std::find(notightleptons.begin(),notightleptons.end(), (*theLeptons)[j] ) 
-						!= notightleptons.end() )
+							!= notightleptons.end() )
 				{
 					jetsmatchedEt.push_back(Jet.Et());
 				}
+				// A lepton was matched with the jet, not needed to continue the lepton-for
 				break;
 			}
 		}
+		if( leptoninsideJet )
+		{
+			continue;
+		}
+		
+		//FIXME: Add the pt,eta and deltaR cuts in the config file
 		// Checked for the count of number of jets, the jet is defined
 		// as pt > 30 and eta <5
 		if( Jet.Pt() <= 30 || fabs(Jet.Eta()) >= 5 )
@@ -593,11 +624,6 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 			continue;
 		}
 
-		if( leptoninsideJet )
-		{
-			continue;
-		}
-		
 		jetsnomatchedPt.insert( Jet.Pt() );
 		nJets++;
 	}
@@ -954,6 +980,56 @@ std::pair<unsigned int,float> AnalysisWZ::InsideLoop()
 	}
 
 	return std::pair<unsigned int,float>(WZCuts::_iNCuts,puw);	
+}
+
+const bool AnalysisWZ::matchedNonPromptLepton(const unsigned int & index,const LeptonTypes & flavor) const
+{
+	// Search for a Gen Lepton matched
+	std::string flavorstr = "Muon";
+	if( flavor == ELECTRON )
+	{
+		flavorstr = "Elec";
+	}
+	// The components strings gen
+	const std::string _px   = std::string("T_Gen_"+flavorstr+"_Px");
+	const std::string _py   = std::string("T_Gen_"+flavorstr+"_Py");
+	const std::string _pz   = std::string("T_Gen_"+flavorstr+"_Pz");
+	const std::string _E    = std::string("T_Gen_"+flavorstr+"_Energy");
+	const std::string _MPID = std::string("T_Gen_"+flavorstr+"_MPID");
+	// Build the Gen Vectors
+	std::vector<TLorentzVector> genleptons;
+	for(unsigned int i = 0; i < fData->GetSize<int>(_px.c_str()); ++i)
+	{
+		genleptons.push_back( 
+			 TLorentzVector(fData->Get<float>(_px.c_str(),i),
+					fData->Get<float>(_py.c_str(),i),
+					fData->Get<float>(_pz.c_str(),i),
+					fData->Get<float>(_E.c_str(),i))
+			             );
+	}
+
+	// The components strings reco
+	const std::string _pxR   = std::string("T_"+flavorstr+"_Px");
+	const std::string _pyR   = std::string("T_"+flavorstr+"_Py");
+	const std::string _pzR   = std::string("T_"+flavorstr+"_Pz");
+	const std::string _ER    = std::string("T_"+flavorstr+"_Energy");
+	TLorentzVector recolepton(fData->Get<float>(_pxR.c_str(),index),
+			fData->Get<float>(_pyR.c_str(),index),
+			fData->Get<float>(_pzR.c_str(),index),
+			fData->Get<float>(_ER.c_str(),index));
+
+	// Try to match with the reco lepton
+	for(unsigned int i = 0; i < genleptons.size(); ++i)
+	{
+		if( fabs(genleptons[i].DeltaR(recolepton)) < 0.2 && 
+			 abs(fData->Get<int>(_MPID.c_str(),i)) != 23 && abs(fData->Get<int>(_MPID.c_str(),i)) != 24 &&
+			 abs(fData->Get<int>(_MPID.c_str(),i)) != 15 )
+		{
+			return true;
+		}
+	}
+
+	return false;
 }
 
 
