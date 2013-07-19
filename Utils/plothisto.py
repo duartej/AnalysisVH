@@ -10,7 +10,8 @@ from functionspool_mod import processedsample
 TEXTSIZE=0.03  # See TAttText class (Text Size), it means the 3% of the lenght or width
 HISTOSWITHBINWIDTH = { "fHMET": 15 , "fHPtLepton1": 10,"fHPtLepton2":10,"fHPtLepton3":10,
 		"fHLeadingJetPtAfterZCand": 30, "fHLeadingJetPtAfterZCand": 30, "fHLeadingJetPt": 30,
-		"fHPtLeptonZleading": 10, "fHPtLeptonZtrailing":10, "fHPtLeptonW":10}
+		"fHPtLeptonZleading": 10, "fHPtLeptonZtrailing":10, "fHPtLeptonW":10,
+		"fHDeltaPhiWMET":0.4,"fHDeltaPhiWMETAfterWCand":0.4}
 ORDEREDBKG = [ 'PPP', 'PPF', 'Fakes', 'ZZ', 'Vgamma' ]
 
 
@@ -132,7 +133,6 @@ class histoclass(processedsample):
 				
 			self.unit = ""
 
-
 	def __gethistogram__(self):
 		"""..method: __gethistogram__() -> ROOT.TH1F 
 		
@@ -140,18 +140,37 @@ class histoclass(processedsample):
 		luminosity
 		"""
 		import ROOT
-
-		ROOT.TH1.SetDefaultSumw2()
+		
+		# Adding poisson errors to data
+		if not self.isdata:
+			ROOT.TH1.SetDefaultSumw2()
 
 		f = ROOT.TFile(self.filename)
 		# Setting the weight
 		self.weight = self.getweight()
 		# Extract the histo
-		histogram = f.Get(self.histoname)
-		if not histogram:
+		histogramprov = f.Get(self.histoname)
+		if not histogramprov:
 			message  = "\033[31mhistoclass ERROR\033[m Histogram not found: '%s'" % self.histoname
 			raise RuntimeError(message)
-		
+		# Adding poisson errors to data
+		if self.isdata:
+			histogram = ROOT.TH1D(histogramprov.GetName()+"_PoissonErrors",histogramprov.GetTitle(),
+					histogramprov.GetNbinsX(),histogramprov.GetBinLowEdge(1),
+					histogramprov.GetBinLowEdge(histogramprov.GetNbinsX())+histogramprov.GetBinWidth(1))
+			try:
+				histogram.SetBinErrorOption(ROOT.TH1.kPoisson)
+				for i in xrange(1,histogram.GetNbinsX()+1):
+					for j in xrange(0,int(histogramprov.GetBinContent(i))):
+						histogram.Fill(histogramprov.GetBinCenter(i))
+			except AttributeError:
+				# ROOT Version below 5.33
+				message = '\033[1;33mplothisto WARNING\033[1;m ROOT version < 5.33. I cannot'
+				message += 'produce the Poisson errors for data'
+				print message
+				histogram = histogramprov
+		else:
+			histogram = histogramprov
 		histogram.SetDirectory(0)
 		f.Close()
 
@@ -396,6 +415,7 @@ class histoclass(processedsample):
 			self.histogram.SetLineColor(COLORSDICT[self.samplename])
 
 		return
+	
 
 def getcoord(where,xwidth,ywidth,ystart=-1):
 	"""..function::getcoord(where) --> (x1,y1,x2,y2)
@@ -677,6 +697,7 @@ def plotallsamples(sampledict,**keywords):
 	"""
 	import os
 	import ROOT
+	from math import sqrt
 
 	validkeys = [ "plottype", "rebin", "hasratio", "isofficial", "plotsuffix", "allsamplesonleg" ]
 	# Dictionary of arguments
@@ -842,7 +863,10 @@ def plotallsamples(sampledict,**keywords):
 	
 	# With ratio histogram
 	if hasratio:
-		ratio.Divide(datasample.histogram,mcratio,1,1,"B")
+		provnumerator = datasample.histogram.Clone('prov')
+		provnumerator.Sumw2()
+		provnumerator.Add(mcratio,-1.0)
+		ratio.Divide(provnumerator,mcratio,1,1,"B")
 		# Building the Monte Carlo statistical+systematic errors,
 		# (see the setsyserrors function)
 		# taking advantage of the loop, put the x-labels if any
@@ -850,31 +874,40 @@ def plotallsamples(sampledict,**keywords):
 			binlabel=datasample.histogram.GetXaxis().GetBinLabel(i)
 			if len(binlabel) != 0:
 				errors.GetXaxis().SetBinLabel(i,binlabel)
-			errors.SetBinContent(i,1.0)
+			errors.SetBinContent(i,0.0)
 			try:
 				errors.SetBinError(i,mcratio.GetBinError(i)/mcratio.GetBinContent(i))
 			except ZeroDivisionError:
 				errors.SetBinError(i,0.0)
 			try:
-				ratio.SetBinError(i,datasample.histogram.GetBinError(i)/mcratio.GetBinContent(i))
+				if datasample.histogram.GetBinContent(i) == 0:
+					# We don't want fill the content
+					# when there is no data
+					# WARNING: YOU CAN'T USE THIS HISTO TO CALCULATE ANYTHING!!
+					ratio.SetBinContent(i,-10.0)
+					raise ZeroDivisionError
+				ratio.SetBinError(i,sqrt(provnumerator.GetBinError(i)**2.0+
+					mcratio.GetBinError(i)**2)/mcratio.GetBinContent(i))
+				#ratio.SetBinErrorUp(i,provnumerator.GetBinErrorUp(i)/mcratio.GetBinContent(i))
+				#ratio.SetBinErrorLow(i,provnumerator.GetBinErrorLow(i)/mcratio.GetBinContent(i))
 			except ZeroDivisionError:
 				ratio.SetBinError(i,0.0)
 		ratio.SetMaximum(2.3)
 		errors.SetMaximum(2.3)
 		ratio.SetMinimum(0.0)
-		errors.SetMinimum(-0.3)
+		errors.SetMinimum(-1.1)
 		ratio.SetLineColor(kBlack)
 		ratio.SetMarkerStyle(20)
 		ratio.SetMarkerSize(0.70)
-		errors.SetFillColor(20) # 38
-		errors.SetLineColor(20) # 38
+		errors.SetFillColor(26)#(20) # 38
+		errors.SetLineColor(26)#(20) # 38
 		errors.SetFillStyle(3345)
 
 		errors.SetXTitle(datasample.xtitle)
 		errors.GetXaxis().SetTitleSize(0.15)
 		errors.GetXaxis().SetLabelSize(0.14)
 		errors.GetYaxis().SetNdivisions(205);
-		errors.GetYaxis().SetTitle("N_{data}/N_{est}");
+		errors.GetYaxis().SetTitle("N_{data}-N_{pred.}/N_{pred.}");
 		errors.GetYaxis().SetTitleSize(0.15);
 		errors.GetYaxis().SetTitleOffset(0.3);
 		errors.GetYaxis().SetLabelSize(0.14);
@@ -888,7 +921,7 @@ def plotallsamples(sampledict,**keywords):
 
 		errors.Draw("E2")
 		ratio.Draw("PESAME")
-		line = ROOT.TLine(ratio.GetXaxis().GetXmin(),1.0,ratio.GetXaxis().GetXmax(),1.0)
+		line = ROOT.TLine(ratio.GetXaxis().GetXmin(),0.0,ratio.GetXaxis().GetXmax(),0.0)
 		line.SetLineColor(46)
 		line.SetLineStyle(8)
 		line.Draw("SAME")		
@@ -1237,7 +1270,10 @@ if __name__ == '__main__':
 	# from the original binning
 	try:
 		binwidth = HISTOSWITHBINWIDTH[histoname]
-		if "PtLepton" in histoname and opt.channel == "lll":
+		if "PtLepton" in histoname and opt.channel == "lll" and \
+				histoname.find('trailing') == -1 and \
+				histoname.find('leading') == -1 and \
+				histoname.find('PtLeptonW') == -1:
 			binwidth /= 2
 		# Forcing to have the binwidth
 		totalX = sampledict[opt.data].histogram.GetBinLowEdge(nbins+1)-sampledict[opt.data].histogram.GetBinLowEdge(1)
