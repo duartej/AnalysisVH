@@ -101,6 +101,13 @@ def LatinosStyle():
         LatinosStyle.SetStatFont      (  42)
         LatinosStyle.SetStatX         (0.94)
         LatinosStyle.SetStatY         (0.91)
-	
+
+        #----------------------------------------------------------------------------
+        # Ratio plots
+        #----------------------------------------------------------------------------
+	LatinosStyle.SetEndErrorSize(5);
+	LatinosStyle.SetHatchesLineWidth(1);
+	LatinosSyle.SetHatchesSpacing(0.7);
+
 	return
 
