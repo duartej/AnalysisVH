@@ -730,6 +730,11 @@ class processedsample(object):
 				# so fill the sys with the channel and break the 
 				# bucle because the keys are channels
 				sumsys2 += sysdict[channel]**2.0
+				# Also add the DDDMC systematic
+				ddmdict = getattr(systematics_mod,"DDMMC")
+				# FIXME: ADD ANOTHER KEY TO DEAL WITH PPF sample
+				# FIXME: When the sys DDMMC is respect to the PPP
+				sumsys2 += ddmdict[channel]**2.
 				break
 		
 		# persistency
