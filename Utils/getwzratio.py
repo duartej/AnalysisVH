@@ -65,7 +65,7 @@ def getobsyields(channelfolder,signalname,charge):
 
 	# ACCEPTANCE CALCULATION 
 	signalps = processedsample(channelfolder+"/cluster_"+actsignalname+"/Results/"+actsignalname+".root")
-	Npass,NpassErr = dataps.getrealvalue("MET")
+	Npass,NpassErr = signalps.getrealvalue("MET")
 	#Ngen = NGEN[charge]
 	Ngen = NGENPUWEIGHTED[charge]
 	acc = Npass/Ngen
